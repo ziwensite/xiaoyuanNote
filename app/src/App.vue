@@ -17,19 +17,10 @@ import Toolbar from './components/Toolbar.vue';
 import TelemetryBanner from './components/TelemetryBanner.vue';
 import TileRoot from './components/TileRoot.vue';
 import StatsPill from './components/StatsPill.vue';
-import Outline from './components/Outline.vue';
-import BacklinksPanel from './components/BacklinksPanel.vue';
-const NeighborhoodPanel = defineAsyncComponent(() => import('./components/NeighborhoodPanel.vue'));
-const RelationshipsPanel = defineAsyncComponent(() => import('./components/RelationshipsPanel.vue'));
-const TagsPanel = defineAsyncComponent(() => import('./components/TagsPanel.vue'));
-const TasksPanel = defineAsyncComponent(() => import('./components/TasksPanel.vue'));
+import SidebarDock from './components/sidebar/SidebarDock.vue';
+import { IMPLEMENTED_SIDEBAR_PANE_IDS, type ImplementedSidebarPaneId } from './panes/sidebar-panes';
 const TableEditor = defineAsyncComponent(() => import('./components/TableEditor.vue'));
 const FormulaEditor = defineAsyncComponent(() => import('./components/FormulaEditor.vue'));
-const TypesPanel = defineAsyncComponent(() => import('./components/TypesPanel.vue'));
-const HistoryPanel = defineAsyncComponent(() => import('./components/HistoryPanel.vue'));
-const PropertiesInspector = defineAsyncComponent(() => import('./components/PropertiesInspector.vue'));
-const AgentPanel = defineAsyncComponent(() => import('./components/AgentPanel.vue'));
-import RsSplitter from './components/RsSplitter.vue';
 import { useAutoCommit } from './composables/useAutoCommit';
 import { useGithubSync } from './composables/useGithubSync';
 import { useSessionRestore } from './composables/useSessionRestore';
@@ -2106,7 +2097,7 @@ const visibleRsPanes = computed(() => {
   // v4.3.0 issue #57b — order driven by settings.rsPaneOrder so users can
   // drag-reorder. Unknown ids (newly-shipped future panes) get appended at
   // the end so a SoloMD update doesn't blow away an existing user layout.
-  const all: Record<'search' | 'outline' | 'backlinks' | 'relationships' | 'tags' | 'tasks' | 'neighborhood' | 'types' | 'history' | 'inspector' | 'agent', boolean> = {
+  const all: Record<ImplementedSidebarPaneId, boolean> = {
     search: showSearchPane.value,
     outline: showOutlinePane.value,
     backlinks: showBacklinksPane.value,
@@ -2119,7 +2110,7 @@ const visibleRsPanes = computed(() => {
     inspector: showInspectorPane.value,
     agent: showAgentPane.value,
   };
-  const known = ['search', 'outline', 'backlinks', 'relationships', 'tags', 'tasks', 'neighborhood', 'types', 'history', 'inspector', 'agent'] as const;
+  const known = IMPLEMENTED_SIDEBAR_PANE_IDS;
   const ordered: string[] = [];
   for (const id of settings.rsPaneOrder || []) {
     if (id in all && !ordered.includes(id)) ordered.push(id);
@@ -2128,54 +2119,9 @@ const visibleRsPanes = computed(() => {
     if (!ordered.includes(id)) ordered.push(id);
   }
   return ordered
-    .filter((id) => all[id as keyof typeof all])
-    .map((id) => ({ id: id as 'search' | 'outline' | 'backlinks' | 'relationships' | 'tags' | 'tasks' | 'neighborhood' | 'types' | 'history' | 'inspector' | 'agent' }));
+    .filter((id) => all[id as ImplementedSidebarPaneId])
+    .map((id) => ({ id: id as ImplementedSidebarPaneId }));
 });
-
-// #131 — sidebar pane reordering via the ⋮⋮ grip.
-//
-// This used HTML5 drag-and-drop (`draggable` + dragstart/dragover/drop), but
-// the Tauri webview ships with `dragDropEnabled: true` (the app needs the
-// native OS file-drop for "drop a file to open it" + image drop), and that
-// native handler swallows in-webview HTML5 DnD — so the grip silently did
-// nothing. Pointer events are not intercepted, so we drive the reorder
-// manually: pointerdown on the grip → track the pane under the cursor →
-// pointerup commits the move. Works on mouse, trackpad and touch alike.
-const draggingPaneId = ref<string | null>(null);
-const dragOverPaneId = ref<string | null>(null);
-function startPaneReorder(e: PointerEvent, id: string) {
-  if (e.button !== 0 && e.pointerType === 'mouse') return;
-  e.preventDefault();
-  draggingPaneId.value = id;
-  dragOverPaneId.value = null;
-  const paneUnder = (x: number, y: number): string | null => {
-    const host = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest(
-      '[data-rs-pane]',
-    ) as HTMLElement | null;
-    return host?.getAttribute('data-rs-pane') || null;
-  };
-  const onMove = (m: PointerEvent) => {
-    const over = paneUnder(m.clientX, m.clientY);
-    dragOverPaneId.value = over && over !== id ? over : null;
-  };
-  const onUp = () => {
-    document.removeEventListener('pointermove', onMove);
-    document.removeEventListener('pointerup', onUp);
-    const src = draggingPaneId.value;
-    const tgt = dragOverPaneId.value;
-    draggingPaneId.value = null;
-    dragOverPaneId.value = null;
-    if (!src || !tgt || src === tgt) return;
-    // Index into the full order list (not just the visible subset) so the
-    // reorder survives toggling pane visibility off + on.
-    const order = [...(settings.rsPaneOrder || [])];
-    const targetIdx = order.indexOf(tgt);
-    if (targetIdx < 0) return;
-    settings.moveRsPane(src, targetIdx);
-  };
-  document.addEventListener('pointermove', onMove);
-  document.addEventListener('pointerup', onUp);
-}
 
 // Sidebar visibility / pane composition changes the editor's available
 // width. CodeMirror's ResizeObserver may lag for a frame, so dispatch
@@ -2188,73 +2134,36 @@ watch(visibleRsPanes, () => {
   });
 });
 
-// Per-pane height map → inline flex-basis. Panes without a stored height
-// fall back to the CSS flex defaults (1× for read-only panes, 4× for
-// Agent so chat keeps room when no splitter has been touched).
-function paneStyle(id: string) {
-  const panes = visibleRsPanes.value;
-  // #294 — a pane's stored height outlives the stack it was measured in.
-  // Drag the splitter while Outline shares the sidebar with Backlinks, then
-  // close Backlinks, and Outline stays pinned to that old height with dead
-  // space under it — and no splitter left to drag, because splitters only
-  // exist *between* panes. A pane that owns the sidebar alone therefore
-  // ignores the stored height and fills it, which is also the default
-  // `.rs-pane-host { flex: 1 1 0 }` behaviour before any drag.
-  if (panes.length < 2) return {};
-  // A stack nobody has dragged keeps the stylesheet's proportional shares
-  // (Agent asks for 4×) — only once a height has actually been pinned does
-  // this take over the sizing.
-  const stored = settings.rightSidebarPaneHeights;
-  if (!panes.some((p) => (stored[p.id] ?? 0) > 0)) return {};
-  // Then the bottom pane absorbs whatever the panes above leave over, so the
-  // stack always reaches the bottom edge no matter how stale the stored
-  // heights are or how much the window has been resized since.
-  if (panes[panes.length - 1]?.id === id) return { flex: '1 1 auto', minHeight: '80px' };
-  const h = stored[id];
-  if (h && h > 0) {
-    // `0 1` rather than `0 0`: heights are stored in pixels, so a window that
-    // later got shorter must be able to squeeze them instead of pushing the
-    // last pane off the bottom.
-    return { flex: `0 1 ${h}px`, height: `${h}px`, minHeight: '80px' };
-  }
-  return {};
-}
-
 // Side sidebar width — user-resizable via drag handle. Defaults to 260
 // for the read-only panes (outline/backlinks/tags/history), but auto-
 // bumps to 440 when the agent panel is on (chat needs real estate).
 // User resizes above the auto-bump are honored.
-const sideSidebarStyle = computed(() => {
-  const w =
-    showAgentPane.value && settings.sideSidebarWidth <= 260
-      ? 440
-      : settings.sideSidebarWidth;
-  return { width: `${w}px`, flexBasis: `${w}px` };
-});
+const sideSidebarWidth = computed(() =>
+  showAgentPane.value && settings.sideSidebarWidth <= 260
+    ? 440
+    : settings.sideSidebarWidth,
+);
 
-function onSidebarResize(side: 'left' | 'right', ev: MouseEvent) {
-  ev.preventDefault();
-  const startX = ev.clientX;
-  const startW = parseInt(
-    (sideSidebarStyle.value.width as string).replace('px', ''),
-    10,
-  );
-  const onMove = (m: MouseEvent) => {
-    const dx = m.clientX - startX;
-    // Right sidebar: drag left = wider. Left sidebar: drag right = wider.
-    const delta = side === 'right' ? -dx : dx;
-    settings.setSideSidebarWidth(startW + delta);
+// Pane × buttons. Search is session-only; every other pane goes through
+// `ctxToggle` so closing the last pane still hides the whole sidebar.
+function onPaneClose(id: ImplementedSidebarPaneId) {
+  if (id === 'search') {
+    searchOpen.value = false;
+    return;
+  }
+  const toggle: Partial<Record<ImplementedSidebarPaneId, () => void>> = {
+    backlinks: () => settings.toggleBacklinks(),
+    relationships: () => settings.toggleRelationships(),
+    tags: () => settings.toggleTagsPanel(),
+    tasks: () => settings.toggleTasksPanel(),
+    neighborhood: () => settings.toggleNeighborhood(),
+    types: () => settings.toggleTypesPanel(),
+    history: () => settings.toggleHistoryPanel(),
+    inspector: () => settings.toggleInspector(),
+    agent: () => settings.toggleAgentPanel(),
   };
-  const onUp = () => {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  };
-  document.body.style.cursor = 'ew-resize';
-  document.body.style.userSelect = 'none';
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
+  const fn = toggle[id];
+  if (fn) ctxToggle(fn);
 }
 const basesOpen = ref(false);
 const inboxViewOpen = ref(false);
@@ -2372,65 +2281,19 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       />
       <TelemetryBanner />
       <div class="workspace">
-        <aside
+        <SidebarDock
           v-if="showRightSidebar && settings.outlineSide === 'left'"
-          class="side-sidebar side-sidebar--left"
-          :style="sideSidebarStyle"
-          @contextmenu.prevent="openSidebarCtx"
-        >
-          <div class="side-sidebar__resize side-sidebar__resize--right" @mousedown="onSidebarResize('left', $event)" />
-          <template v-for="(p, idx) in visibleRsPanes" :key="p.id">
-            <RsSplitter v-if="idx > 0" :above="visibleRsPanes[idx-1].id" :below="p.id" />
-            <div
-              :data-rs-pane="p.id"
-              :class="[
-                'rs-pane-host',
-                `rs-pane-host--${p.id}`,
-                draggingPaneId === p.id ? 'rs-pane-host--dragging' : '',
-                dragOverPaneId === p.id ? 'rs-pane-host--drop-target' : '',
-              ]"
-              :style="paneStyle(p.id)"
-            >
-              <div
-                class="rs-pane-grip"
-                :title="t('rsPane.dragToReorder')"
-                @pointerdown="startPaneReorder($event, p.id)"
-              />
-              <GlobalSearch
-                v-if="p.id === 'search'"
-                :prefill="searchPrefill"
-                @close="searchOpen = false"
-              />
-              <Outline v-if="p.id === 'outline'" :cursor-line="outlineLine" @goto="onOutlineGoto" />
-              <BacklinksPanel v-if="p.id === 'backlinks'" @close="ctxToggle(() => settings.toggleBacklinks())" />
-              <RelationshipsPanel v-if="p.id === 'relationships'" @close="ctxToggle(() => settings.toggleRelationships())" />
-              <TagsPanel
-                v-if="p.id === 'tags'"
-                @close="ctxToggle(() => settings.toggleTagsPanel())"
-                @filter-tag="onFilterTag"
-              />
-              <TasksPanel
-                v-if="p.id === 'tasks'"
-                @close="ctxToggle(() => settings.toggleTasksPanel())"
-              />
-              <NeighborhoodPanel
-                v-if="p.id === 'neighborhood'"
-                @close="ctxToggle(() => settings.toggleNeighborhood())"
-              />
-              <TypesPanel
-                v-if="p.id === 'types'"
-                @close="ctxToggle(() => settings.toggleTypesPanel())"
-              />
-              <HistoryPanel v-if="p.id === 'history'" @close="ctxToggle(() => settings.toggleHistoryPanel())" />
-              <PropertiesInspector v-if="p.id === 'inspector'" @close="ctxToggle(() => settings.toggleInspector())" />
-              <AgentPanel
-                v-if="p.id === 'agent'"
-                @open-settings="(section?: string) => openSettingsAt(section ?? 'integrations')"
-                @close="ctxToggle(() => settings.toggleAgentPanel())"
-              />
-            </div>
-          </template>
-        </aside>
+          side="left"
+          :panes="visibleRsPanes"
+          :width="sideSidebarWidth"
+          :search-prefill="searchPrefill"
+          :outline-line="outlineLine"
+          @contextmenu="openSidebarCtx"
+          @close-pane="onPaneClose"
+          @filter-tag="onFilterTag"
+          @outline-goto="onOutlineGoto"
+          @open-settings="(section?: string) => openSettingsAt(section ?? 'integrations')"
+        />
         <div class="content">
           <BasesView v-if="basesOpen" />
           <InboxView v-else-if="inboxViewOpen" />
@@ -2439,65 +2302,19 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           <TileRoot v-else :node="tiles.root" @cursor="onCursor" @selection="onSelection" />
           <StatsPill v-if="!basesOpen && !inboxViewOpen && !typeLensOpen && !viewPaneVisible" :line="cursorLine" :col="cursorCol" :selection-text="selectionText" />
         </div>
-        <aside
+        <SidebarDock
           v-if="showRightSidebar && settings.outlineSide !== 'left'"
-          class="side-sidebar side-sidebar--right"
-          :style="sideSidebarStyle"
-          @contextmenu.prevent="openSidebarCtx"
-        >
-          <div class="side-sidebar__resize side-sidebar__resize--left" @mousedown="onSidebarResize('right', $event)" />
-          <template v-for="(p, idx) in visibleRsPanes" :key="p.id">
-            <RsSplitter v-if="idx > 0" :above="visibleRsPanes[idx-1].id" :below="p.id" />
-            <div
-              :data-rs-pane="p.id"
-              :class="[
-                'rs-pane-host',
-                `rs-pane-host--${p.id}`,
-                draggingPaneId === p.id ? 'rs-pane-host--dragging' : '',
-                dragOverPaneId === p.id ? 'rs-pane-host--drop-target' : '',
-              ]"
-              :style="paneStyle(p.id)"
-            >
-              <div
-                class="rs-pane-grip"
-                :title="t('rsPane.dragToReorder')"
-                @pointerdown="startPaneReorder($event, p.id)"
-              />
-              <GlobalSearch
-                v-if="p.id === 'search'"
-                :prefill="searchPrefill"
-                @close="searchOpen = false"
-              />
-              <Outline v-if="p.id === 'outline'" :cursor-line="outlineLine" @goto="onOutlineGoto" />
-              <BacklinksPanel v-if="p.id === 'backlinks'" @close="ctxToggle(() => settings.toggleBacklinks())" />
-              <RelationshipsPanel v-if="p.id === 'relationships'" @close="ctxToggle(() => settings.toggleRelationships())" />
-              <TagsPanel
-                v-if="p.id === 'tags'"
-                @close="ctxToggle(() => settings.toggleTagsPanel())"
-                @filter-tag="onFilterTag"
-              />
-              <TasksPanel
-                v-if="p.id === 'tasks'"
-                @close="ctxToggle(() => settings.toggleTasksPanel())"
-              />
-              <NeighborhoodPanel
-                v-if="p.id === 'neighborhood'"
-                @close="ctxToggle(() => settings.toggleNeighborhood())"
-              />
-              <TypesPanel
-                v-if="p.id === 'types'"
-                @close="ctxToggle(() => settings.toggleTypesPanel())"
-              />
-              <HistoryPanel v-if="p.id === 'history'" @close="ctxToggle(() => settings.toggleHistoryPanel())" />
-              <PropertiesInspector v-if="p.id === 'inspector'" @close="ctxToggle(() => settings.toggleInspector())" />
-              <AgentPanel
-                v-if="p.id === 'agent'"
-                @open-settings="(section?: string) => openSettingsAt(section ?? 'integrations')"
-                @close="ctxToggle(() => settings.toggleAgentPanel())"
-              />
-            </div>
-          </template>
-        </aside>
+          side="right"
+          :panes="visibleRsPanes"
+          :width="sideSidebarWidth"
+          :search-prefill="searchPrefill"
+          :outline-line="outlineLine"
+          @contextmenu="openSidebarCtx"
+          @close-pane="onPaneClose"
+          @filter-tag="onFilterTag"
+          @outline-goto="onOutlineGoto"
+          @open-settings="(section?: string) => openSettingsAt(section ?? 'integrations')"
+        />
       </div>
         </div>
       </div>
@@ -2827,10 +2644,8 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
 .app--narrow .side-sidebar--left {
   left: 0;
 }
-/* The drag-to-resize handles are a mouse affordance and a 8px touch trap. */
-.app--narrow .side-sidebar__resize {
-  display: none;
-}
+/* The drag-to-resize handles moved with SidebarDock.vue — they are its
+   descendants, so App's scopeId no longer reaches them. */
 .workspace__scrim {
   position: absolute;
   inset: 0;
@@ -2864,44 +2679,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
 .app--mobile .left-stack > :deep(.ftree) {
   width: 100%;
 }
-.side-sidebar {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 260px;
-  flex: 0 0 260px;
-  min-width: 240px;
-  background: var(--bg);
-}
-.side-sidebar--left {
-  border-right: var(--bd-hair);
-}
-.side-sidebar--right {
-  border-left: var(--bd-hair);
-}
-/* Drag handle for live-resize. Sits on the inner edge of the sidebar
-   (right edge of left sidebar, left edge of right sidebar) as a 5px
-   hit zone. v4.0 — agent panel chat needs more width than read-only
-   panes. */
-.side-sidebar__resize {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  cursor: ew-resize;
-  z-index: 10;
-  background: transparent;
-}
-.side-sidebar__resize--right {
-  right: -4px;
-}
-.side-sidebar__resize--left {
-  left: -4px;
-}
-.side-sidebar__resize:hover {
-  background: var(--accent);
-  opacity: 0.35;
-}
+/* .side-sidebar / .side-sidebar__resize live in SidebarDock.vue now. */
 /* v4.3.0 PR #75 — right-click context menu floats over the workspace via
    <Teleport to="body">. Toolbar's master-toggle is the canonical hide
    action; the per-sidebar × close button is gone, since the menu doubles
@@ -2948,111 +2726,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   inset: 0;
   z-index: 9998;
 }
-/* v4.0.2 — each pane lives inside an .rs-pane-host wrapper so the
-   <RsSplitter> can find adjacent panes via [data-rs-pane] and resize
-   them. Direct children of .side-sidebar are now: the resize handle,
-   .rs-pane-host wrappers, and .rs-splitter elements between them. */
-.rs-pane-host {
-  flex: 1 1 0;
-  min-height: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-/* Agent Panel needs vertical room — chat scrollback, tool-call cards,
-   compose box. Give it 4× the share Outline/Backlinks/Tags/History get
-   when they coexist (so Agent ≈ 50% of sidebar height with all 5 on
-   AND no splitter has been touched yet). Once the user drags a
-   splitter the inline style overrides this. */
-.rs-pane-host--agent {
-  flex: 4 1 0;
-  min-height: 240px;
-}
-.rs-pane-host > :deep(*) {
-  flex: 1 1 0;
-  min-height: 0;
-  width: 100%;
-  height: 100%;
-}
-.rs-pane-host :deep(.outline) {
-  width: 100% !important;
-  border-left: 0;
-  border-right: 0;
-}
-.rs-pane-host :deep(.backlinks) {
-  border-left: 0;
-  border-right: 0;
-}
-.rs-pane-host :deep(.rel) {
-  border-left: 0;
-  border-right: 0;
-}
-/* v4.3.0 issue #57b — drag grip for right-sidebar reordering. 5.0: no
-   longer a strip that takes height; a six-dot handle floats over the top
-   edge of the pane header, centred, and only appears while the pointer is
-   over that pane. Only the grip starts a drag, so text selection inside
-   the pane still works. */
-.rs-pane-host {
-  position: relative;
-}
-.rs-pane-grip {
-  position: absolute;
-  top: 1px;
-  left: 50%;
-  z-index: 3;
-  width: 28px;
-  height: 12px;
-  transform: translateX(-50%);
-  border-radius: var(--r-xs);
-  color: var(--text-3);
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
-  /* #131 — pointer-driven reorder: stop the browser turning a vertical drag on
-     the grip into a scroll/pan gesture so pointermove tracking stays clean. */
-  touch-action: none;
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
-}
-/* 3 × 2 dots, 2 px, on a 4 px pitch. */
-.rs-pane-grip::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 12px;
-  height: 8px;
-  transform: translate(-50%, -50%);
-  background-image: radial-gradient(circle, currentColor 0.9px, transparent 1.3px);
-  background-size: 4px 4px;
-  background-position: 0 0;
-}
-.rs-pane-host:hover > .rs-pane-grip,
-.rs-pane-grip:focus-visible {
-  opacity: 1;
-}
-.rs-pane-grip:hover {
-  background: var(--fill-1);
-  color: var(--text-2);
-}
-.rs-pane-grip:active {
-  cursor: grabbing;
-  background: var(--fill-2);
-}
-.rs-pane-host--dragging {
-  opacity: 0.4;
-}
-.rs-pane-host--drop-target {
-  outline: 0;
-  box-shadow: inset 0 2px 0 var(--accent);
-  background: var(--accent-soft);
-}
-/* Make sure the grip + content layout share vertical space cleanly. */
-.rs-pane-host > .rs-pane-grip + :deep(*) {
-  flex: 1 1 0;
-  min-height: 0;
-}
+/* .rs-pane-host / .rs-pane-grip live in SidebarDock.vue now. */
 .content {
   flex: 1;
   display: flex;
