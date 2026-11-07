@@ -90,6 +90,12 @@ fn seed_remote(bare_url: &str, remote_branch: &str) -> git2::Oid {
     let mut cfg = repo.config().unwrap();
     cfg.set_str("user.name", "Test").ok();
     cfg.set_str("user.email", "test@local").ok();
+    // Pin the repository's own line-ending policy. libgit2 also reads the
+    // machine-wide `core.autocrlf`; with the Windows default (`true`) the
+    // `checkout_head` below converts LF → CRLF and the asserts read
+    // "version Y\r\n". The test is about branch normalization, not about
+    // honouring a global git preference, so keep LF end-to-end.
+    cfg.set_bool("core.autocrlf", false).ok();
     let x = commit_file(&repo, &seeder, "note.md", "version X\n", "X");
     commit_file(&repo, &seeder, "note.md", "version Y\n", "Y");
     repo.remote("origin", bare_url).unwrap();
@@ -114,6 +120,9 @@ fn device_behind(bare_url: &str, local_branch: &str, x: git2::Oid) -> PathBuf {
     let mut cfg = repo.config().unwrap();
     cfg.set_str("user.name", "Test").ok();
     cfg.set_str("user.email", "test@local").ok();
+    // Same as the seeder: don't let the machine's `core.autocrlf=true`
+    // rewrite the checked-out bytes.
+    cfg.set_bool("core.autocrlf", false).ok();
     repo.remote("origin", bare_url).unwrap();
     // Fetch everything so commit X exists locally, then plant the local
     // branch at X and point HEAD at it.

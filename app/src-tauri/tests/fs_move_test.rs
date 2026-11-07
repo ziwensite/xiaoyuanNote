@@ -8,13 +8,16 @@ use app_lib::commands::{
     abs_segments, fs_move_inner, lexical_relative, lexical_resolve, rewrite_links_after_move,
 };
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-fn tmp(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("solomd-move-{name}"));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    dir
+/// Unique temp dir per test — `tempfile` cleans it up on drop, so a stale
+/// directory from an earlier run (or a failed silent cleanup) can never make
+/// `fs_move_inner` report "target already exists".
+fn tmp(name: &str) -> tempfile::TempDir {
+    tempfile::Builder::new()
+        .prefix(&format!("solomd-move-{name}-"))
+        .tempdir()
+        .unwrap()
 }
 
 fn segs(p: &str) -> Vec<String> {
@@ -107,7 +110,8 @@ fn reference_definitions_and_html_src_are_rewritten() {
 
 #[test]
 fn moves_a_file_and_re_anchors_its_links() {
-    let root = tmp("file");
+    let dir = tmp("file");
+    let root = dir.path();
     fs::create_dir_all(root.join("_assets")).unwrap();
     fs::create_dir_all(root.join("sub")).unwrap();
     fs::write(root.join("_assets/a.png"), b"png").unwrap();
@@ -128,7 +132,8 @@ fn moves_a_file_and_re_anchors_its_links() {
 
 #[test]
 fn per_file_assets_folder_travels_with_the_note() {
-    let root = tmp("assets");
+    let dir = tmp("assets");
+    let root = dir.path();
     fs::create_dir_all(root.join("note.assets")).unwrap();
     fs::create_dir_all(root.join("sub")).unwrap();
     fs::write(root.join("note.assets/a.png"), b"png").unwrap();
@@ -151,7 +156,8 @@ fn per_file_assets_folder_travels_with_the_note() {
 
 #[test]
 fn moves_a_folder_and_keeps_internal_links_intact() {
-    let root = tmp("folder");
+    let dir = tmp("folder");
+    let root = dir.path();
     fs::create_dir_all(root.join("proj/deep")).unwrap();
     fs::create_dir_all(root.join("dest")).unwrap();
     fs::create_dir_all(root.join("_assets")).unwrap();
@@ -179,7 +185,8 @@ fn moves_a_folder_and_keeps_internal_links_intact() {
 
 #[test]
 fn refuses_a_collision_a_missing_source_and_a_folder_into_itself() {
-    let root = tmp("guards");
+    let dir = tmp("guards");
+    let root = dir.path();
     fs::create_dir_all(root.join("a/b")).unwrap();
     fs::write(root.join("a/note.md"), "x").unwrap();
     fs::write(root.join("taken.md"), "y").unwrap();
@@ -217,7 +224,8 @@ fn refuses_a_collision_a_missing_source_and_a_folder_into_itself() {
 #[test]
 fn hidden_entries_are_listed_only_when_asked_for() {
     use app_lib::commands::list_dir_inner;
-    let root = tmp("hidden");
+    let dir = tmp("hidden");
+    let root = dir.path();
     fs::create_dir_all(root.join(".config")).unwrap();
     fs::write(root.join(".gitignore"), b"x").unwrap();
     fs::write(root.join("visible.md"), b"x").unwrap();
@@ -237,7 +245,8 @@ fn hidden_entries_are_listed_only_when_asked_for() {
 #[test]
 fn the_folder_picker_prunes_junk_and_follows_the_hidden_setting() {
     use app_lib::commands::fs_list_dirs_inner;
-    let root = tmp("dirs");
+    let dir = tmp("dirs");
+    let root = dir.path();
     for d in [
         "Notes/Deep",
         "_assets/nested",
@@ -265,7 +274,8 @@ fn the_folder_picker_prunes_junk_and_follows_the_hidden_setting() {
 #[test]
 fn extensions_are_counted_most_common_first() {
     use app_lib::commands::fs_list_extensions_inner;
-    let root = tmp("exts");
+    let dir = tmp("exts");
+    let root = dir.path();
     fs::create_dir_all(root.join("sub")).unwrap();
     fs::create_dir_all(root.join(".git")).unwrap();
     fs::create_dir_all(root.join("node_modules")).unwrap();
@@ -293,7 +303,8 @@ fn extensions_are_counted_most_common_first() {
 #[test]
 fn dirs_with_extensions_reports_every_ancestor_of_a_match() {
     use app_lib::commands::fs_dirs_with_extensions_inner;
-    let root = tmp("extdirs");
+    let dir = tmp("extdirs");
+    let root = dir.path();
     fs::create_dir_all(root.join("a/b/c")).unwrap();
     fs::create_dir_all(root.join("only-md")).unwrap();
     fs::create_dir_all(root.join("empty")).unwrap();
