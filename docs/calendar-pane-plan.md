@@ -44,7 +44,7 @@
 
 理由：
 1. **符合核心事实源**：应用的一切检索/同步/Git/冲突都建立在 `.md` 文件上；引入 `.ics` 作为主存储等于在架构里再开一条并行链路。
-2. **冲突可控**：一事件一文件，两台设备改同一事件才会冲突；而不是一个 `calendar.ics` 里几十个 VEVENT 互相污染。`patchFrontmatter`（`lib/frontmatter.ts` L79-L98）能只改 frontmatter、保留正文逐字节不变，diff 干净。
+2. **冲突可控**：一事件一文件，两台设备改同一事件才会冲突；而不是一个 `calendar.ics` 里几十个 VEVENT 互相污染。`patchFrontmatter`（`lib/frontmatter.ts`）是**文本级补丁**：只重写被指定的键所占据的行，其余 frontmatter（注释、键序、引号、CRLF）与正文逐字节不变，diff 干净。
 3. **互操作不受损**：导出 `.ics` 可完整保留 UID/DTSTART/DTEND/RRULE/EXDATE/VALARM；导入时按 UID 去重。CalDAV/Graph 只在"同步适配层"出现，不改变本地事实源。
 4. **零新增索引成本**：事件笔记就是 md，`workspace_index` 已解析 frontmatter；日历 pane 直接投影内存中的 `entries`。
 
