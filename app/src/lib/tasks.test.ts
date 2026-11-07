@@ -116,3 +116,29 @@ test('toggling preserves indentation and marker style', () => {
   assert.equal(toggleTaskLine('  * [ ] nested', 1), '  * [x] nested');
   assert.equal(toggleTaskLine('+ [X] done', 1), '+ [ ] done');
 });
+
+test('calendar tokens: uid, reminders and rrule are parsed out of the title', () => {
+  const m = parseTaskMeta(
+    'review PR 🆔 8f14e45f-ea0c ⏰ -PT15M ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO',
+  );
+  assert.equal(m.title, 'review PR');
+  assert.equal(m.uid, '8f14e45f-ea0c');
+  assert.deepEqual(m.reminders, ['-PT15M', '09:00']);
+  assert.equal(m.rrule, 'FREQ=WEEKLY;BYDAY=MO');
+});
+
+test('calendar tokens are optional and absent keys stay absent', () => {
+  const m = parseTaskMeta('plain task 📅 2026-09-10');
+  assert.equal('uid' in m, false);
+  assert.equal('reminders' in m, false);
+  assert.equal('rrule' in m, false);
+});
+
+test('malformed calendar tokens are not eaten', () => {
+  const m = parseTaskMeta('call mom ⏰ tomorrow 🔁 BYDAY=MO 🆔 ab');
+  assert.equal(m.title, 'call mom ⏰ tomorrow 🔁 BYDAY=MO 🆔 ab');
+  assert.equal(m.uid, undefined);
+  assert.equal(m.rrule, undefined);
+  assert.equal(m.reminders, undefined);
+});
+

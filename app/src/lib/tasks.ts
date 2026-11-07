@@ -27,6 +27,16 @@ export interface TaskMeta {
   due: string | null;
   /** `#tags` mentioned in the task (kept in `title` as well). */
   tags: string[];
+  /**
+   * Stable identity for calendar interoperability (iCal `VTODO` `UID`).
+   * Only present when the line carries an explicit `🆔 …` token; callers that
+   * need one (reminders, sync) inject it once and then rely on it.
+   */
+  uid?: string;
+  /** iCal `VALARM` triggers, e.g. `-PT15M` or `09:00`. Absent when none. */
+  reminders?: string[];
+  /** Raw iCal `RRULE` value (e.g. `FREQ=WEEKLY;BYDAY=FR`). Absent when none. */
+  rrule?: string;
 }
 
 const PRIORITY_RANK: Record<Exclude<TaskPriority, null>, number> = {
@@ -64,10 +74,27 @@ const BRACKET_PRIORITY: Array<[RegExp, Exclude<TaskPriority, null>]> = [
  */
 const BANG_PRIORITY = /(^|\s)(!{1,3})(?=\s|$)/u;
 
+/**
+ * Calendar-side metadata, all optional and backward compatible:
+ *   - `🆔 <id>` — stable UID for sync; only injected when a reminder is set.
+ *   - `⏰ <trigger>` — one or more VALARM triggers (`-PT15M`, `09:00`, or an
+ *     absolute ISO timestamp).
+ *   - `🔁 FREQ=…` — a raw iCal RRULE (no spaces inside it).
+ *
+ * Malformed values are left in `title` on purpose, matching the rule that the
+ * parser never eats words it does not understand.
+ */
+const UID_TOKEN = /🆔\s*([A-Za-z0-9_-]{4,})/u;
+const REMINDER_TOKEN = /⏰\s*(-?P[A-Za-z0-9]+|[0-9]{1,2}:[0-9]{2}|\d{4}-\d{2}-\d{2}T[0-9:]+Z?)/u;
+const RRULE_TOKEN = /🔁\s*(FREQ=[A-Za-z0-9=;,:+-]+)/iu;
+
 export function parseTaskMeta(text: string): TaskMeta {
   let rest = text;
   let priority: TaskPriority = null;
   let due: string | null = null;
+  let uid: string | undefined;
+  let rrule: string | undefined;
+  const reminders: string[] = [];
 
   for (const pattern of DUE_PATTERNS) {
     const m = pattern.exec(rest);
@@ -94,14 +121,36 @@ export function parseTaskMeta(text: string): TaskMeta {
     }
   }
 
+  const uidMatch = UID_TOKEN.exec(rest);
+  if (uidMatch) {
+    uid = uidMatch[1];
+    rest = rest.replace(UID_TOKEN, ' ');
+  }
+
+  const rruleMatch = RRULE_TOKEN.exec(rest);
+  if (rruleMatch) {
+    rrule = rruleMatch[1].toUpperCase();
+    rest = rest.replace(RRULE_TOKEN, ' ');
+  }
+
+  const reminderMatches = [...rest.matchAll(new RegExp(REMINDER_TOKEN.source, 'gu'))];
+  if (reminderMatches.length) {
+    for (const m of reminderMatches) reminders.push(m[1]);
+    rest = rest.replace(new RegExp(REMINDER_TOKEN.source, 'gu'), ' ');
+  }
+
   const tags = [...rest.matchAll(/(?:^|\s)#([\w一-鿿/-]+)/gu)].map((m) => m[1]);
 
-  return {
+  const meta: TaskMeta = {
     title: rest.replace(/\s{2,}/g, ' ').trim(),
     priority,
     due,
     tags,
   };
+  if (uid) meta.uid = uid;
+  if (reminders.length) meta.reminders = reminders;
+  if (rrule) meta.rrule = rrule;
+  return meta;
 }
 
 /** `YYYY-MM-DD` for a Date, in local time — `toISOString` would shift the day
