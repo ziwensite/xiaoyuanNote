@@ -1235,6 +1235,8 @@ export const uk: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Видалити рецепт «{name}»?',
     confirmReject: 'Відхилити цей запуск? Гілку буде видалено.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Рецепт збережено.',
     toastDeleted: 'Рецепт видалено.',
     toastRunQueued: 'Запуск у черзі.',

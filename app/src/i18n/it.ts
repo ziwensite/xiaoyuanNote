@@ -1232,6 +1232,8 @@ export const it: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Eliminare il recipe "{name}"?',
     confirmReject: 'Rifiutare questa esecuzione? La branch verrà eliminata.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Recipe salvato.',
     toastDeleted: 'Recipe eliminato.',
     toastRunQueued: 'Esecuzione in coda.',

@@ -1232,6 +1232,8 @@ export const ko: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: '레시피 "{name}"을(를) 삭제하시겠습니까?',
     confirmReject: '이 실행을 거부하시겠습니까? 브랜치가 삭제됩니다.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: '레시피가 저장되었습니다.',
     toastDeleted: '레시피가 삭제되었습니다.',
     toastRunQueued: '실행이 대기열에 추가되었습니다.',

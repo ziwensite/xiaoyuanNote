@@ -1231,6 +1231,8 @@ export const zh: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: '删除任务「{name}」？',
     confirmReject: '拒绝此次运行？分支将被删除。',
+    acceptDirty:
+      '无法接受：工作区有 {count} 处未提交改动。请先提交或丢弃这些改动后重试。涉及文件：{files}',
     toastSaved: '任务已保存。',
     toastDeleted: '任务已删除。',
     toastRunQueued: '运行已排队。',

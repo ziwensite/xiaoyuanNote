@@ -109,10 +109,12 @@ pub struct RecipesState {
     /// hook so the on-tag-add trigger can compute "newly added" without
     /// a second read.
     pub last_tags: Mutex<HashMap<String, Vec<String>>>,
-    /// recipe slug → last save-driven trigger time. Saves have no debounce
-    /// of their own, so this caps how often one recipe can call the model
-    /// while the user keeps typing.
-    pub last_save_trigger: Mutex<HashMap<String, Instant>>,
+    /// (recipe slug, abs file path) → last save-driven trigger time. Keyed
+    /// per file so saving note A never suppresses note B of the same
+    /// recipe; saves have no debounce of their own, so this caps how often
+    /// one recipe can call the model for one file while the user keeps
+    /// typing.
+    pub last_save_trigger: Mutex<HashMap<(String, String), Instant>>,
     /// Cron loop's wakeup channel. Set to true by `reload` to nudge the
     /// loop into recomputing the next-fire time. Currently unused — the
     /// loop polls every 60s — but reserved for future signalling so the
@@ -413,6 +415,26 @@ pub async fn recipes_reject_run(
     Ok(())
 }
 
+/// Machine-readable prefix understood by `lib/recipe-error.ts`. Layout:
+/// `WORKSPACE_DIRTY|<total>|<human hint>` followed by up to 5 changed
+/// paths, one per line.
+pub const DIRTY_WORKSPACE_PREFIX: &str = "WORKSPACE_DIRTY";
+
+/// Build the accept refusal. The path list lets the UI name what the user
+/// has to commit or discard instead of showing a bare "uncommitted changes".
+fn dirty_workspace_error(paths: &[String]) -> String {
+    const MAX_SHOWN: usize = 5;
+    let mut msg = format!(
+        "{DIRTY_WORKSPACE_PREFIX}|{}|workspace has uncommitted changes",
+        paths.len()
+    );
+    for p in paths.iter().take(MAX_SHOWN) {
+        msg.push('\n');
+        msg.push_str(p);
+    }
+    msg
+}
+
 fn merge_branch_into_main(workspace: &Path, branch: &str) -> Result<(), String> {
     let repo = Repository::open(workspace).map_err(|e| format!("git open: {e}"))?;
     // The fast-forward path below hard-resets the working tree when `main`
@@ -420,11 +442,9 @@ fn merge_branch_into_main(workspace: &Path, branch: &str) -> Result<(), String> 
     // while the run was waiting for review. Refuse up-front instead of
     // stashing: the user keeps full control and the agent branch still holds
     // the recipe's commits, so nothing is lost.
-    if workspace_has_user_wip(workspace)? {
-        return Err(
-            "workspace has uncommitted changes; commit or stash before accepting this run"
-                .to_string(),
-        );
+    let wip = workspace_user_wip_paths(workspace)?;
+    if !wip.is_empty() {
+        return Err(dirty_workspace_error(&wip));
     }
     // Locate target ("main" first, "master" as fallback).
     let main_name = if repo.find_branch("main", BranchType::Local).is_ok() {
@@ -525,7 +545,7 @@ pub async fn dispatch_on_save(
         match recipe.trigger {
             TriggerKind::OnSave => {
                 if path_matches(&recipe, &rel)
-                    && !save_trigger_throttled(state.inner(), &recipe.slug)
+                    && !save_trigger_throttled(state.inner(), &recipe.slug, &file_abs)
                 {
                     fire(&app, &workspace, &recipe, save_ctx(&workspace, &rel)).await;
                 }
@@ -537,7 +557,7 @@ pub async fn dispatch_on_save(
                         if recipe.match_glob.is_some() && !path_matches(&recipe, &rel) {
                             continue;
                         }
-                        if save_trigger_throttled(state.inner(), &recipe.slug) {
+                        if save_trigger_throttled(state.inner(), &recipe.slug, &file_abs) {
                             continue;
                         }
                         let mut ctx = save_ctx(&workspace, &rel);
@@ -551,24 +571,30 @@ pub async fn dispatch_on_save(
     }
 }
 
-/// Minimum gap between two save-driven triggers of the same recipe. Saves
-/// can arrive every few seconds (autosave / Ctrl+S), and each trigger is a
-/// paid model call — without this, typing would fire the recipe repeatedly.
+/// Minimum gap between two save-driven triggers of the same recipe **for
+/// the same file**. Saves can arrive every few seconds (autosave / Ctrl+S),
+/// and each trigger is a paid model call — without this, typing would fire
+/// the recipe repeatedly. Keying by file (not just recipe) is deliberate:
+/// saving note B must still trigger even when note A was saved a second
+/// ago.
 const SAVE_TRIGGER_MIN_INTERVAL: Duration = Duration::from_secs(60);
 
 /// Returns `true` when this save trigger should be dropped because the
-/// same recipe already fired within `SAVE_TRIGGER_MIN_INTERVAL`.
-fn save_trigger_throttled(state: &RecipesState, slug: &str) -> bool {
+/// same recipe already fired for the same file within
+/// `SAVE_TRIGGER_MIN_INTERVAL`.
+fn save_trigger_throttled(state: &RecipesState, slug: &str, file_abs: &str) -> bool {
     let Ok(mut last) = state.last_save_trigger.lock() else {
         return false;
     };
     let now = Instant::now();
-    if let Some(prev) = last.get(slug) {
-        if now.duration_since(*prev) < SAVE_TRIGGER_MIN_INTERVAL {
-            return true;
-        }
+    // Drop expired keys so this map does not grow with every file the user
+    // ever saves.
+    last.retain(|_, at| now.duration_since(*at) < SAVE_TRIGGER_MIN_INTERVAL);
+    let key = (slug.to_string(), file_abs.to_string());
+    if last.contains_key(&key) {
+        return true;
     }
-    last.insert(slug.to_string(), now);
+    last.insert(key, now);
     false
 }
 
@@ -722,10 +748,10 @@ fn is_solomd_runtime_path(path: &str) -> bool {
     }
 }
 
-/// Dirty check used before accepting a run: tracked modifications,
-/// untracked files and index (staged) entries all count, ignored paths and
-/// SoloMD's own runtime state do not.
-pub fn workspace_has_user_wip(workspace: &Path) -> Result<bool, String> {
+/// Lists the paths that block an accept: tracked modifications, untracked
+/// files and index (staged) entries all count; ignored paths and SoloMD's
+/// own runtime state do not.
+pub fn workspace_user_wip_paths(workspace: &Path) -> Result<Vec<String>, String> {
     let repo = Repository::open(workspace).map_err(|e| format!("git open: {e}"))?;
     let mut opts = StatusOptions::new();
     opts.include_untracked(true)
@@ -734,6 +760,7 @@ pub fn workspace_has_user_wip(workspace: &Path) -> Result<bool, String> {
     let statuses = repo
         .statuses(Some(&mut opts))
         .map_err(|e| format!("git statuses: {e}"))?;
+    let mut paths = Vec::new();
     for entry in statuses.iter() {
         let st = entry.status();
         if st.is_empty() || st.contains(git2::Status::IGNORED) {
@@ -742,9 +769,9 @@ pub fn workspace_has_user_wip(workspace: &Path) -> Result<bool, String> {
         if is_solomd_runtime_path(entry.path().unwrap_or("")) {
             continue;
         }
-        return Ok(true);
+        paths.push(entry.path().unwrap_or("").to_string());
     }
-    Ok(false)
+    Ok(paths)
 }
 
 /// Drive a single recipe end-to-end:
@@ -1733,18 +1760,22 @@ mod tests {
             .unwrap();
     }
 
+    fn wip_paths(dir: &Path) -> Vec<String> {
+        workspace_user_wip_paths(dir).unwrap()
+    }
+
     #[test]
     fn user_wip_detects_tracked_untracked_and_staged_edits() {
         let tmp = tempfile::TempDir::new().unwrap();
         seed_repo(tmp.path());
-        assert!(!workspace_has_user_wip(tmp.path()).unwrap());
+        assert!(wip_paths(tmp.path()).is_empty());
 
         std::fs::write(tmp.path().join("note.md"), "edited\n").unwrap();
-        assert!(workspace_has_user_wip(tmp.path()).unwrap(), "tracked edit");
+        assert_eq!(wip_paths(tmp.path()), vec!["note.md".to_string()]);
 
         std::fs::write(tmp.path().join("note.md"), "baseline\n").unwrap();
         std::fs::write(tmp.path().join("new.md"), "untracked\n").unwrap();
-        assert!(workspace_has_user_wip(tmp.path()).unwrap(), "untracked file");
+        assert_eq!(wip_paths(tmp.path()), vec!["new.md".to_string()]);
 
         std::fs::remove_file(tmp.path().join("new.md")).unwrap();
         std::fs::write(tmp.path().join("note.md"), "staged\n").unwrap();
@@ -1752,7 +1783,7 @@ mod tests {
         let mut index = repo.index().unwrap();
         index.add_path(Path::new("note.md")).unwrap();
         index.write().unwrap();
-        assert!(workspace_has_user_wip(tmp.path()).unwrap(), "staged edit");
+        assert_eq!(wip_paths(tmp.path()), vec!["note.md".to_string()]);
     }
 
     #[test]
@@ -1765,14 +1796,96 @@ mod tests {
         std::fs::create_dir_all(&run_dir).unwrap();
         std::fs::write(run_dir.join("meta.json"), "{}").unwrap();
         std::fs::write(tmp.path().join(".solomd/sync.json"), "{}").unwrap();
-        assert!(
-            !workspace_has_user_wip(tmp.path()).unwrap(),
-            "runtime state must be ignored"
-        );
+        assert!(wip_paths(tmp.path()).is_empty(), "runtime state must be ignored");
 
         // Recipes are user-authored and versioned — a pending edit is WIP.
         std::fs::create_dir_all(tmp.path().join(".solomd/agents")).unwrap();
         std::fs::write(tmp.path().join(".solomd/agents/x.yml"), "name: x\n").unwrap();
-        assert!(workspace_has_user_wip(tmp.path()).unwrap());
+        assert_eq!(
+            wip_paths(tmp.path()),
+            vec![".solomd/agents/x.yml".to_string()]
+        );
+    }
+
+    /// Build a repo with one committed note plus an agent branch that can
+    /// fast-forward `main`, i.e. exactly the state `recipes_accept_run`
+    /// operates on after a finished run.
+    fn seed_repo_with_ff_branch(dir: &Path, branch: &str) {
+        seed_repo(dir);
+        let repo = Repository::open(dir).unwrap();
+        let base = repo.head().unwrap().target().unwrap();
+        let base_commit = repo.find_commit(base).unwrap();
+        let tree = base_commit.tree().unwrap();
+        let sig = repo.signature().unwrap();
+        repo.branch(branch, &base_commit, false).unwrap();
+        repo.commit(Some(&format!("refs/heads/{branch}")), &sig, &sig, "agent", &tree, &[&base_commit])
+            .unwrap();
+    }
+
+    #[test]
+    fn accept_refuses_dirty_workspace_and_reports_paths() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let branch = "solomd/agent/20260101-000000-abcdef";
+        seed_repo_with_ff_branch(tmp.path(), branch);
+
+        // The user edited a tracked note while reviewing the run diff.
+        std::fs::write(tmp.path().join("note.md"), "user wip\n").unwrap();
+        let repo = Repository::open(tmp.path()).unwrap();
+        let head_before = repo.head().unwrap().target().unwrap();
+        let main_before = repo.find_branch("main", BranchType::Local)
+            .or_else(|_| repo.find_branch("master", BranchType::Local))
+            .unwrap()
+            .get()
+            .target()
+            .unwrap();
+
+        let err = merge_branch_into_main(tmp.path(), branch).unwrap_err();
+        println!("accept refusal: {err:?}");
+        assert!(err.starts_with(&format!("{DIRTY_WORKSPACE_PREFIX}|1|")), "got {err:?}");
+        assert!(err.contains("note.md"), "got {err:?}");
+
+        // Nothing was mutated: HEAD, main ref and the user's edit survive.
+        assert_eq!(repo.head().unwrap().target().unwrap(), head_before);
+        let main_after = repo.find_branch("main", BranchType::Local)
+            .or_else(|_| repo.find_branch("master", BranchType::Local))
+            .unwrap()
+            .get()
+            .target()
+            .unwrap();
+        assert_eq!(main_after, main_before);
+        assert_eq!(
+            std::fs::read_to_string(tmp.path().join("note.md")).unwrap(),
+            "user wip\n"
+        );
+        assert!(repo.find_branch(branch, BranchType::Local).is_ok());
+
+        // Untracked and index-only changes are refused too.
+        std::fs::write(tmp.path().join("note.md"), "baseline\n").unwrap();
+        std::fs::write(tmp.path().join("scratch.md"), "new\n").unwrap();
+        assert!(merge_branch_into_main(tmp.path(), branch)
+            .unwrap_err()
+            .contains("scratch.md"));
+
+        std::fs::remove_file(tmp.path().join("scratch.md")).unwrap();
+        std::fs::write(tmp.path().join("note.md"), "staged change\n").unwrap();
+        let mut index = repo.index().unwrap();
+        index.add_path(Path::new("note.md")).unwrap();
+        index.write().unwrap();
+        assert!(merge_branch_into_main(tmp.path(), branch)
+            .unwrap_err()
+            .starts_with(&format!("{DIRTY_WORKSPACE_PREFIX}|1|")));
+    }
+
+    #[test]
+    fn save_throttle_is_per_file_and_per_recipe() {
+        let state = RecipesState::new();
+        // Saving A, then B one second later: B must not be swallowed.
+        assert!(!save_trigger_throttled(&state, "todo-extract", "/v/a.md"));
+        assert!(!save_trigger_throttled(&state, "todo-extract", "/v/b.md"));
+        // Same recipe + same file inside the window is suppressed.
+        assert!(save_trigger_throttled(&state, "todo-extract", "/v/a.md"));
+        // A different recipe on the same file (on-tag-add vs on-save) is
+        // independent: recipes never share a slug across trigger kinds.
+        assert!(!save_trigger_throttled(&state, "tag-classifier", "/v/a.md"));
     }
 }

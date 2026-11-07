@@ -1235,6 +1235,8 @@ export const pl: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Usunąć przepis „{name}”?',
     confirmReject: 'Odrzucić to uruchomienie? Gałąź zostanie usunięta.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Przepis zapisany.',
     toastDeleted: 'Przepis usunięty.',
     toastRunQueued: 'Uruchomienie w kolejce.',

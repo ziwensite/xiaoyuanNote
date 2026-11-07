@@ -21,6 +21,7 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useToastsStore } from '../stores/toasts';
 import { useFiles } from '../composables/useFiles';
 import { useI18n } from '../i18n';
+import { formatDirtyWorkspaceError } from '../lib/recipe-error';
 import TraceView from './TraceView.vue';
 
 const { t } = useI18n();
@@ -175,7 +176,7 @@ async function acceptRun(run: RunMeta) {
   if (!folder.value) return;
   const ok = await store.accept(folder.value, run.run_id);
   if (ok) toasts.success(t('recipes.toastAccepted'));
-  else if (store.lastError) toasts.error(store.lastError);
+  else if (store.lastError) toasts.error(formatDirtyWorkspaceError(store.lastError, t));
 }
 
 async function rejectRun(run: RunMeta) {

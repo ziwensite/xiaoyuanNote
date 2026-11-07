@@ -1232,6 +1232,8 @@ export const es: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: '¿Eliminar el recipe "{name}"?',
     confirmReject: '¿Rechazar esta ejecución? La rama será eliminada.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Recipe guardado.',
     toastDeleted: 'Recipe eliminado.',
     toastRunQueued: 'Ejecución en cola.',

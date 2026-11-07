@@ -1235,6 +1235,8 @@ export const sv: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Ta bort receptet "{name}"?',
     confirmReject: 'Avvisa den här körningen? Grenen tas bort.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Recept sparat.',
     toastDeleted: 'Recept borttaget.',
     toastRunQueued: 'Körning köad.',

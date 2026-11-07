@@ -1232,6 +1232,8 @@ export const ja: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Recipe "{name}" を削除しますか？',
     confirmReject: 'この実行を却下しますか？ ブランチが削除されます。',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Recipe を保存しました。',
     toastDeleted: 'Recipe を削除しました。',
     toastRunQueued: '実行をキューに入れました。',

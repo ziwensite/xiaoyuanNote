@@ -1235,6 +1235,8 @@ export const nl: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Recept "{name}" verwijderen?',
     confirmReject: 'Deze uitvoering afwijzen? De branch wordt verwijderd.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Recept opgeslagen.',
     toastDeleted: 'Recept verwijderd.',
     toastRunQueued: 'Uitvoering in wachtrij.',

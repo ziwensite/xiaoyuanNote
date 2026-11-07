@@ -1232,6 +1232,8 @@ export const fr: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Supprimer la recipe « {name} » ?',
     confirmReject: 'Rejeter cette exécution ? La branche sera supprimée.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Recipe enregistrée.',
     toastDeleted: 'Recipe supprimée.',
     toastRunQueued: 'Exécution en file.',

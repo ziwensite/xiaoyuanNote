@@ -1240,6 +1240,8 @@ export const en = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Delete recipe "{name}"?',
     confirmReject: 'Reject this run? The branch will be deleted.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Recipe saved.',
     toastDeleted: 'Recipe deleted.',
     toastRunQueued: 'Run queued.',

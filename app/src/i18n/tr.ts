@@ -1235,6 +1235,8 @@ export const tr: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: '"{name}" tarifi silinsin mi?',
     confirmReject: 'Bu çalıştırma reddedilsin mi? Dal silinecek.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Tarif kaydedildi.',
     toastDeleted: 'Tarif silindi.',
     toastRunQueued: 'Çalıştırma kuyruğa alındı.',

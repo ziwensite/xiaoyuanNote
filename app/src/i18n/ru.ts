@@ -1228,6 +1228,8 @@ export const ru: I18n = {
     runProvider: '{provider} · {model}',
     confirmDelete: 'Удалить рецепт «{name}»?',
     confirmReject: 'Отклонить этот запуск? Ветка будет удалена.',
+    acceptDirty:
+      'Cannot accept: {count} uncommitted change(s). Commit or discard them, then retry. Affected files: {files}',
     toastSaved: 'Рецепт сохранён.',
     toastDeleted: 'Рецепт удалён.',
     toastRunQueued: 'Запуск поставлен в очередь.',
