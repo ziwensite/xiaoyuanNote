@@ -371,6 +371,22 @@ impl RunHandle {
         Ok(())
     }
 
+    /// Release the `trace.jsonl` / `run.md` writers. Windows refuses to
+    /// delete a directory whose files are still held open (`ERROR_DIR_NOT_EMPTY`),
+    /// so any path that removes a run dir must call this first — notably the
+    /// recipe cleanup checkout back to main, which deletes the run dir that
+    /// was committed on the agent branch. Writes after this become no-ops.
+    pub fn close_files(&self) {
+        {
+            let mut g = self.trace_file.lock().unwrap();
+            *g = None;
+        }
+        {
+            let mut g = self.run_md_file.lock().unwrap();
+            *g = None;
+        }
+    }
+
     /// Close the run: drop file handles, write `run_ended` trace step, and
     /// rewrite `meta.json` with final status + token totals + cost estimate
     /// + (optional) error. `cost_usd` is computed by the caller via
@@ -397,14 +413,7 @@ impl RunHandle {
         });
 
         // Drop file handles so other readers see the final bytes flushed.
-        {
-            let mut g = self.trace_file.lock().unwrap();
-            *g = None;
-        }
-        {
-            let mut g = self.run_md_file.lock().unwrap();
-            *g = None;
-        }
+        self.close_files();
 
         // Read existing meta.json, patch, rewrite. We read+write rather than
         // streaming so the file stays valid JSON even if the patch fails
@@ -503,6 +512,12 @@ mod tests {
         fs::create_dir_all(&tmp).unwrap();
         let h = RunHandle::start(&tmp, RunKind::Recipe, "openai", "m", None).unwrap();
 
+        // Release the trace/run.md writers first — this mirrors what the
+        // recipe cleanup does before its checkout (`close_files`). Windows
+        // cannot delete a directory whose files are still open, so without
+        // this the simulated checkout below would fail with
+        // ERROR_DIR_NOT_EMPTY instead of exercising `finalize`.
+        h.close_files();
         // Simulate `git checkout main` wiping the committed run directory.
         fs::remove_dir_all(&h.dir).unwrap();
         assert!(!h.dir.exists());

@@ -1224,7 +1224,17 @@ async fn run_recipe_chat_loop(
 
     // ----- 6. Cleanup: clear write-cap registry, restore HEAD to main -----
     agent_tools::clear_recipe_write_cap(workspace);
+    // #248 + Windows: the run dir's files are committed on the agent branch,
+    // so the checkout back to main deletes them from the working tree. That
+    // checkout cannot remove a file that still has an open handle on Windows
+    // (`ERROR_DIR_NOT_EMPTY` / sharing violation), which would leave HEAD on
+    // the agent branch. Release the trace/run.md writers before checkout;
+    // `finalize` recreates the dir afterwards and writes meta.json there.
+    handle.close_files();
     if let Err(e) = restore_head(workspace, &prev_head) {
+        // The handle is closed now, so the trace write below is a no-op on
+        // every platform; keep the failure visible on stderr instead.
+        eprintln!("recipe run {run_id}: restore_head failed: {e}");
         let _ = handle.append_step(serde_json::json!({
             "kind": "note",
             "text": format!("restore_head failed: {e}"),
