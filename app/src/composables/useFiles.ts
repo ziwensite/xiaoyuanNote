@@ -894,6 +894,10 @@ export function useFiles() {
           path,
           content: payload,
           encoding: tab.encoding || 'UTF-8',
+          // Required for the on-save / on-tag-add recipe triggers: the
+          // backend only dispatches when the saved file belongs to the
+          // active workspace. `null` (no workspace) is a no-op.
+          workspace: workspace.currentFolder,
         });
       }
       tabs.markSaved(tab.id, path);

@@ -453,25 +453,56 @@ fn save_config(workspace: &Path, cfg: &SyncConfig) -> Result<(), String> {
     fs::write(&path, body).map_err(|e| e.to_string())
 }
 
-/// Ensure `.solomd/` is in the workspace's git ignore list. Each device
-/// has its own sync.json (different timestamps, possibly different remote
-/// URL across forks), so committing it would produce a conflict on
-/// every pull. Idempotent — safe to call before every push.
+/// Ensure SoloMD's per-device runtime state is in the workspace's git
+/// ignore list. Each device has its own sync.json (different timestamps,
+/// possibly different remote URL across forks), so committing it would
+/// produce a conflict on every pull. Idempotent — safe to call before every
+/// push.
+///
+/// Only the runtime subpaths are ignored: `.solomd/agents/*.yml` are user
+/// recipes and are expected to travel with the repo. An older build wrote a
+/// bare `.solomd/` rule, which also hid those recipes; replace it with the
+/// granular rules here.
 fn ensure_gitignore_excludes_solomd(workspace: &Path) -> Result<(), String> {
+    const RULES: &[&str] = &[
+        ".solomd/agent-runs/",
+        ".solomd/session.*.json",
+        ".solomd/encryption.*",
+        ".solomd/*.json",
+    ];
+    const HEADER: &str = "# SoloMD runtime state (per-device, do not commit).";
     let gitignore = workspace.join(".gitignore");
     let existing = fs::read_to_string(&gitignore).unwrap_or_default();
-    if existing
-        .lines()
-        .any(|l| l.trim() == ".solomd/" || l.trim() == ".solomd")
-    {
+    let mut lines: Vec<String> = existing.lines().map(|l| l.to_string()).collect();
+    let mut changed = false;
+    // Drop the legacy whole-directory rule; the granular rules replace it.
+    lines.retain(|l| {
+        let t = l.trim();
+        let bare = t == ".solomd/" || t == ".solomd";
+        if bare {
+            changed = true;
+        }
+        !bare
+    });
+    let missing: Vec<&str> = RULES
+        .iter()
+        .copied()
+        .filter(|r| !lines.iter().any(|l| l.trim() == *r))
+        .collect();
+    if !missing.is_empty() {
+        if !lines.iter().any(|l| l.trim() == HEADER) {
+            lines.push(HEADER.to_string());
+        }
+        for r in missing {
+            lines.push(r.to_string());
+        }
+        changed = true;
+    }
+    if !changed {
         return Ok(());
     }
-    let mut new = existing;
-    if !new.is_empty() && !new.ends_with('\n') {
-        new.push('\n');
-    }
-    new.push_str("# SoloMD workspace metadata — per-device, do not sync.\n");
-    new.push_str(".solomd/\n");
+    let mut new = lines.join("\n");
+    new.push('\n');
     fs::write(&gitignore, new).map_err(|e| e.to_string())
 }
 

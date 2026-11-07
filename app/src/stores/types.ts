@@ -48,6 +48,7 @@ function toTypeEntry(e: IndexEntry): TypeIndexEntry {
 async function patchNoteFrontmatter(
   path: string,
   patch: Record<string, unknown>,
+  workspace: string | null,
 ): Promise<void> {
   const result = await invoke<{ content: string; encoding?: string }>(
     'read_file',
@@ -58,6 +59,7 @@ async function patchNoteFrontmatter(
     path,
     content: next,
     encoding: result.encoding || 'UTF-8',
+    workspace,
   });
 }
 
@@ -143,7 +145,7 @@ export const useTypesStore = defineStore('types', {
       // A vault without a Types/ folder yet: write_file does not create
       // parents. fs_create_dir rejects "already exists", which is fine.
       await invoke('fs_create_dir', { path: `${folder}${sep}Types` }).catch(() => {});
-      await invoke('write_file', { path, content: body, encoding: 'UTF-8' });
+      await invoke('write_file', { path, content: body, encoding: 'UTF-8', workspace: folder });
       await idx.rescan();
       return path;
     },
@@ -173,7 +175,7 @@ export const useTypesStore = defineStore('types', {
       if (!defPath) {
         defPath = await this.createType(name);
       }
-      await patchNoteFrontmatter(defPath, patch as Record<string, unknown>);
+      await patchNoteFrontmatter(defPath, patch as Record<string, unknown>, idx.folder);
       await idx.rescan();
     },
 
@@ -186,7 +188,7 @@ export const useTypesStore = defineStore('types', {
       const idx = useWorkspaceIndexStore();
       await patchNoteFrontmatter(path, {
         type: name == null || name === '' ? undefined : name,
-      });
+      }, idx.folder);
       await idx.rescan();
     },
   },

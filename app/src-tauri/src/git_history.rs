@@ -213,27 +213,107 @@ fn workspace_is_dirty(repo: &Repository) -> bool {
     false
 }
 
-fn write_default_gitignore(folder: &Path, exclude_assets: bool) -> std::io::Result<()> {
+/// Ignore rules for SoloMD's own `.solomd/` runtime state. `.solomd/agents/`
+/// is deliberately NOT covered: those are user recipes the user may want to
+/// share through the same repo.
+const SOLOMD_IGNORE_RULES: &[&str] = &[
+    ".solomd/agent-runs/",
+    ".solomd/session.*.json",
+    ".solomd/encryption.*",
+    ".solomd/*.json",
+];
+
+const SOLOMD_IGNORE_HEADER: &str =
+    "# SoloMD runtime state (per-device, do not commit).";
+
+/// True when `body` already contains `entry` as a whole, trimmed line.
+fn gitignore_has(body: &str, entry: &str) -> bool {
+    body.lines().any(|l| l.trim() == entry)
+}
+
+/// Write/refresh the default `.gitignore`.
+///
+/// A brand-new file gets the full default block. An existing file is never
+/// overwritten — we only append the `.solomd/` runtime rules when they are
+/// missing, so a user's own rules survive. Returns `true` when the file was
+/// created or changed.
+fn write_default_gitignore(folder: &Path, exclude_assets: bool) -> std::io::Result<bool> {
     let gi = folder.join(".gitignore");
-    if gi.exists() {
+    let existed = gi.exists();
+    let mut body = if existed {
+        fs::read_to_string(&gi).unwrap_or_default()
+    } else {
+        String::from(
+            "# SoloMD AutoGit defaults\n\
+             .DS_Store\n\
+             Thumbs.db\n\
+             desktop.ini\n\
+             node_modules/\n\
+             .obsidian/workspace*\n\
+             .obsidian/cache\n\
+             .vscode/\n\
+             *.tmp\n\
+             *~\n",
+        )
+    };
+    let mut changed = !existed;
+    if exclude_assets && !gitignore_has(&body, "_assets/") {
+        body.push_str("_assets/\n");
+        changed = true;
+    }
+    let missing: Vec<&str> = SOLOMD_IGNORE_RULES
+        .iter()
+        .copied()
+        .filter(|rule| !gitignore_has(&body, rule))
+        .collect();
+    if !missing.is_empty() {
+        if !body.is_empty() && !body.ends_with('\n') {
+            body.push('\n');
+        }
+        if !gitignore_has(&body, SOLOMD_IGNORE_HEADER) {
+            body.push_str(SOLOMD_IGNORE_HEADER);
+            body.push('\n');
+        }
+        for rule in missing {
+            body.push_str(rule);
+            body.push('\n');
+        }
+        changed = true;
+    }
+    if !changed {
+        return Ok(false);
+    }
+    fs::write(gi, body)?;
+    Ok(true)
+}
+
+/// Drop `.solomd/agent-runs/` entries from the index.
+///
+/// Run artifacts were historically swept into the agent branch (and then
+/// into `main` on accept), so merely adding ignore rules does not untrack
+/// them. Removing the index entries lets the next commit record the
+/// deletion without rewriting history.
+fn untrack_solomd_run_artifacts(repo: &Repository) -> Result<(), String> {
+    let mut index = repo.index().map_err(|e| format!("index: {e}"))?;
+    let stale: Vec<PathBuf> = index
+        .iter()
+        .filter(|e| {
+            String::from_utf8_lossy(&e.path)
+                .replace('\\', "/")
+                .starts_with(".solomd/agent-runs/")
+        })
+        .map(|e| PathBuf::from(String::from_utf8_lossy(&e.path).into_owned()))
+        .collect();
+    if stale.is_empty() {
         return Ok(());
     }
-    let mut body = String::from(
-        "# SoloMD AutoGit defaults\n\
-         .DS_Store\n\
-         Thumbs.db\n\
-         desktop.ini\n\
-         node_modules/\n\
-         .obsidian/workspace*\n\
-         .obsidian/cache\n\
-         .vscode/\n\
-         *.tmp\n\
-         *~\n",
-    );
-    if exclude_assets {
-        body.push_str("_assets/\n");
+    for p in &stale {
+        index
+            .remove_path(p)
+            .map_err(|e| format!("index remove {}: {e}", p.display()))?;
     }
-    fs::write(gi, body)
+    index.write().map_err(|e| format!("index write: {e}"))?;
+    Ok(())
 }
 
 /// Stage files under a pathspec. If `pathspec` is `None`, stages every
@@ -382,6 +462,10 @@ pub fn git_init_workspace_inner(
 
     write_default_gitignore(path, exclude_assets.unwrap_or(false))
         .map_err(|e| format!("gitignore: {}", e))?;
+    // A repo that already existed may still track run artifacts from before
+    // the `.solomd/` rules were introduced — untrack them once so the
+    // initial commit records the deletion.
+    untrack_solomd_run_artifacts(&repo)?;
 
     stage(&repo, None)?;
     let sig = build_signature(&repo)?;
@@ -410,6 +494,15 @@ pub fn git_auto_commit_inner(
     message: Option<String>,
 ) -> Result<Option<String>, String> {
     let repo = open_repo(&folder)?;
+    // One-time migration for repos created before the `.solomd/` runtime
+    // rules existed: refresh `.gitignore` and untrack run artifacts only on
+    // the pass that actually changes the ignore file. Subsequent saves skip
+    // this entirely (one cheap read of `.gitignore`).
+    if write_default_gitignore(Path::new(&folder), false)
+        .map_err(|e| format!("gitignore: {e}"))?
+    {
+        untrack_solomd_run_artifacts(&repo)?;
+    }
     let pathspec = match file_path.as_ref() {
         Some(abs) => match rel_path(&repo, abs) {
             Some(r) => Some(r),
@@ -448,6 +541,57 @@ pub async fn git_auto_commit(
         });
     }
     Ok(result)
+}
+
+#[cfg(test)]
+mod gitignore_tests {
+    use super::*;
+
+    #[test]
+    fn default_gitignore_ignores_runtime_state_but_not_agents() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let changed = write_default_gitignore(tmp.path(), false).unwrap();
+        assert!(changed);
+        let body = fs::read_to_string(tmp.path().join(".gitignore")).unwrap();
+        assert!(body.contains(".solomd/agent-runs/"));
+        assert!(body.contains(".solomd/*.json"));
+        assert!(!body.lines().any(|l| l.trim() == ".solomd/"));
+    }
+
+    #[test]
+    fn existing_gitignore_is_appended_not_overwritten() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        fs::write(tmp.path().join(".gitignore"), "custom-rule\n").unwrap();
+        let changed = write_default_gitignore(tmp.path(), false).unwrap();
+        assert!(changed);
+        let body = fs::read_to_string(tmp.path().join(".gitignore")).unwrap();
+        assert!(body.starts_with("custom-rule\n"));
+        assert!(body.contains(".solomd/agent-runs/"));
+
+        // Second call is a no-op.
+        assert!(!write_default_gitignore(tmp.path(), false).unwrap());
+    }
+
+    #[test]
+    fn untrack_solomd_run_artifacts_drops_index_entries() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let repo = Repository::init(tmp.path()).unwrap();
+        let rel = ".solomd/agent-runs/r1/meta.json";
+        let abs = tmp.path().join(rel);
+        fs::create_dir_all(abs.parent().unwrap()).unwrap();
+        fs::write(&abs, "{}").unwrap();
+        let mut index = repo.index().unwrap();
+        index.add_path(Path::new(rel)).unwrap();
+        index.write().unwrap();
+        let tree_id = index.write_tree().unwrap();
+        let sig = repo.signature().unwrap();
+        let tree = repo.find_tree(tree_id).unwrap();
+        repo.commit(Some("HEAD"), &sig, &sig, "run", &tree, &[])
+            .unwrap();
+
+        untrack_solomd_run_artifacts(&repo).unwrap();
+        assert_eq!(repo.index().unwrap().len(), 0);
+    }
 }
 
 pub fn git_file_history_inner(
