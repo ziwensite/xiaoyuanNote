@@ -45,6 +45,7 @@
 ### S5 弹窗内 M2（原要求不变）
 
 - [x] 新建事件：点月格 = 当天全天；日后按小时行；新建即写文件
+- [x] 从编辑器选中文本建任务：命令面板「Task: Create from Selection」→ 在笔记末尾追加 `- [ ] <选中> 📅 <今天>`，原文不替换
 - [x] 编辑事件：标题/时间/全天/地点/备注；`writeCalendarEvent` / `patchFrontmatter`，正文逐字节不动
 - [x] 拖拽改期：15 分钟吸附；跨天保留时长；松手才写盘
 - [x] 下缘改时长；删除 = `status: CANCELLED`（不删文件，提示可撤销）
@@ -53,7 +54,7 @@
 
 ### 验证
 
-- [x] `pnpm test`（634 tests / 634 pass）
+- [x] `pnpm test`（635 tests / 635 pass）
 - [x] `pnpm build`（vue-tsc + vite 均通过）
 - [ ] 手测：开关弹窗 / 重启恢复 / 侧栏与弹窗月份一致 / 任务勾选与跳转 / 窄屏
 - [x] 提交（不 push、不改版本号），汇报实测 vs 代码推断

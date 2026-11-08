@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { autoNumberHeadings, dedentCodeBlockSelection, deleteWord, indentCodeBlockPaste, selectCodeBlockBody, selectLine, selectWord, shiftHeading, type Range, type TextEdit } from './editor-commands.ts';
+import { autoNumberHeadings, dedentCodeBlockSelection, deleteWord, indentCodeBlockPaste, selectCodeBlockBody, selectLine, selectWord, shiftHeading, taskFromSelection, type Range, type TextEdit } from './editor-commands.ts';
 
 /** `|` marks the selection ends (one `|` = a bare caret). */
 function parse(marked: string): { doc: string; from: number; to: number } {
@@ -174,6 +174,24 @@ test('dedentCodeBlockSelection strips fence alignment spaces while preserving in
   );
   // Selection outside a code block is untouched
   assert.equal(dedentCodeBlockSelection(doc, 0, 7), '1. 列表一\n');
+});
+
+test('taskFromSelection appends a task line and keeps the prose intact', () => {
+  const doc = 'Body\nBuy milk';
+  const e = taskFromSelection(doc, 5, doc.length, '2026-11-08')!;
+  assert.equal(e.from, doc.length);
+  assert.equal(e.to, doc.length);
+  assert.equal(e.insert, '\n- [ ] Buy milk 📅 2026-11-08');
+  // The inserted task line is selected, not the original prose.
+  assert.equal(doc.slice(0, e.from) + e.insert, 'Body\nBuy milk\n- [ ] Buy milk 📅 2026-11-08');
+  assert.equal(e.selFrom, doc.length + 1);
+  // A trailing newline is not doubled.
+  assert.equal(taskFromSelection('Body\n', 0, 4, '2026-11-08')!.insert, '- [ ] Body 📅 2026-11-08');
+  // Multi-line selections collapse to one line.
+  assert.equal(taskFromSelection('a\nb\nc', 2, 5, '2026-11-08')!.insert, '\n- [ ] b c 📅 2026-11-08');
+  // Nothing selected → no empty task.
+  assert.equal(taskFromSelection('Body', 4, 4, '2026-11-08'), null);
+  assert.equal(taskFromSelection('Body\n  ', 5, 7, '2026-11-08'), null);
 });
 
 test('indentCodeBlockPaste pads subsequent pasted lines with the code fence indentation', () => {

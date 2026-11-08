@@ -515,6 +515,12 @@ export function useCommands(): Command[] {
       hint: 'Selection, or the word under the cursor',
       run: () => window.dispatchEvent(new CustomEvent('solomd:transform-case', { detail: { mode: 'title' } })),
     },
+    {
+      id: 'task.fromSelection',
+      title: 'Task: Create from Selection',
+      hint: 'Append - [ ] the selected text with today\'s due date',
+      run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'createTaskFromSelection' } })),
+    },
 
     {
       id: 'editor.insertImageUrl',

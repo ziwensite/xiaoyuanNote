@@ -49,8 +49,10 @@ import {
   selectLine as selectLineRange,
   selectWord as selectWordRange,
   shiftHeading,
+  taskFromSelection,
   type EditorCommand,
 } from '../lib/editor-commands';
+import { localDateKey } from '../lib/calendar';
 import { caretRowInfo, caretTopPx, caretPointPx, lastVisualRowStart, firstVisualRowEnd, measureLineHeights, offsetAtPoint, selectionBoxPx } from '../lib/textarea-metrics';
 import { activeParagraphLines, lineAt } from '../lib/focus-paragraph';
 import { transformCase, nextCaseInCycle, caseTargetRange, type CaseMode } from '../lib/text-case';
@@ -4982,9 +4984,11 @@ function onEditorCommand(e: Event) {
     } else {
       const edit = cmd === 'deleteWord'
         ? deleteWordEdit(doc, sel.from, sel.to)
-        : cmd === 'headingAutoNumber'
-          ? autoNumberHeadings(doc, sel.from, sel.to)
-          : shiftHeading(doc, sel.from, sel.to, headingMode(cmd));
+        : cmd === 'createTaskFromSelection'
+          ? taskFromSelection(doc, sel.from, sel.to, localDateKey(new Date()))
+          : cmd === 'headingAutoNumber'
+            ? autoNumberHeadings(doc, sel.from, sel.to)
+            : shiftHeading(doc, sel.from, sel.to, headingMode(cmd));
       if (edit) {
         v.dispatch({
           changes: { from: edit.from, to: edit.to, insert: edit.insert },
@@ -5014,9 +5018,11 @@ function onEditorCommand(e: Event) {
   }
   const edit = cmd === 'deleteWord'
     ? deleteWordEdit(doc, sel.from, sel.to)
-    : cmd === 'headingAutoNumber'
-      ? autoNumberHeadings(doc, sel.from, sel.to)
-      : shiftHeading(doc, sel.from, sel.to, headingMode(cmd));
+    : cmd === 'createTaskFromSelection'
+      ? taskFromSelection(doc, sel.from, sel.to, localDateKey(new Date()))
+      : cmd === 'headingAutoNumber'
+        ? autoNumberHeadings(doc, sel.from, sel.to)
+        : shiftHeading(doc, sel.from, sel.to, headingMode(cmd));
   if (!edit) return;
   recordPlainHistory();
   applyPlainContent(doc.slice(0, edit.from) + edit.insert + doc.slice(edit.to), edit.selTo);

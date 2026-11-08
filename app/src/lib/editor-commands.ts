@@ -18,7 +18,8 @@ export type EditorCommand =
   | 'headingPromote'
   | 'headingDemote'
   | 'headingParagraph'
-  | 'headingAutoNumber';
+  | 'headingAutoNumber'
+  | 'createTaskFromSelection';
 
 export const EDITOR_COMMANDS: EditorCommand[] = [
   'selectWord',
@@ -29,6 +30,7 @@ export const EDITOR_COMMANDS: EditorCommand[] = [
   'headingDemote',
   'headingParagraph',
   'headingAutoNumber',
+  'createTaskFromSelection',
 ];
 
 /** Commands that change the text (the rest only move the selection). */
@@ -38,6 +40,7 @@ export const EDITING_COMMANDS = new Set<EditorCommand>([
   'headingDemote',
   'headingParagraph',
   'headingAutoNumber',
+  'createTaskFromSelection',
 ]);
 
 /** Commands that only make sense in a Markdown document. */
@@ -46,7 +49,31 @@ export const MARKDOWN_ONLY_COMMANDS = new Set<EditorCommand>([
   'headingDemote',
   'headingParagraph',
   'headingAutoNumber',
+  'createTaskFromSelection',
 ]);
+
+/**
+ * Selection → task (design `docs/calendar-pane-plan.md`): append
+ * `- [ ] <selected> 📅 <today>` to the end of the note.
+ *
+ * Appending instead of replacing keeps the original prose intact; the task
+ * calendar reads it from the body like any other `- [ ]` line. Returns null
+ * when nothing is selected, so the command never creates an empty task.
+ */
+export function taskFromSelection(
+  doc: string,
+  from: number,
+  to: number,
+  today: string,
+): TextEdit | null {
+  if (from === to) return null;
+  const text = doc.slice(from, to).replace(/\s+/g, ' ').trim();
+  if (!text) return null;
+  const separator = doc.endsWith('\n') ? '' : '\n';
+  const insert = `${separator}- [ ] ${text} 📅 ${today}`;
+  const start = doc.length + separator.length;
+  return { from: doc.length, to: doc.length, insert, selFrom: start, selTo: start + insert.length - separator.length };
+}
 
 export interface Range {
   from: number;
