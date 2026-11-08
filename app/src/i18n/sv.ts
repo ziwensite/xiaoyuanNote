@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 export const sv: I18n = {
   iosFolder: {
@@ -1395,7 +1395,13 @@ export const sv: I18n = {
     selection: 'valt: {words} ord / {chars} tecken',
     selectionTooltip: 'Antal ord och tecken i markeringen',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: "Typer",
     relationships: "Relationer",
     dragToReorder: 'Dra för att ordna om denna sidofältsruta',

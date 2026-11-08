@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 export const ko: I18n = {
   iosFolder: {
@@ -1392,7 +1392,13 @@ export const ko: I18n = {
     selection: '선택: {words} 단어 / {chars} 문자',
     selectionTooltip: '선택한 텍스트의 단어 수 및 문자 수',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: "유형",
     relationships: "관계",
     dragToReorder: '드래그하여 이 사이드바 창 재정렬',

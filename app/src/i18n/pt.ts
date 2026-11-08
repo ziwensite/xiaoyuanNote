@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 // Brazilian Portuguese (pt-BR) — primary market is Brazil's tech scene.
 // European Portuguese readers should still find this readable.
@@ -1394,7 +1394,13 @@ export const pt: I18n = {
     selection: 'seleção: {words} palavras / {chars} caracteres',
     selectionTooltip: 'Contagem de palavras e caracteres da seleção',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: "Tipos",
     relationships: "Relações",
     dragToReorder: 'Arraste para reordenar este painel da barra lateral',

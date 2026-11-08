@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 export const tr: I18n = {
   iosFolder: {
@@ -1395,7 +1395,13 @@ export const tr: I18n = {
     selection: 'seçim: {words} kelime / {chars} karakter',
     selectionTooltip: 'Seçimin kelime ve karakter sayısı',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: "Türler",
     relationships: "İlişkiler",
     dragToReorder: 'Bu kenar çubuğu bölmesini yeniden sıralamak için sürükle',

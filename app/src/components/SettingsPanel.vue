@@ -31,6 +31,7 @@ import {
 } from '../lib/keybindings';
 import { usesCommandKey } from '../lib/platform';
 import { isMasBuild } from '../lib/check-update';
+import { isDockPaneVisible } from '../lib/sidebar-dock';
 import { useUpdateCheck } from '../composables/useUpdateCheck';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { useFiles } from '../composables/useFiles';
@@ -1506,14 +1507,14 @@ function onSelectPdfFont(v: string) {
 
         <section data-cat="basics">
           <label>
-            <input type="checkbox" :checked="settings.showBacklinks" @change="settings.toggleBacklinks()" />
+            <input type="checkbox" :checked="isDockPaneVisible(settings.sidebarDock, 'backlinks')" @change="settings.toggleBacklinks()" />
             {{ t('settings.showBacklinks') }}
           </label>
         </section>
 
         <section data-cat="basics">
           <label>
-            <input type="checkbox" :checked="settings.showTagsPanel" @change="settings.toggleTagsPanel()" />
+            <input type="checkbox" :checked="isDockPaneVisible(settings.sidebarDock, 'tags')" @change="settings.toggleTagsPanel()" />
             {{ t('settings.showTagsPanel') }}
           </label>
         </section>

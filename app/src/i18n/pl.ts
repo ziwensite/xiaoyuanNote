@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 export const pl: I18n = {
   iosFolder: {
@@ -1395,7 +1395,13 @@ export const pl: I18n = {
     selection: 'zaznaczenie: {words} słów / {chars} znaków',
     selectionTooltip: 'Liczba słów i znaków w zaznaczeniu',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: "Typy",
     relationships: "Relacje",
     dragToReorder: 'Przeciągnij, aby zmienić kolejność tego panelu paska bocznego',

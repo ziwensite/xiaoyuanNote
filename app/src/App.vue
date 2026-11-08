@@ -18,7 +18,8 @@ import TelemetryBanner from './components/TelemetryBanner.vue';
 import TileRoot from './components/TileRoot.vue';
 import StatsPill from './components/StatsPill.vue';
 import SidebarDock from './components/sidebar/SidebarDock.vue';
-import { IMPLEMENTED_SIDEBAR_PANE_IDS, type ImplementedSidebarPaneId } from './panes/sidebar-panes';
+import { SIDEBAR_PANE_DEFS, type ImplementedSidebarPaneId, type SidebarPaneAvailabilityCtx } from './panes/sidebar-panes';
+import { dockPane, isDockPaneVisible, isPendingPane, sideDockPanes } from './lib/sidebar-dock';
 const TableEditor = defineAsyncComponent(() => import('./components/TableEditor.vue'));
 const FormulaEditor = defineAsyncComponent(() => import('./components/FormulaEditor.vue'));
 import { useAutoCommit } from './composables/useAutoCommit';
@@ -233,39 +234,11 @@ function openSidebarCtx(e: MouseEvent) {
 }
 function closeSidebarCtx() { sidebarCtx.value = null; }
 
-function rsPaneSnapshot() {
-  return {
-    showBacklinks: settings.showBacklinks,
-    showRelationships: settings.showRelationships,
-    showTagsPanel: settings.showTagsPanel,
-    showTasksPanel: settings.showTasksPanel,
-    showNeighborhood: settings.showNeighborhood,
-    showTypesPanel: settings.showTypesPanel,
-    showHistoryPanel: settings.showHistoryPanel,
-    showAgentPanel: settings.showAgentPanel,
-  };
-}
-/** Run a pane toggle and reconcile sidebar visibility: hide it if the
- *  toggle left no panes on, restore it if a hidden sidebar gained a pane. */
+/** Run a pane toggle from the context menu. S2: the dock actions themselves
+ *  expand their side when they switch a pane on, and a side with nothing left
+ *  to draw simply renders its rail — no snapshot / auto-hide dance needed. */
 function ctxToggle(toggleFn: () => void) {
-  const before = rsPaneSnapshot();
   toggleFn();
-  const noPanesVisible =
-    !searchOpen.value &&
-    !showOutlinePane.value &&
-    !settings.showBacklinks &&
-    !settings.showRelationships &&
-    !settings.showTagsPanel &&
-    !settings.showTasksPanel &&
-    !showNeighborhoodPane.value &&
-    !settings.showTypesPanel &&
-    !settings.showHistoryPanel &&
-    (IS_APP_STORE_BUILD || !settings.showAgentPanel);
-  if (noPanesVisible) {
-    settings.hideRightSidebarFromPane(before);
-  } else if (settings.rightSidebarHidden) {
-    settings.ensureRightSidebarVisible();
-  }
   closeSidebarCtx();
 }
 
@@ -284,6 +257,9 @@ function ctxToggle(toggleFn: () => void) {
 function toggleGlobalSearch() {
   ctxToggle(() => {
     searchOpen.value = !searchOpen.value;
+    // S2 — the dock draws one pane per side, so switching search on has to
+    // make it the active tab (and expand its side) or nothing appears.
+    if (searchOpen.value) settings.focusDockPane('search');
   });
 }
 
@@ -291,6 +267,7 @@ function toggleGlobalSearch() {
 function openGlobalSearchPane() {
   ctxToggle(() => {
     searchOpen.value = true;
+    settings.focusDockPane('search');
   });
 }
 
@@ -1812,67 +1789,71 @@ onBeforeUnmount(() => {
   }
 });
 
-const showOutlinePane = computed(
-  () => !!tabs.activeTab?.showOutline && tabs.activeTab?.language === 'markdown'
+// S2 — one availability context for the whole dock registry. The old
+// `showXxxPane` computeds fused "user wants it" with "context can draw it";
+// the dock needs those apart (a pane stays switched on while a folder is
+// closed, then reappears when one opens).
+const paneAvailabilityCtx = computed<SidebarPaneAvailabilityCtx>(() => ({
+  hasMarkdownTab: tabs.activeTab?.language === 'markdown',
+  hasFolder: !!workspace.currentFolder,
+  autoGitEnabled: settings.autoGitEnabled,
+  appStoreBuild: IS_APP_STORE_BUILD,
+}));
+
+/** User-facing on/off. `outline` is per tab, `search` is per session. */
+const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() => ({
+  search: searchOpen.value,
+  outline: !!tabs.activeTab?.showOutline,
+  backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),
+  relationships: isDockPaneVisible(settings.sidebarDock, 'relationships'),
+  tags: isDockPaneVisible(settings.sidebarDock, 'tags'),
+  tasks: isDockPaneVisible(settings.sidebarDock, 'tasks'),
+  neighborhood: isDockPaneVisible(settings.sidebarDock, 'neighborhood'),
+  types: isDockPaneVisible(settings.sidebarDock, 'types'),
+  history: isDockPaneVisible(settings.sidebarDock, 'history'),
+  inspector: isDockPaneVisible(settings.sidebarDock, 'inspector'),
+  agent: isDockPaneVisible(settings.sidebarDock, 'agent'),
+}));
+
+/** Context gate only — no user switches in here. */
+const dockPaneAvailable = computed<Record<ImplementedSidebarPaneId, boolean>>(() => {
+  const ctx = paneAvailabilityCtx.value;
+  const out = {} as Record<ImplementedSidebarPaneId, boolean>;
+  for (const def of SIDEBAR_PANE_DEFS) {
+    if (def.pending) continue;
+    out[def.id as ImplementedSidebarPaneId] = def.available(ctx);
+  }
+  return out;
+});
+
+function dockViewsFor(side: 'left' | 'right') {
+  return sideDockPanes(settings.sidebarDock, side)
+    .filter((pane) => !isPendingPane(pane.id))
+    .map((pane) => {
+      const id = pane.id as ImplementedSidebarPaneId;
+      return {
+        id,
+        visible: dockPaneVisible.value[id],
+        available: dockPaneAvailable.value[id],
+      };
+    });
+}
+
+const leftDockPanes = computed(() => dockViewsFor('left'));
+const rightDockPanes = computed(() => dockViewsFor('right'));
+/** A side mounts once it owns at least one real (non-reserved) pane. */
+const hasLeftDock = computed(() => leftDockPanes.value.length > 0);
+const hasRightDock = computed(() => rightDockPanes.value.length > 0);
+/** `calendar` is reserved but never renderable; the Dock falls back for it. */
+const activeLeft = computed(
+  () => settings.sidebarDock.active.left as ImplementedSidebarPaneId | null,
 );
-const showBacklinksPane = computed(
-  () =>
-    settings.showBacklinks &&
-    tabs.activeTab?.language === 'markdown' &&
-    !!workspace.currentFolder,
+const activeRight = computed(
+  () => settings.sidebarDock.active.right as ImplementedSidebarPaneId | null,
 );
-const showRelationshipsPane = computed(
-  () =>
-    settings.showRelationships &&
-    tabs.activeTab?.language === 'markdown' &&
-    !!workspace.currentFolder,
-);
-const showTagsPane = computed(
-  () => settings.showTagsPanel && !!workspace.currentFolder,
-);
-// Workspace-scoped like Tags: the task list is the vault's, not the note's.
-const showTasksPane = computed(
-  () => settings.showTasksPanel && !!workspace.currentFolder,
-);
-// v4.6 F4 — Neighborhood relationship explorer. Markdown-only, needs a folder
-// (frontmatter wikilink groups are resolved against the workspace index).
-const showNeighborhoodPane = computed(
-  () =>
-    settings.showNeighborhood &&
-    tabs.activeTab?.language === 'markdown' &&
-    !!workspace.currentFolder,
-);
-// v4.6 F2 — Types pane (types-as-lenses). Workspace-scoped like Tags.
-const showTypesPane = computed(
-  () => settings.showTypesPanel && !!workspace.currentFolder,
-);
-const showHistoryPane = computed(
-  // v4.0.2 — decoupled from autoGitEnabled (#55). Hiding the pane via
-  // its × button no longer disables git sync; users can keep snapshots
-  // running in the background while reclaiming vertical space.
-  () =>
-    settings.autoGitEnabled &&
-    settings.showHistoryPanel &&
-    tabs.activeTab?.language === 'markdown' &&
-    !!workspace.currentFolder,
-);
-// v4.6 F1: Properties inspector — frontmatter editor for the active markdown
-// note. Toggled via ⌘⇧I / command palette `view.toggleInspector`. Requires an
-// open folder (reads parsed frontmatter from the workspace index).
-const showInspectorPane = computed(
-  () =>
-    settings.showInspector &&
-    tabs.activeTab?.language === 'markdown' &&
-    !!workspace.currentFolder,
-);
-// v4.0 pillar 1: Agent Panel — workspace-level visibility (not per-tab).
-// Toggled via command palette `view.toggleAgentPanel`; persists in settings.
-// App Store builds strip the AI/Agent surface entirely (Apple 3.1.1).
-const showAgentPane = computed(() => !IS_APP_STORE_BUILD && settings.showAgentPanel);
-// v4.0.2 — search is a session-only pane (PR #50). ⌘⇧F toggles searchOpen;
-// no setting persisted because users don't want search living in their
-// sidebar across launches.
-const showSearchPane = computed(() => searchOpen.value);
+const renderableOn = (views: readonly { visible: boolean; available: boolean }[]) =>
+  views.some((pane) => pane.visible && pane.available);
+
 // #168 — phone shell: one flag drives the CSS and the behaviour.
 const { isNarrow } = useViewport();
 
@@ -2024,26 +2005,13 @@ watch(
  * time over there would be two sources of truth for the same rules — the
  * shape of bug this is fixing.
  */
-const rightSidebarHasRenderablePane = computed(
-  () =>
-    showSearchPane.value ||
-    showOutlinePane.value ||
-    showBacklinksPane.value ||
-    showRelationshipsPane.value ||
-    showTagsPane.value ||
-    showTasksPane.value ||
-    showNeighborhoodPane.value ||
-    showTypesPane.value ||
-    showHistoryPane.value ||
-    showInspectorPane.value ||
-    showAgentPane.value,
-);
+const rightSidebarHasRenderablePane = computed(() => renderableOn(rightDockPanes.value));
 
 const showRightSidebar = computed(() => {
   // Master "hide" toggle wins over individual panes — preserves which panes
   // the user had on while still letting them dismiss the whole strip with
   // a single action (toolbar close button / ⌥⌘B / command palette).
-  if (settings.rightSidebarHidden) return false;
+  if (settings.sidebarDock.collapsed.right) return false;
   return rightSidebarHasRenderablePane.value;
 });
 
@@ -2054,16 +2022,7 @@ const showRightSidebar = computed(() => {
 // button start working.
 setRightSidebarShell({
   visible: () => showRightSidebar.value,
-  ensureRenderable: () => {
-    if (rightSidebarHasRenderablePane.value) return true;
-    const tab = tabs.activeTab;
-    if (tab && tab.language === 'markdown') {
-      tab.showOutline = true;
-      settings.showOutline = true;
-      return true;
-    }
-    return false;
-  },
+  ensureRenderable: () => rightSidebarHasRenderablePane.value,
 });
 
 /**
@@ -2089,81 +2048,38 @@ function closeNarrowDrawer(): void {
   if (showRightSidebar.value) settings.toggleRightSidebar();
 }
 
-// v4.0.2 — ordered list of currently-visible right-sidebar panes. Drives
-// the v-for that interleaves <RsSplitter> between adjacent panes (#6 / #52).
-// Search slots in at the top because users typically want results visible
-// while scanning the rest of the sidebar context.
-const visibleRsPanes = computed(() => {
-  // v4.3.0 issue #57b — order driven by settings.rsPaneOrder so users can
-  // drag-reorder. Unknown ids (newly-shipped future panes) get appended at
-  // the end so a SoloMD update doesn't blow away an existing user layout.
-  const all: Record<ImplementedSidebarPaneId, boolean> = {
-    search: showSearchPane.value,
-    outline: showOutlinePane.value,
-    backlinks: showBacklinksPane.value,
-    relationships: showRelationshipsPane.value,
-    tags: showTagsPane.value,
-    tasks: showTasksPane.value,
-    neighborhood: showNeighborhoodPane.value,
-    types: showTypesPane.value,
-    history: showHistoryPane.value,
-    inspector: showInspectorPane.value,
-    agent: showAgentPane.value,
-  };
-  const known = IMPLEMENTED_SIDEBAR_PANE_IDS;
-  const ordered: string[] = [];
-  for (const id of settings.rsPaneOrder || []) {
-    if (id in all && !ordered.includes(id)) ordered.push(id);
-  }
-  for (const id of known) {
-    if (!ordered.includes(id)) ordered.push(id);
-  }
-  return ordered
-    .filter((id) => all[id as ImplementedSidebarPaneId])
-    .map((id) => ({ id: id as ImplementedSidebarPaneId }));
-});
-
-// Sidebar visibility / pane composition changes the editor's available
-// width. CodeMirror's ResizeObserver may lag for a frame, so dispatch
+// Dock visibility / composition changes the editor's available width.
+// CodeMirror's ResizeObserver may lag for a frame, so dispatch
 // solomd:relayout on the next paint and let Editor.vue requestMeasure().
-watch(visibleRsPanes, () => {
-  nextTick(() => {
-    requestAnimationFrame(() => {
-      window.dispatchEvent(new CustomEvent('solomd:relayout'));
+watch(
+  [() => settings.sidebarDock, dockPaneVisible, dockPaneAvailable],
+  () => {
+    nextTick(() => {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('solomd:relayout'));
+      });
     });
-  });
-});
-
-// Side sidebar width — user-resizable via drag handle. Defaults to 260
-// for the read-only panes (outline/backlinks/tags/history), but auto-
-// bumps to 440 when the agent panel is on (chat needs real estate).
-// User resizes above the auto-bump are honored.
-const sideSidebarWidth = computed(() =>
-  showAgentPane.value && settings.sideSidebarWidth <= 260
-    ? 440
-    : settings.sideSidebarWidth,
+  },
+  { deep: true },
 );
 
-// Pane × buttons. Search is session-only; every other pane goes through
-// `ctxToggle` so closing the last pane still hides the whole sidebar.
+// Pane × buttons. Search is session-only, Outline is per tab; other panes
+// just switch their dock entry off. Collapse a side once it has nothing left
+// to draw (the rail stays as the way back in).
 function onPaneClose(id: ImplementedSidebarPaneId) {
   if (id === 'search') {
     searchOpen.value = false;
-    return;
+  } else if (id === 'outline') {
+    const tab = tabs.activeTab;
+    if (tab) tabs.toggleOutline(tab.id);
+  } else {
+    settings.hideDockPane(id);
   }
-  const toggle: Partial<Record<ImplementedSidebarPaneId, () => void>> = {
-    backlinks: () => settings.toggleBacklinks(),
-    relationships: () => settings.toggleRelationships(),
-    tags: () => settings.toggleTagsPanel(),
-    tasks: () => settings.toggleTasksPanel(),
-    neighborhood: () => settings.toggleNeighborhood(),
-    types: () => settings.toggleTypesPanel(),
-    history: () => settings.toggleHistoryPanel(),
-    inspector: () => settings.toggleInspector(),
-    agent: () => settings.toggleAgentPanel(),
-  };
-  const fn = toggle[id];
-  if (fn) ctxToggle(fn);
+  const side = dockPane(settings.sidebarDock, id)?.side;
+  if (side) {
+    const views = side === 'left' ? leftDockPanes.value : rightDockPanes.value;
+    if (!renderableOn(views)) settings.setDockCollapsed(side, true);
+  }
 }
 const basesOpen = ref(false);
 const inboxViewOpen = ref(false);
@@ -2282,13 +2198,16 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       <TelemetryBanner />
       <div class="workspace">
         <SidebarDock
-          v-if="showRightSidebar && settings.outlineSide === 'left'"
+          v-if="hasLeftDock"
           side="left"
-          :panes="visibleRsPanes"
-          :width="sideSidebarWidth"
+          :panes="leftDockPanes"
+          :active="activeLeft"
+          :collapsed="settings.sidebarDock.collapsed.left"
+          :overlay="isNarrow"
           :search-prefill="searchPrefill"
           :outline-line="outlineLine"
           @contextmenu="openSidebarCtx"
+          @manage="openSidebarCtx"
           @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
@@ -2303,13 +2222,16 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           <StatsPill v-if="!basesOpen && !inboxViewOpen && !typeLensOpen && !viewPaneVisible" :line="cursorLine" :col="cursorCol" :selection-text="selectionText" />
         </div>
         <SidebarDock
-          v-if="showRightSidebar && settings.outlineSide !== 'left'"
+          v-if="hasRightDock"
           side="right"
-          :panes="visibleRsPanes"
-          :width="sideSidebarWidth"
+          :panes="rightDockPanes"
+          :active="activeRight"
+          :collapsed="settings.sidebarDock.collapsed.right"
+          :overlay="isNarrow"
           :search-prefill="searchPrefill"
           :outline-line="outlineLine"
           @contextmenu="openSidebarCtx"
+          @manage="openSidebarCtx"
           @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
@@ -2344,44 +2266,48 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           :style="{ left: sidebarCtx.x + 'px', top: sidebarCtx.y + 'px' }"
           @click.stop
         >
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { searchOpen = !searchOpen })">
+          <label class="sidebar-ctx__item" @click="ctxToggle(() => { searchOpen = !searchOpen; if (searchOpen) settings.focusDockPane('search') })">
             <span class="sidebar-ctx__check">{{ searchOpen ? '✓' : '' }}</span>
             {{ t('rsPane.search') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { if (tabs.activeTab) tabs.toggleOutline(tabs.activeTab.id) })">
-            <span class="sidebar-ctx__check">{{ showOutlinePane ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.outline ? '✓' : '' }}</span>
             {{ t('rsPane.outline') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleBacklinks() })">
-            <span class="sidebar-ctx__check">{{ settings.showBacklinks ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.backlinks ? '✓' : '' }}</span>
             {{ t('rsPane.backlinks') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleRelationships() })">
-            <span class="sidebar-ctx__check">{{ settings.showRelationships ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.relationships ? '✓' : '' }}</span>
             {{ t('rsPane.relationships') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleTagsPanel() })">
-            <span class="sidebar-ctx__check">{{ settings.showTagsPanel ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.tags ? '✓' : '' }}</span>
             {{ t('rsPane.tags') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleTasksPanel() })">
-            <span class="sidebar-ctx__check">{{ settings.showTasksPanel ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.tasks ? '✓' : '' }}</span>
             {{ t('rsPane.tasks') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleNeighborhood() })">
-            <span class="sidebar-ctx__check">{{ settings.showNeighborhood ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.neighborhood ? '✓' : '' }}</span>
             {{ t('rsPane.neighborhood') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleTypesPanel() })">
-            <span class="sidebar-ctx__check">{{ settings.showTypesPanel ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.types ? '✓' : '' }}</span>
             {{ t('rsPane.types') }}
           </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleHistoryPanel() })">
-            <span class="sidebar-ctx__check">{{ settings.showHistoryPanel ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.history ? '✓' : '' }}</span>
             {{ t('rsPane.history') }}
           </label>
+          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleInspector() })">
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.inspector ? '✓' : '' }}</span>
+            {{ t('rsPane.inspector') }}
+          </label>
           <label v-if="!IS_APP_STORE_BUILD" class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleAgentPanel() })">
-            <span class="sidebar-ctx__check">{{ settings.showAgentPanel ? '✓' : '' }}</span>
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.agent ? '✓' : '' }}</span>
             {{ t('rsPane.agent') }}
           </label>
         </div>
@@ -2643,6 +2569,11 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
 }
 .app--narrow .side-sidebar--left {
   left: 0;
+}
+/* S2 — a collapsed dock is just its 32px rail; on a phone that is not worth a
+   whole drawer, so hide the dock until a pane is picked. */
+.app--narrow .side-sidebar--collapsed {
+  display: none;
 }
 /* The drag-to-resize handles moved with SidebarDock.vue — they are its
    descendants, so App's scopeId no longer reaches them. */

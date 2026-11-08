@@ -154,7 +154,6 @@ function timeAgo(unix: number): string {
 <template>
   <div class="history rp">
     <PanelHeader
-      :title="t('history.heading')"
       :count="!loading && commits.length > 0 ? commits.length : null"
       @close="emit('close')"
     />

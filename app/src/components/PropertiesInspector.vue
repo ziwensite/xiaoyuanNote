@@ -131,7 +131,6 @@ const activeName = computed(() => tabs.activeTab?.fileName ?? null);
 <template>
   <div class="inspector rp">
     <PanelHeader
-      :title="t('inspector.heading')"
       :count="props.ready.value && rows.length ? rows.length : null"
       @close="emit('close')"
     />

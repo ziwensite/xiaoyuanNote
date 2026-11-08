@@ -146,8 +146,9 @@ const topTags = computed(() =>
     .slice(0, TAG_LIMIT),
 );
 function openTagsPanel() {
-  if (!settings.showTagsPanel) settings.toggleTagsPanel();
-  else settings.ensureRightSidebarVisible();
+  // S2 — the tags list is an entry point into the dock: switch the pane on
+  // (no-op when already on) and make it the tab its side draws.
+  settings.showDockPane('tags');
 }
 
 // ── empty state ─────────────────────────────────────────────────────────────

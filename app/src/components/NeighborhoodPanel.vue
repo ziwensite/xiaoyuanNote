@@ -253,7 +253,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
 <template>
   <div class="nbhd rp">
     <PanelHeader
-      :title="t('neighborhood.heading')"
       :count="focalPath && !isEmpty ? totalCount : null"
       @close="emit('close')"
     />

@@ -11,12 +11,14 @@ import '../../styles/panels.css';
 
 withDefaults(
   defineProps<{
-    title: string;
+    /** S2 — the dock tab header carries the pane name now; panels leave this
+     *  off so the two headers don't repeat the same label. */
+    title?: string | null;
     /** Optional count shown next to the title in --text-3. */
     count?: number | string | null;
     closable?: boolean;
   }>(),
-  { count: null, closable: true },
+  { title: null, count: null, closable: true },
 );
 const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
@@ -24,9 +26,13 @@ const { t } = useI18n();
 
 <template>
   <header class="rp-head">
-    <span class="rp-title">
+    <span v-if="title" class="rp-title">
       {{ title }}<span v-if="count !== null && count !== undefined && count !== ''" class="rp-title__count">{{ count }}</span>
     </span>
+    <span v-else-if="count !== null && count !== undefined && count !== ''" class="rp-title rp-title--count-only">{{ count }}</span>
+    <!-- Neither label nor count: an empty flex-grow spacer keeps the right-side
+         action buttons on the right (the title used to do that job). -->
+    <span v-else class="rp-title" aria-hidden="true" />
     <slot />
     <button
       v-if="closable"

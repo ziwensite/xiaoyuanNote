@@ -264,7 +264,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKey));
 <template>
   <aside class="outline rp">
     <PanelHeader
-      :title="t('toolbar.outline')"
       @close="tabs.activeId && tabs.toggleOutline(tabs.activeId)"
     />
     <div v-if="!visibleItems.length" class="rp-empty">{{ t('outline.empty') }}</div>

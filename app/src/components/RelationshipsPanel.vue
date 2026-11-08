@@ -274,7 +274,7 @@ async function commitAddRel(stem: string) {
 
 <template>
   <div class="rel rp">
-    <PanelHeader :title="t('relationships.heading')" @close="emit('close')" />
+    <PanelHeader @close="emit('close')" />
 
     <div v-if="!idx.ready" class="rp-empty">{{ t('relationships.openFolder') }}</div>
     <div v-else-if="!activePath || !isMarkdown" class="rp-empty">{{ t('relationships.noActive') }}</div>

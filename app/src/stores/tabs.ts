@@ -596,18 +596,19 @@ export const useTabsStore = defineStore('tabs', {
       const t = this.tabs.find((x) => x.id === id);
       if (t) {
         t.showOutline = !t.showOutline;
-        // #207 — turning the outline ON must also un-hide the right sidebar:
-        // once every pane was toggled off, the sidebar auto-hid and every
-        // outline entry point (shortcut / settings / tab button) flipped the
-        // flag invisibly, with no surface left to re-open it from.
-        if (t.showOutline) useSettingsStore().ensureRightSidebarVisible();
+        // #207 — turning the outline ON must also surface its dock: once the
+        // dock was collapsed, every outline entry point (shortcut / settings /
+        // tab button) flipped the flag invisibly. S2 — the outline lives on
+        // whichever side the user assigned it to, so focus that dock rather
+        // than assuming the right one.
+        if (t.showOutline) useSettingsStore().focusDockPane('outline');
       }
     },
     setShowOutlineAll(value: boolean) {
       for (const t of this.tabs) {
         if (t.language === 'markdown') t.showOutline = value;
       }
-      if (value) useSettingsStore().ensureRightSidebarVisible();
+      if (value) useSettingsStore().focusDockPane('outline');
     },
     persist() {
       try {

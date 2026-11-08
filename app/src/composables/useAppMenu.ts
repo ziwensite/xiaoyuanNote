@@ -7,6 +7,7 @@ import { hasGitBackend, isMacOS, isWindowsDesktop, usesCommandKey } from '../lib
 import { useTabsStore } from '../stores/tabs';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { isMasBuild } from '../lib/check-update';
+import { isDockPaneVisible } from '../lib/sidebar-dock';
 import type { Theme } from '../types';
 
 /**
@@ -46,18 +47,19 @@ export function useAppMenu() {
         lineNumbers: settings.showLineNumbers,
         autoGit: settings.autoGitEnabled,
         panes: {
-          // The outline is per tab; the rest are workspace-wide settings.
+          // The outline is per tab; the rest live in the S2 sidebar dock.
           outline: !!tabs.activeTab?.showOutline,
-          inspector: settings.showInspector,
-          backlinks: settings.showBacklinks,
-          relationships: settings.showRelationships,
-          neighborhood: settings.showNeighborhood,
-          tags: settings.showTagsPanel,
-          tasks: settings.showTasksPanel,
-          types: settings.showTypesPanel,
-          history: settings.showHistoryPanel,
+          inspector: isDockPaneVisible(settings.sidebarDock, 'inspector'),
+          backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),
+          relationships: isDockPaneVisible(settings.sidebarDock, 'relationships'),
+          neighborhood: isDockPaneVisible(settings.sidebarDock, 'neighborhood'),
+          tags: isDockPaneVisible(settings.sidebarDock, 'tags'),
+          tasks: isDockPaneVisible(settings.sidebarDock, 'tasks'),
+          types: isDockPaneVisible(settings.sidebarDock, 'types'),
+          history: isDockPaneVisible(settings.sidebarDock, 'history'),
+          // Saved views belong to the file-tree column, not the dock.
           savedViews: settings.showViewsPanel,
-          agent: settings.showAgentPanel,
+          agent: isDockPaneVisible(settings.sidebarDock, 'agent'),
         },
       },
       aiAvailable: !IS_APP_STORE_BUILD,

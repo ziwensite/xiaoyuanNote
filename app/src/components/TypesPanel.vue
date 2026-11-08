@@ -121,7 +121,7 @@ function memberPinned(
 
 <template>
   <div class="types-panel rp">
-    <PanelHeader :title="t('types.heading')" @close="$emit('close')">
+    <PanelHeader @close="$emit('close')">
       <button
         type="button"
         class="rp-icon-btn"

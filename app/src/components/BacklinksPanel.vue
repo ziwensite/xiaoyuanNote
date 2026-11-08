@@ -73,7 +73,7 @@ onBeforeUnmount(() => {});
 
 <template>
   <div class="backlinks rp">
-    <PanelHeader :title="t('backlinks.heading')" :count="loading ? null : refs.length" @close="emit('close')" />
+    <PanelHeader :count="loading ? null : refs.length" @close="emit('close')" />
 
     <div v-if="loading" class="rp-empty">{{ t('backlinks.loading') }}</div>
     <div v-else-if="!idx.ready" class="rp-empty">{{ t('backlinks.openFolder') }}</div>

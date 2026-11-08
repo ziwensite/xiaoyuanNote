@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 export const nl: I18n = {
   iosFolder: {
@@ -1395,7 +1395,13 @@ export const nl: I18n = {
     selection: 'selectie: {words} woorden / {chars} tekens',
     selectionTooltip: 'Woord- en tekenaantal van de selectie',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: "Typen",
     relationships: "Relaties",
     dragToReorder: 'Sleep om dit zijbalkpaneel te herschikken',

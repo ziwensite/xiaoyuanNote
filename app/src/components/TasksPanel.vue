@@ -86,7 +86,7 @@ async function openTask(task: WorkspaceTask) {
 
 <template>
   <div class="tasks-panel rp">
-    <PanelHeader :title="t('tasks.heading')" :count="openCount || null" @close="emit('close')" />
+    <PanelHeader :count="openCount || null" @close="emit('close')" />
 
     <div class="tasks-panel__filters">
       <SegControl

@@ -1,27 +1,45 @@
 <script setup lang="ts">
 /**
- * S1 — one sidebar shell, mounted twice (left of `.content`, right of it).
+ * S2 — one dock = activity bar (rail) + tab header + a single active pane.
  *
- * Lifted verbatim out of App.vue's two near-identical `<aside>` blocks; the
- * only per-side differences that remain are the ones that existed before:
- * root `side-sidebar--left|right`, the resize handle's inner-edge class, and
- * the sign of the resize delta. Everything else — splitter order, grip
- * reorder, pane heights — is side-agnostic and unchanged.
+ * The two docks (left of `.content`, right of it) share this component. The
+ * rail is the stable entry point: it stays when the body is collapsed, lists
+ * the panes that can actually render right now, and carries the `+` (opens
+ * App's existing pane list) plus the collapse handle. Tabs only appear when
+ * more than one pane is renderable — with one pane the tab label would just
+ * repeat the panel content.
  *
- * `width` arrives pre-bumped (Agent gets 440 when the stored width is <= 260);
- * that rule stays in App.vue next to the pane-visibility computeds.
+ * Order (for S3 drag) lives in `sidebarDock.panes`, not here; this component
+ * only consumes the per-side slice it is given.
  */
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
 import { useI18n } from '../../i18n';
+import {
+  DEFAULT_DOCK_WIDTH,
+  SIDEBAR_RAIL_WIDTH,
+  paneDef,
+  type SidebarDockState,
+} from '../../lib/sidebar-dock';
 import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
-import RsSplitter from '../RsSplitter.vue';
+import Icon from '../Icons.vue';
 import SidebarPaneBody from './SidebarPaneBody.vue';
+
+export interface SidebarDockPaneView {
+  id: ImplementedSidebarPaneId;
+  /** User asked for it (dock switch, tab.showOutline, session search). */
+  visible: boolean;
+  /** Current context can draw it (markdown / folder / autoGit / build). */
+  available: boolean;
+}
 
 const props = defineProps<{
   side: 'left' | 'right';
-  panes: readonly { id: ImplementedSidebarPaneId }[];
-  width: number;
+  panes: readonly SidebarDockPaneView[];
+  active: ImplementedSidebarPaneId | null;
+  collapsed: boolean;
+  /** Narrow-screen drawer: App's CSS owns the width/position. */
+  overlay?: boolean;
   searchPrefill?: string;
   outlineLine: number;
 }>();
@@ -29,6 +47,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   contextmenu: [ev: MouseEvent];
   closePane: [id: ImplementedSidebarPaneId];
+  manage: [ev: MouseEvent];
   filterTag: [tag: string];
   outlineGoto: [line: number];
   openSettings: [section?: string];
@@ -37,97 +56,76 @@ const emit = defineEmits<{
 const settings = useSettingsStore();
 const { t } = useI18n();
 
-const dockStyle = computed(() => ({
-  width: `${props.width}px`,
-  flexBasis: `${props.width}px`,
-}));
+/** Panes that may appear in the rail / tabs / body right now. */
+const renderable = computed(() =>
+  props.panes.filter((pane) => pane.visible && pane.available),
+);
 
-// #131 — sidebar pane reordering via the ⋮⋮ grip.
-//
-// This used HTML5 drag-and-drop (`draggable` + dragstart/dragover/drop), but
-// the Tauri webview ships with `dragDropEnabled: true` (the app needs the
-// native OS file-drop for "drop a file to open it" + image drop), and that
-// native handler swallows in-webview HTML5 DnD — so the grip silently did
-// nothing. Pointer events are not intercepted, so we drive the reorder
-// manually: pointerdown on the grip → track the pane under the cursor →
-// pointerup commits the move. Works on mouse, trackpad and touch alike.
-const draggingPaneId = ref<string | null>(null);
-const dragOverPaneId = ref<string | null>(null);
-function startPaneReorder(e: PointerEvent, id: string) {
-  if (e.button !== 0 && e.pointerType === 'mouse') return;
-  e.preventDefault();
-  draggingPaneId.value = id;
-  dragOverPaneId.value = null;
-  const paneUnder = (x: number, y: number): string | null => {
-    const host = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest(
-      '[data-rs-pane]',
-    ) as HTMLElement | null;
-    return host?.getAttribute('data-rs-pane') || null;
-  };
-  const onMove = (m: PointerEvent) => {
-    const over = paneUnder(m.clientX, m.clientY);
-    dragOverPaneId.value = over && over !== id ? over : null;
-  };
-  const onUp = () => {
-    document.removeEventListener('pointermove', onMove);
-    document.removeEventListener('pointerup', onUp);
-    const src = draggingPaneId.value;
-    const tgt = dragOverPaneId.value;
-    draggingPaneId.value = null;
-    dragOverPaneId.value = null;
-    if (!src || !tgt || src === tgt) return;
-    // Index into the full order list (not just the visible subset) so the
-    // reorder survives toggling pane visibility off + on.
-    const order = [...(settings.rsPaneOrder || [])];
-    const targetIdx = order.indexOf(tgt);
-    if (targetIdx < 0) return;
-    settings.moveRsPane(src, targetIdx);
-  };
-  document.addEventListener('pointermove', onMove);
-  document.addEventListener('pointerup', onUp);
-}
-
-// Per-pane height map → inline flex-basis. Panes without a stored height
-// fall back to the CSS flex defaults (1× for read-only panes, 4× for
-// Agent so chat keeps room when no splitter has been touched).
-function paneStyle(id: string) {
-  const panes = props.panes;
-  // #294 — a pane's stored height outlives the stack it was measured in.
-  // Drag the splitter while Outline shares the sidebar with Backlinks, then
-  // close Backlinks, and Outline stays pinned to that old height with dead
-  // space under it — and no splitter left to drag, because splitters only
-  // exist *between* panes. A pane that owns the sidebar alone therefore
-  // ignores the stored height and fills it, which is also the default
-  // `.rs-pane-host { flex: 1 1 0 }` behaviour before any drag.
-  if (panes.length < 2) return {};
-  // A stack nobody has dragged keeps the stylesheet's proportional shares
-  // (Agent asks for 4×) — only once a height has actually been pinned does
-  // this take over the sizing.
-  const stored = settings.rightSidebarPaneHeights;
-  if (!panes.some((p) => (stored[p.id] ?? 0) > 0)) return {};
-  // Then the bottom pane absorbs whatever the panes above leave over, so the
-  // stack always reaches the bottom edge no matter how stale the stored
-  // heights are or how much the window has been resized since.
-  if (panes[panes.length - 1]?.id === id) return { flex: '1 1 auto', minHeight: '80px' };
-  const h = stored[id];
-  if (h && h > 0) {
-    // `0 1` rather than `0 0`: heights are stored in pixels, so a window that
-    // later got shorter must be able to squeeze them instead of pushing the
-    // last pane off the bottom.
-    return { flex: `0 1 ${h}px`, height: `${h}px`, minHeight: '80px' };
+/** Stored choice when it can render, else the first renderable pane. */
+const activeId = computed<ImplementedSidebarPaneId | null>(() => {
+  if (props.active && renderable.value.some((pane) => pane.id === props.active)) {
+    return props.active;
   }
-  return {};
+  return renderable.value[0]?.id ?? null;
+});
+
+const showTabs = computed(() => renderable.value.length >= 2);
+const showBody = computed(() => !!activeId.value && !props.collapsed);
+// `showBody` guarantees this; the cast keeps the template free of `!`.
+const bodyPaneId = computed(() => activeId.value as ImplementedSidebarPaneId);
+
+function titleOf(id: ImplementedSidebarPaneId): string {
+  const key = paneDef(id)?.titleKey;
+  return key ? t(key) : id;
 }
+
+function iconOf(id: ImplementedSidebarPaneId): string {
+  return paneDef(id)?.icon ?? 'file';
+}
+
+function select(id: ImplementedSidebarPaneId) {
+  // `setActiveDockPane` also expands the dock — picking a pane from the rail
+  // while collapsed is the expected "open that panel" gesture.
+  settings.setActiveDockPane(props.side, id);
+}
+
+const collapseIcon = computed(() => {
+  const pointsOut = !props.collapsed;
+  if (props.side === 'left') return pointsOut ? 'chevron-left' : 'chevron-right';
+  return pointsOut ? 'chevron-right' : 'chevron-left';
+});
+
+const storedWidth = computed(
+  () => (settings.sidebarDock as SidebarDockState).width[props.side],
+);
+
+/** Agent chat needs real estate; only widen when the user has not chosen a
+ *  wider-than-default width themselves. Never written back to the store. */
+const dockWidth = computed(() => {
+  if (props.collapsed) return SIDEBAR_RAIL_WIDTH;
+  const base = storedWidth.value;
+  return activeId.value === 'agent' && base <= DEFAULT_DOCK_WIDTH ? 472 : base;
+});
+
+const dockStyle = computed(() =>
+  props.collapsed
+    ? { width: `${SIDEBAR_RAIL_WIDTH}px`, flexBasis: `${SIDEBAR_RAIL_WIDTH}px` }
+    : {
+        width: `min(${dockWidth.value}px, 45vw)`,
+        flexBasis: `min(${dockWidth.value}px, 45vw)`,
+      },
+);
 
 function onSidebarResize(ev: MouseEvent) {
+  if (props.collapsed) return;
   ev.preventDefault();
   const startX = ev.clientX;
-  const startW = props.width;
+  const startW = dockWidth.value;
   const onMove = (m: MouseEvent) => {
     const dx = m.clientX - startX;
-    // Right sidebar: drag left = wider. Left sidebar: drag right = wider.
+    // Right dock: drag left = wider. Left dock: drag right = wider.
     const delta = props.side === 'right' ? -dx : dx;
-    settings.setSideSidebarWidth(startW + delta);
+    settings.setDockWidth(props.side, startW + delta);
   };
   const onUp = () => {
     document.removeEventListener('mousemove', onMove);
@@ -145,43 +143,81 @@ function onSidebarResize(ev: MouseEvent) {
 <template>
   <aside
     class="side-sidebar"
-    :class="`side-sidebar--${props.side}`"
-    :style="dockStyle"
+    :class="[
+      `side-sidebar--${props.side}`,
+      props.collapsed ? 'side-sidebar--collapsed' : '',
+    ]"
+    :style="props.overlay ? undefined : dockStyle"
     @contextmenu.prevent="emit('contextmenu', $event)"
   >
     <div
+      v-if="!props.collapsed && !props.overlay"
       class="side-sidebar__resize"
       :class="props.side === 'left' ? 'side-sidebar__resize--right' : 'side-sidebar__resize--left'"
       @mousedown="onSidebarResize"
     />
-    <template v-for="(p, idx) in props.panes" :key="p.id">
-      <RsSplitter v-if="idx > 0" :above="props.panes[idx - 1].id" :below="p.id" />
-      <div
-        :data-rs-pane="p.id"
-        :class="[
-          'rs-pane-host',
-          `rs-pane-host--${p.id}`,
-          draggingPaneId === p.id ? 'rs-pane-host--dragging' : '',
-          dragOverPaneId === p.id ? 'rs-pane-host--drop-target' : '',
-        ]"
-        :style="paneStyle(p.id)"
+
+    <div class="dock-rail" role="toolbar" :aria-orientation="'vertical'">
+      <button
+        v-for="pane in renderable"
+        :key="pane.id"
+        type="button"
+        class="dock-rail__btn"
+        :class="{ 'dock-rail__btn--active': pane.id === activeId }"
+        :title="titleOf(pane.id)"
+        :aria-pressed="pane.id === activeId"
+        @click="select(pane.id)"
       >
-        <div
-          class="rs-pane-grip"
-          :title="t('rsPane.dragToReorder')"
-          @pointerdown="startPaneReorder($event, p.id)"
-        />
+        <Icon :name="iconOf(pane.id)" :size="16" />
+      </button>
+      <div class="dock-rail__spacer" />
+      <button
+        type="button"
+        class="dock-rail__btn"
+        :title="t('menubar.panes')"
+        @click="emit('manage', $event)"
+      >
+        <Icon name="plus" :size="14" />
+      </button>
+      <button
+        type="button"
+        class="dock-rail__btn"
+        :title="t(props.collapsed ? 'sidebarDock.expand' : 'sidebarDock.collapse')"
+        :aria-expanded="!props.collapsed"
+        @click="settings.toggleDockCollapsed(props.side)"
+      >
+        <Icon :name="collapseIcon" :size="14" />
+      </button>
+    </div>
+
+    <div v-if="showBody" class="dock-main">
+      <div v-if="showTabs" class="dock-tabs" role="tablist">
+        <button
+          v-for="pane in renderable"
+          :key="pane.id"
+          type="button"
+          class="dock-tab"
+          :class="{ 'dock-tab--active': pane.id === activeId }"
+          role="tab"
+          :aria-selected="pane.id === activeId"
+          :title="titleOf(pane.id)"
+          @click="select(pane.id)"
+        >
+          {{ titleOf(pane.id) }}
+        </button>
+      </div>
+      <div :data-rs-pane="activeId" class="rs-pane-host">
         <SidebarPaneBody
-          :id="p.id"
+          :id="bodyPaneId"
           :search-prefill="props.searchPrefill"
           :outline-line="props.outlineLine"
-          @close="emit('closePane', p.id)"
+          @close="emit('closePane', bodyPaneId)"
           @filter-tag="(tag: string) => emit('filterTag', tag)"
           @outline-goto="(line: number) => emit('outlineGoto', line)"
           @open-settings="(section?: string) => emit('openSettings', section)"
         />
       </div>
-    </template>
+    </div>
   </aside>
 </template>
 
@@ -189,9 +225,7 @@ function onSidebarResize(ev: MouseEvent) {
 .side-sidebar {
   position: relative;
   display: flex;
-  flex-direction: column;
-  width: 260px;
-  flex: 0 0 260px;
+  flex-direction: row;
   min-width: 240px;
   background: var(--bg);
 }
@@ -201,10 +235,100 @@ function onSidebarResize(ev: MouseEvent) {
 .side-sidebar--right {
   border-left: var(--bd-hair);
 }
-/* Drag handle for live-resize. Sits on the inner edge of the sidebar
-   (right edge of left sidebar, left edge of right sidebar) as a 5px
-   hit zone. v4.0 — agent panel chat needs more width than read-only
-   panes. */
+.side-sidebar--collapsed {
+  min-width: 0;
+}
+
+/* Activity bar — 32px, always present, one icon per renderable pane. */
+.dock-rail {
+  flex: 0 0 32px;
+  width: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+  border-right: var(--bd-hair);
+  background: var(--bg);
+}
+.side-sidebar--right .dock-rail {
+  border-right: 0;
+  border-left: var(--bd-hair);
+  order: 1;
+}
+.dock-rail__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.dock-rail__btn:hover {
+  background: var(--fill-1);
+  color: var(--text-2);
+}
+.dock-rail__btn--active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.dock-rail__spacer {
+  flex: 1 1 auto;
+}
+
+.dock-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tab header — only with 2+ renderable panes (S4 adds overflow affordances). */
+.dock-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: var(--bd-hair);
+}
+.dock-tabs::-webkit-scrollbar {
+  display: none;
+}
+.dock-tab {
+  flex: 0 0 auto;
+  height: 24px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 24px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.dock-tab:hover {
+  background: var(--fill-1);
+  color: var(--text);
+}
+.dock-tab--active {
+  background: var(--fill-1);
+  color: var(--text);
+  font-weight: 540;
+}
+
+/* Drag handle for live-resize. Sits on the outer edge (away from the rail). */
 .side-sidebar__resize {
   position: absolute;
   top: 0;
@@ -224,29 +348,19 @@ function onSidebarResize(ev: MouseEvent) {
   background: var(--accent);
   opacity: 0.35;
 }
-/* The drag-to-resize handles are a mouse affordance and a 8px touch trap. */
+/* Mouse affordance and an 8px touch trap. */
 .app--narrow .side-sidebar__resize {
   display: none;
 }
-/* v4.0.2 — each pane lives inside an .rs-pane-host wrapper so the
-   <RsSplitter> can find adjacent panes via [data-rs-pane] and resize
-   them. Direct children of .side-sidebar are now: the resize handle,
-   .rs-pane-host wrappers, and .rs-splitter elements between them. */
+
+/* Body — exactly one pane, same sizing contract the stack used before. */
 .rs-pane-host {
   flex: 1 1 0;
   min-height: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
-}
-/* Agent Panel needs vertical room — chat scrollback, tool-call cards,
-   compose box. Give it 4× the share Outline/Backlinks/Tags/History get
-   when they coexist (so Agent ≈ 50% of sidebar height with all 5 on
-   AND no splitter has been touched yet). Once the user drags a
-   splitter the inline style overrides this. */
-.rs-pane-host--agent {
-  flex: 4 1 0;
-  min-height: 240px;
+  position: relative;
 }
 .rs-pane-host > :deep(*) {
   flex: 1 1 0;
@@ -266,71 +380,5 @@ function onSidebarResize(ev: MouseEvent) {
 .rs-pane-host :deep(.rel) {
   border-left: 0;
   border-right: 0;
-}
-/* v4.3.0 issue #57b — drag grip for right-sidebar reordering. 5.0: no
-   longer a strip that takes height; a six-dot handle floats over the top
-   edge of the pane header, centred, and only appears while the pointer is
-   over that pane. Only the grip starts a drag, so text selection inside
-   the pane still works. */
-.rs-pane-host {
-  position: relative;
-}
-.rs-pane-grip {
-  position: absolute;
-  top: 1px;
-  left: 50%;
-  z-index: 3;
-  width: 28px;
-  height: 12px;
-  transform: translateX(-50%);
-  border-radius: var(--r-xs);
-  color: var(--text-3);
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
-  /* #131 — pointer-driven reorder: stop the browser turning a vertical drag on
-     the grip into a scroll/pan gesture so pointermove tracking stays clean. */
-  touch-action: none;
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
-}
-/* 3 × 2 dots, 2 px, on a 4 px pitch. */
-.rs-pane-grip::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 12px;
-  height: 8px;
-  transform: translate(-50%, -50%);
-  background-image: radial-gradient(circle, currentColor 0.9px, transparent 1.3px);
-  background-size: 4px 4px;
-  background-position: 0 0;
-}
-.rs-pane-host:hover > .rs-pane-grip,
-.rs-pane-grip:focus-visible {
-  opacity: 1;
-}
-.rs-pane-grip:hover {
-  background: var(--fill-1);
-  color: var(--text-2);
-}
-.rs-pane-grip:active {
-  cursor: grabbing;
-  background: var(--fill-2);
-}
-.rs-pane-host--dragging {
-  opacity: 0.4;
-}
-.rs-pane-host--drop-target {
-  outline: 0;
-  box-shadow: inset 0 2px 0 var(--accent);
-  background: var(--accent-soft);
-}
-/* Make sure the grip + content layout share vertical space cleanly. */
-.rs-pane-host > .rs-pane-grip + :deep(*) {
-  flex: 1 1 0;
-  min-height: 0;
 }
 </style>

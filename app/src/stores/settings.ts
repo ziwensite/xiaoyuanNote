@@ -1,5 +1,20 @@
 import { isTreeSortMode, type TreeSortMode } from '../lib/tree-sort';
 import { cleanFontFamilyFromFilename } from '../lib/custom-font';
+import {
+  DEFAULT_DOCK_WIDTH,
+  clampDockWidth,
+  defaultSidebarDock,
+  dockPane,
+  isPendingPane,
+  migrateSidebarDock,
+  moveAllPanesToSide,
+  nextActiveAfterHide,
+  sideDockPanes,
+  type LegacySidebarBlob,
+  type SidebarDockState,
+  type SidebarSide,
+} from '../lib/sidebar-dock';
+import { SIDEBAR_PANE_DEFS, type SidebarPaneId } from '../panes/sidebar-panes';
 import { defineStore } from 'pinia';
 import type { Theme, ViewMode } from '../types';
 import type { WindowsEditorEngine } from '../lib/platform';
@@ -114,8 +129,17 @@ interface Settings {
    *  the user had on. Default false (= sidebar visible whenever any pane is
    *  enabled, i.e. legacy behavior). Set true via the toolbar close button,
    *  the ⌥⌘B shortcut, or the command palette to hide it; toggling again
-   *  restores all previously-enabled panes in their previous state. */
+   *  restores all previously-enabled panes in their previous state.
+   *
+   *  S2 — frozen after `v510SidebarDockMigrated`: `sidebarDock.collapsed.right`
+   *  is the live value. Kept only so an old blob can be migrated once. */
   rightSidebarHidden: boolean;
+  /** S2 — the live layout of both sidebar docks (assignment, order, active,
+   *  collapsed, width). See `lib/sidebar-dock.ts`. */
+  sidebarDock: SidebarDockState;
+  /** S1/S2 — one-time marker: legacy `outlineSide` + `showX` switches have
+   *  been folded into `sidebarDock`; never re-read them afterwards. */
+  v510SidebarDockMigrated: boolean;
   livePreview: boolean;
   v503SourceModeMigrated?: boolean;
   // Editor super features
@@ -541,19 +565,6 @@ interface Settings {
   // (InboxView open or inbox filter active) auto-advances to the next inbox
   // note. Default on. Matches Tolaria's auto_advance_inbox_after_organize.
   autoAdvanceInboxAfterOrganize: boolean;
-  // v4.3.0 PR #75 (beihai23) — transient (not persisted) snapshot of the
-  // right-sidebar pane visibility taken when the sidebar is hidden, so
-  // toggling it back on can restore the exact previous layout instead of
-  // leaving the user with a blank sidebar.
-  _rsPanesBeforeHide: {
-    showBacklinks: boolean;
-    showRelationships: boolean;
-    showTagsPanel: boolean;
-    showNeighborhood: boolean;
-    showTypesPanel: boolean;
-    showHistoryPanel: boolean;
-    showAgentPanel: boolean;
-  } | null;
 }
 
 /** v2.5 PDF / print export defaults. */
@@ -662,7 +673,10 @@ function defaults(): Settings {
     autoNumberHeadings: false,
     v507HighlightLineMigrated: true,
     codeFontFamily: '',
-    showOutline: false,
+    // S2 / D6 — the fresh-install dock presets the Outline on the left, so new
+    // markdown tabs come up with it switched on. Existing installs keep the
+    // value they persisted, so their old side/stack behaviour is unchanged.
+    showOutline: true,
     outlineSide: 'right',
     outlineMarker: 'jump',
     showFileTree: !isMobile(),
@@ -860,7 +874,8 @@ function defaults(): Settings {
     ghImageCdn: 'jsdelivr',
     inboxWorkflowEnabled: true,
     autoAdvanceInboxAfterOrganize: true,
-    _rsPanesBeforeHide: null,
+    sidebarDock: defaultSidebarDock(),
+    v510SidebarDockMigrated: true,
   };
 }
 
@@ -1022,6 +1037,30 @@ function load(): Settings {
         merged.highlightCurrentLine = true;
         merged.v507HighlightLineMigrated = true;
       }
+      // S2 — fold the legacy single stack (`outlineSide` + the showX switches)
+      // into the two-dock layout exactly once. Read the *merged* legacy values
+      // so earlier one-time migrations (agent panel force-on, mobile hide) are
+      // honoured; only the dock-specific keys come from the stored blob, so a
+      // fresh default never masquerades as already-migrated data.
+      const legacyDockBlob: LegacySidebarBlob = {
+        outlineSide: merged.outlineSide,
+        rsPaneOrder: merged.rsPaneOrder,
+        rightSidebarHidden: merged.rightSidebarHidden,
+        sideSidebarWidth: merged.sideSidebarWidth,
+        showBacklinks: merged.showBacklinks,
+        showRelationships: merged.showRelationships,
+        showTagsPanel: merged.showTagsPanel,
+        showTasksPanel: merged.showTasksPanel,
+        showNeighborhood: merged.showNeighborhood,
+        showTypesPanel: merged.showTypesPanel,
+        showHistoryPanel: merged.showHistoryPanel,
+        showInspector: merged.showInspector,
+        showAgentPanel: merged.showAgentPanel,
+        sidebarDock: parsed.sidebarDock,
+        v510SidebarDockMigrated: parsed.v510SidebarDockMigrated,
+      };
+      merged.sidebarDock = migrateSidebarDock(legacyDockBlob, defaultSidebarDock());
+      merged.v510SidebarDockMigrated = true;
       // D6 — a theme outside the built-in list (e.g. a hand-edited or
       // MCP-written 'system') rendered as a bare white page; reset it to the
       // default, and treat a literal 'system' as the follow-OS option.
@@ -1071,11 +1110,7 @@ export const useSettingsStore = defineStore('settings', {
   actions: {
     persist() {
       try {
-        // v4.3.0 PR #75 — drop transient `_rsPanesBeforeHide` from disk;
-        // it's only meaningful for the current session.
-        const { _rsPanesBeforeHide, ...rest } = this.$state as any;
-        void _rsPanesBeforeHide;
-        localStorage.setItem(LS_KEY, JSON.stringify(rest));
+        localStorage.setItem(LS_KEY, JSON.stringify(this.$state));
       } catch {}
     },
     /** 'system' follows the OS appearance; anything not a built-in theme is
@@ -1241,8 +1276,13 @@ export const useSettingsStore = defineStore('settings', {
       this.showOutline = !this.showOutline;
       this.persist();
     },
+    /** S2 — the old "which side is the panel stack on" switch now moves the
+     *  whole dock content. Mirrored into the frozen `outlineSide` so the
+     *  Settings select keeps showing the side the panes actually live on. */
     setOutlineSide(side: 'left' | 'right') {
       this.outlineSide = side;
+      this.sidebarDock = moveAllPanesToSide(this.sidebarDock, side);
+      this.sidebarDock.collapsed[side] = false;
       this.persist();
     },
     setOutlineMarker(marker: 'jump' | 'number' | 'none') {
@@ -1270,86 +1310,122 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     toggleRightSidebar() {
-      // v4.3.0 PR #75 — when hiding, snapshot the current pane visibility so
-      // toggling back on can restore the exact layout instead of a blank
-      // sidebar; when restoring, ensure at least one pane is on so the
-      // sidebar isn't empty.
-      //
-      // Which way to go is decided by what is on screen, not by this flag.
-      // The two differ whenever the flag says "shown" but every pane in the
-      // strip is gated off (no workspace folder), and then a press took the
-      // hide branch and changed nothing visible — the reported dead button,
-      // which needed a second press to do anything at all.
+      // Same "decide by what is on screen" rule as before: a flag that says
+      // shown while nothing can draw must still take the hide branch, or the
+      // button needs two presses to do anything (Issue #209).
       const onScreen = rightSidebarShell
         ? rightSidebarShell.visible()
-        : !this.rightSidebarHidden;
+        : !this.sidebarDock.collapsed.right;
       if (onScreen) {
-        this._rsPanesBeforeHide = {
-          showBacklinks: this.showBacklinks,
-          showRelationships: this.showRelationships,
-          showTagsPanel: this.showTagsPanel,
-          showNeighborhood: this.showNeighborhood,
-          showTypesPanel: this.showTypesPanel,
-          showHistoryPanel: this.showHistoryPanel,
-          showAgentPanel: this.showAgentPanel,
-        };
-        this.rightSidebarHidden = true;
-      } else {
-        this.rightSidebarHidden = false;
-        const saved = this._rsPanesBeforeHide;
-        if (saved) {
-          this.showBacklinks = saved.showBacklinks;
-          this.showRelationships = saved.showRelationships;
-          this.showTagsPanel = saved.showTagsPanel;
-          this.showNeighborhood = saved.showNeighborhood;
-          this.showTypesPanel = saved.showTypesPanel;
-          this.showHistoryPanel = saved.showHistoryPanel;
-          this.showAgentPanel = saved.showAgentPanel;
-          this._rsPanesBeforeHide = null;
-        }
-        if (!this.showBacklinks && !this.showRelationships && !this.showTagsPanel && !this.showTypesPanel && !this.showNeighborhood && !this.showHistoryPanel && !this.showAgentPanel) {
-          this.showBacklinks = true;
-          this.showTagsPanel = true;
-        }
-        // Switching those flags on is not enough to make the strip appear:
-        // they are gated on a workspace folder. Ask the shell to find
-        // something that can actually draw (it falls back to the Outline,
-        // which needs only a markdown tab).
-        if (rightSidebarShell && !rightSidebarShell.ensureRenderable()) {
-          // Nothing in the strip can draw anything: no folder, no markdown
-          // document. Stay hidden rather than leave a button that looks
-          // broken, and let the caller say why out loud.
-          this.rightSidebarHidden = true;
-          this.persist();
-          return false;
+        this.sidebarDock.collapsed.right = true;
+        this.persist();
+        return false;
+      }
+      this.sidebarDock.collapsed.right = false;
+      // Restore path: switching the collapsed flag off is not enough — the
+      // rack must contain at least one pane the user asked for.
+      const rightPanes = sideDockPanes(this.sidebarDock, 'right').filter(
+        (pane) => !isPendingPane(pane.id),
+      );
+      if (!rightPanes.some((pane) => pane.visible)) {
+        const fallback = rightPanes.find((pane) => pane.id === 'agent') ?? rightPanes[0];
+        if (fallback) {
+          fallback.visible = true;
+          this.sidebarDock.active.right = fallback.id;
         }
       }
+      // Those panes are still gated on a folder/markdown tab. Ask the shell
+      // whether anything can actually draw (it falls back to the Outline).
+      if (rightSidebarShell && !rightSidebarShell.ensureRenderable()) {
+        this.sidebarDock.collapsed.right = true;
+        this.persist();
+        return false;
+      }
       this.persist();
-      return !this.rightSidebarHidden;
+      return true;
     },
-    /** v4.3.0 PR #75 — called when the user toggles off the last visible
-     *  pane via the right-click context menu; auto-hides the sidebar and
-     *  remembers the pre-toggle layout for later restore. */
-    hideRightSidebarFromPane(paneBeforeToggle: {
-      showBacklinks: boolean;
-      showRelationships: boolean;
-      showTagsPanel: boolean;
-      showNeighborhood: boolean;
-      showTypesPanel: boolean;
-      showHistoryPanel: boolean;
-      showAgentPanel: boolean;
-    }) {
-      this._rsPanesBeforeHide = paneBeforeToggle;
-      this.rightSidebarHidden = true;
+    /** S2 — the old "last pane closed" path: collapse the dock, keep its
+     *  panes and their on/off state (the rail stays as the way back in). */
+    hideRightSidebarFromPane(_paneBeforeToggle?: unknown) {
+      this.sidebarDock.collapsed.right = true;
       this.persist();
     },
-    /** v4.3.0 PR #75 — ensure the sidebar is visible (used when toggling a
-     *  pane ON from the context menu while the sidebar was auto-hidden). */
+    /** S2 — ensure the right dock is expanded (used when switching a pane ON
+     *  from the context menu while it was collapsed). */
     ensureRightSidebarVisible() {
-      if (this.rightSidebarHidden) {
-        this.rightSidebarHidden = false;
+      if (this.sidebarDock.collapsed.right) {
+        this.sidebarDock.collapsed.right = false;
         this.persist();
       }
+    },
+    // ---- S2 dock actions ---------------------------------------------------
+    toggleDockPane(id: SidebarPaneId) {
+      const pane = dockPane(this.sidebarDock, id);
+      if (!pane || isPendingPane(id)) return;
+      pane.visible = !pane.visible;
+      if (pane.visible) {
+        this.sidebarDock.active[pane.side] = id;
+        this.sidebarDock.collapsed[pane.side] = false;
+      } else if (this.sidebarDock.active[pane.side] === id) {
+        this.sidebarDock.active[pane.side] = nextActiveAfterHide(this.sidebarDock, id);
+      }
+      this.persist();
+    },
+    showDockPane(id: SidebarPaneId) {
+      const pane = dockPane(this.sidebarDock, id);
+      if (!pane || isPendingPane(id)) return;
+      pane.visible = true;
+      this.sidebarDock.active[pane.side] = id;
+      this.sidebarDock.collapsed[pane.side] = false;
+      this.persist();
+    },
+    hideDockPane(id: SidebarPaneId) {
+      const pane = dockPane(this.sidebarDock, id);
+      if (!pane || isPendingPane(id)) return;
+      pane.visible = false;
+      if (this.sidebarDock.active[pane.side] === id) {
+        this.sidebarDock.active[pane.side] = nextActiveAfterHide(this.sidebarDock, id);
+      }
+      this.persist();
+    },
+    setActiveDockPane(side: SidebarSide, id: SidebarPaneId | null) {
+      this.sidebarDock.active[side] = id;
+      this.sidebarDock.collapsed[side] = false;
+      this.persist();
+    },
+    /** S2 — a pane switched on outside the dock actions (⌘⇧F search,
+     *  View → Outline, tag click, AI auto-open) must become the pane its side
+     *  draws; otherwise the single-active dock renders nothing new. Callers
+     *  own the pane's own `visible` source (session flag / tab field), so this
+     *  only moves `active` and expands the side it lives on. */
+    focusDockPane(id: SidebarPaneId) {
+      const pane = dockPane(this.sidebarDock, id);
+      if (!pane || isPendingPane(id)) return;
+      if (this.sidebarDock.active[pane.side] === id && !this.sidebarDock.collapsed[pane.side]) return;
+      this.sidebarDock.active[pane.side] = id;
+      this.sidebarDock.collapsed[pane.side] = false;
+      this.persist();
+    },
+    setDockCollapsed(side: SidebarSide, collapsed: boolean) {
+      this.sidebarDock.collapsed[side] = collapsed;
+      this.persist();
+    },
+    toggleDockCollapsed(side: SidebarSide) {
+      this.sidebarDock.collapsed[side] = !this.sidebarDock.collapsed[side];
+      this.persist();
+    },
+    setDockWidth(side: SidebarSide, width: number) {
+      this.sidebarDock.width[side] = clampDockWidth(width);
+      this.persist();
+    },
+    movePaneToSide(id: SidebarPaneId, side: SidebarSide) {
+      const pane = dockPane(this.sidebarDock, id);
+      if (!pane || pane.side === side) return;
+      pane.side = side;
+      const other = pane.side === 'left' ? 'right' : 'left';
+      if (this.sidebarDock.active[other] === id) this.sidebarDock.active[other] = null;
+      this.sidebarDock.active[side] = id;
+      this.persist();
     },
     toggleLivePreview() {
       if (this.viewMode === 'split') {
@@ -1446,43 +1522,30 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     toggleBacklinks() {
-      this.showBacklinks = !this.showBacklinks;
-      if (this.showBacklinks) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('backlinks');
     },
     toggleRelationships() {
-      this.showRelationships = !this.showRelationships;
-      if (this.showRelationships) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('relationships');
     },
     toggleSpellcheckEnabled() {
       this.spellcheckEnabled = !this.spellcheckEnabled;
       this.persist();
     },
     toggleTagsPanel() {
-      this.showTagsPanel = !this.showTagsPanel;
-      if (this.showTagsPanel) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('tags');
     },
     toggleTasksPanel() {
-      this.showTasksPanel = !this.showTasksPanel;
-      this.persist();
+      this.toggleDockPane('tasks');
     },
     toggleNeighborhood() {
-      this.showNeighborhood = !this.showNeighborhood;
-      if (this.showNeighborhood) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('neighborhood');
     },
     // v4.6 F2 — toggle the Types (types-as-lenses) sidebar pane.
     toggleTypesPanel() {
-      this.showTypesPanel = !this.showTypesPanel;
-      if (this.showTypesPanel) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('types');
     },
     toggleAgentPanel() {
-      this.showAgentPanel = !this.showAgentPanel;
-      if (this.showAgentPanel) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('agent');
     },
     toggleAgentAllowWrite() {
       this.agentAllowWrite = !this.agentAllowWrite;
@@ -1548,19 +1611,18 @@ export const useSettingsStore = defineStore('settings', {
       // v4.0.2: panel visibility decoupled from autoGit (#55) — hiding the
       // pane no longer disables sync. Re-enabling sync surfaces the panel
       // again only if the user hasn't explicitly hidden it.
-      if (this.autoGitEnabled && !this.showHistoryPanel) this.showHistoryPanel = true;
+      if (this.autoGitEnabled) {
+        const history = dockPane(this.sidebarDock, 'history');
+        if (history && !history.visible) history.visible = true;
+      }
       this.persist();
     },
     toggleHistoryPanel() {
-      this.showHistoryPanel = !this.showHistoryPanel;
-      if (this.showHistoryPanel) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('history');
     },
     /** v4.6 F1 — toggle the Properties inspector pane (⌘⇧I). */
     toggleInspector() {
-      this.showInspector = !this.showInspector;
-      if (this.showInspector) this.ensureRightSidebarVisible();
-      this.persist();
+      this.toggleDockPane('inspector');
     },
     setRightSidebarPaneHeight(paneId: string, px: number) {
       const clean = Math.max(80, Math.min(2000, Math.round(px) || 0));
@@ -1580,9 +1642,16 @@ export const useSettingsStore = defineStore('settings', {
      *  leaving a reordered, 400 px sidebar looking un-reset). */
     resetRightSidebarLayout() {
       const d = defaults();
+      const order = new Map(SIDEBAR_PANE_DEFS.map((def, i) => [def.id, i]));
       this.rightSidebarPaneHeights = {};
       this.rsPaneOrder = [...d.rsPaneOrder];
       this.sideSidebarWidth = d.sideSidebarWidth;
+      // S2 — reset order + width but keep the user's on/off choices, matching
+      // the old "heights, order and width" semantics.
+      this.sidebarDock.panes = [...this.sidebarDock.panes].sort(
+        (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
+      );
+      this.sidebarDock.width = { left: DEFAULT_DOCK_WIDTH, right: DEFAULT_DOCK_WIDTH };
       this.persist();
     },
     /** The view.resetSidebarPanes command's entry point (useCommands.ts). */

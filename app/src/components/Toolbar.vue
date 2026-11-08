@@ -1020,11 +1020,11 @@ onBeforeUnmount(() => {
       <button
         v-if="!isNarrow"
         class="icon-btn"
-        :class="{ active: !settings.rightSidebarHidden }"
+        :class="{ active: !settings.sidebarDock.collapsed.right }"
         @click="settings.toggleRightSidebar"
         :title="tip('toolbar.rightSidebarTooltip', 'view.toggleRightSidebar')"
         :aria-label="t('toolbar.rightSidebarTooltip')"
-        :aria-pressed="!settings.rightSidebarHidden"
+        :aria-pressed="!settings.sidebarDock.collapsed.right"
       >
         <Icon name="sidebar-right" />
       </button>
@@ -1141,11 +1141,11 @@ onBeforeUnmount(() => {
                 v-if="isNarrow"
                 class="dropdown__item dropdown__item--single"
                 role="menuitemcheckbox"
-                :aria-checked="!settings.rightSidebarHidden"
+                :aria-checked="!settings.sidebarDock.collapsed.right"
                 tabindex="-1"
                 @mousedown.prevent="act(() => settings.toggleRightSidebar())"
               >
-                <span class="dropdown__check">{{ settings.rightSidebarHidden ? '' : '✓' }}</span>
+                <span class="dropdown__check">{{ settings.sidebarDock.collapsed.right ? '' : '✓' }}</span>
                 <span class="dropdown__name">{{ t('menubar.toggleRightSidebar') }}</span>
               </button>
               <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => $emit('open-palette'))">

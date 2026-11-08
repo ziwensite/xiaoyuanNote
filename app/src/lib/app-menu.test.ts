@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 import { buildAppMenu, itemShortcut, toNativeSpec, type MenuContext, type MenuNode, type NativeNode, type TopMenu } from './app-menu.ts';
 import { KEY_ACTIONS, typoraPreset } from './keybindings.ts';
+import { SIDEBAR_PANE_DEFS } from '../panes/sidebar-panes.ts';
 import { en } from '../i18n/en.ts';
 import { zh } from '../i18n/zh.ts';
 import { ja } from '../i18n/ja.ts';
@@ -302,6 +303,41 @@ test('menu coverage: pane / wrap / line-number / auto-commit check marks follow 
   assert.equal(find(m, 'history.toggleAutoGit').checked, false);
   // Actions (not toggles) carry no check mark.
   assert.equal(find(m, 'view.resetSidebarPanes').checked, undefined);
+});
+
+test('S2: panes menu mirrors the dock registry and never exposes calendar', () => {
+  const m = buildAppMenu(ctx());
+  const items = submenu(m, 'panes')!.items.filter(
+    (n): n is Extract<MenuNode, { type: 'item' }> => n.type === 'item',
+  );
+  const labels = items.map((item) => item.label);
+
+  // 10 dock panes + saved views (file-tree column) + agent + reset.
+  assert.equal(items.length, 12);
+  const calendar = SIDEBAR_PANE_DEFS.find((def) => def.id === 'calendar');
+  assert.equal(calendar?.pending, true);
+  assert.ok(!labels.includes(strictT(en, 'en')(calendar!.titleKey)));
+  // The menu labels come from `menubar.*`, not the dock's `rsPane.*` title keys.
+  const MENU_LABEL_KEYS: Record<string, string> = {
+    outline: 'menubar.paneOutline',
+    inspector: 'menubar.paneInspector',
+    backlinks: 'menubar.paneBacklinks',
+    relationships: 'menubar.paneRelationships',
+    neighborhood: 'menubar.paneNeighborhood',
+    tags: 'menubar.paneTags',
+    tasks: 'menubar.paneTasks',
+    types: 'menubar.paneTypes',
+    history: 'menubar.paneHistory',
+    agent: 'menubar.paneAgent',
+  };
+  for (const def of SIDEBAR_PANE_DEFS) {
+    if (def.pending || !def.menuKey) continue;
+    assert.ok(
+      labels.includes(strictT(en, 'en')(MENU_LABEL_KEYS[def.menuKey])),
+      `panes menu missing ${def.id}`,
+    );
+  }
+  assert.equal(items.at(-1)?.id, 'view.resetSidebarPanes');
 });
 
 test('menu coverage: AI and git entries follow their availability flags', () => {

@@ -58,7 +58,7 @@ function onTomorrow() {
 
 <template>
   <div class="tags-panel rp">
-    <PanelHeader :title="t('tags.heading')" @close="emit('close')">
+    <PanelHeader @close="emit('close')">
       <button
         class="rp-icon-btn"
         type="button"

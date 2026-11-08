@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 export const zh: I18n = {
   // Windows 统一标题栏 — 应用内 文件/编辑/视图/帮助 菜单栏(Toolbar.vue)。
@@ -1390,7 +1390,13 @@ export const zh: I18n = {
     selection: '已选: {words} 词 / {chars} 字符',
     selectionTooltip: '当前选中文本的字数和字符数',
   },
+  sidebarDock: {
+    collapse: '收起侧栏',
+    expand: '展开侧栏',
+  },
   rsPane: {
+    inspector: '属性',
+    calendar: '日历',
     types: "类型",
     relationships: "关系",
     dragToReorder: '拖动以重新排序此侧栏面板',

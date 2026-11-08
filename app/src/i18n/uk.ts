@@ -1,4 +1,4 @@
-import type { I18n } from './en';
+﻿import type { I18n } from './en';
 
 export const uk: I18n = {
   iosFolder: {
@@ -1395,7 +1395,13 @@ export const uk: I18n = {
     selection: 'виділено: {words} слів / {chars} символів',
     selectionTooltip: 'Кількість слів та символів виділеного тексту',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: "Типи",
     relationships: "Зв’язки",
     dragToReorder: 'Перетягніть, щоб змінити порядок цієї панелі бічної панелі',

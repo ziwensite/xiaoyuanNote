@@ -1,4 +1,4 @@
-export const en = {
+﻿export const en = {
   // Windows unified title bar — in-app File/Edit/View/Help menubar
   // (Toolbar.vue). Strings mirror the native menu (runner.rs strings_for).
   iosFolder: {
@@ -1402,7 +1402,13 @@ export const en = {
     selection: 'selected: {words} words / {chars} chars',
     selectionTooltip: 'Word and character count for the current selection',
   },
+  sidebarDock: {
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
   rsPane: {
+    inspector: 'Properties',
+    calendar: 'Calendar',
     types: 'Types',
     relationships: 'Relationships',
     dragToReorder: 'Drag to reorder this sidebar pane',
