@@ -2164,6 +2164,10 @@ export const fr: I18n = {
       events: '{count} événements',
       note: 'Note présente',
     },
+    reminders: {
+      notificationFailed: "Rappel déclenché, mais la notification système n'a pas pu s'afficher.",
+      hint: "Les rappels ne fonctionnent que tant que l'application est ouverte. Après fermeture, aucun rappel.",
+    },
   },
   tableEditor: {
     heading: 'Éditeur de tableau',

@@ -2164,6 +2164,10 @@ export const ja: I18n = {
       events: '{count} 件の予定',
       note: 'ノートあり',
     },
+    reminders: {
+      notificationFailed: 'リマインダーは発火しましたが、システム通知を表示できませんでした。',
+      hint: 'リマインダーはアプリの実行中のみ有効です。アプリを終了すると通知されません。',
+    },
   },
   tableEditor: {
     heading: '表エディタ',

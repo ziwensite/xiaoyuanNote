@@ -2164,6 +2164,10 @@ export const de: I18n = {
       events: '{count} Termine',
       note: 'Notiz vorhanden',
     },
+    reminders: {
+      notificationFailed: 'Erinnerung ausgelöst, aber die Systembenachrichtigung konnte nicht angezeigt werden.',
+      hint: 'Erinnerungen funktionieren nur, solange die App läuft. Nach dem Beenden wird nicht erinnert.',
+    },
   },
   tableEditor: {
     heading: 'Tabelleneditor',

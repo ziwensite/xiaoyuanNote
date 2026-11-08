@@ -123,6 +123,11 @@ mod recipe_runner;
 // v4.0 — bundled recipe cookbook (10+ ready-to-edit YAML templates).
 #[path = "cookbook.rs"]
 mod cookbook;
+// M3 — calendar reminder timing loop (no model calls). Same dual-declaration
+// pattern as recipe_runner: the desktop binary compiles `runner.rs`, while
+// lib.rs serves the mobile entry point and `cargo test --lib`.
+#[path = "reminders.rs"]
+mod reminders;
 
 // v2.4 — integrations panel (CLI status, MCP path, AI-client config
 // discovery) + v4.4.5 MCP auto-install (detect_ai_clients / inject_mcp /
@@ -565,7 +570,10 @@ pub fn run_with(initial_file: Option<String>) {
     let builder = builder
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_clipboard_manager::init());
+        .plugin(tauri_plugin_clipboard_manager::init())
+        // M3 — OS notification delivery for calendar reminders. Called from
+        // Rust only (NotificationExt); no frontend permission entry needed.
+        .plugin(tauri_plugin_notification::init());
 
     // The main webview must never navigate away from the app. A followed link
     // replaced the whole UI with the web page, and since the page that handles
@@ -830,6 +838,8 @@ pub fn run_with(initial_file: Option<String>) {
             cookbook::cookbook_list,
             cookbook::cookbook_get,
             cookbook::cookbook_install,
+            reminders::reminders_sync,
+            reminders::reminders_status,
         ])
         .on_menu_event(|app_handle, event| {
             // Forward every menu click to the frontend as a single event
@@ -891,6 +901,14 @@ pub fn run_with(initial_file: Option<String>) {
             {
                 dev_bridge::spawn(app.handle().clone());
             }
+
+            // M3 — restore the reminder schedule/fired records, then start the
+            // dedicated timing loop. Independent of `spawn_cron_loop`: this
+            // only sleeps, sends a system notification and emits; it never
+            // runs a recipe or calls a model. Reminders fire only while the
+            // app is running — closing the app stops them.
+            app.manage(reminders::RemindersState::load(app.handle()));
+            reminders::spawn_reminder_loop(app.handle().clone());
 
             // v4.0 Pillar 2 — start the cron-trigger loop. Sleeps until
             // a `schedule` recipe is due; harmless when no recipes are

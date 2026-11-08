@@ -2193,6 +2193,10 @@
       events: '{count} events',
       note: 'Has note',
     },
+    reminders: {
+      notificationFailed: 'Reminder fired, but the system notification could not be shown.',
+      hint: 'Reminders only work while the app is running. After you quit, they will not fire.',
+    },
   },
   tableEditor: {
     heading: 'Table editor',

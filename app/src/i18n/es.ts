@@ -2164,6 +2164,10 @@ export const es: I18n = {
       events: '{count} eventos',
       note: 'Nota presente',
     },
+    reminders: {
+      notificationFailed: 'Recordatorio activado, pero no se pudo mostrar la notificación del sistema.',
+      hint: 'Los recordatorios solo funcionan mientras la aplicación está abierta. Al cerrarla, no sonarán.',
+    },
   },
   tableEditor: {
     heading: 'Editor de tablas',

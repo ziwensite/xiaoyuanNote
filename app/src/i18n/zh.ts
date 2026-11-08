@@ -2168,6 +2168,10 @@ export const zh: I18n = {
       events: '{count} 个事件',
       note: '有笔记',
     },
+    reminders: {
+      notificationFailed: '提醒已触发，但系统通知未能显示。',
+      hint: '提醒仅在应用运行期间有效；关闭应用后不会提醒。',
+    },
   },
   tableEditor: {
     heading: '表格编辑器',

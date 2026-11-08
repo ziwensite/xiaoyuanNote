@@ -2166,6 +2166,10 @@ export const pt: I18n = {
       events: '{count} eventos',
       note: 'Nota presente',
     },
+    reminders: {
+      notificationFailed: 'Lembrete disparado, mas não foi possível mostrar a notificação do sistema.',
+      hint: 'Os lembretes só funcionam enquanto o aplicativo está aberto. Depois de fechá-lo, eles não tocam.',
+    },
   },
   tableEditor: {
     heading: 'Editor de tabelas',

@@ -2164,6 +2164,10 @@ export const it: I18n = {
       events: '{count} eventi',
       note: 'Nota presente',
     },
+    reminders: {
+      notificationFailed: 'Promemoria attivato, ma non è stato possibile mostrare la notifica di sistema.',
+      hint: "I promemoria funzionano solo mentre l'app è in esecuzione. Dopo la chiusura non vengono mostrati.",
+    },
   },
   tableEditor: {
     heading: 'Editor tabelle',

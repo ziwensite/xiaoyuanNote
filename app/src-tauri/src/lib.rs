@@ -106,6 +106,10 @@ pub mod recipe_runner;
 // Shipped as `include_str!` content compiled into the binary; commands
 // list / preview / install into <workspace>/.solomd/agents/.
 pub mod cookbook;
+// M3 — calendar reminders. Timing only (the frontend owns recurrence/timezone
+// expansion); sends a system notification through tauri-plugin-notification,
+// never calls a model, and persists fired ids so a restart cannot replay.
+pub mod reminders;
 
 // v2.3 dev WebDriver bridge — debug builds only.
 #[cfg(debug_assertions)]
@@ -121,6 +125,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        // M3 — OS notification delivery for calendar reminders. Rust-side
+        // usage only (`NotificationExt`); the frontend never calls the plugin
+        // directly, so no notification capability entry is needed.
+        .plugin(tauri_plugin_notification::init())
         // tauri-plugin-deep-link: receive incoming files / URLs from
         // iOS "Open with" / Files app / Mail attachments. On iOS the
         // plugin hooks `application:openURL:` automatically and emits
@@ -185,6 +193,16 @@ pub fn run() {
             #[cfg(any(target_os = "android", target_os = "ios"))]
             {
                 let _ = app;
+            }
+            // M3 — calendar reminders: restore the persisted schedule/fired
+            // records, then start the dedicated timing loop. Independent of
+            // `spawn_cron_loop` (that loop runs recipes and calls models).
+            // Reminders fire only while the app is running; a closed app does
+            // not wake up.
+            {
+                use tauri::Manager;
+                app.manage(reminders::RemindersState::load(app.handle()));
+                reminders::spawn_reminder_loop(app.handle().clone());
             }
             // v4.0 Pillar 2 — start the cron-trigger loop. Sleeps until
             // a `schedule` recipe is due; harmless when no recipes are
@@ -448,6 +466,8 @@ pub fn run() {
             cookbook::cookbook_list,
             cookbook::cookbook_get,
             cookbook::cookbook_install,
+            reminders::reminders_sync,
+            reminders::reminders_status,
             workspace_index::workspace_index_referenced_by,
             commands::update_frontmatter_property,
             commands::delete_frontmatter_property,

@@ -2181,6 +2181,10 @@ export const pl: I18n = {
       events: '{count} wydarzeń',
       note: 'Notatka istnieje',
     },
+    reminders: {
+      notificationFailed: 'Przypomnienie uruchomione, ale nie udało się wyświetlić powiadomienia systemowego.',
+      hint: 'Przypomnienia działają tylko, gdy aplikacja jest uruchomiona. Po jej zamknięciu nie zadzwonią.',
+    },
   },
   tableEditor: {
     heading: 'Edytor tabel',

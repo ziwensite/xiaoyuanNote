@@ -2181,6 +2181,10 @@ export const nl: I18n = {
       events: '{count} afspraken',
       note: 'Notitie aanwezig',
     },
+    reminders: {
+      notificationFailed: 'Herinnering geactiveerd, maar de systeemmelding kon niet worden getoond.',
+      hint: 'Herinneringen werken alleen zolang de app draait. Na afsluiten wordt er niet herinnerd.',
+    },
   },
   tableEditor: {
     heading: 'Tabel-editor',

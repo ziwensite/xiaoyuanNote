@@ -970,6 +970,9 @@ onBeforeUnmount(() => {
             </button>
           </section>
         </div>
+        <!-- Honest scope: the scheduler is a desktop process loop, so a quit
+             app cannot remind. Stated here, not only in code comments. -->
+        <p class="cal-tasks-pane__hint">{{ t('calendar.reminders.hint') }}</p>
       </section>
 
       <section v-else class="cal-editor-host">
@@ -1405,6 +1408,15 @@ onBeforeUnmount(() => {
   min-height: 0;
   padding: 0 8px 12px;
   overflow-y: auto;
+}
+
+.cal-tasks-pane__hint {
+  margin: 0;
+  padding: 6px 10px 8px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-3);
 }
 
 .cal-task-group__head {

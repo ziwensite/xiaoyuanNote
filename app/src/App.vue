@@ -1603,6 +1603,16 @@ onMounted(async () => {
   // Auto-check for updates — once startup has settled; nobody waits on it,
   // and it shouldn't share the main thread with the first keystrokes.
   if (!isIOS() && settings.autoCheckUpdate) runWhenIdle(() => void checkForUpdatesNow());
+
+  // M3 — calendar reminders. The store rebuilds the schedule from the index
+  // and hands absolute instants to the Rust timing loop, which owns the clock
+  // and the system notification. Desktop only: reminders are defined as
+  // desktop behaviour and only fire while the app is running.
+  if (!isMobile()) {
+    void import('./stores/reminders').then(({ useRemindersStore }) => {
+      void useRemindersStore().init();
+    });
+  }
 });
 
 async function checkForUpdatesNow(): Promise<void> {
@@ -1760,6 +1770,7 @@ function onPageHide() {
 }
 
 onBeforeUnmount(() => {
+  void import('./stores/reminders').then(({ useRemindersStore }) => useRemindersStore().dispose());
   window.removeEventListener('pagehide', onPageHide);
   window.removeEventListener('keydown', onEsc);
   document.removeEventListener('click', onStrayLinkClick);

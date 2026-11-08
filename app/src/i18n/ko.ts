@@ -2164,6 +2164,10 @@ export const ko: I18n = {
       events: '일정 {count}개',
       note: '노트 있음',
     },
+    reminders: {
+      notificationFailed: '알림이 트리거되었지만 시스템 알림을 표시하지 못했습니다.',
+      hint: '알림은 앱이 실행 중일 때만 동작합니다. 앱을 종료하면 알림이 울리지 않습니다.',
+    },
   },
   tableEditor: {
     heading: '표 편집기',

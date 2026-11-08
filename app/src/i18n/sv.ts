@@ -2181,6 +2181,10 @@ export const sv: I18n = {
       events: '{count} händelser',
       note: 'Anteckning finns',
     },
+    reminders: {
+      notificationFailed: 'Påminnelsen utlöstes, men systemmeddelandet kunde inte visas.',
+      hint: 'Påminnelser fungerar endast medan appen körs. När appen stängs av ljuder de inte.',
+    },
   },
   tableEditor: {
     heading: 'Tabellredigerare',

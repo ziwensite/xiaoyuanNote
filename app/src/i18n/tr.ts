@@ -2181,6 +2181,10 @@ export const tr: I18n = {
       events: '{count} etkinlik',
       note: 'Not var',
     },
+    reminders: {
+      notificationFailed: 'Hatırlatıcı tetiklendi ancak sistem bildirimi gösterilemedi.',
+      hint: 'Hatırlatıcılar yalnızca uygulama açıkken çalışır. Uygulama kapatıldığında hatırlatma yapılmaz.',
+    },
   },
   tableEditor: {
     heading: 'Tablo düzenleyici',
