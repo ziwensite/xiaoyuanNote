@@ -26,6 +26,8 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { isIOS, isMobile, isWindowsDesktop, usesCommandKey } from '../lib/platform';
 import { macTitleBar, winTitleBar, customTitleBar, MAC_TRAFFIC_INSET } from '../lib/chrome';
+import { paneDef } from '../lib/sidebar-dock';
+import { shouldFoldViewModes } from '../lib/header-segments';
 import { displayTabTitle } from '../lib/tab-title';
 
 const hasTauriShell = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
@@ -551,6 +553,42 @@ watch(menubarOpen, () => {
 // menu anchors" from pane scrolls.
 const toolbarRef = ref<HTMLElement | null>(null);
 
+// ── Three-segment header (left panels · editor · right panels) ─────────────
+// The segments are visual grouping only: `#header-tabs` keeps its mount point
+// and PaneHost still teleports a single pane's strip into it. Width is tracked
+// so the 实时/源码/分栏/预览 switch can move into "More" instead of squeezing
+// the tab strip (threshold lives in lib/header-segments.ts).
+const middleSegEl = ref<HTMLElement | null>(null);
+// Infinity until the observer reports, so the first frame is not folded.
+const middleWidth = ref(Number.POSITIVE_INFINITY);
+const foldViewModes = computed(() => shouldFoldViewModes(middleWidth.value));
+const showViewModeSwitch = computed(
+  () => isMarkdown.value && !settings.toolbarHidden && !foldViewModes.value,
+);
+/** Title of the pane the primary dock is showing — the left segment's caption.
+ *  Reuses the existing `rsPane.*` labels; it is text, not a tab (D1: panel tabs
+ *  do not move into the header). */
+const leftPanelTitle = computed(() => {
+  const id = settings.sidebarDock.active.left;
+  if (!id) return '';
+  const key = paneDef(id)?.titleKey;
+  return key ? t(key) : id;
+});
+let middleObserver: ResizeObserver | null = null;
+onMounted(() => {
+  const el = middleSegEl.value;
+  if (!el || typeof ResizeObserver === 'undefined') return;
+  middleObserver = new ResizeObserver((entries) => {
+    const w = entries[0]?.contentRect.width;
+    if (typeof w === 'number') middleWidth.value = w;
+  });
+  middleObserver.observe(el);
+});
+onBeforeUnmount(() => {
+  middleObserver?.disconnect();
+  middleObserver = null;
+});
+
 // ── Windows caption buttons (min / max / close) ─────────────────────────────
 const isMaximized = ref(false);
 const maxBtnHover = ref(false);
@@ -879,49 +917,67 @@ onBeforeUnmount(() => {
     @mousedown.capture="onTitleBarMouseDown"
     @dblclick="onTitleBarDblClick"
   >
-    <template v-if="isNarrow">
-      <button class="toolbar__back" type="button" @click="phone.show('home')">
-        <Icon name="chevron-left" :size="22" />
-        <span>{{ t('phone.notes') }}</span>
-      </button>
-      <span class="toolbar__phone-title">{{ phoneTitle }}</span>
-    </template>
-    <button
-      v-else-if="!settings.showFileTree"
-      class="icon-btn toolbar__sidebar-btn"
-      @click="settings.toggleFileTree"
-      :title="tip('header.showSidebar', 'view.toggleFileTree')"
-      :aria-label="t('header.showSidebar')"
-    >
-      <Icon name="sidebar" />
-    </button>
-
-    <!-- A single pane's tab strip is teleported in here (PaneHost.vue); with
-         a split, each pane keeps its own strip and this stays an empty,
-         draggable stretch of title bar. -->
-    <div id="header-tabs" class="toolbar__tabs" />
-
-    <div
-      v-if="isMarkdown && !settings.toolbarHidden"
-      class="seg"
-      :class="{ 'seg--none': segIndex < 0 }"
-      role="radiogroup"
-      :aria-label="t('header.viewModes')"
-      :style="{ '--seg-i': Math.max(0, segIndex) }"
-    >
-      <span class="seg__thumb" aria-hidden="true" />
+    <!-- Three visual segments (D1: panel labels do NOT move in here — the
+         left one is a caption for the pane the primary dock is showing).
+         Grouping only: `#header-tabs` keeps its mount point for PaneHost. -->
+    <div class="toolbar__seg toolbar__seg--left" role="group" :aria-label="t('header.leftPanels')">
+      <template v-if="isNarrow">
+        <button class="toolbar__back" type="button" @click="phone.show('home')">
+          <Icon name="chevron-left" :size="22" />
+          <span>{{ t('phone.notes') }}</span>
+        </button>
+        <span class="toolbar__phone-title">{{ phoneTitle }}</span>
+      </template>
       <button
-        v-for="m in segModes"
-        :key="m.mode"
-        class="seg__btn"
-        :class="{ 'is-on': settings.viewMode === m.mode }"
-        role="radio"
-        :aria-checked="settings.viewMode === m.mode"
-        @click="pickViewMode(m.mode)"
-      >{{ t(m.label) }}</button>
+        v-else-if="!settings.showFileTree"
+        class="icon-btn toolbar__sidebar-btn"
+        @click="settings.toggleFileTree"
+        :title="tip('header.showSidebar', 'view.toggleFileTree')"
+        :aria-label="t('header.showSidebar')"
+      >
+        <Icon name="sidebar" />
+      </button>
+      <span v-else-if="leftPanelTitle" class="toolbar__panel-name" :title="leftPanelTitle">{{ leftPanelTitle }}</span>
     </div>
 
-    <div v-if="!settings.toolbarHidden" class="toolbar__actions">
+    <div
+      ref="middleSegEl"
+      class="toolbar__seg toolbar__seg--middle"
+      role="group"
+      :aria-label="t('header.editorArea')"
+    >
+      <!-- A single pane's tab strip is teleported in here (PaneHost.vue); with
+           a split, each pane keeps its own strip and this stays an empty,
+           draggable stretch of title bar. -->
+      <div id="header-tabs" class="toolbar__tabs" />
+
+      <div
+        v-if="showViewModeSwitch"
+        class="seg"
+        :class="{ 'seg--none': segIndex < 0 }"
+        role="radiogroup"
+        :aria-label="t('header.viewModes')"
+        :style="{ '--seg-i': Math.max(0, segIndex) }"
+      >
+        <span class="seg__thumb" aria-hidden="true" />
+        <button
+          v-for="m in segModes"
+          :key="m.mode"
+          class="seg__btn"
+          :class="{ 'is-on': settings.viewMode === m.mode }"
+          role="radio"
+          :aria-checked="settings.viewMode === m.mode"
+          @click="pickViewMode(m.mode)"
+        >{{ t(m.label) }}</button>
+      </div>
+    </div>
+
+    <div
+      v-if="!settings.toolbarHidden"
+      class="toolbar__actions toolbar__seg--right"
+      role="group"
+      :aria-label="t('header.rightPanels')"
+    >
       <button
         v-if="isNarrow && isMarkdown"
         class="icon-btn"
@@ -1053,8 +1109,9 @@ onBeforeUnmount(() => {
           >
             <!-- Root page -->
             <template v-if="morePage === 'root'">
-              <!-- A phone or a narrow window has no room for the switch. -->
-              <template v-if="isNarrow && isMarkdown">
+              <!-- A phone, or a header whose middle segment is too narrow for
+                   the inline switch, moves 实时/源码/分栏/预览 in here. -->
+              <template v-if="(isNarrow || foldViewModes) && isMarkdown">
                 <div class="dropdown__heading">{{ t('header.viewModes') }}</div>
                 <button
                   v-for="m in segModes"
@@ -1370,8 +1427,54 @@ onBeforeUnmount(() => {
 /* macOS reserves the traffic-light inset inline (`MAC_TRAFFIC_INSET`, see
    lib/chrome.ts) on top of this padding: `titleBarStyle: "Overlay"` draws the
    buttons over the header, which spans the full window width since V1. */
+
+/* ── Three visual segments (left panels · editor · right panels) ─────────── */
+/* Grouping only — the segments do not change what they contain, and none of
+   them carries `data-tauri-drag-region`: the capture handler above still owns
+   window dragging, so empty space inside a segment stays draggable. */
+.toolbar__seg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 100%;
+}
+.toolbar__seg--left {
+  flex: 0 0 auto;
+}
+.toolbar__seg--middle {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 8px;
+  border-left: var(--bd-hair);
+}
+.toolbar__seg--right {
+  flex: 0 0 auto;
+  padding-left: 8px;
+  border-left: var(--bd-hair);
+}
+/* Caption for the pane the primary dock shows — 12px, no pill, so it cannot be
+   mistaken for one of the editor tabs next to it. */
+.toolbar__panel-name {
+  min-width: 0;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+}
 .toolbar--minimal .toolbar__tabs {
   justify-content: center;
+}
+/* "Hide the toolbar" keeps its old content: no caption, no dividers. */
+.toolbar--minimal .toolbar__panel-name {
+  display: none;
+}
+.toolbar--minimal .toolbar__seg--middle {
+  padding-left: 0;
+  border-left: 0;
 }
 .toolbar__sidebar-btn {
   margin-right: 2px;
@@ -1441,6 +1544,19 @@ onBeforeUnmount(() => {
 }
 .toolbar--narrow .toolbar__tabs {
   display: none;
+}
+/* Phone: the back button + title take the whole left segment, the middle one
+   has nothing left to show, and the icons lose the desktop dividers. */
+.toolbar--narrow .toolbar__seg--left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.toolbar--narrow .toolbar__seg--middle {
+  display: none;
+}
+.toolbar--narrow .toolbar__seg--right {
+  padding-left: 0;
+  border-left: 0;
 }
 .toolbar--narrow .icon-btn {
   width: 44px;
