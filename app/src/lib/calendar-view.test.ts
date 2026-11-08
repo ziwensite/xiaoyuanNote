@@ -12,6 +12,7 @@ import {
   CALENDAR_VIEW_MIN_WIDTH,
   buildAgendaGroups,
   buildCalendarView,
+  groupTasksByDue,
   isCalendarTaskOverdue,
   layoutTimed,
   monthGridRange,
@@ -20,7 +21,7 @@ import {
   supportsCalendarView,
   weekRange,
 } from './calendar-view';
-import { eventFromFrontmatter, expandOccurrences, type CalendarEntry } from './calendar';
+import { eventFromFrontmatter, expandOccurrences, type CalendarEntry, type CalendarTask } from './calendar';
 import type { CalendarOccurrence } from './calendar';
 
 const entry = (
@@ -305,4 +306,68 @@ test('monthGridRange is a fixed 42-day grid starting on Monday', () => {
   assert.equal(grid[41], '2026-12-06');
   // 2026-11-01 is a Sunday, so the grid starts six days earlier.
   assert.equal(grid.indexOf('2026-11-01'), 6);
+});
+
+// ── Due-date task groups (dialog task column) ─────────────────────────────
+
+const dueTask = (title: string, due: string | null, done = false): CalendarTask => ({
+  kind: 'task',
+  uid: null,
+  title,
+  done,
+  due,
+  priority: null,
+  reminders: [],
+  rrule: null,
+  path: 'note.md',
+  line: 1,
+  mtime: 0,
+});
+
+test('groupTasksByDue places dates on the right side of the week boundary', () => {
+  // 2026-11-08 is a Sunday, so the week ends on itself.
+  const groups = groupTasksByDue(
+    [
+      dueTask('overdue', '2026-11-02'),
+      dueTask('today', '2026-11-08'),
+      dueTask('later', '2026-11-09'),
+      dueTask('undated', null),
+      dueTask('done', '2026-11-02', true),
+    ],
+    '2026-11-08',
+  );
+  assert.deepEqual(
+    groups.map((g) => [g.key, g.tasks.map((t) => t.title)]),
+    [
+      ['overdue', ['overdue']],
+      ['today', ['today']],
+      ['thisWeek', []],
+      ['later', ['later']],
+      ['undated', ['undated']],
+    ],
+  );
+});
+
+test('groupTasksByDue puts mid-week dates in thisWeek and includes done on request', () => {
+  // Wednesday 2026-11-04 → week ends Sunday 2026-11-08.
+  const groups = groupTasksByDue(
+    [
+      dueTask('rings', '2026-11-07'),
+      dueTask('monday', '2026-11-09'),
+      dueTask('done', '2026-11-04', true),
+    ],
+    '2026-11-04',
+  );
+  assert.deepEqual(
+    groups.find((g) => g.key === 'thisWeek')?.tasks.map((t) => t.title),
+    ['rings'],
+  );
+  assert.deepEqual(
+    groups.find((g) => g.key === 'later')?.tasks.map((t) => t.title),
+    ['monday'],
+  );
+  assert.deepEqual(groups.find((g) => g.key === 'today')?.tasks, []);
+
+  const withDone = groupTasksByDue([dueTask('done', '2026-11-04', true)], '2026-11-04', true);
+  assert.deepEqual(withDone.find((g) => g.key === 'today')?.tasks.map((t) => t.title), ['done']);
 });

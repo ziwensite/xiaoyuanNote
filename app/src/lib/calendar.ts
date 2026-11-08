@@ -36,8 +36,13 @@ export interface CalendarEvent {
   kind: 'event';
   uid: string;
   summary: string;
-  /** Verbatim note body (iCal `DESCRIPTION`). */
+  /** Verbatim note body. */
   description: string;
+  /**
+   * Editor "notes" field, stored as iCal `description:` frontmatter. Optional
+   * so events that only carry a body stay valid; the body is never rewritten.
+   */
+  notes?: string | null;
   dtstart: CalendarWallTime;
   dtend: CalendarWallTime | null;
   tzid: string | null;
@@ -131,6 +136,7 @@ const MANAGED_EVENT_KEYS = [
   'tzid',
   'all_day',
   'summary',
+  'description',
   'location',
   'status',
   'categories',
@@ -166,6 +172,19 @@ export function addDays(date: string, n: number): string {
   const t = Date.UTC(y, m - 1, d) + n * 86_400_000;
   const dt = new Date(t);
   return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+}
+
+/**
+ * Shift by whole months, keeping the day-of-month (clamped to the target
+ * month's length). Used by both month navigators so they cannot disagree.
+ */
+export function shiftMonth(date: string, delta: number): string {
+  const [y, m, d] = date.split('-').map(Number);
+  const total = y * 12 + (m - 1) + delta;
+  const ny = Math.floor(total / 12);
+  const nm = ((total % 12) + 12) % 12 + 1;
+  const last = new Date(Date.UTC(ny, nm, 0)).getUTCDate();
+  return `${ny}-${pad(nm)}-${pad(Math.min(d, last))}`;
 }
 
 function daysBetween(a: string, b: string): number {
@@ -524,6 +543,7 @@ export function eventFromFrontmatter(
     uid: str(fm.uid) ?? localUidForPath(opts.path),
     summary,
     description: opts.body ?? '',
+    notes: str(fm.description),
     dtstart: start,
     dtend: end,
     tzid: str(fm.tzid) ?? str(fm.timezone),
@@ -878,6 +898,7 @@ export function calendarEventFrontmatter(event: CalendarEvent): Record<string, u
   if (event.tzid) fm.tzid = event.tzid;
   if (event.allDay) fm.all_day = true;
   if (event.summary) fm.summary = event.summary;
+  if (event.notes) fm.description = event.notes;
   if (event.location) fm.location = event.location;
   if (event.status !== 'CONFIRMED') fm.status = event.status;
   if (event.categories.length) fm.categories = event.categories;

@@ -329,7 +329,7 @@ export function buildCalendarView(
   return { days, undatedTasks };
 }
 
-function compareCalendarTasks(a: CalendarTask, b: CalendarTask): number {
+export function compareCalendarTasks(a: CalendarTask, b: CalendarTask): number {
   if (a.done !== b.done) return a.done ? 1 : -1;
   if (a.due && b.due && a.due !== b.due) return a.due < b.due ? -1 : 1;
   const rank = (priority: CalendarTask['priority'] | null) =>
@@ -448,4 +448,52 @@ export function buildAgendaGroups(view: CalendarViewData, today: string): Agenda
     const group = groups.get(key);
     return !!group && (group.days.length > 0 || group.undatedTasks.length > 0);
   }).map((key) => groups.get(key)!);
+}
+
+export type TaskDueGroupKey = 'overdue' | 'today' | 'thisWeek' | 'later' | 'undated';
+
+export interface TaskDueGroup {
+  key: TaskDueGroupKey;
+  tasks: CalendarTask[];
+}
+
+const TASK_DUE_ORDER: readonly TaskDueGroupKey[] = [
+  'overdue',
+  'today',
+  'thisWeek',
+  'later',
+  'undated',
+];
+
+/**
+ * Due-date buckets for the dialog's task column: overdue / today / this week /
+ * later / undated. Always returns all five (empty arrays included) so the
+ * column's headings stay put while tasks move between them.
+ */
+export function groupTasksByDue(
+  tasks: readonly CalendarTask[],
+  today: string,
+  includeDone = false,
+): TaskDueGroup[] {
+  const end = weekEnd(today);
+  const buckets = new Map<TaskDueGroupKey, CalendarTask[]>(
+    TASK_DUE_ORDER.map((key) => [key, []]),
+  );
+  for (const task of tasks) {
+    if (task.done && !includeDone) continue;
+    const key: TaskDueGroupKey = !task.due
+      ? 'undated'
+      : compareDate(task.due, today) < 0
+        ? 'overdue'
+        : task.due === today
+          ? 'today'
+          : compareDate(task.due, end) <= 0
+            ? 'thisWeek'
+            : 'later';
+    buckets.get(key)!.push(task);
+  }
+  return TASK_DUE_ORDER.map((key) => ({
+    key,
+    tasks: buckets.get(key)!.sort(compareCalendarTasks),
+  }));
 }

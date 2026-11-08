@@ -26,6 +26,7 @@ import { useAutoCommit } from './composables/useAutoCommit';
 import { useGithubSync } from './composables/useGithubSync';
 import { useSessionRestore } from './composables/useSessionRestore';
 import SessionRestoreDialog from './components/SessionRestoreDialog.vue';
+import CalendarDialog from './components/CalendarDialog.vue';
 import WhiteboardOverlay from './components/WhiteboardOverlay.vue';
 import AIRewriteOverlay from './components/AIRewriteOverlay.vue';
 const BasesView = defineAsyncComponent(() => import('./components/BasesView.vue'));
@@ -2368,6 +2369,8 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       @cancel="imageUrlDialogOpen = false"
     />
     <SessionRestoreDialog />
+    <!-- B — detailed calendar (month + tasks; day/week secondary). -->
+    <CalendarDialog />
     <!-- v4.6 F5 — saved-view create/edit modal (self-mounts via window events). -->
     <ViewEditorDialog />
     <WhiteboardOverlay />
