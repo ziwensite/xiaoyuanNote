@@ -2,12 +2,13 @@ import { isTreeSortMode, type TreeSortMode } from '../lib/tree-sort';
 import { cleanFontFamilyFromFilename } from '../lib/custom-font';
 import {
   DEFAULT_DOCK_WIDTH,
+  PRIMARY_PANE_ID,
   clampDockWidth,
   defaultSidebarDock,
   dockPane,
   isPendingPane,
   migrateSidebarDock,
-  moveAllPanesToSide,
+  mergeFilesPane,
   nextActiveAfterHide,
   sideDockPanes,
   type LegacySidebarBlob,
@@ -140,6 +141,13 @@ interface Settings {
   /** S1/S2 — one-time marker: legacy `outlineSide` + `showX` switches have
    *  been folded into `sidebarDock`; never re-read them afterwards. */
   v510SidebarDockMigrated: boolean;
+  /** V1 — one-time marker: the standalone file-tree column has been merged
+   *  into the left dock's `files` container. Kept separate from v510 so the
+   *  merge can be re-run independently of the dock migration. */
+  v511FileTreeMerged: boolean;
+  /** V1 — false once, until the "outline moved to the secondary sidebar"
+   *  toast has been shown. Fresh installs start at `true` (nothing to say). */
+  v511OutlineSideNoticeShown: boolean;
   livePreview: boolean;
   v503SourceModeMigrated?: boolean;
   // Editor super features
@@ -874,8 +882,17 @@ function defaults(): Settings {
     ghImageCdn: 'jsdelivr',
     inboxWorkflowEnabled: true,
     autoAdvanceInboxAfterOrganize: true,
-    sidebarDock: defaultSidebarDock(),
+    // V1 — primary sidebar starts expanded (file tree active), secondary
+    // sidebar starts collapsed. On a phone the file tree is the 笔记 home
+    // screen instead, so its dock stays collapsed.
+    sidebarDock: (() => {
+      const dock = defaultSidebarDock();
+      dock.collapsed.left = isMobile();
+      return dock;
+    })(),
     v510SidebarDockMigrated: true,
+    v511FileTreeMerged: true,
+    v511OutlineSideNoticeShown: true,
   };
 }
 
@@ -1061,6 +1078,27 @@ function load(): Settings {
       };
       merged.sidebarDock = migrateSidebarDock(legacyDockBlob, defaultSidebarDock());
       merged.v510SidebarDockMigrated = true;
+      // V1 — merge the standalone file-tree column into the left dock. This
+      // marker is deliberately independent from `v510SidebarDockMigrated`:
+      // when the merge flag is absent we always run it, even if the stored
+      // dock state already exists (that state simply has no `files` pane yet).
+      if (!parsed.v511FileTreeMerged) {
+        const merge = mergeFilesPane(merged.sidebarDock, {
+          showFileTree: merged.showFileTree,
+          fileTreeWidth: merged.fileTreeWidth,
+          alreadyMerged: false,
+        });
+        merged.sidebarDock = merge.dock;
+        merged.v511FileTreeMerged = true;
+        merged.v511OutlineSideNoticeShown = merge.movedToSecondary.length === 0;
+      } else {
+        const merge = mergeFilesPane(merged.sidebarDock, {
+          showFileTree: merged.showFileTree,
+          fileTreeWidth: merged.fileTreeWidth,
+          alreadyMerged: true,
+        });
+        merged.sidebarDock = merge.dock;
+      }
       // D6 — a theme outside the built-in list (e.g. a hand-edited or
       // MCP-written 'system') rendered as a bare white page; reset it to the
       // default, and treat a literal 'system' as the follow-OS option.
@@ -1276,13 +1314,14 @@ export const useSettingsStore = defineStore('settings', {
       this.showOutline = !this.showOutline;
       this.persist();
     },
-    /** S2 — the old "which side is the panel stack on" switch now moves the
-     *  whole dock content. Mirrored into the frozen `outlineSide` so the
-     *  Settings select keeps showing the side the panes actually live on. */
+    /** V1 — only moves the Outline pane. `files` is the primary sidebar
+     *  container and must never travel with it; moving Outline to the left
+     *  simply makes it a second tab next to the file tree. */
     setOutlineSide(side: 'left' | 'right') {
       this.outlineSide = side;
-      this.sidebarDock = moveAllPanesToSide(this.sidebarDock, side);
+      this.movePaneToSide('outline', side);
       this.sidebarDock.collapsed[side] = false;
+      if (side === 'left') this.showFileTree = true;
       this.persist();
     },
     setOutlineMarker(marker: 'jump' | 'number' | 'none') {
@@ -1303,6 +1342,7 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleFileTree() {
       this.showFileTree = !this.showFileTree;
+      this.sidebarDock.collapsed.left = !this.showFileTree;
       this.persist();
     },
     toggleViewsPanel() {
@@ -1359,9 +1399,15 @@ export const useSettingsStore = defineStore('settings', {
       }
     },
     // ---- S2 dock actions ---------------------------------------------------
+    /** V1 — keep the legacy `showFileTree` switch in sync with the primary
+     *  dock: collapsed(left) means the file tree is "hidden", but the 32px
+     *  rail stays on screen. */
+    syncPrimarySidebar() {
+      this.showFileTree = !this.sidebarDock.collapsed.left;
+    },
     toggleDockPane(id: SidebarPaneId) {
       const pane = dockPane(this.sidebarDock, id);
-      if (!pane || isPendingPane(id)) return;
+      if (!pane || isPendingPane(id) || id === PRIMARY_PANE_ID) return;
       pane.visible = !pane.visible;
       if (pane.visible) {
         this.sidebarDock.active[pane.side] = id;
@@ -1369,6 +1415,7 @@ export const useSettingsStore = defineStore('settings', {
       } else if (this.sidebarDock.active[pane.side] === id) {
         this.sidebarDock.active[pane.side] = nextActiveAfterHide(this.sidebarDock, id);
       }
+      this.syncPrimarySidebar();
       this.persist();
     },
     showDockPane(id: SidebarPaneId) {
@@ -1377,20 +1424,23 @@ export const useSettingsStore = defineStore('settings', {
       pane.visible = true;
       this.sidebarDock.active[pane.side] = id;
       this.sidebarDock.collapsed[pane.side] = false;
+      this.syncPrimarySidebar();
       this.persist();
     },
     hideDockPane(id: SidebarPaneId) {
       const pane = dockPane(this.sidebarDock, id);
-      if (!pane || isPendingPane(id)) return;
+      if (!pane || isPendingPane(id) || id === PRIMARY_PANE_ID) return;
       pane.visible = false;
       if (this.sidebarDock.active[pane.side] === id) {
         this.sidebarDock.active[pane.side] = nextActiveAfterHide(this.sidebarDock, id);
       }
+      this.syncPrimarySidebar();
       this.persist();
     },
     setActiveDockPane(side: SidebarSide, id: SidebarPaneId | null) {
       this.sidebarDock.active[side] = id;
       this.sidebarDock.collapsed[side] = false;
+      this.syncPrimarySidebar();
       this.persist();
     },
     /** S2 — a pane switched on outside the dock actions (⌘⇧F search,
@@ -1404,14 +1454,17 @@ export const useSettingsStore = defineStore('settings', {
       if (this.sidebarDock.active[pane.side] === id && !this.sidebarDock.collapsed[pane.side]) return;
       this.sidebarDock.active[pane.side] = id;
       this.sidebarDock.collapsed[pane.side] = false;
+      this.syncPrimarySidebar();
       this.persist();
     },
     setDockCollapsed(side: SidebarSide, collapsed: boolean) {
       this.sidebarDock.collapsed[side] = collapsed;
+      this.syncPrimarySidebar();
       this.persist();
     },
     toggleDockCollapsed(side: SidebarSide) {
       this.sidebarDock.collapsed[side] = !this.sidebarDock.collapsed[side];
+      this.syncPrimarySidebar();
       this.persist();
     },
     setDockWidth(side: SidebarSide, width: number) {
@@ -1419,12 +1472,15 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     movePaneToSide(id: SidebarPaneId, side: SidebarSide) {
+      if (id === PRIMARY_PANE_ID) return;
       const pane = dockPane(this.sidebarDock, id);
       if (!pane || pane.side === side) return;
+      const oldSide = pane.side;
       pane.side = side;
-      const other = pane.side === 'left' ? 'right' : 'left';
-      if (this.sidebarDock.active[other] === id) this.sidebarDock.active[other] = null;
+      if (this.sidebarDock.active[oldSide] === id) this.sidebarDock.active[oldSide] = null;
       this.sidebarDock.active[side] = id;
+      this.sidebarDock.collapsed[side] = false;
+      this.syncPrimarySidebar();
       this.persist();
     },
     toggleLivePreview() {

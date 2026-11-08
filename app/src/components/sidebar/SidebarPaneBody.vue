@@ -13,6 +13,7 @@ import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
 import GlobalSearch from '../GlobalSearch.vue';
 import Outline from '../Outline.vue';
 import BacklinksPanel from '../BacklinksPanel.vue';
+import Sidebar from '../Sidebar.vue';
 
 const NeighborhoodPanel = defineAsyncComponent(() => import('../NeighborhoodPanel.vue'));
 const RelationshipsPanel = defineAsyncComponent(() => import('../RelationshipsPanel.vue'));
@@ -34,10 +35,18 @@ const emit = defineEmits<{
   filterTag: [tag: string];
   outlineGoto: [line: number];
   openSettings: [section?: string];
+  openQuickSwitcher: [];
 }>();
 </script>
 
 <template>
+  <Sidebar
+    v-if="props.id === 'files'"
+    embedded
+    @open-settings="emit('openSettings')"
+    @open-quick-switcher="emit('openQuickSwitcher')"
+    @filter-tag="(tag: string) => emit('filterTag', tag)"
+  />
   <GlobalSearch
     v-if="props.id === 'search'"
     :prefill="props.searchPrefill"

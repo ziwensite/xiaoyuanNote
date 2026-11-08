@@ -4,9 +4,11 @@ import { test } from 'node:test';
 import {
   DEFAULT_DOCK_WIDTH,
   MAX_DOCK_WIDTH,
+  MIN_DOCK_WIDTH,
   defaultSidebarDock,
   dockPane,
   isDockPaneVisible,
+  mergeFilesPane,
   migrateSidebarDock,
   moveAllPanesToSide,
   nextActiveAfterHide,
@@ -72,32 +74,35 @@ function legacy(overrides: Record<string, unknown> = {}) {
   };
 }
 
-test('fresh install follows D6: outline left, calendar + agent right', () => {
+test('fresh install follows V1: files left, outline + agent right', () => {
   const dock = defaultSidebarDock();
   const left = sideDockPanes(dock, 'left');
   const right = sideDockPanes(dock, 'right');
 
-  assert.deepEqual(left.map((pane) => pane.id), ['outline']);
-  assert.equal(isDockPaneVisible(dock, 'outline'), true);
-  assert.equal(dock.active.left, 'outline');
+  assert.deepEqual(left.map((pane) => pane.id), ['files']);
+  assert.equal(isDockPaneVisible(dock, 'files'), true);
+  assert.equal(dock.active.left, 'files');
 
+  assert.ok(right.some((pane) => pane.id === 'outline'));
   assert.ok(right.some((pane) => pane.id === 'agent'));
   assert.ok(right.some((pane) => pane.id === 'calendar'));
+  assert.equal(isDockPaneVisible(dock, 'outline'), true);
   assert.equal(isDockPaneVisible(dock, 'agent'), true);
   // Calendar is reserved, not switched on for real UI lists.
   assert.equal(dockPane(dock, 'calendar')?.visible, true);
-  assert.equal(dock.active.right, 'calendar');
+  assert.equal(dock.active.right, 'outline');
 
-  assert.equal(dock.collapsed.left, true);
+  // D3: primary sidebar starts expanded, secondary collapsed.
+  assert.equal(dock.collapsed.left, false);
   assert.equal(dock.collapsed.right, true);
   assert.equal(dock.width.left, DEFAULT_DOCK_WIDTH);
   assert.equal(dock.width.right, DEFAULT_DOCK_WIDTH);
 });
 
-test('migrates a legacy right-side stack onto the right, left stays empty', () => {
+test('migrates a legacy right-side stack onto the right, files stays left', () => {
   const dock = migrateSidebarDock(legacy());
-  assert.equal(sideDockPanes(dock, 'left').length, 0);
-  assert.equal(sideDockPanes(dock, 'right').length, SIDEBAR_PANE_DEFS.length);
+  assert.deepEqual(sideDockPanes(dock, 'left').map((pane) => pane.id), ['files']);
+  assert.equal(sideDockPanes(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 1);
 
   for (const id of ['backlinks', 'tags', 'agent'] as const) {
     assert.equal(isDockPaneVisible(dock, id), true, `${id} should stay on`);
@@ -168,15 +173,18 @@ test('sanitize keeps unknown/duplicate entries out and appends missing ids', () 
   const agent = dockPane(dock, 'agent');
   assert.equal(agent?.side, 'left');
   assert.equal(agent?.visible, true);
-  // Invalid side falls back to the registry default.
-  assert.equal(dockPane(dock, 'outline')?.side, 'left');
+  // Invalid side falls back to the registry default (files left, outline right).
+  assert.equal(dockPane(dock, 'outline')?.side, 'right');
   assert.equal(dockPane(dock, 'outline')?.visible, true);
+  // The primary container cannot be moved to the right by a stored blob.
+  assert.equal(dockPane(dock, 'files')?.side, 'left');
+  assert.equal(dockPane(dock, 'files')?.visible, true);
   // `bogus` is not a pane, and `agent` now lives on the left, so both slots clear.
   assert.equal(dock.active.left, null);
   assert.equal(dock.active.right, null);
   assert.equal(dock.collapsed.left, false);
   assert.equal(dock.collapsed.right, true);
-  assert.equal(dock.width.left, 240);
+  assert.equal(dock.width.left, MIN_DOCK_WIDTH);
   assert.equal(dock.width.right, MAX_DOCK_WIDTH);
 });
 
@@ -184,8 +192,8 @@ test('marker without dock data restores defaults instead of legacy switches', ()
   const dock = migrateSidebarDock(
     legacy({ v510SidebarDockMigrated: true, showBacklinks: true }),
   );
-  assert.deepEqual(sideDockPanes(dock, 'left').map((pane) => pane.id), ['outline']);
-  assert.equal(dock.active.right, 'calendar');
+  assert.deepEqual(sideDockPanes(dock, 'left').map((pane) => pane.id), ['files']);
+  assert.equal(dock.active.right, 'outline');
 });
 
 test('an already-migrated dock is sanitized, not re-read from legacy', () => {
@@ -203,7 +211,7 @@ test('an already-migrated dock is sanitized, not re-read from legacy', () => {
 test('width migration keeps 440 → 472 and clamps the extremes', () => {
   assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: 440 })).width.right, 472);
   assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: 999 })).width.right, MAX_DOCK_WIDTH);
-  assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: 100 })).width.right, 240);
+  assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: 100 })).width.right, MIN_DOCK_WIDTH);
 });
 
 test('order follows the stored rsPaneOrder and appends unknown future ids', () => {
@@ -233,6 +241,7 @@ test('hiding a pane activates the next visible pane on the same side', () => {
       { id: 'tags', side: 'right', visible: true },
       { id: 'agent', side: 'left', visible: true },
       { id: 'tasks', side: 'right', visible: true },
+      { id: 'outline', side: 'right', visible: false },
     ],
     active: { left: 'agent', right: 'backlinks' },
     collapsed: { left: false, right: false },
@@ -244,13 +253,76 @@ test('hiding a pane activates the next visible pane on the same side', () => {
   assert.equal(nextActiveAfterHide(dock, 'tags'), 'tasks');
 });
 
-test('moving every pane to a side keeps order and a valid active id', () => {
+test('moving every pane to a side keeps files on the left', () => {
   const dock = moveAllPanesToSide(defaultSidebarDock(), 'right');
-  assert.equal(sideDockPanes(dock, 'left').length, 0);
-  assert.equal(sideDockPanes(dock, 'right').length, SIDEBAR_PANE_DEFS.length);
-  assert.equal(dock.active.right, 'calendar');
-  assert.equal(dock.active.left, null);
+  assert.deepEqual(sideDockPanes(dock, 'left').map((pane) => pane.id), ['files']);
+  assert.equal(sideDockPanes(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 1);
+  assert.equal(dock.active.right, 'outline');
+  assert.equal(dock.active.left, 'files');
 });
+
+test('V1 merge moves every non-files pane off the left and keeps files there', () => {
+  const before = migrateSidebarDock(legacy({ outlineSide: 'left' }));
+  assert.equal(sideDockPanes(before, 'right').length, 0);
+  assert.ok(sideDockPanes(before, 'left').some((pane) => pane.id === 'outline'));
+
+  const { dock, movedToSecondary } = mergeFilesPane(before, {
+    showFileTree: true,
+    fileTreeWidth: 260,
+    alreadyMerged: false,
+  });
+
+  assert.deepEqual(sideDockPanes(dock, 'left').map((pane) => pane.id), ['files']);
+  assert.equal(sideDockPanes(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 1);
+  assert.ok(movedToSecondary.includes('outline'));
+  assert.equal(dock.active.left, 'files');
+  assert.equal(dock.active.right, 'outline');
+  assert.equal(dock.collapsed.left, false);
+  assert.equal(dock.collapsed.right, true);
+  // 260 old content + 32 rail keeps the pre-merge width.
+  assert.equal(dock.width.left, 292);
+});
+
+test('V1 merge mirrors showFileTree into the collapsed rail state', () => {
+  const before = migrateSidebarDock(legacy({ outlineSide: 'left' }));
+  const { dock } = mergeFilesPane(before, {
+    showFileTree: false,
+    fileTreeWidth: 180,
+    alreadyMerged: false,
+  });
+  assert.equal(dock.collapsed.left, true);
+  assert.equal(dock.width.left, MIN_DOCK_WIDTH);
+});
+
+test('V1 merge is idempotent: a second run never resets user state', () => {
+  const before = migrateSidebarDock(legacy({ outlineSide: 'left' }));
+  const opts = { showFileTree: true, fileTreeWidth: 320, alreadyMerged: false };
+  const first = mergeFilesPane(before, opts);
+
+  const marked = mergeFilesPane(first.dock, { ...opts, alreadyMerged: true });
+  assert.deepEqual(marked.dock, first.dock);
+  assert.deepEqual(marked.movedToSecondary, []);
+
+  const rerun = mergeFilesPane(first.dock, opts);
+  assert.deepEqual(rerun.dock, first.dock);
+  assert.deepEqual(rerun.movedToSecondary, []);
+});
+
+test('files cannot be hidden or moved to the secondary sidebar by stored state', () => {
+  const dock = sanitizeSidebarDock({
+    panes: [
+      { id: 'files', side: 'right', visible: false },
+      { id: 'outline', side: 'right', visible: true },
+    ],
+    active: { left: 'files', right: 'outline' },
+    collapsed: { left: false, right: true },
+    width: { left: 292, right: 292 },
+  });
+  assert.equal(dockPane(dock, 'files')?.side, 'left');
+  assert.equal(dockPane(dock, 'files')?.visible, true);
+  assert.equal(moveAllPanesToSide(dock, 'right').panes.find((pane) => pane.id === 'files')?.side, 'left');
+});
+
 
 test('every locale has a title key for each shipped pane and the dock chrome', () => {
   for (const [name, dict] of Object.entries(LOCALES)) {
@@ -260,5 +332,10 @@ test('every locale has a title key for each shipped pane and the dock chrome', (
     for (const key of ['sidebarDock.collapse', 'sidebarDock.expand']) {
       assert.equal(typeof lookup(dict, key), 'string', `${name} missing ${key}`);
     }
+    assert.equal(
+      typeof lookup(dict, 'toast.outlineMovedToSecondary'),
+      'string',
+      `${name} missing toast.outlineMovedToSecondary`,
+    );
   }
 });

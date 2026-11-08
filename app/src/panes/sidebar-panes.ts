@@ -21,6 +21,7 @@
  */
 
 export type SidebarPaneId =
+  | 'files'
   | 'search'
   | 'outline'
   | 'backlinks'
@@ -37,8 +38,10 @@ export type SidebarPaneId =
 /** Panes that exist today (everything except the reserved calendar pane). */
 export type ImplementedSidebarPaneId = Exclude<SidebarPaneId, 'calendar'>;
 
-/** Where a pane's current visibility derives from. */
-export type SidebarPaneVisibility = 'setting' | 'tab' | 'session';
+/** Where a pane's current visibility derives from. `always` is a container
+ *  that is part of the shell itself (the primary sidebar's file tree) and can
+ *  never be switched off. */
+export type SidebarPaneVisibility = 'setting' | 'tab' | 'session' | 'always';
 
 /** Context the availability gate reads. Kept structural so this module stays
  *  store-free; `App.vue` builds it from its existing computeds. */
@@ -74,10 +77,23 @@ const markdownInFolder = (ctx: SidebarPaneAvailabilityCtx) =>
   ctx.hasMarkdownTab && ctx.hasFolder;
 
 /**
- * Array order is load-bearing: it is the fallback order `SidebarDock` appends
- * unknown ids in, and must stay identical to the pre-S1 `known` list.
+ * Array order drives the fallback append order in `sanitizeSidebarDock`. The
+ * first entry is the primary sidebar container; the rest keep the pre-S1
+ * order so old `rsPaneOrder` blobs migrate predictably.
  */
 export const SIDEBAR_PANE_DEFS: readonly SidebarPaneDef[] = [
+  // V1 — the primary sidebar container. Not a toggleable panel: locked to the
+  // left dock, always on, and deliberately absent from View › Panels / the
+  // dock's `+` list.
+  {
+    id: 'files',
+    visibility: 'always',
+    defaultSide: 'left',
+    defaultVisible: true,
+    icon: 'folder',
+    titleKey: 'rsPane.files',
+    available: () => true,
+  },
   {
     id: 'search',
     visibility: 'session',
@@ -90,7 +106,7 @@ export const SIDEBAR_PANE_DEFS: readonly SidebarPaneDef[] = [
   {
     id: 'outline',
     visibility: 'tab',
-    defaultSide: 'left',
+    defaultSide: 'right',
     defaultVisible: true,
     icon: 'outline',
     titleKey: 'rsPane.outline',

@@ -35,8 +35,14 @@ export interface SidebarDockState {
 export const SIDEBAR_RAIL_WIDTH = 32;
 /** 260 content + 32 rail — keeps the old content width on migration. */
 export const DEFAULT_DOCK_WIDTH = 292;
-export const MIN_DOCK_WIDTH = 240;
+/** 180 content + 32 rail — keeps the old file-tree minimum. */
+export const MIN_DOCK_WIDTH = 212;
 export const MAX_DOCK_WIDTH = 560;
+
+/** V1 — the file tree container. It is the primary sidebar itself, so every
+ *  move/sanitize path locks it to the left. */
+export const PRIMARY_PANE_ID: SidebarPaneId = 'files';
+export const PRIMARY_SIDE: SidebarSide = 'left';
 
 export const SIDES: readonly SidebarSide[] = ['left', 'right'];
 
@@ -66,8 +72,8 @@ export function defaultSidebarDock(): SidebarDockState {
   }));
   return {
     panes,
-    active: { left: 'outline', right: 'calendar' },
-    collapsed: { left: true, right: true },
+    active: { left: 'files', right: 'outline' },
+    collapsed: { left: false, right: true },
     width: { left: DEFAULT_DOCK_WIDTH, right: DEFAULT_DOCK_WIDTH },
   };
 }
@@ -115,6 +121,13 @@ export function sanitizeSidebarDock(
   for (const def of SIDEBAR_PANE_DEFS) {
     if (seen.has(def.id)) continue;
     panes.push({ id: def.id, side: def.defaultSide, visible: def.defaultVisible });
+  }
+  // The primary container is part of the shell, not a user choice: even a
+  // hand-edited blob cannot move it to the secondary sidebar or hide it.
+  const files = panes.find((pane) => pane.id === PRIMARY_PANE_ID);
+  if (files) {
+    files.side = PRIMARY_SIDE;
+    files.visible = true;
   }
 
   const activeRaw = (src.active ?? {}) as Partial<Record<SidebarSide, unknown>>;
@@ -197,7 +210,7 @@ export function migrateSidebarDock(
       visible:
         def.visibility === 'setting'
           ? !!legacy[def.settingKey as string]
-          : def.visibility === 'tab'
+          : def.visibility === 'tab' || def.visibility === 'always'
             ? true
             : false,
     };
@@ -206,6 +219,13 @@ export function migrateSidebarDock(
   const firstVisible = panes.find(
     (pane) => pane.visible && DEF_BY_ID.get(pane.id)?.visibility === 'setting',
   );
+  // V1 — the primary container is never part of the legacy stack: it stays
+  // on the left even when every other pane lands on `legacySide`.
+  const files = panes.find((pane) => pane.id === PRIMARY_PANE_ID);
+  if (files) {
+    files.side = PRIMARY_SIDE;
+    files.visible = true;
+  }
   const active: Record<SidebarSide, SidebarPaneId | null> = { left: null, right: null };
   active[legacySide] = firstVisible?.id ?? 'outline';
 
@@ -276,19 +296,83 @@ export function nextActiveAfterHide(
   return null;
 }
 
-/** Move every pane to `side`, preserving order and keeping a valid active id. */
+/** Move every *movable* pane to `side`, preserving order. The primary
+ *  container (`files`) is locked to the left; when everything else lands on
+ *  the right, the left stays active on it instead of going blank. */
 export function moveAllPanesToSide(
   state: SidebarDockState,
   side: SidebarSide,
 ): SidebarDockState {
-  const panes = state.panes.map((pane) => ({ ...pane, side }));
-  const other = side === 'left' ? 'right' : 'left';
+  const panes = state.panes.map((pane) => ({
+    ...pane,
+    side: pane.id === PRIMARY_PANE_ID ? PRIMARY_SIDE : side,
+  }));
   const active: Record<SidebarSide, SidebarPaneId | null> = { left: null, right: null };
-  active[side] = state.active[side] ?? state.active[other] ?? null;
+  if (side === 'left') {
+    active.left = state.active.left ?? state.active.right ?? PRIMARY_PANE_ID;
+  } else {
+    active.left = PRIMARY_PANE_ID;
+    active.right = state.active.right ?? state.active.left ?? null;
+    if (active.right === PRIMARY_PANE_ID) active.right = null;
+  }
   return {
     panes,
     active,
     collapsed: { left: state.collapsed.left, right: state.collapsed.right },
     width: { left: state.width.left, right: state.width.right },
+  };
+}
+
+/**
+ * V1 — one-time merge of the old standalone file-tree column into the left
+ * dock. Pure and idempotent: `alreadyMerged` skips the width/move work and
+ * only normalizes the stored state.
+ */
+export function mergeFilesPane(
+  state: SidebarDockState,
+  opts: { showFileTree: boolean; fileTreeWidth: number; alreadyMerged: boolean },
+): { dock: SidebarDockState; movedToSecondary: SidebarPaneId[] } {
+  const dock = sanitizeSidebarDock(state);
+  if (opts.alreadyMerged) return { dock, movedToSecondary: [] };
+
+  const panes = dock.panes.map((pane) => ({ ...pane }));
+  let files = panes.find((pane) => pane.id === PRIMARY_PANE_ID);
+  if (!files) {
+    files = { id: PRIMARY_PANE_ID, side: PRIMARY_SIDE, visible: true };
+    panes.unshift(files);
+  }
+  files.side = PRIMARY_SIDE;
+  files.visible = true;
+
+  const movedToSecondary: SidebarPaneId[] = [];
+  for (const pane of panes) {
+    if (pane.id === PRIMARY_PANE_ID || pane.side !== PRIMARY_SIDE) continue;
+    pane.side = 'right';
+    movedToSecondary.push(pane.id);
+  }
+
+  const rightIds = panes
+    .filter((pane) => pane.side === 'right' && !isPendingPane(pane.id))
+    .map((pane) => pane.id);
+  let right = dock.active.right;
+  if (!right || right === PRIMARY_PANE_ID || !rightIds.includes(right)) {
+    right = rightIds.includes('outline')
+      ? 'outline'
+      : movedToSecondary.includes('outline')
+        ? 'outline'
+        : movedToSecondary[0] ?? rightIds[0] ?? null;
+  }
+
+  return {
+    dock: {
+      panes,
+      active: { left: PRIMARY_PANE_ID, right },
+      collapsed: { left: !opts.showFileTree, right: dock.collapsed.right },
+      width: {
+        left: clampDockWidth(opts.fileTreeWidth + SIDEBAR_RAIL_WIDTH),
+        right: dock.width.right,
+      },
+    },
+    movedToSecondary,
   };
 }

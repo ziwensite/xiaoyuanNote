@@ -34,8 +34,8 @@ import { parentDirOf } from '../lib/new-file-target';
 import { useI18n } from '../i18n';
 
 const props = withDefaults(
-  defineProps<{ macInset?: boolean; variant?: 'desktop' | 'phone' }>(),
-  { macInset: false, variant: 'desktop' },
+  defineProps<{ macInset?: boolean; variant?: 'desktop' | 'phone'; embedded?: boolean }>(),
+  { macInset: false, variant: 'desktop', embedded: false },
 );
 /** 5.0 §8 — the phone home screen (笔记) is this sidebar, full-screen: large
  *  title, cards instead of rows, touch-sized tree rows, a new-note button. All
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
 <template>
   <aside
     class="sb"
-    :class="{ 'sb--inset': props.macInset && !phone, 'sb--resizing': resizing, 'sb--phone': phone }"
+    :class="{ 'sb--inset': props.macInset && !phone, 'sb--resizing': resizing, 'sb--phone': phone, 'sb--embedded': embedded }"
     :style="{ '--sb-w': settings.fileTreeWidth + 'px' }"
     data-testid="sidebar"
   >
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
          the same 52 px strip and collapse button aligned with the toolbar. -->
     <h1 v-if="phone" class="sb__title">{{ t('phone.notes') }}</h1>
     <div
-      v-else
+      v-else-if="!embedded"
       class="sb__inset"
       :class="{ 'sb__inset--win': !props.macInset }"
       :data-tauri-drag-region="props.macInset ? '' : undefined"
@@ -433,7 +433,7 @@ onBeforeUnmount(() => {
     </footer>
 
     <div
-      v-if="!phone"
+      v-if="!phone && !embedded"
       class="sb__resize"
       :class="{ 'sb__resize--active': resizing }"
       @mousedown="onResizeStart"
@@ -481,6 +481,13 @@ onBeforeUnmount(() => {
   font-family: var(--font-ui, inherit);
   font-size: 13px;
   user-select: none;
+}
+
+/* Embedded in the primary dock: the dock owns width, border and collapse. */
+.sb--embedded {
+  width: 100%;
+  flex: 1 1 auto;
+  border-right: 0;
 }
 
 /* ── top: inset / padding + search (fixed) ── */

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, watchEffect, computed, provide, nextTick, defineAsyncComponent } from 'vue';
 import { useLazyComponent } from './composables/useLazyComponent';
-import { macTitleBar, winTitleBar } from './lib/chrome';
+import { winTitleBar } from './lib/chrome';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
@@ -1256,6 +1256,16 @@ function scheduleStarPrompt() {
 
 onMounted(async () => {
   scheduleStarPrompt();
+  // V1 — one-time upgrade notice: the old standalone file-tree column is gone
+  // and the Outline now lives in the secondary sidebar. Persist the flag
+  // before showing it so a failed toast never repeats on every launch.
+  if (!settings.v511OutlineSideNoticeShown) {
+    settings.v511OutlineSideNoticeShown = true;
+    settings.persist();
+    void import('./stores/toasts').then(({ useToastsStore }) => {
+      useToastsStore().info(t('toast.outlineMovedToSecondary'), 8000);
+    });
+  }
   // Launch: put the keyboard in the editor once it has mounted (the
   // CodeMirror path never focused itself, so typing went nowhere until a
   // click). Skipped on mobile/iPad (#461): programmatic focus without a user
@@ -1802,6 +1812,7 @@ const paneAvailabilityCtx = computed<SidebarPaneAvailabilityCtx>(() => ({
 
 /** User-facing on/off. `outline` is per tab, `search` is per session. */
 const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() => ({
+  files: true,
   search: searchOpen.value,
   outline: !!tabs.activeTab?.showOutline,
   backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),
@@ -2043,7 +2054,6 @@ const narrowDrawer = computed<'left' | 'right' | null>(() => {
 
 /** Tap outside a drawer to put the editor back. */
 function closeNarrowDrawer(): void {
-  if (settings.showFileTree) settings.toggleFileTree();
   if (settings.showViewsPanel) settings.toggleViewsPanel();
   if (showRightSidebar.value) settings.toggleRightSidebar();
 }
@@ -2179,15 +2189,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           <GlobalSearch v-else class="phone-search" :prefill="searchPrefill" @close="phone.show('home')" />
           <PhoneTabBar @open-settings="openSettingsAt()" />
         </div>
-        <Sidebar
-          v-if="settings.showFileTree && !isNarrow"
-          class="left-stack"
-          :mac-inset="macTitleBar"
-          @toggle="settings.toggleFileTree()"
-          @open-settings="openSettingsAt()"
-          @open-quick-switcher="quickSwitcherOpen = true"
-          @filter-tag="onFilterTag"
-        />
         <div v-show="!isNarrow || phone.view === 'editor'" class="main-col">
       <Toolbar
         @open-palette="paletteOpen = true"
@@ -2198,12 +2199,12 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       <TelemetryBanner />
       <div class="workspace">
         <SidebarDock
-          v-if="hasLeftDock"
+          v-if="hasLeftDock && !isNarrow"
           side="left"
           :panes="leftDockPanes"
           :active="activeLeft"
           :collapsed="settings.sidebarDock.collapsed.left"
-          :overlay="isNarrow"
+          :overlay="isNarrow || isTabletOverlay"
           :search-prefill="searchPrefill"
           :outline-line="outlineLine"
           @contextmenu="openSidebarCtx"
@@ -2211,7 +2212,8 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
-          @open-settings="(section?: string) => openSettingsAt(section ?? 'integrations')"
+          @open-settings="(section?: string) => openSettingsAt(section)"
+          @open-quick-switcher="quickSwitcherOpen = true"
         />
         <div class="content">
           <BasesView v-if="basesOpen" />
@@ -2235,7 +2237,8 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
-          @open-settings="(section?: string) => openSettingsAt(section ?? 'integrations')"
+          @open-settings="(section?: string) => openSettingsAt(section)"
+          @open-quick-switcher="quickSwitcherOpen = true"
         />
       </div>
         </div>
@@ -2488,14 +2491,27 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   border-radius: 6px;
   pointer-events: none;
 }
-/* 5.0 §7 — iPad portrait: the sidebar floats over the editor. */
-.app--tablet-overlay .shell > .left-stack {
+/* 5.0 §7 — iPad portrait: the primary sidebar floats over the editor.
+   V1 — the file tree now lives inside the left dock, so the dock itself is
+   the drawer; when collapsed it falls back to its 32px rail. */
+.app--tablet-overlay .workspace {
+  position: relative;
+}
+.app--tablet-overlay .workspace > .side-sidebar--left:not(.side-sidebar--collapsed) {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   z-index: 40;
+  width: min(86vw, 320px);
+  max-width: 86vw;
+  flex: none;
+  min-width: 0;
   box-shadow: var(--sh-modal);
+}
+.app--tablet-overlay .workspace > .side-sidebar--left.side-sidebar--collapsed {
+  width: 32px;
+  flex: 0 0 32px;
 }
 /* 5.0 §8 — a phone home / search screen fills the window. */
 .phone-screen {
@@ -2540,16 +2556,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
 .app--narrow .workspace {
   position: relative;
 }
-.app--narrow .shell > .left-stack {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 40;
-  width: min(86vw, 320px);
-  box-shadow: var(--sh-modal);
-}
-.app--narrow .left-stack,
 .app--narrow .side-sidebar {
   position: absolute;
   top: 0;
@@ -2560,9 +2566,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   flex: none;
   min-width: 0;
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.28);
-}
-.app--narrow .left-stack {
-  left: 0;
 }
 .app--narrow .side-sidebar--right {
   right: 0;
@@ -2591,25 +2594,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   min-width: 0;
 }
 
-/* v4.6 F5 — left column stacks the file tree above the Saved Views panel. */
-.left-stack {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 0 0 auto;
-}
-.left-stack > :deep(.ftree) {
-  flex: 1 1 auto;
-  min-height: 0;
-  height: auto;
-}
-/* #148 (mobile) — the file tree used to go full-width on a phone so the tree
-   and the editor didn't squeeze each other into slivers. #168 replaces that
-   with the drawer above: same goal, but the editor stays visible underneath
-   and one tap outside returns to it, instead of the tree taking the screen. */
-.app--mobile .left-stack > :deep(.ftree) {
-  width: 100%;
-}
 /* .side-sidebar / .side-sidebar__resize live in SidebarDock.vue now. */
 /* v4.3.0 PR #75 — right-click context menu floats over the workspace via
    <Teleport to="body">. Toolbar's master-toggle is the canonical hide

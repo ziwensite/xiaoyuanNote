@@ -51,6 +51,7 @@ const emit = defineEmits<{
   filterTag: [tag: string];
   outlineGoto: [line: number];
   openSettings: [section?: string];
+  openQuickSwitcher: [];
 }>();
 
 const settings = useSettingsStore();
@@ -215,6 +216,7 @@ function onSidebarResize(ev: MouseEvent) {
           @filter-tag="(tag: string) => emit('filterTag', tag)"
           @outline-goto="(line: number) => emit('outlineGoto', line)"
           @open-settings="(section?: string) => emit('openSettings', section)"
+          @open-quick-switcher="emit('openQuickSwitcher')"
         />
       </div>
     </div>
