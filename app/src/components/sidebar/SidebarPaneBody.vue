@@ -23,6 +23,8 @@ const TypesPanel = defineAsyncComponent(() => import('../TypesPanel.vue'));
 const HistoryPanel = defineAsyncComponent(() => import('../HistoryPanel.vue'));
 const PropertiesInspector = defineAsyncComponent(() => import('../PropertiesInspector.vue'));
 const AgentPanel = defineAsyncComponent(() => import('../AgentPanel.vue'));
+// M1 — read-only. Async so a closed calendar costs nothing.
+const CalendarPanel = defineAsyncComponent(() => import('../CalendarPanel.vue'));
 
 const props = defineProps<{
   id: ImplementedSidebarPaneId;
@@ -70,4 +72,5 @@ const emit = defineEmits<{
     @open-settings="(section?: string) => emit('openSettings', section ?? 'integrations')"
     @close="emit('close')"
   />
+  <CalendarPanel v-if="props.id === 'calendar'" @close="emit('close')" />
 </template>

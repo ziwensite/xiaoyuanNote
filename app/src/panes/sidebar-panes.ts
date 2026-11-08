@@ -9,9 +9,10 @@
  *
  * `defaultSide` / `defaultVisible` / `defaultActive` describe the *new-install*
  * preset only; they must not affect an existing install until S2 ships the
- * migration. `calendar` is reserved ahead of the calendar pane itself: it
- * carries `pending` so it stays out of `IMPLEMENTED_SIDEBAR_PANE_IDS` and has
- * no component, no entry point and no effect on `settings.rsPaneOrder`.
+ * migration. `calendar` (M1) is a real read-only pane but ships **off** by
+ * default: a new tab appearing in every existing user's right dock is a
+ * visible behaviour change nobody asked for, and the pane is reachable from
+ * the dock's `+` list / right-click menu.
  *
  * S2 adds the presentation metadata the activity bar / tab header needs
  * (`icon`, `titleKey`) plus `available(ctx)` — the context gate that used to
@@ -35,8 +36,8 @@ export type SidebarPaneId =
   | 'agent'
   | 'calendar';
 
-/** Panes that exist today (everything except the reserved calendar pane). */
-export type ImplementedSidebarPaneId = Exclude<SidebarPaneId, 'calendar'>;
+/** Panes with a renderable component today. */
+export type ImplementedSidebarPaneId = SidebarPaneId;
 
 /** Where a pane's current visibility derives from. `always` is a container
  *  that is part of the shell itself (the primary sidebar's file tree) and can
@@ -211,17 +212,15 @@ export const SIDEBAR_PANE_DEFS: readonly SidebarPaneDef[] = [
     menuKey: 'agent',
     available: (ctx) => !ctx.appStoreBuild,
   },
-  // D6 preset: right side = calendar (active) + agent. Reserved only.
+  // M1 — read-only calendar. Off by default; tab title comes from the dock.
   {
     id: 'calendar',
     visibility: 'setting',
     defaultSide: 'right',
-    defaultVisible: true,
-    defaultActive: true,
-    pending: true,
+    defaultVisible: false,
     icon: 'calendar',
     titleKey: 'rsPane.calendar',
-    available: () => false,
+    available: (ctx) => ctx.hasFolder,
   },
 ];
 

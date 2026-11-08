@@ -261,6 +261,9 @@ defineProps<{ name: string; size?: number }>();
     <template v-else-if="name === 'task'">
       <rect x="4" y="4" width="16" height="16" rx="4" /><path d="M8 12l3 3 5-6" />
     </template>
+    <template v-else-if="name === 'calendar'">
+      <rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" />
+    </template>
     <template v-else-if="name === 'image'">
       <rect x="3" y="5" width="18" height="14" rx="3" /><circle cx="9" cy="10" r="1.6" /><path d="M21 16l-5-5-8 8" />
     </template>

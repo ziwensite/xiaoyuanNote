@@ -88,8 +88,8 @@ test('fresh install follows V1: files left, outline + agent right', () => {
   assert.ok(right.some((pane) => pane.id === 'calendar'));
   assert.equal(isDockPaneVisible(dock, 'outline'), true);
   assert.equal(isDockPaneVisible(dock, 'agent'), true);
-  // Calendar is reserved, not switched on for real UI lists.
-  assert.equal(dockPane(dock, 'calendar')?.visible, true);
+  // M1 ships the calendar opt-in: present in the dock, off for a fresh install.
+  assert.equal(dockPane(dock, 'calendar')?.visible, false);
   assert.equal(dock.active.right, 'outline');
 
   // D3: primary sidebar starts expanded, secondary collapsed.
@@ -330,6 +330,19 @@ test('every locale has a title key for each shipped pane and the dock chrome', (
       assert.equal(typeof lookup(dict, def.titleKey), 'string', `${name} missing ${def.titleKey}`);
     }
     for (const key of ['sidebarDock.collapse', 'sidebarDock.expand']) {
+      assert.equal(typeof lookup(dict, key), 'string', `${name} missing ${key}`);
+    }
+    for (const key of [
+      'calendar.openFolder',
+      'calendar.empty',
+      'calendar.today',
+      'calendar.allDay',
+      'calendar.more',
+      'calendar.view.agenda',
+      'calendar.view.month',
+      'calendar.groups.overdue',
+      'calendar.undated',
+    ]) {
       assert.equal(typeof lookup(dict, key), 'string', `${name} missing ${key}`);
     }
     assert.equal(

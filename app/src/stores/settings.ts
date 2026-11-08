@@ -1603,6 +1603,10 @@ export const useSettingsStore = defineStore('settings', {
     toggleAgentPanel() {
       this.toggleDockPane('agent');
     },
+    /** M1 — read-only calendar pane (dock menu / View › Panels later). */
+    toggleCalendarPanel() {
+      this.toggleDockPane('calendar');
+    },
     toggleAgentAllowWrite() {
       this.agentAllowWrite = !this.agentAllowWrite;
       this.persist();

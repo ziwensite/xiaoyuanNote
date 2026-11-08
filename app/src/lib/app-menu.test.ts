@@ -305,7 +305,7 @@ test('menu coverage: pane / wrap / line-number / auto-commit check marks follow 
   assert.equal(find(m, 'view.resetSidebarPanes').checked, undefined);
 });
 
-test('S2: panes menu mirrors the dock registry and never exposes calendar', () => {
+test('S2: panes menu mirrors the dock registry; calendar has no menu entry yet', () => {
   const m = buildAppMenu(ctx());
   const items = submenu(m, 'panes')!.items.filter(
     (n): n is Extract<MenuNode, { type: 'item' }> => n.type === 'item',
@@ -315,7 +315,9 @@ test('S2: panes menu mirrors the dock registry and never exposes calendar', () =
   // 10 dock panes + saved views (file-tree column) + agent + reset.
   assert.equal(items.length, 12);
   const calendar = SIDEBAR_PANE_DEFS.find((def) => def.id === 'calendar');
-  assert.equal(calendar?.pending, true);
+  // M1 makes calendar renderable; the View › Panels entry lands with the shell
+  // polish, so the menu must still not contain it.
+  assert.ok(!calendar?.pending, 'calendar is implemented, so it is no longer pending');
   assert.ok(!labels.includes(strictT(en, 'en')(calendar!.titleKey)));
   // The menu labels come from `menubar.*`, not the dock's `rsPane.*` title keys.
   const MENU_LABEL_KEYS: Record<string, string> = {

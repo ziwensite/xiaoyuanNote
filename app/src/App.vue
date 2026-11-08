@@ -1824,6 +1824,7 @@ const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() =
   history: isDockPaneVisible(settings.sidebarDock, 'history'),
   inspector: isDockPaneVisible(settings.sidebarDock, 'inspector'),
   agent: isDockPaneVisible(settings.sidebarDock, 'agent'),
+  calendar: isDockPaneVisible(settings.sidebarDock, 'calendar'),
 }));
 
 /** Context gate only — no user switches in here. */
@@ -2308,6 +2309,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleInspector() })">
             <span class="sidebar-ctx__check">{{ dockPaneVisible.inspector ? '✓' : '' }}</span>
             {{ t('rsPane.inspector') }}
+          </label>
+          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleCalendarPanel() })">
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.calendar ? '✓' : '' }}</span>
+            {{ t('rsPane.calendar') }}
           </label>
           <label v-if="!IS_APP_STORE_BUILD" class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleAgentPanel() })">
             <span class="sidebar-ctx__check">{{ dockPaneVisible.agent ? '✓' : '' }}</span>
