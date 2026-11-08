@@ -2152,6 +2152,19 @@ export const pt: I18n = {
       recurringHint: 'Eventos recorrentes são mostrados aqui mas devem ser editados na nota.',
       invalidTime: 'Introduz uma hora de início e fim válidas.',
       invalidRange: 'O início e o fim não podem ser iguais.',
+      ruleWarning: 'Parte desta regra de repetição não pode ser interpretada ({parts}). As datas podem estar erradas.',
+    },
+    filter: {
+      placeholder: 'Filtrar tarefas',
+      cycle: 'Clique para alternar o estado',
+      all: 'Todas',
+      todo: 'Pendentes',
+      done: 'Concluídas',
+    },
+    tooltip: {
+      tasks: '{total} tarefas · {done} concluídas · {todo} pendentes',
+      events: '{count} eventos',
+      note: 'Nota presente',
     },
   },
   tableEditor: {

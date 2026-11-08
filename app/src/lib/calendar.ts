@@ -340,15 +340,33 @@ export function wallTimeToUtc(
 // RRULE (the subset the pane needs; full RFC 5545 expansion is a non-goal)
 // -------------------------------------------------------------------------
 
+export interface ByDaySpec {
+  /** 0 = Monday … 6 = Sunday, matching `dayOfWeek`. */
+  day: number;
+  /** `2` for `2TU`, `-1` for `-1FR`, `null` for a plain `TU`. */
+  ordinal: number | null;
+}
+
 export interface RecurrenceRule {
   freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
   interval: number;
   count: number | null;
   until: string | null;
+  /** Weekdays with ordinals removed; kept for callers that only need the set. */
   byDay: number[] | null;
+  /** BYDAY tokens as written, including month/year ordinals such as `2TU`. */
+  byDaySpecs: ByDaySpec[] | null;
   byMonthDay: number[] | null;
   byMonth: number[] | null;
+  /** 1-based (or negative from the end) selectors inside each period. */
+  bySetPos: number[] | null;
   wkst: number;
+  /**
+   * Parts of the rule this parser could not honour. Expansion still runs on
+   * the supported subset, but the UI must show these: silently computing a
+   * different date is worse than admitting the rule is only partly read.
+   */
+  unsupported: string[];
 }
 
 const WEEKDAYS: Record<string, number> = {
@@ -361,6 +379,20 @@ const WEEKDAYS: Record<string, number> = {
   SU: 6,
 };
 
+const SUPPORTED_RRULE_KEYS = new Set([
+  'FREQ',
+  'INTERVAL',
+  'COUNT',
+  'UNTIL',
+  'BYDAY',
+  'BYMONTHDAY',
+  'BYMONTH',
+  'BYSETPOS',
+  'WKST',
+]);
+
+const BYDAY_TOKEN = /^([+-]?\d{1,2})?(MO|TU|WE|TH|FR|SA|SU)$/;
+
 /** Accept the compact RFC 5545 `YYYYMMDD[THHMMSSZ]` form as well. */
 function normalizeUntil(raw: string): string | null {
   const compactDate = /^(\d{4})(\d{2})(\d{2})$/.exec(raw);
@@ -372,42 +404,175 @@ function normalizeUntil(raw: string): string | null {
   return DATE_ONLY.test(raw) || DATE_TIME.test(raw) ? raw : null;
 }
 
-/** Parse a raw `FREQ=…` string; returns null for anything unsupported. */
-export function parseRRule(rule: string | null): RecurrenceRule | null {
-  if (!rule) return null;
+export interface RRuleExplanation {
+  rule: RecurrenceRule | null;
+  /** Tokens dropped by the parser; empty when the rule is fully understood. */
+  unsupported: string[];
+}
+
+/**
+ * Parse `FREQ=…` plus the subset of RRULE parts the calendar can expand.
+ *
+ * Anything outside the subset is recorded in `unsupported` and the rest of the
+ * rule still expands — a partial result with a visible warning beats both a
+ * silent downgrade and refusing to show the series at all.
+ */
+export function explainRRule(value: string | null): RRuleExplanation {
+  const unsupported: string[] = [];
+  if (!value) return { rule: null, unsupported };
+
   const parts: Record<string, string> = {};
-  for (const chunk of rule.split(';')) {
-    const [k, v] = chunk.split('=');
-    if (k && v) parts[k.trim().toUpperCase()] = v.trim().toUpperCase();
+  for (const chunk of value.split(';')) {
+    const trimmed = chunk.trim();
+    if (!trimmed) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq < 0) {
+      unsupported.push(trimmed.toUpperCase());
+      continue;
+    }
+    const key = trimmed.slice(0, eq).trim().toUpperCase();
+    const val = trimmed.slice(eq + 1).trim().toUpperCase();
+    if (!SUPPORTED_RRULE_KEYS.has(key)) {
+      unsupported.push(val ? `${key}=${val}` : key);
+      continue;
+    }
+    parts[key] = val;
   }
+
   const freq = parts.FREQ;
   if (freq !== 'DAILY' && freq !== 'WEEKLY' && freq !== 'MONTHLY' && freq !== 'YEARLY') {
-    return null;
+    unsupported.push(freq ? `FREQ=${freq}` : 'FREQ');
+    return { rule: null, unsupported };
   }
-  const interval = Math.max(1, Number(parts.INTERVAL ?? 1) || 1);
-  const count = parts.COUNT ? Math.max(1, Number(parts.COUNT) || 0) : null;
-  const until = parts.UNTIL ? normalizeUntil(parts.UNTIL) : null;
-  const byDay = parts.BYDAY
-    ? parts.BYDAY.split(',')
-        .map((d) => WEEKDAYS[d.replace(/^[+-]?\d+/, '')])
-        .filter((d): d is number => d !== undefined)
-    : null;
-  const byMonthDay = parts.BYMONTHDAY
-    ? parts.BYMONTHDAY.split(',').map(Number).filter((n) => n >= 1 && n <= 31)
-    : null;
-  const byMonth = parts.BYMONTH
-    ? parts.BYMONTH.split(',').map(Number).filter((n) => n >= 1 && n <= 12)
-    : null;
+
+  let interval = 1;
+  if (parts.INTERVAL) {
+    const n = Number(parts.INTERVAL);
+    if (!Number.isInteger(n) || n < 1) unsupported.push(`INTERVAL=${parts.INTERVAL}`);
+    else interval = n;
+  }
+
+  let count: number | null = null;
+  if (parts.COUNT) {
+    const n = Number(parts.COUNT);
+    if (!Number.isInteger(n) || n < 1) unsupported.push(`COUNT=${parts.COUNT}`);
+    else count = n;
+  }
+
+  let until: string | null = null;
+  if (parts.UNTIL) {
+    until = normalizeUntil(parts.UNTIL);
+    if (!until) unsupported.push(`UNTIL=${parts.UNTIL}`);
+  }
+
+  const specs: ByDaySpec[] = [];
+  if (parts.BYDAY) {
+    for (const token of parts.BYDAY.split(',').map((t) => t.trim()).filter(Boolean)) {
+      const m = BYDAY_TOKEN.exec(token);
+      if (!m) {
+        unsupported.push(`BYDAY=${token}`);
+        continue;
+      }
+      let ordinal = m[1] ? Number(m[1]) : null;
+      if (ordinal !== null && (ordinal === 0 || Math.abs(ordinal) > 53)) {
+        unsupported.push(`BYDAY=${token}`);
+        ordinal = null;
+      }
+      if (ordinal !== null && (freq === 'DAILY' || freq === 'WEEKLY')) {
+        // Nth-weekday only means something inside a month or a year. Drop the
+        // ordinal, keep the weekday, and tell the user we did.
+        unsupported.push(`BYDAY=${token}`);
+        ordinal = null;
+      }
+      specs.push({ day: WEEKDAYS[m[2]], ordinal });
+    }
+  }
+
+  const byMonthDay: number[] = [];
+  if (parts.BYMONTHDAY) {
+    for (const token of parts.BYMONTHDAY.split(',').map((t) => t.trim()).filter(Boolean)) {
+      const n = Number(token);
+      if (!Number.isInteger(n) || n === 0 || Math.abs(n) > 31) {
+        unsupported.push(`BYMONTHDAY=${token}`);
+      } else {
+        byMonthDay.push(n);
+      }
+    }
+  }
+
+  const byMonth: number[] = [];
+  if (parts.BYMONTH) {
+    for (const token of parts.BYMONTH.split(',').map((t) => t.trim()).filter(Boolean)) {
+      const n = Number(token);
+      if (!Number.isInteger(n) || n < 1 || n > 12) unsupported.push(`BYMONTH=${token}`);
+      else byMonth.push(n);
+    }
+  }
+
+  let bySetPos: number[] | null = null;
+  if (parts.BYSETPOS) {
+    const values: number[] = [];
+    for (const token of parts.BYSETPOS.split(',').map((t) => t.trim()).filter(Boolean)) {
+      const n = Number(token);
+      if (!Number.isInteger(n) || n === 0 || Math.abs(n) > 366) {
+        unsupported.push(`BYSETPOS=${token}`);
+      } else {
+        values.push(n);
+      }
+    }
+    // RFC 5545: BYSETPOS needs another BY* rule to select from, and a daily
+    // period has at most one candidate.
+    if (!specs.length && !byMonthDay.length && !byMonth.length) {
+      unsupported.push(`BYSETPOS=${parts.BYSETPOS}`);
+    } else if (freq === 'DAILY') {
+      unsupported.push(`BYSETPOS=${parts.BYSETPOS}`);
+    } else {
+      bySetPos = values.length ? values : null;
+    }
+  }
+
+  const byDaySpecs = specs.length ? specs : null;
+  const byDay = specs.length ? [...new Set(specs.map((s) => s.day))] : null;
+
+  let wkst = 0;
+  if (parts.WKST) {
+    const w = WEEKDAYS[parts.WKST];
+    if (w === undefined) unsupported.push(`WKST=${parts.WKST}`);
+    else wkst = w;
+  }
+
+  if (byDaySpecs && byMonthDay.length && freq === 'MONTHLY') {
+    // BYDAY + BYMONTHDAY is legal but rare; the intersection we compute is
+    // right only for plain weekdays, so warn about the combination.
+    unsupported.push('BYDAY+BYMONTHDAY');
+  }
+
   return {
-    freq,
-    interval,
-    count,
-    until,
-    byDay: byDay?.length ? byDay : null,
-    byMonthDay: byMonthDay?.length ? byMonthDay : null,
-    byMonth: byMonth?.length ? byMonth : null,
-    wkst: WEEKDAYS[parts.WKST ?? 'MO'] ?? 0,
+    rule: {
+      freq,
+      interval,
+      count,
+      until,
+      byDay,
+      byDaySpecs,
+      byMonthDay: byMonthDay.length ? byMonthDay : null,
+      byMonth: byMonth.length ? byMonth : null,
+      bySetPos,
+      wkst,
+      unsupported,
+    },
+    unsupported,
   };
+}
+
+/** Parse a raw `FREQ=…` string; null means nothing could be expanded. */
+export function parseRRule(rule: string | null): RecurrenceRule | null {
+  return explainRRule(rule).rule;
+}
+
+/** Non-empty when the rule is only partly understood — the UI must show it. */
+export function rruleWarningTokens(rule: string | null): string[] {
+  return explainRRule(rule).unsupported;
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -660,12 +825,160 @@ function exdateKeys(event: CalendarEvent): Set<string> {
   return out;
 }
 
+/** Monday-based week start shifted to the rule's `WKST`. */
+function weekStartOn(date: string, wkst: number): string {
+  return addDays(date, -((dayOfWeek(date) - wkst + 7) % 7));
+}
+
+/** `1` = first, `-1` = last weekday of the month. */
+function nthWeekdayOfMonth(year: number, month: number, weekday: number, ordinal: number): string | null {
+  const last = daysInMonth(year, month);
+  if (ordinal > 0) {
+    const first = `${year}-${pad(month)}-01`;
+    const delta = (weekday - dayOfWeek(first) + 7) % 7;
+    return validDate(year, month, 1 + delta + (ordinal - 1) * 7);
+  }
+  const end = `${year}-${pad(month)}-${pad(last)}`;
+  const delta = (dayOfWeek(end) - weekday + 7) % 7;
+  return validDate(year, month, last - delta + (ordinal + 1) * 7);
+}
+
+function weekdaysInMonth(year: number, month: number, weekday: number): string[] {
+  const last = daysInMonth(year, month);
+  const out: string[] = [];
+  for (let day = 1; day <= last; day++) {
+    const date = validDate(year, month, day);
+    if (date && dayOfWeek(date) === weekday) out.push(date);
+  }
+  return out;
+}
+
+/** `BYMONTHDAY` days, where a negative value counts back from the month's end. */
+function monthDaysFor(year: number, month: number, values: number[]): string[] {
+  const last = daysInMonth(year, month);
+  const out: string[] = [];
+  for (const n of values) {
+    const day = n > 0 ? n : last + n + 1;
+    const date = validDate(year, month, day);
+    if (date) out.push(date);
+  }
+  return out;
+}
+
+/** `BYDAY` ordinal counted across the whole year (YEARLY without BYMONTH). */
+function nthWeekdayOfYear(year: number, weekday: number, ordinal: number): string | null {
+  const first = `${year}-01-01`;
+  const last = `${year}-12-31`;
+  if (ordinal > 0) {
+    const delta = (weekday - dayOfWeek(first) + 7) % 7;
+    const date = addDays(first, delta + (ordinal - 1) * 7);
+    return date.slice(0, 4) === String(year) ? date : null;
+  }
+  const delta = (dayOfWeek(last) - weekday + 7) % 7;
+  const date = addDays(last, -delta + (ordinal + 1) * 7);
+  return date.slice(0, 4) === String(year) ? date : null;
+}
+
+function weekdaysInYear(year: number, weekday: number): string[] {
+  const first = `${year}-01-01`;
+  const start = addDays(first, (weekday - dayOfWeek(first) + 7) % 7);
+  const out: string[] = [];
+  for (let d = start; d.slice(0, 4) === String(year); d = addDays(d, 7)) out.push(d);
+  return out;
+}
+
+function matchesMonthDay(date: string, values: number[]): boolean {
+  const day = Number(date.slice(8, 10));
+  const last = daysInMonth(Number(date.slice(0, 4)), Number(date.slice(5, 7)));
+  return values.some((n) => (n > 0 ? n === day : last + n + 1 === day));
+}
+
+function monthMatches(date: string, months: number[]): boolean {
+  return months.includes(Number(date.slice(5, 7)));
+}
+
+function uniqueSorted(dates: string[]): string[] {
+  return [...new Set(dates)].sort(compareDate);
+}
+
+/**
+ * RFC 5545 `BYSETPOS`: pick the nth candidate (negative counts from the end)
+ * out of one period's sorted set. No-op when the rule has no `BYSETPOS`.
+ */
+function applySetPos(dates: string[], setPos: number[] | null): string[] {
+  const sorted = uniqueSorted(dates);
+  if (!setPos) return sorted;
+  const picked = new Set<string>();
+  for (const n of setPos) {
+    const index = n > 0 ? n - 1 : sorted.length + n;
+    if (index >= 0 && index < sorted.length) picked.add(sorted[index]);
+  }
+  return uniqueSorted([...picked]);
+}
+
+function monthlyCandidates(
+  rule: RecurrenceRule,
+  year: number,
+  month: number,
+  startDay: number,
+): string[] {
+  if (rule.byDaySpecs) {
+    const out: string[] = [];
+    for (const spec of rule.byDaySpecs) {
+      if (spec.ordinal !== null) {
+        const date = nthWeekdayOfMonth(year, month, spec.day, spec.ordinal);
+        if (date) out.push(date);
+      } else {
+        out.push(...weekdaysInMonth(year, month, spec.day));
+      }
+    }
+    return rule.byMonthDay ? out.filter((d) => matchesMonthDay(d, rule.byMonthDay!)) : out;
+  }
+  return monthDaysFor(year, month, rule.byMonthDay ?? [startDay]);
+}
+
+function yearlyCandidates(rule: RecurrenceRule, year: number, startMonth: number, startDay: number): string[] {
+  const out: string[] = [];
+  if (rule.byDaySpecs) {
+    if (rule.byMonth) {
+      for (const month of rule.byMonth) {
+        for (const spec of rule.byDaySpecs) {
+          if (spec.ordinal !== null) {
+            const date = nthWeekdayOfMonth(year, month, spec.day, spec.ordinal);
+            if (date) out.push(date);
+          } else {
+            out.push(...weekdaysInMonth(year, month, spec.day));
+          }
+        }
+      }
+    } else {
+      for (const spec of rule.byDaySpecs) {
+        if (spec.ordinal !== null) {
+          const date = nthWeekdayOfYear(year, spec.day, spec.ordinal);
+          if (date) out.push(date);
+        } else {
+          out.push(...weekdaysInYear(year, spec.day));
+        }
+      }
+    }
+    return out;
+  }
+  for (const month of rule.byMonth ?? [startMonth]) {
+    out.push(...monthDaysFor(year, month, rule.byMonthDay ?? [startDay]));
+  }
+  return out;
+}
+
 /**
  * Expand one event into occurrences that start inside `[from, to)`.
  *
  * `from`/`to` are `YYYY-MM-DD` wall dates. `overrides` are exception instances
  * (same `seriesUid`, `recurrenceId`); matching master occurrences are skipped
  * so the override is the only one shown.
+ *
+ * Ordinal `BYDAY` values (`2TU`, `-1FR`) and `BYSETPOS` are honoured. Rule
+ * parts `explainRRule` marked unsupported are dropped from the expansion, but
+ * the caller is expected to surface them (see `CalendarEditor`'s warning).
  */
 export function expandOccurrences(
   event: CalendarEvent,
@@ -711,67 +1024,68 @@ export function expandOccurrences(
     return compareDate(date, to) < 0;
   };
 
+  /** Emit one period's candidates after applying BYSETPOS. */
+  const emitPeriod = (dates: string[]): boolean => {
+    for (const date of applySetPos(dates, rule?.bySetPos ?? null)) {
+      if (!emit(date)) return false;
+    }
+    return true;
+  };
+
   if (!rule) {
     emit(startDate);
     return out;
   }
 
   const [sy, sm, sd] = startDate.split('-').map(Number);
+  const startDow = dayOfWeek(startDate);
 
   if (rule.freq === 'DAILY') {
+    const byDay = rule.byDaySpecs ? new Set(rule.byDaySpecs.map((s) => s.day)) : null;
     for (let i = 0; i < 6000; i++) {
       const date = addDays(startDate, i * rule.interval);
-      if (rule.byDay && rule.byDay.includes(dayOfWeek(date))) {
-        if (!emit(date)) break;
-      } else if (!rule.byDay) {
-        if (!emit(date)) break;
-      }
+      if (rule.byMonth && !monthMatches(date, rule.byMonth)) continue;
+      if (byDay && !byDay.has(dayOfWeek(date))) continue;
+      if (rule.byMonthDay && !matchesMonthDay(date, rule.byMonthDay)) continue;
+      if (!emitPeriod([date])) return out;
     }
     return out;
   }
 
   if (rule.freq === 'WEEKLY') {
-    const weekStart = addDays(startDate, -dayOfWeek(startDate));
-    const days = rule.byDay ?? [dayOfWeek(startDate)];
-    let count = 0;
+    const weekBase = weekStartOn(startDate, rule.wkst);
+    const weekdays = rule.byDaySpecs
+      ? [...new Set(rule.byDaySpecs.map((s) => s.day))]
+      : [startDow];
     for (let week = 0; week < 600; week++) {
-      const base = addDays(weekStart, week * 7 * rule.interval);
-      for (const day of [...days].sort((a, b) => a - b)) {
-        const date = addDays(base, day);
-        if (compareDate(date, startDate) < 0) continue;
-        count += 1;
-        if (!emit(date)) return out;
-        if (count > 4000) return out;
-      }
+      const base = addDays(weekBase, week * 7 * rule.interval);
+      const dates = weekdays
+        .map((day) => addDays(base, (day - rule.wkst + 7) % 7))
+        .filter((date) => {
+          if (rule.byMonth && !monthMatches(date, rule.byMonth)) return false;
+          if (rule.byMonthDay && !matchesMonthDay(date, rule.byMonthDay)) return false;
+          return true;
+        });
+      if (!emitPeriod(dates)) return out;
     }
     return out;
   }
 
   if (rule.freq === 'MONTHLY') {
-    const days = rule.byMonthDay ?? [sd];
     for (let i = 0; i < 300; i++) {
       const total = sm - 1 + i * rule.interval;
       const year = sy + Math.floor(total / 12);
       const month = (total % 12) + 1;
-      for (const day of [...days].sort((a, b) => a - b)) {
-        const date = validDate(year, month, day);
-        if (date && !emit(date)) return out;
-      }
+      if (rule.byMonth && !rule.byMonth.includes(month)) continue;
+      if (!emitPeriod(monthlyCandidates(rule, year, month, sd))) return out;
     }
     return out;
   }
 
   // YEARLY
-  const months = rule.byMonth ?? [sm];
-  const days = rule.byMonthDay ?? [sd];
   for (let i = 0; i < 200; i++) {
     const year = sy + i * rule.interval;
-    for (const month of months) {
-      for (const day of days) {
-        const date = validDate(year, month, day);
-        if (date && !emit(date)) return out;
-      }
-    }
+    if (!emitPeriod(yearlyCandidates(rule, year, sm, sd))) return out;
   }
   return out;
 }

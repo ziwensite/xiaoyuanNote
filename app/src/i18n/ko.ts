@@ -2150,6 +2150,19 @@ export const ko: I18n = {
       recurringHint: '반복 일정은 여기서 보기만 하며 노트에서 수정해야 합니다.',
       invalidTime: '유효한 시작 및 종료 시간을 입력하세요.',
       invalidRange: '시작과 종료를 같게 할 수 없습니다.',
+      ruleWarning: '이 반복 규칙의 일부를 해석할 수 없습니다({parts}). 날짜가 정확하지 않을 수 있습니다.',
+    },
+    filter: {
+      placeholder: '작업 필터',
+      cycle: '클릭하여 상태 전환',
+      all: '전체',
+      todo: '미완료',
+      done: '완료',
+    },
+    tooltip: {
+      tasks: '작업 {total}개 · {done} 완료 · {todo} 미완료',
+      events: '일정 {count}개',
+      note: '노트 있음',
     },
   },
   tableEditor: {

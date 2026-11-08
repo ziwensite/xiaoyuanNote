@@ -18,4 +18,6 @@ export interface EditorDraft {
   /** Exclusive day span of an all-day event. */
   spanDays: number;
   recurring: boolean;
+  /** RRULE parts the parser could not honour; shown as a visible warning. */
+  ruleUnsupported: string[];
 }

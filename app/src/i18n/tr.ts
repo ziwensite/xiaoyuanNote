@@ -2167,6 +2167,19 @@ export const tr: I18n = {
       recurringHint: 'Yinelenen etkinlikler burada gösterilir ancak notlarında düzenlenmelidir.',
       invalidTime: 'Geçerli bir başlangıç ve bitiş saati girin.',
       invalidRange: 'Başlangıç ve bitiş aynı olamaz.',
+      ruleWarning: 'Bu yineleme kuralının bir kısmı çözümlenemiyor ({parts}). Tarihler yanlış olabilir.',
+    },
+    filter: {
+      placeholder: 'Görevleri filtrele',
+      cycle: 'Durumu değiştirmek için tıkla',
+      all: 'Tümü',
+      todo: 'Açık',
+      done: 'Tamamlandı',
+    },
+    tooltip: {
+      tasks: '{total} görev · {done} tamamlandı · {todo} açık',
+      events: '{count} etkinlik',
+      note: 'Not var',
     },
   },
   tableEditor: {

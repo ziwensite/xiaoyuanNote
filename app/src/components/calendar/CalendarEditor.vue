@@ -83,6 +83,9 @@ const { t } = useI18n();
     </label>
 
     <p v-if="draft.recurring" class="cal-editor__hint">{{ t('calendar.editor.recurringHint') }}</p>
+    <p v-if="draft.ruleUnsupported.length" class="cal-editor__warning">
+      {{ t('calendar.editor.ruleWarning', { parts: draft.ruleUnsupported.join(', ') }) }}
+    </p>
     <p v-if="error" class="cal-editor__error">{{ error }}</p>
 
     <footer class="cal-editor__actions">
@@ -200,6 +203,12 @@ const { t } = useI18n();
   margin: 0;
   font-size: 12px;
   color: var(--danger, #d33);
+}
+
+.cal-editor__warning {
+  margin: 0;
+  font-size: 12px;
+  color: var(--warning, #b7791f);
 }
 
 .cal-editor__actions {

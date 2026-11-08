@@ -2150,6 +2150,19 @@ export const ja: I18n = {
       recurringHint: '繰り返し予定はここでは表示のみで、編集はノートで行います。',
       invalidTime: '有効な開始・終了時刻を入力してください。',
       invalidRange: '開始と終了を同じにできません。',
+      ruleWarning: 'この繰り返しルールの一部を解析できません（{parts}）。日付が正しくない可能性があります。',
+    },
+    filter: {
+      placeholder: 'タスクを絞り込む',
+      cycle: 'クリックで状態を切り替え',
+      all: 'すべて',
+      todo: '未完了',
+      done: '完了',
+    },
+    tooltip: {
+      tasks: '{total} 件 · {done} 完了 · {todo} 未完了',
+      events: '{count} 件の予定',
+      note: 'ノートあり',
     },
   },
   tableEditor: {

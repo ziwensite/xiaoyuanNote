@@ -2179,6 +2179,19 @@
       recurringHint: 'Repeating events are shown here but must be edited in their note.',
       invalidTime: 'Enter a valid start and end time.',
       invalidRange: 'Start and end cannot be the same.',
+      ruleWarning: 'Part of this repeat rule cannot be parsed ({parts}). Dates may be wrong.',
+    },
+    filter: {
+      placeholder: 'Filter tasks',
+      cycle: 'Click to cycle status',
+      all: 'All',
+      todo: 'Open',
+      done: 'Done',
+    },
+    tooltip: {
+      tasks: '{total} tasks · {done} done · {todo} open',
+      events: '{count} events',
+      note: 'Has note',
     },
   },
   tableEditor: {

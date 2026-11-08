@@ -2150,6 +2150,19 @@ export const fr: I18n = {
       recurringHint: 'Les événements récurrents sont affichés ici mais doivent être modifiés dans leur note.',
       invalidTime: 'Saisissez une heure de début et de fin valides.',
       invalidRange: 'Le début et la fin ne peuvent pas être identiques.',
+      ruleWarning: 'Une partie de cette règle de répétition est illisible ({parts}). Les dates peuvent être erronées.',
+    },
+    filter: {
+      placeholder: 'Filtrer les tâches',
+      cycle: 'Cliquer pour changer de statut',
+      all: 'Toutes',
+      todo: 'À faire',
+      done: 'Terminées',
+    },
+    tooltip: {
+      tasks: '{total} tâches · {done} terminées · {todo} à faire',
+      events: '{count} événements',
+      note: 'Note présente',
     },
   },
   tableEditor: {

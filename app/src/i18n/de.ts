@@ -2150,6 +2150,19 @@ export const de: I18n = {
       recurringHint: 'Wiederkehrende Ereignisse werden hier nur angezeigt; bearbeite sie in ihrer Notiz.',
       invalidTime: 'Gültige Start- und Endzeit eingeben.',
       invalidRange: 'Beginn und Ende dürfen nicht gleich sein.',
+      ruleWarning: 'Ein Teil dieser Wiederholungsregel kann nicht gelesen werden ({parts}). Termine können falsch sein.',
+    },
+    filter: {
+      placeholder: 'Aufgaben filtern',
+      cycle: 'Klicken, um den Status zu wechseln',
+      all: 'Alle',
+      todo: 'Offen',
+      done: 'Erledigt',
+    },
+    tooltip: {
+      tasks: '{total} Aufgaben · {done} erledigt · {todo} offen',
+      events: '{count} Termine',
+      note: 'Notiz vorhanden',
     },
   },
   tableEditor: {

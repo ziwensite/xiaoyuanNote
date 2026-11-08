@@ -2150,6 +2150,19 @@ export const it: I18n = {
       recurringHint: 'Gli eventi ricorrenti sono mostrati qui ma devono essere modificati nella loro nota.',
       invalidTime: "Inserisci un'ora di inizio e fine valide.",
       invalidRange: 'Inizio e fine non possono coincidere.',
+      ruleWarning: 'Parte di questa regola di ripetizione non è leggibile ({parts}). Le date potrebbero essere errate.',
+    },
+    filter: {
+      placeholder: 'Filtra attività',
+      cycle: 'Clic per cambiare stato',
+      all: 'Tutte',
+      todo: 'Da fare',
+      done: 'Completate',
+    },
+    tooltip: {
+      tasks: '{total} attività · {done} completate · {todo} da fare',
+      events: '{count} eventi',
+      note: 'Nota presente',
     },
   },
   tableEditor: {

@@ -2154,6 +2154,19 @@ export const zh: I18n = {
       recurringHint: '重复事件在此仅作展示，请到它的笔记里修改。',
       invalidTime: '请输入有效的开始和结束时间。',
       invalidRange: '开始与结束不能相同。',
+      ruleWarning: '此重复规则的以下部分无法解析（{parts}），日期可能不准确。',
+    },
+    filter: {
+      placeholder: '筛选任务',
+      cycle: '点击切换状态',
+      all: '全部',
+      todo: '待办',
+      done: '已完成',
+    },
+    tooltip: {
+      tasks: '{total} 项任务 · {done} 已完成 · {todo} 待办',
+      events: '{count} 个事件',
+      note: '有笔记',
     },
   },
   tableEditor: {

@@ -11,11 +11,12 @@
  * reads/writes and the existing folder helpers. Writes always re-read the file
  * and refuse to clobber an outside change without asking.
  */
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { confirm as confirmDialog } from '@tauri-apps/plugin-dialog';
 import { useWorkspaceIndexStore } from '../../stores/workspaceIndex';
 import { useWorkspaceStore } from '../../stores/workspace';
+import { useSettingsStore } from '../../stores/settings';
 import { useTabsStore } from '../../stores/tabs';
 import { useToastsStore } from '../../stores/toasts';
 import { useTilesStore } from '../../stores/tiles';
@@ -28,6 +29,7 @@ import {
   addDays,
   calendarTasksFromEntry,
   createCalendarEvent,
+  explainRRule,
   localDateKey,
   newEventUid,
   shiftMonth,
@@ -47,6 +49,11 @@ import {
   type TaskDueGroup,
 } from '../../lib/calendar-view';
 import {
+  dailyNoteDates,
+  dayDensity,
+  type CalendarDayDensity,
+} from '../../lib/calendar-density';
+import {
   allDaySpanDays,
   applyEventTimes,
   moveOccurrence,
@@ -64,6 +71,7 @@ import CalendarEditor from './CalendarEditor.vue';
 
 const idx = useWorkspaceIndexStore();
 const workspace = useWorkspaceStore();
+const settings = useSettingsStore();
 const tabs = useTabsStore();
 const toasts = useToastsStore();
 const tiles = useTilesStore();
@@ -74,6 +82,7 @@ const { t, lang } = useI18n();
 
 const root = ref<HTMLElement | null>(null);
 const dayGrid = ref<HTMLElement | null>(null);
+const monthGridEl = ref<HTMLElement | null>(null);
 const width = ref(0);
 
 const today = computed(() => localDateKey(new Date()));
@@ -109,10 +118,61 @@ const allTasks = computed(() =>
   (idx.entries as CalendarEntry[]).flatMap((entry) => calendarTasksFromEntry(entry)),
 );
 
-const taskGroups = computed(() => groupTasksByDue(allTasks.value, today.value));
-const openTaskCount = computed(() =>
-  taskGroups.value.reduce((n, group) => n + group.tasks.length, 0),
+const taskDoneCount = computed(() => allTasks.value.filter((task) => task.done).length);
+
+/** Simple text + state filter — deliberately not a query language. */
+const taskQuery = ref('');
+const taskFilter = ref<'all' | 'todo' | 'done'>('all');
+const TASK_FILTERS = ['all', 'todo', 'done'] as const;
+
+function cycleTaskFilter() {
+  const index = TASK_FILTERS.indexOf(taskFilter.value);
+  taskFilter.value = TASK_FILTERS[(index + 1) % TASK_FILTERS.length];
+}
+
+const filteredTasks = computed(() => {
+  const query = taskQuery.value.trim().toLowerCase();
+  return allTasks.value.filter((task) => {
+    if (taskFilter.value === 'todo' && task.done) return false;
+    if (taskFilter.value === 'done' && !task.done) return false;
+    return !query || task.title.toLowerCase().includes(query);
+  });
+});
+
+const taskGroups = computed(() => groupTasksByDue(filteredTasks.value, today.value, true));
+const visibleTasks = computed(() => taskGroups.value.flatMap((group) => group.tasks));
+
+const noteDates = computed(() =>
+  dailyNoteDates(
+    idx.entries,
+    monthDays.value,
+    workspace.currentFolder,
+    settings.dailyNotesFolder,
+    settings.dailyNotesFormat,
+  ),
 );
+
+/** Same three-state rule as the sidebar mini month (see `calendar-density`). */
+const densities = computed(() => {
+  const map = new Map<string, CalendarDayDensity>();
+  for (const day of viewData.value.days) {
+    map.set(day.date, dayDensity(day, noteDates.value.has(day.date)));
+  }
+  return map;
+});
+
+const EMPTY_DENSITY: CalendarDayDensity = {
+  state: 'none',
+  total: 0,
+  done: 0,
+  todo: 0,
+  events: 0,
+  hasNote: false,
+};
+
+function densityOf(date: string): CalendarDayDensity {
+  return densities.value.get(date) ?? EMPTY_DENSITY;
+}
 
 const monthTitle = computed(() => {
   const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { year: 'numeric', month: 'long' });
@@ -172,13 +232,67 @@ function isFocus(date: string): boolean {
   return date === calendar.focusDate;
 }
 
-function cellCount(date: string): number {
-  const day = viewData.value.days.find((d) => d.date === date);
-  return day ? day.allDay.length + day.timed.length + day.tasks.length : 0;
+function tooltipFor(date: string): string {
+  const d = densityOf(date);
+  const parts = [date];
+  if (d.total > 0) {
+    parts.push(t('calendar.tooltip.tasks', { total: d.total, done: d.done, todo: d.todo }));
+  }
+  if (d.events > 0) parts.push(t('calendar.tooltip.events', { count: d.events }));
+  if (d.hasNote) parts.push(t('calendar.tooltip.note'));
+  return parts.join(' · ');
 }
 
-function dots(date: string): number[] {
-  return Array.from({ length: Math.min(3, cellCount(date)) }, (_, i) => i);
+const ARROW_DELTAS: Record<string, number> = {
+  ArrowLeft: -1,
+  ArrowRight: 1,
+  ArrowUp: -7,
+  ArrowDown: 7,
+};
+
+function isTypingTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+}
+
+/** Arrows move the shared focus date; Enter opens that day's detail view. */
+function onMonthKeydown(event: KeyboardEvent) {
+  if (isTypingTarget(event.target)) return;
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    openDay(calendar.focusDate);
+    return;
+  }
+  const delta = ARROW_DELTAS[event.key];
+  if (delta === undefined) return;
+  event.preventDefault();
+  const next = addDays(calendar.focusDate, delta);
+  calendar.setFocusDate(next);
+  nextTick(() => {
+    monthGridEl.value?.querySelector<HTMLElement>(`[data-date="${next}"]`)?.focus();
+  });
+}
+
+/** Space toggles the focused task; arrows move between visible rows. */
+function onTaskKeydown(event: KeyboardEvent, task: CalendarTask) {
+  if (isTypingTarget(event.target)) return;
+  if (event.key === ' ' || event.code === 'Space') {
+    event.preventDefault();
+    void toggleTask(task);
+    return;
+  }
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  event.preventDefault();
+  const rows = Array.from(
+    (event.currentTarget as HTMLElement)
+      .closest('.cal-tasks-pane__scroll')
+      ?.querySelectorAll<HTMLElement>('.cal-task-row') ?? [],
+  );
+  const index = rows.indexOf(event.currentTarget as HTMLElement);
+  const next = rows[index + (event.key === 'ArrowDown' ? 1 : -1)];
+  next?.focus();
 }
 
 function taskGroupLabel(group: TaskDueGroup): string {
@@ -189,6 +303,24 @@ function taskGroupLabel(group: TaskDueGroup): string {
 
 function timeOf(wall: string): string {
   return wall.slice(11, 16);
+}
+
+/** Rule warnings are per-rule-string; cache so render passes stay cheap. */
+const warnedRules = new Map<string, string[]>();
+
+function ruleWarningOf(event: CalendarEvent): string {
+  if (!event.rrule) return '';
+  let tokens = warnedRules.get(event.rrule);
+  if (!tokens) {
+    tokens = explainRRule(event.rrule).unsupported;
+    warnedRules.set(event.rrule, tokens);
+  }
+  return tokens.length ? t('calendar.editor.ruleWarning', { parts: tokens.join(', ') }) : '';
+}
+
+/** Compact marker on event chips; `title` carries the full warning. */
+function occurrenceWarning(occ: CalendarOccurrence): string {
+  return ruleWarningOf(occ.source);
 }
 
 function blankEvent(date: string, allDay: boolean, startMin = 540): CalendarEvent {
@@ -240,6 +372,7 @@ function openNew(date: string, startMin = 540, allDay = false) {
     status: 'CONFIRMED',
     spanDays: 1,
     recurring: false,
+    ruleUnsupported: [],
   };
   editorError.value = '';
 }
@@ -264,6 +397,7 @@ async function openEdit(occ: CalendarOccurrence) {
     status: source.status,
     spanDays: allDaySpanDays(source),
     recurring,
+    ruleUnsupported: explainRRule(source.rrule).unsupported,
   };
   editorError.value = '';
   // Snapshot for conflict detection. A failure leaves '' — any non-empty disk
@@ -741,37 +875,67 @@ onBeforeUnmount(() => {
         <div class="cal-month__weekdays" aria-hidden="true">
           <span v-for="(label, i) in weekdayLabels" :key="i">{{ label }}</span>
         </div>
-        <div class="cal-month__grid">
+        <div
+          ref="monthGridEl"
+          class="cal-month__grid"
+          @keydown="onMonthKeydown"
+        >
           <button
             v-for="date in monthDays"
             :key="date"
             type="button"
             class="cal-month__cell"
+            :data-date="date"
             :class="{
               'is-outside': !inMonth(date),
               'is-today': date === today,
               'is-focus': isFocus(date),
             }"
-            :title="date"
+            :tabindex="isFocus(date) ? 0 : -1"
+            :title="tooltipFor(date)"
+            :aria-label="tooltipFor(date)"
             :aria-pressed="isFocus(date)"
             @click="clickDay(date)"
             @dblclick="newOnMonth(date)"
           >
             <span class="cal-month__day">{{ dayNumber(date) }}</span>
-            <span class="cal-month__dots" aria-hidden="true">
-              <span v-for="i in dots(date)" :key="i" />
-            </span>
+            <span
+              class="cal-month__mark"
+              :class="`is-${densityOf(date).state}`"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </section>
 
       <section v-if="!editor" class="cal-tasks-pane">
         <header class="cal-tasks-pane__head">
-          <span>{{ t('calendar.tasks') }}</span>
-          <span class="cal-tasks-pane__count">{{ openTaskCount }}</span>
+          <span>
+            {{ t('calendar.tasks') }}
+            <span class="cal-tasks-pane__count">({{ taskDoneCount }}/{{ allTasks.length }})</span>
+          </span>
         </header>
+        <div class="cal-tasks-pane__tools">
+          <input
+            v-model="taskQuery"
+            type="search"
+            class="cal-tasks-pane__filter"
+            :placeholder="t('calendar.filter.placeholder')"
+            :aria-label="t('calendar.filter.placeholder')"
+          />
+          <button
+            type="button"
+            class="cal-tasks-pane__state"
+            :title="t('calendar.filter.cycle')"
+            @click="cycleTaskFilter"
+          >
+            {{ t(`calendar.filter.${taskFilter}`) }}
+          </button>
+        </div>
         <div class="cal-tasks-pane__scroll">
-          <div v-if="openTaskCount === 0" class="cal-empty cal-empty--sm">{{ t('calendar.noTasks') }}</div>
+          <div v-if="visibleTasks.length === 0" class="cal-empty cal-empty--sm">
+            {{ t('calendar.noTasks') }}
+          </div>
           <section
             v-for="group in taskGroups"
             v-show="group.tasks.length"
@@ -787,8 +951,12 @@ onBeforeUnmount(() => {
               :key="`${task.path}:${task.line}`"
               type="button"
               class="cal-task-row"
-              :class="{ 'is-done': task.done, 'is-overdue': group.key === 'overdue' }"
+              :class="{
+                'is-done': task.done,
+                'is-overdue': group.key === 'overdue' && !task.done,
+              }"
               @click="jumpToTask(task)"
+              @keydown="onTaskKeydown($event, task)"
             >
               <span
                 class="cal-task-row__check"
@@ -848,6 +1016,11 @@ onBeforeUnmount(() => {
             @click="clickOccurrence(occ)"
           >
             {{ occ.summary }}
+            <span
+              v-if="occurrenceWarning(occ)"
+              class="cal-warn"
+              :title="occurrenceWarning(occ)"
+            >!</span>
           </button>
         </div>
         <div ref="dayGrid" class="cal-day__grid">
@@ -867,7 +1040,14 @@ onBeforeUnmount(() => {
             @pointerdown="beginDayDrag(block.occurrence, 'move', $event)"
             @click="clickOccurrence(block.occurrence)"
           >
-            <span class="cal-day__block-title">{{ block.occurrence.summary }}</span>
+            <span class="cal-day__block-title">
+              {{ block.occurrence.summary }}
+              <span
+                v-if="occurrenceWarning(block.occurrence)"
+                class="cal-warn"
+                :title="occurrenceWarning(block.occurrence)"
+              >!</span>
+            </span>
             <span class="cal-day__block-time">
               {{ timeOf(block.occurrence.start) }}–{{ block.occurrence.end ? timeOf(block.occurrence.end) : '' }}
             </span>
@@ -913,7 +1093,14 @@ onBeforeUnmount(() => {
               @click="clickOccurrence(occ)"
             >
               <span class="cal-week__chip-time">{{ chipTime(occ) }}</span>
-              <span class="cal-week__chip-title">{{ occ.summary }}</span>
+              <span class="cal-week__chip-title">
+                {{ occ.summary }}
+                <span
+                  v-if="occurrenceWarning(occ)"
+                  class="cal-warn"
+                  :title="occurrenceWarning(occ)"
+                >!</span>
+              </span>
             </button>
           </div>
         </div>
@@ -932,7 +1119,14 @@ onBeforeUnmount(() => {
             @click="clickOccurrence(occ)"
           >
             <span class="cal-agenda__time">{{ chipTime(occ) }}</span>
-            <span>{{ occ.summary }}</span>
+            <span>
+              {{ occ.summary }}
+              <span
+                v-if="occurrenceWarning(occ)"
+                class="cal-warn"
+                :title="occurrenceWarning(occ)"
+              >!</span>
+            </span>
           </button>
           <button
             v-for="task in day.tasks"
@@ -1118,21 +1312,33 @@ onBeforeUnmount(() => {
   border-color: var(--accent);
 }
 
-.cal-month__dots {
-  display: flex;
-  gap: 2px;
-  height: 3px;
-}
-
-.cal-month__dots span {
-  width: 3px;
-  height: 3px;
+.cal-month__mark {
+  box-sizing: border-box;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--accent);
 }
 
-.cal-month__cell.is-outside .cal-month__dots span {
+.cal-month__mark.is-none {
+  visibility: hidden;
+}
+
+.cal-month__mark.is-note {
   background: var(--text-3);
+}
+
+.cal-month__mark.is-done {
+  background: var(--success, #2f9e63);
+}
+
+/* Hollow ring: unfinished tasks are the one thing that must draw the eye. */
+.cal-month__mark.is-open {
+  background: transparent;
+  border: 1.5px solid var(--accent);
+}
+
+.cal-month__cell.is-outside .cal-month__mark {
+  opacity: 0.55;
 }
 
 /* Task column */
@@ -1156,6 +1362,42 @@ onBeforeUnmount(() => {
 .cal-tasks-pane__count {
   color: var(--text-3);
   font-weight: 400;
+}
+
+.cal-tasks-pane__tools {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 8px;
+}
+
+.cal-tasks-pane__filter {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 8px;
+  border: var(--bd-hair);
+  border-radius: var(--r-sm);
+  background: var(--bg-input, var(--fill-1));
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.cal-tasks-pane__state {
+  flex: none;
+  height: 26px;
+  padding: 0 8px;
+  border: var(--bd-hair);
+  border-radius: var(--r-sm);
+  background: var(--fill-1);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cal-tasks-pane__state:hover {
+  color: var(--text);
 }
 
 .cal-tasks-pane__scroll {
@@ -1492,6 +1734,12 @@ onBeforeUnmount(() => {
   width: 52px;
   color: var(--text-3);
   font-size: 11px;
+}
+
+.cal-warn {
+  margin-left: 3px;
+  font-weight: 700;
+  color: var(--warning, #b7791f);
 }
 
 .cal-editor-host {

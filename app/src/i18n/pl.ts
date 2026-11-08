@@ -2167,6 +2167,19 @@ export const pl: I18n = {
       recurringHint: 'Wydarzenia cykliczne są tu tylko wyświetlane; edytuj je w ich notatce.',
       invalidTime: 'Podaj prawidłową godzinę początku i końca.',
       invalidRange: 'Początek i koniec nie mogą być takie same.',
+      ruleWarning: 'Część tej reguły powtarzania jest nieczytelna ({parts}). Daty mogą być nieprawidłowe.',
+    },
+    filter: {
+      placeholder: 'Filtruj zadania',
+      cycle: 'Kliknij, aby zmienić stan',
+      all: 'Wszystkie',
+      todo: 'Otwarte',
+      done: 'Ukończone',
+    },
+    tooltip: {
+      tasks: 'Zadania: {total} · {done} ukończone · {todo} otwarte',
+      events: '{count} wydarzeń',
+      note: 'Notatka istnieje',
     },
   },
   tableEditor: {

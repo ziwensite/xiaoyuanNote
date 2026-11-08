@@ -2167,6 +2167,19 @@ export const sv: I18n = {
       recurringHint: 'Återkommande händelser visas här men måste redigeras i sin anteckning.',
       invalidTime: 'Ange giltig start- och sluttid.',
       invalidRange: 'Start och slut får inte vara lika.',
+      ruleWarning: 'En del av denna upprepningsregel kan inte tolkas ({parts}). Datumen kan vara fel.',
+    },
+    filter: {
+      placeholder: 'Filtrera uppgifter',
+      cycle: 'Klicka för att växla status',
+      all: 'Alla',
+      todo: 'Öppna',
+      done: 'Klara',
+    },
+    tooltip: {
+      tasks: '{total} uppgifter · {done} klara · {todo} öppna',
+      events: '{count} händelser',
+      note: 'Anteckning finns',
     },
   },
   tableEditor: {

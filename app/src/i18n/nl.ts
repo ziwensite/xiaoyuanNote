@@ -2167,6 +2167,19 @@ export const nl: I18n = {
       recurringHint: 'Herhalende afspraken worden hier getoond maar moeten in hun notitie worden bewerkt.',
       invalidTime: 'Voer een geldige start- en eindtijd in.',
       invalidRange: 'Start en einde mogen niet gelijk zijn.',
+      ruleWarning: 'Een deel van deze herhalingsregel kan niet worden gelezen ({parts}). Datums kunnen onjuist zijn.',
+    },
+    filter: {
+      placeholder: 'Taken filteren',
+      cycle: 'Klik om de status te wisselen',
+      all: 'Alle',
+      todo: 'Open',
+      done: 'Voltooid',
+    },
+    tooltip: {
+      tasks: '{total} taken · {done} voltooid · {todo} open',
+      events: '{count} afspraken',
+      note: 'Notitie aanwezig',
     },
   },
   tableEditor: {
