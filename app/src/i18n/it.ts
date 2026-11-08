@@ -2151,7 +2151,12 @@ export const it: I18n = {
       invalidTime: "Inserisci un'ora di inizio e fine valide.",
       invalidRange: 'Inizio e fine non possono coincidere.',
       ruleWarning: 'Parte di questa regola di ripetizione non è leggibile ({parts}). Le date potrebbero essere errate.',
+      scopeLabel: 'Applica modifiche a',
+      scopeSingle: 'Solo questa occorrenza',
+      scopeSeries: 'Intera serie',
+      singleHint: 'Viene creata una nota separata per questa occorrenza; il resto della serie non cambia.',
     },
+    toastSavedOnce: 'Solo questa occorrenza è stata salvata come evento separato',
     filter: {
       placeholder: 'Filtra attività',
       cycle: 'Clic per cambiare stato',

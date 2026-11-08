@@ -18,6 +18,16 @@ export interface EditorDraft {
   /** Exclusive day span of an all-day event. */
   spanDays: number;
   recurring: boolean;
+  /**
+   * Recurring edits only: `series` rewrites the master note, `single` writes a
+   * detached exception note (same `series_uid`, original `recurrence_id`).
+   * Non-recurring edits always use `single`.
+   */
+  scope: 'single' | 'series';
+  /** Master UID when `source` is one of its occurrences. */
+  seriesUid: string | null;
+  /** The occurrence start this exception replaces (canonical wall time). */
+  recurrenceId: string | null;
   /** RRULE parts the parser could not honour; shown as a visible warning. */
   ruleUnsupported: string[];
 }

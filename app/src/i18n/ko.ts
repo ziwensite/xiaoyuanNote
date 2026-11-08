@@ -2151,7 +2151,12 @@ export const ko: I18n = {
       invalidTime: '유효한 시작 및 종료 시간을 입력하세요.',
       invalidRange: '시작과 종료를 같게 할 수 없습니다.',
       ruleWarning: '이 반복 규칙의 일부를 해석할 수 없습니다({parts}). 날짜가 정확하지 않을 수 있습니다.',
+      scopeLabel: '변경 범위',
+      scopeSingle: '이번만',
+      scopeSeries: '전체 시리즈',
+      singleHint: '이번 일정만 별도 노트로 저장되며, 나머지 시리즈는 변경되지 않습니다.',
     },
+    toastSavedOnce: '이번 일정만 별도 이벤트로 저장했습니다',
     filter: {
       placeholder: '작업 필터',
       cycle: '클릭하여 상태 전환',

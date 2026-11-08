@@ -2168,7 +2168,12 @@ export const nl: I18n = {
       invalidTime: 'Voer een geldige start- en eindtijd in.',
       invalidRange: 'Start en einde mogen niet gelijk zijn.',
       ruleWarning: 'Een deel van deze herhalingsregel kan niet worden gelezen ({parts}). Datums kunnen onjuist zijn.',
+      scopeLabel: 'Wijzigingen toepassen op',
+      scopeSingle: 'Alleen deze keer',
+      scopeSeries: 'Hele reeks',
+      singleHint: 'Er wordt een aparte notitie voor deze keer aangemaakt; de rest van de reeks blijft ongewijzigd.',
     },
+    toastSavedOnce: 'Alleen deze keer is als aparte afspraak opgeslagen',
     filter: {
       placeholder: 'Taken filteren',
       cycle: 'Klik om de status te wisselen',

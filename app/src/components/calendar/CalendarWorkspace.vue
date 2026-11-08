@@ -31,6 +31,7 @@ import {
   createCalendarEvent,
   explainRRule,
   localDateKey,
+  makeExceptionEvent,
   newEventUid,
   shiftMonth,
   writeCalendarEvent,
@@ -65,6 +66,7 @@ import {
 import { noteOwnWrite } from '../../lib/external-change';
 import { samePath } from '../../lib/path-key';
 import { joinInFolder } from '../../lib/import-plan';
+import { parentDirOf } from '../../lib/new-file-target';
 import type { FileReadResult } from '../../types';
 import type { EditorDraft } from './editor-draft';
 import CalendarEditor from './CalendarEditor.vue';
@@ -372,6 +374,9 @@ function openNew(date: string, startMin = 540, allDay = false) {
     status: 'CONFIRMED',
     spanDays: 1,
     recurring: false,
+    scope: 'single',
+    seriesUid: null,
+    recurrenceId: null,
     ruleUnsupported: [],
   };
   editorError.value = '';
@@ -380,8 +385,10 @@ function openNew(date: string, startMin = 540, allDay = false) {
 async function openEdit(occ: CalendarOccurrence) {
   const source = occ.source;
   const recurring = !!source.rrule;
-  const startWall = recurring ? source.dtstart : occ.start;
-  const date = (source.allDay ? source.dtstart : startWall).slice(0, 10);
+  // The form starts from the clicked occurrence. With scope `series` the date
+  // inputs are disabled and `buildEvent` keeps the master's own start, so this
+  // only changes what the user sees (and what `single` edits).
+  const date = occ.start.slice(0, 10);
   editor.value = {
     mode: 'edit',
     path: occ.path,
@@ -389,14 +396,17 @@ async function openEdit(occ: CalendarOccurrence) {
     source,
     date,
     allDay: source.allDay,
-    start: timeOf(startWall),
-    end: timeOf(recurring ? source.dtend ?? startWall : occ.end ?? startWall),
+    start: source.allDay ? '09:00' : timeOf(occ.start),
+    end: source.allDay ? '10:00' : timeOf(occ.end ?? occ.start),
     title: source.summary,
     location: source.location ?? '',
     notes: source.notes ?? '',
     status: source.status,
     spanDays: allDaySpanDays(source),
     recurring,
+    scope: 'series',
+    seriesUid: recurring ? source.uid : source.seriesUid,
+    recurrenceId: recurring ? occ.start : null,
     ruleUnsupported: explainRRule(source.rrule).unsupported,
   };
   editorError.value = '';
@@ -416,9 +426,14 @@ function buildEvent(draft: EditorDraft): CalendarEvent | null {
   const notes = draft.notes.trim() ? draft.notes : null;
   const location = draft.location.trim() ? draft.location : null;
 
+  // Editing the master keeps its own DTSTART/DTEND; date inputs are disabled
+  // for that scope anyway. "This occurrence" (and any non-recurring event)
+  // takes the times from the form.
+  const keepSeriesTimes = draft.recurring && draft.scope === 'series';
+
   let dtstart = base.dtstart;
   let dtend = base.dtend;
-  if (!draft.recurring) {
+  if (!keepSeriesTimes) {
     if (draft.allDay) {
       dtstart = draft.date;
       dtend = addDays(draft.date, Math.max(1, draft.spanDays));
@@ -437,6 +452,21 @@ function buildEvent(draft: EditorDraft): CalendarEvent | null {
       dtstart = wallAt(draft.date, start);
       dtend = wallAt(endDate, end);
     }
+  }
+
+  if (draft.recurring && draft.scope === 'single' && draft.recurrenceId) {
+    // Detached instance: new note, new UID, no RRULE. `series_uid` +
+    // `recurrence_id` are what stop the master from also rendering this
+    // occurrence (see `makeExceptionEvent`).
+    return makeExceptionEvent(base, draft.recurrenceId, {
+      summary,
+      notes,
+      location,
+      allDay: draft.allDay,
+      dtstart,
+      dtend,
+      status: draft.status,
+    });
   }
 
   return {
@@ -477,8 +507,12 @@ async function saveEditor() {
     if (draft.mode === 'new') {
       await createNewEvent(event);
     } else if (draft.path) {
-      const ok = await persistExisting(draft.path, Promise.resolve(draft.snapshot), event);
-      if (ok) toasts.success(t('calendar.toastSaved'));
+      if (draft.recurring && draft.scope === 'single') {
+        await createExceptionNote(draft.path, event);
+      } else {
+        const ok = await persistExisting(draft.path, Promise.resolve(draft.snapshot), event);
+        if (ok) toasts.success(t('calendar.toastSaved'));
+      }
     }
   } catch (e) {
     editorError.value = t('calendar.toastFailed', { error: String(e) });
@@ -510,6 +544,34 @@ async function createNewEvent(event: CalendarEvent) {
   window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
   editor.value = null;
   toasts.success(t('calendar.toastCreated'));
+}
+
+/**
+ * "This occurrence only": write a detached note next to the master and leave
+ * the master untouched. The exception carries `series_uid` + `recurrence_id`
+ * (from `makeExceptionEvent`), which is the only thing that stops the master
+ * from rendering that occurrence as well.
+ */
+async function createExceptionNote(masterPath: string, event: CalendarEvent) {
+  const dir = parentDirOf(masterPath) ?? workspace.currentFolder;
+  if (!dir) {
+    editorError.value = t('calendar.openFolder');
+    return;
+  }
+  const date = event.dtstart.slice(0, 10);
+  let uid = event.uid;
+  let path = joinInFolder(dir, eventFileName(date, event.summary, uid));
+  if (await invoke<boolean>('fs_file_exists', { path }).catch(() => false)) {
+    uid = newEventUid();
+    event = { ...event, uid };
+    path = joinInFolder(dir, eventFileName(date, event.summary, uid));
+  }
+  const text = createCalendarEvent(event, '');
+  noteOwnWrite(path, text);
+  await invoke('write_file', { path, content: text, encoding: 'UTF-8' });
+  window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+  editor.value = null;
+  toasts.success(t('calendar.toastSavedOnce'));
 }
 
 /**

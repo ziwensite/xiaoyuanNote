@@ -2168,7 +2168,12 @@ export const tr: I18n = {
       invalidTime: 'Geçerli bir başlangıç ve bitiş saati girin.',
       invalidRange: 'Başlangıç ve bitiş aynı olamaz.',
       ruleWarning: 'Bu yineleme kuralının bir kısmı çözümlenemiyor ({parts}). Tarihler yanlış olabilir.',
+      scopeLabel: 'Değişiklikleri uygula',
+      scopeSingle: 'Yalnızca bu sefer',
+      scopeSeries: 'Tüm seri',
+      singleHint: 'Bu sefer için ayrı bir not oluşturulur; serinin geri kalanı değişmez.',
     },
+    toastSavedOnce: 'Yalnızca bu tekrar ayrı etkinlik olarak kaydedildi',
     filter: {
       placeholder: 'Görevleri filtrele',
       cycle: 'Durumu değiştirmek için tıkla',

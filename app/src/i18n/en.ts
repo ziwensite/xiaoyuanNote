@@ -2180,7 +2180,12 @@
       invalidTime: 'Enter a valid start and end time.',
       invalidRange: 'Start and end cannot be the same.',
       ruleWarning: 'Part of this repeat rule cannot be parsed ({parts}). Dates may be wrong.',
+      scopeLabel: 'Apply changes to',
+      scopeSingle: 'This occurrence only',
+      scopeSeries: 'Whole series',
+      singleHint: 'A separate note is created for this occurrence; the rest of the series is unchanged.',
     },
+    toastSavedOnce: 'This occurrence saved as a separate event',
     filter: {
       placeholder: 'Filter tasks',
       cycle: 'Click to cycle status',

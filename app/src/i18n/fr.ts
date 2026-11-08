@@ -2151,7 +2151,12 @@ export const fr: I18n = {
       invalidTime: 'Saisissez une heure de début et de fin valides.',
       invalidRange: 'Le début et la fin ne peuvent pas être identiques.',
       ruleWarning: 'Une partie de cette règle de répétition est illisible ({parts}). Les dates peuvent être erronées.',
+      scopeLabel: 'Appliquer les modifications à',
+      scopeSingle: 'Cette occurrence uniquement',
+      scopeSeries: 'Toute la série',
+      singleHint: 'Une note séparée est créée pour cette occurrence ; le reste de la série est inchangé.',
     },
+    toastSavedOnce: 'Seule cette occurrence a été enregistrée comme événement séparé',
     filter: {
       placeholder: 'Filtrer les tâches',
       cycle: 'Cliquer pour changer de statut',

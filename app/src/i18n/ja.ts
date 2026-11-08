@@ -2151,7 +2151,12 @@ export const ja: I18n = {
       invalidTime: '有効な開始・終了時刻を入力してください。',
       invalidRange: '開始と終了を同じにできません。',
       ruleWarning: 'この繰り返しルールの一部を解析できません（{parts}）。日付が正しくない可能性があります。',
+      scopeLabel: '変更の範囲',
+      scopeSingle: '今回のみ',
+      scopeSeries: 'シリーズ全体',
+      singleHint: 'この回だけ別ノートを作成します。シリーズの他の予定は変更されません。',
     },
+    toastSavedOnce: 'この回のみ別イベントとして保存しました',
     filter: {
       placeholder: 'タスクを絞り込む',
       cycle: 'クリックで状態を切り替え',

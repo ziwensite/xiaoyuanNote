@@ -2168,7 +2168,12 @@ export const sv: I18n = {
       invalidTime: 'Ange giltig start- och sluttid.',
       invalidRange: 'Start och slut får inte vara lika.',
       ruleWarning: 'En del av denna upprepningsregel kan inte tolkas ({parts}). Datumen kan vara fel.',
+      scopeLabel: 'Tillämpa ändringar på',
+      scopeSingle: 'Endast denna förekomst',
+      scopeSeries: 'Hela serien',
+      singleHint: 'En separat anteckning skapas för denna förekomst; resten av serien ändras inte.',
     },
+    toastSavedOnce: 'Endast denna förekomst sparades som separat händelse',
     filter: {
       placeholder: 'Filtrera uppgifter',
       cycle: 'Klicka för att växla status',

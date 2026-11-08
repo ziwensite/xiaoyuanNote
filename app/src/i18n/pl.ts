@@ -2168,7 +2168,12 @@ export const pl: I18n = {
       invalidTime: 'Podaj prawidłową godzinę początku i końca.',
       invalidRange: 'Początek i koniec nie mogą być takie same.',
       ruleWarning: 'Część tej reguły powtarzania jest nieczytelna ({parts}). Daty mogą być nieprawidłowe.',
+      scopeLabel: 'Zastosuj zmiany do',
+      scopeSingle: 'Tylko to wystąpienie',
+      scopeSeries: 'Cała seria',
+      singleHint: 'Dla tego wystąpienia powstanie osobna notatka; reszta serii pozostaje bez zmian.',
     },
+    toastSavedOnce: 'Zapisano tylko to wystąpienie jako osobne wydarzenie',
     filter: {
       placeholder: 'Filtruj zadania',
       cycle: 'Kliknij, aby zmienić stan',

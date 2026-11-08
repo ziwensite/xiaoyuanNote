@@ -2151,7 +2151,12 @@ export const es: I18n = {
       invalidTime: 'Introduce una hora de inicio y fin válidas.',
       invalidRange: 'El inicio y el fin no pueden ser iguales.',
       ruleWarning: 'Parte de esta regla de repetición no se puede interpretar ({parts}). Las fechas pueden ser incorrectas.',
+      scopeLabel: 'Aplicar cambios a',
+      scopeSingle: 'Solo esta ocurrencia',
+      scopeSeries: 'Toda la serie',
+      singleHint: 'Se crea una nota independiente para esta ocurrencia; el resto de la serie no cambia.',
     },
+    toastSavedOnce: 'Solo se guardó esta ocurrencia como evento independiente',
     filter: {
       placeholder: 'Filtrar tareas',
       cycle: 'Clic para cambiar el estado',

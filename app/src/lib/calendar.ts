@@ -1258,3 +1258,52 @@ export function newEventUid(): string {
   if (c?.randomUUID) return c.randomUUID();
   return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2, 10)}`;
 }
+
+export interface ExceptionPatch {
+  uid?: string;
+  summary?: string;
+  notes?: string | null;
+  location?: string | null;
+  allDay?: boolean;
+  dtstart: CalendarWallTime;
+  dtend: CalendarWallTime | null;
+  status?: EventStatus;
+}
+
+/**
+ * Build a detached instance of a recurring event ("this occurrence only").
+ *
+ * The exception is a normal event note: a new `uid`, no `rrule`, and the two
+ * fields that tie it back to the master — `series_uid` and `recurrence_id`
+ * (the start of the occurrence it replaces). `expandOccurrences` uses those
+ * two keys to drop the master's copy of that occurrence, so without them the
+ * calendar would show the same meeting twice. Alarms and other series-wide
+ * metadata are inherited.
+ */
+export function makeExceptionEvent(
+  master: CalendarEvent,
+  occurrenceStart: CalendarWallTime,
+  patch: ExceptionPatch,
+): CalendarEvent {
+  return {
+    ...master,
+    uid: patch.uid ?? newEventUid(),
+    summary: patch.summary ?? master.summary,
+    notes: patch.notes === undefined ? master.notes : patch.notes,
+    location: patch.location === undefined ? master.location : patch.location,
+    allDay: patch.allDay ?? master.allDay,
+    dtstart: patch.dtstart,
+    dtend: patch.dtend,
+    status: patch.status ?? master.status,
+    rrule: null,
+    exdate: [],
+    seriesUid: master.uid,
+    recurrenceId: occurrenceStart,
+    remoteHref: null,
+    etag: null,
+    sequence: 0,
+    path: '',
+    mtime: 0,
+    source: 'local',
+  };
+}

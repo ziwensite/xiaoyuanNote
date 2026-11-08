@@ -2155,7 +2155,12 @@ export const zh: I18n = {
       invalidTime: '请输入有效的开始和结束时间。',
       invalidRange: '开始与结束不能相同。',
       ruleWarning: '此重复规则的以下部分无法解析（{parts}），日期可能不准确。',
+      scopeLabel: '修改范围',
+      scopeSingle: '仅此次',
+      scopeSeries: '整个系列',
+      singleHint: '将为本次事件创建一条独立笔记，系列中其他事件不受影响。',
     },
+    toastSavedOnce: '已仅保存本次事件',
     filter: {
       placeholder: '筛选任务',
       cycle: '点击切换状态',

@@ -2151,7 +2151,12 @@ export const de: I18n = {
       invalidTime: 'Gültige Start- und Endzeit eingeben.',
       invalidRange: 'Beginn und Ende dürfen nicht gleich sein.',
       ruleWarning: 'Ein Teil dieser Wiederholungsregel kann nicht gelesen werden ({parts}). Termine können falsch sein.',
+      scopeLabel: 'Änderungen anwenden auf',
+      scopeSingle: 'Nur dieser Termin',
+      scopeSeries: 'Gesamte Serie',
+      singleHint: 'Für diesen Termin wird eine eigene Notiz angelegt; der Rest der Serie bleibt unverändert.',
     },
+    toastSavedOnce: 'Nur dieser Termin wurde als eigenes Ereignis gespeichert',
     filter: {
       placeholder: 'Aufgaben filtern',
       cycle: 'Klicken, um den Status zu wechseln',

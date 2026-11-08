@@ -50,13 +50,29 @@ const { t } = useI18n();
       >
     </label>
 
+    <div
+      v-if="draft.recurring"
+      class="cal-editor__scope"
+      role="radiogroup"
+      :aria-label="t('calendar.editor.scopeLabel')"
+    >
+      <label class="cal-editor__check">
+        <input v-model="draft.scope" type="radio" value="single">
+        <span>{{ t('calendar.editor.scopeSingle') }}</span>
+      </label>
+      <label class="cal-editor__check">
+        <input v-model="draft.scope" type="radio" value="series">
+        <span>{{ t('calendar.editor.scopeSeries') }}</span>
+      </label>
+    </div>
+
     <div class="cal-editor__row">
       <label class="cal-editor__field cal-editor__field--date">
         <span>{{ t('calendar.editor.date') }}</span>
-        <input v-model="draft.date" type="date" class="cal-editor__input" :disabled="draft.recurring">
+        <input v-model="draft.date" type="date" class="cal-editor__input" :disabled="draft.recurring && draft.scope === 'series'">
       </label>
       <label class="cal-editor__check">
-        <input v-model="draft.allDay" type="checkbox" :disabled="draft.recurring">
+        <input v-model="draft.allDay" type="checkbox" :disabled="draft.recurring && draft.scope === 'series'">
         <span>{{ t('calendar.editor.allDay') }}</span>
       </label>
     </div>
@@ -64,11 +80,11 @@ const { t } = useI18n();
     <div v-if="!draft.allDay" class="cal-editor__row">
       <label class="cal-editor__field">
         <span>{{ t('calendar.editor.start') }}</span>
-        <input v-model="draft.start" type="time" step="900" class="cal-editor__input" :disabled="draft.recurring">
+        <input v-model="draft.start" type="time" step="900" class="cal-editor__input" :disabled="draft.recurring && draft.scope === 'series'">
       </label>
       <label class="cal-editor__field">
         <span>{{ t('calendar.editor.end') }}</span>
-        <input v-model="draft.end" type="time" step="900" class="cal-editor__input" :disabled="draft.recurring">
+        <input v-model="draft.end" type="time" step="900" class="cal-editor__input" :disabled="draft.recurring && draft.scope === 'series'">
       </label>
     </div>
 
@@ -82,7 +98,12 @@ const { t } = useI18n();
       <textarea v-model="draft.notes" class="cal-editor__input cal-editor__notes" rows="4" />
     </label>
 
-    <p v-if="draft.recurring" class="cal-editor__hint">{{ t('calendar.editor.recurringHint') }}</p>
+    <p v-if="draft.recurring && draft.scope === 'series'" class="cal-editor__hint">
+      {{ t('calendar.editor.recurringHint') }}
+    </p>
+    <p v-if="draft.recurring && draft.scope === 'single'" class="cal-editor__hint">
+      {{ t('calendar.editor.singleHint') }}
+    </p>
     <p v-if="draft.ruleUnsupported.length" class="cal-editor__warning">
       {{ t('calendar.editor.ruleWarning', { parts: draft.ruleUnsupported.join(', ') }) }}
     </p>
@@ -164,6 +185,20 @@ const { t } = useI18n();
   display: flex;
   gap: 10px;
   align-items: flex-end;
+}
+
+.cal-editor__scope {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: var(--bd-hair);
+  border-radius: var(--r-sm);
+  background: var(--bg-1);
+}
+
+.cal-editor__scope .cal-editor__check {
+  padding-bottom: 0;
 }
 
 .cal-editor__check {
