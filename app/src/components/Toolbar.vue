@@ -25,7 +25,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { isIOS, isMobile, isWindowsDesktop, usesCommandKey } from '../lib/platform';
-import { macTitleBar, winTitleBar, customTitleBar } from '../lib/chrome';
+import { macTitleBar, winTitleBar, customTitleBar, MAC_TRAFFIC_INSET } from '../lib/chrome';
 import { displayTabTitle } from '../lib/tab-title';
 
 const hasTauriShell = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
@@ -872,11 +872,10 @@ onBeforeUnmount(() => {
     ref="toolbarRef"
     class="toolbar"
     :class="{
-      'toolbar--mac': macTitleBar,
-      'toolbar--lead': !settings.showFileTree,
       'toolbar--minimal': settings.toolbarHidden,
       'toolbar--narrow': isNarrow,
     }"
+    :style="macTitleBar ? { paddingLeft: `${MAC_TRAFFIC_INSET}px` } : undefined"
     @mousedown.capture="onTitleBarMouseDown"
     @dblclick="onTitleBarDblClick"
   >
@@ -1368,11 +1367,9 @@ onBeforeUnmount(() => {
   user-select: none;
   -webkit-user-select: none;
 }
-/* Sidebar hidden on macOS: the traffic lights now float over the header's
-   left end (they sit at x≈20…72 in the 52px line). */
-.toolbar--mac.toolbar--lead {
-  padding-left: 80px;
-}
+/* macOS reserves the traffic-light inset inline (`MAC_TRAFFIC_INSET`, see
+   lib/chrome.ts) on top of this padding: `titleBarStyle: "Overlay"` draws the
+   buttons over the header, which spans the full window width since V1. */
 .toolbar--minimal .toolbar__tabs {
   justify-content: center;
 }
