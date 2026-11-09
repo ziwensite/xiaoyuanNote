@@ -1409,6 +1409,14 @@ export const uk: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Закрити панель',
+    hide: 'Приховати панель',
+    open: 'Відкрити панель',
+    moveToLeft: 'Перемістити панель у лівий стовпець',
+    moveToRight: 'Перемістити панель у правий стовпець',
+    manage: 'Керування панелями…',
+  },
   rsPane: {
     files: 'Файли',
     inspector: 'Properties',

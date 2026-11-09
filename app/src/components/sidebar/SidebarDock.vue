@@ -50,6 +50,9 @@ const emit = defineEmits<{
   outlineGoto: [line: number];
   openSettings: [section?: string];
   openQuickSwitcher: [];
+  paneContext: [id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number];
+  tabContext: [id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number];
+  edgeContext: [side: SidebarSide, x: number, y: number];
 }>();
 
 const settings = useSettingsStore();
@@ -126,6 +129,35 @@ function onSidebarResize(ev: MouseEvent) {
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
 }
+
+/** Right-click inside a pane body. Panes that already own a menu (file tree,
+ *  saved views) call stopPropagation, so this only fires on the chrome. */
+function onPaneContext(ev: MouseEvent) {
+  const el = ev.target as HTMLElement | null;
+  const host = el?.closest<HTMLElement>('[data-rs-pane]');
+  const id = host?.dataset.rsPane as ImplementedSidebarPaneId | undefined;
+  if (!id) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  emit('paneContext', id, props.side, ev.clientX, ev.clientY);
+}
+
+/** Right-click on the header's empty stretch: the pane-manager menu the `+`
+ *  button already opens. Tab icons stop the event and show their own menu. */
+function onHeaderContext(ev: MouseEvent) {
+  const el = ev.target as HTMLElement | null;
+  if (el?.closest('.dock-tab')) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  emit('manage', ev);
+}
+
+/** Right-click on the resize handle / column edge. */
+function onEdgeContext(ev: MouseEvent) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  emit('edgeContext', props.side, ev.clientX, ev.clientY);
+}
 </script>
 
 <template>
@@ -150,6 +182,7 @@ function onSidebarResize(ev: MouseEvent) {
       tabindex="0"
       :aria-label="t('rightSidebar.dragToResize')"
       @mousedown="onSidebarResize"
+      @contextmenu="onEdgeContext"
       @keydown.left.prevent="nudge(-8)"
       @keydown.right.prevent="nudge(8)"
     />
@@ -163,11 +196,13 @@ function onSidebarResize(ev: MouseEvent) {
       :style="headerStyle"
       @mousedown.capture="dragWindowFromChrome($event)"
       @dblclick="toggleMaximizeFromChrome($event)"
+      @contextmenu="onHeaderContext"
     >
       <DockTabStrip
         :side="props.side"
         :groups="props.groups"
         @manage="emit('manage', $event)"
+        @tab-context="(id, x, y) => emit('tabContext', id, props.side, x, y)"
       />
     </div>
     <DockTabStrip
@@ -177,6 +212,7 @@ function onSidebarResize(ev: MouseEvent) {
       :max-width="320"
       drawer
       @manage="emit('manage', $event)"
+      @tab-context="(id, x, y) => emit('tabContext', id, props.side, x, y)"
     />
 
     <div
@@ -186,6 +222,7 @@ function onSidebarResize(ev: MouseEvent) {
       :data-dock-region="props.side"
       :data-dock-side="props.side"
       :data-dock-group="0"
+      @contextmenu="onPaneContext"
     >
       <div v-if="activeOf(group)" class="rs-pane-host" :data-rs-pane="activeOf(group)">
         <SidebarPaneBody

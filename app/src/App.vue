@@ -18,6 +18,15 @@ import TelemetryBanner from './components/TelemetryBanner.vue';
 import TileRoot from './components/TileRoot.vue';
 import StatsPill from './components/StatsPill.vue';
 import SidebarDock from './components/sidebar/SidebarDock.vue';
+import ContextMenu from './components/ContextMenu.vue';
+import {
+  buildColumnEdgeMenu,
+  buildDockTabMenu,
+  buildPanelMenu,
+  type CtxActionId,
+  type CtxNode,
+  type CtxState,
+} from './lib/context-menus';
 import { SIDEBAR_PANE_DEFS, type ImplementedSidebarPaneId, type SidebarPaneAvailabilityCtx } from './panes/sidebar-panes';
 import {
   dockActiveId,
@@ -25,6 +34,7 @@ import {
   effectiveDockWidth,
   isDockPaneVisible,
   isPendingPane,
+  type SidebarSide,
 } from './lib/sidebar-dock';
 import { shellColumnWidths } from './lib/shell-columns';
 import { MAC_TRAFFIC_INSET, macTitleBar } from './lib/chrome';
@@ -2148,6 +2158,93 @@ function onPaneClose(id: ImplementedSidebarPaneId) {
     if (!renderableOn(views)) settings.setDockCollapsed(side, true);
   }
 }
+// ── Context menus for the panel chrome ────────────────────────────────────
+// Pane *content* keeps its own menus (file tree, saved views, editor, tabs).
+// These cover the chrome that had none: a pane body, a dock tab icon, the
+// column edge. All items are existing dock commands or `dispatchMenuAction`
+// ids — see lib/context-menus.ts.
+type PanelCtx =
+  | { kind: 'pane' | 'tab'; id: ImplementedSidebarPaneId; side: SidebarSide; x: number; y: number }
+  | { kind: 'edge'; side: SidebarSide; x: number; y: number };
+const panelCtx = ref<PanelCtx | null>(null);
+
+const panelCtxState = computed<CtxState>(() => {
+  const c = panelCtx.value;
+  const id = c && c.kind !== 'edge' ? c.id : 'outline';
+  return {
+    showLeft: settings.showFileTree,
+    showRight: !settings.sidebarDock.collapsed.right,
+    focusMode: settings.focusMode,
+    typewriter: settings.typewriterMode,
+    wordWrap: settings.wordWrap,
+    lineNumbers: settings.showLineNumbers,
+    toolbarHidden: settings.toolbarHidden,
+    paneId: id,
+    paneSide: c ? c.side : 'right',
+    // `files` is shell chrome: pinned first, never movable or hideable.
+    panePinned: id === 'files',
+  };
+});
+
+const panelCtxItems = computed<CtxNode[]>(() => {
+  const c = panelCtx.value;
+  if (!c) return [];
+  if (c.kind === 'edge') {
+    return buildColumnEdgeMenu(
+      t,
+      c.side,
+      settings.sidebarDock.collapsed[c.side],
+      panelCtxState.value,
+    );
+  }
+  return c.kind === 'tab'
+    ? buildDockTabMenu(t, panelCtxState.value)
+    : buildPanelMenu(t, panelCtxState.value);
+});
+
+function openPanelCtx(id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number) {
+  panelCtx.value = { kind: 'pane', id, side, x, y };
+}
+function openDockTabCtx(id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number) {
+  panelCtx.value = { kind: 'tab', id, side, x, y };
+}
+function openColumnEdgeCtx(side: SidebarSide, x: number, y: number) {
+  panelCtx.value = { kind: 'edge', side, x, y };
+}
+
+function onPanelCtxPick(id: CtxActionId) {
+  const c = panelCtx.value;
+  panelCtx.value = null;
+  if (!c) return;
+  if (c.kind === 'edge') {
+    if (id === 'column.collapse') settings.setDockCollapsed(c.side, true);
+    else if (id === 'column.expand') settings.setDockCollapsed(c.side, false);
+    else if (id === 'view.toggleFileTree') settings.toggleFileTree();
+    else if (id === 'view.toggleRightSidebar') settings.toggleRightSidebar();
+    return;
+  }
+  switch (id) {
+    case 'panel.open':
+      settings.setActiveDockPane(c.side, c.id);
+      break;
+    case 'panel.close':
+      onPaneClose(c.id);
+      break;
+    case 'panel.hide':
+      settings.hideDockPane(c.id);
+      break;
+    case 'panel.moveLeft':
+      settings.moveDockTab(c.id, { side: 'left', group: 0, index: 9999 });
+      break;
+    case 'panel.moveRight':
+      settings.moveDockTab(c.id, { side: 'right', group: 0, index: 9999 });
+      break;
+    case 'panel.manage':
+      openSidebarCtx({ preventDefault() {}, clientX: c.x, clientY: c.y } as MouseEvent);
+      break;
+  }
+}
+
 const basesOpen = ref(false);
 const inboxViewOpen = ref(false);
 // v4.6.1 F2 — type lens (full-pane filtered list of one type's members).
@@ -2217,6 +2314,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       @open-palette="paletteOpen = true"
       @open-settings="openSettingsAt()"
       @open-help="helpOpen = true"
+      @menu-action="dispatchMenuAction"
     />
     <div v-show="settings.viewMode !== 'reading'" ref="shellEl" class="shell">
         <!-- #168 — on a phone the side panes float over the editor instead of
@@ -2261,6 +2359,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
           @open-quick-switcher="quickSwitcherOpen = true"
+          @pane-context="openPanelCtx"
+          @tab-context="openDockTabCtx"
+          @edge-context="openColumnEdgeCtx"
         />
         <div v-show="!isNarrow || phone.view === 'editor'" class="main-col">
       <Toolbar
@@ -2268,6 +2369,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
         @open-palette="paletteOpen = true"
         @open-settings="openSettingsAt()"
         @open-help="helpOpen = true"
+        @menu-action="dispatchMenuAction"
       />
       <TelemetryBanner />
       <div class="workspace">
@@ -2283,6 +2385,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
           @open-quick-switcher="quickSwitcherOpen = true"
+          @pane-context="openPanelCtx"
+          @tab-context="openDockTabCtx"
+          @edge-context="openColumnEdgeCtx"
         />
         <div class="content">
           <BasesView v-if="basesOpen" />
@@ -2304,6 +2409,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
           @open-quick-switcher="quickSwitcherOpen = true"
+          @pane-context="openPanelCtx"
+          @tab-context="openDockTabCtx"
+          @edge-context="openColumnEdgeCtx"
         />
       </div>
         </div>
@@ -2322,6 +2430,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
           @open-quick-switcher="quickSwitcherOpen = true"
+          @pane-context="openPanelCtx"
+          @tab-context="openDockTabCtx"
+          @edge-context="openColumnEdgeCtx"
         />
       </div>
       <!-- Grid editor for the table under the caret. The pane that found the
@@ -2341,6 +2452,21 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
         @apply="(latex: string, display: boolean) => formulaEditor.session?.apply(latex, display)"
         @close="closeFormulaEditor()"
       />
+
+      <!-- Context menus for panel chrome (pane body / dock tab icon / column
+           edge). One component, one surface style; the items differ by where
+           the pointer was — see lib/context-menus.ts. -->
+      <Teleport to="body">
+        <ContextMenu
+          v-if="panelCtx"
+          :x="panelCtx.x"
+          :y="panelCtx.y"
+          :items="panelCtxItems"
+          :label="t('panelMenu.open')"
+          @pick="onPanelCtxPick"
+          @close="panelCtx = null"
+        />
+      </Teleport>
 
       <!-- v4.3.0 PR #75 — right-click context menu for sidebar pane toggles. -->
       <Teleport to="body">

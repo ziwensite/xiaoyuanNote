@@ -1409,6 +1409,14 @@ export const tr: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Paneli kapat',
+    hide: 'Paneli gizle',
+    open: 'Paneli aç',
+    moveToLeft: 'Paneli sol sütuna taşı',
+    moveToRight: 'Paneli sağ sütuna taşı',
+    manage: 'Panelleri yönet…',
+  },
   rsPane: {
     files: 'Dosyalar',
     inspector: 'Properties',

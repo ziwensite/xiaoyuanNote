@@ -1406,6 +1406,14 @@ export const fr: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Fermer le panneau',
+    hide: 'Masquer le panneau',
+    open: 'Ouvrir le panneau',
+    moveToLeft: 'Déplacer le panneau vers la colonne de gauche',
+    moveToRight: 'Déplacer le panneau vers la colonne de droite',
+    manage: 'Gérer les panneaux…',
+  },
   rsPane: {
     files: 'Fichiers',
     inspector: 'Properties',

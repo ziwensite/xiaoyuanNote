@@ -47,7 +47,10 @@ const props = defineProps<{
   drawer?: boolean;
 }>();
 
-const emit = defineEmits<{ manage: [ev: MouseEvent] }>();
+const emit = defineEmits<{
+  manage: [ev: MouseEvent];
+  tabContext: [id: ImplementedSidebarPaneId, x: number, y: number];
+}>();
 
 const settings = useSettingsStore();
 const { t } = useI18n();
@@ -358,6 +361,7 @@ const dropAt = computed<number | null>(() => {
         :data-dock-group="tab.group"
         @pointerdown="onTabPointerDown($event, tab.id)"
         @click="onTabClick(tab.id)"
+        @contextmenu.prevent.stop="emit('tabContext', tab.id, $event.clientX, $event.clientY)"
       >
         <Icon :name="iconOf(tab.id)" :size="16" />
       </button>
@@ -381,6 +385,7 @@ const dropAt = computed<number | null>(() => {
       :title="t('sidebarDock.addPanel')"
       :aria-label="t('sidebarDock.addPanel')"
       @click="emit('manage', $event)"
+      @contextmenu.prevent.stop="emit('manage', $event)"
     >
       <Icon name="plus" :size="14" />
     </button>

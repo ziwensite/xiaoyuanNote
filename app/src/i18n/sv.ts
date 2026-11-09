@@ -1409,6 +1409,14 @@ export const sv: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Stäng panel',
+    hide: 'Dölj panel',
+    open: 'Öppna panel',
+    moveToLeft: 'Flytta panelen till vänster kolumn',
+    moveToRight: 'Flytta panelen till höger kolumn',
+    manage: 'Hantera paneler…',
+  },
   rsPane: {
     files: 'Filer',
     inspector: 'Properties',

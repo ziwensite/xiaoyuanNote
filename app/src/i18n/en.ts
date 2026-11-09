@@ -1416,6 +1416,14 @@
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Close panel',
+    hide: 'Hide panel',
+    open: 'Open panel',
+    moveToLeft: 'Move panel to left column',
+    moveToRight: 'Move panel to right column',
+    manage: 'Manage panels…',
+  },
   rsPane: {
     files: 'Files',
     inspector: 'Properties',

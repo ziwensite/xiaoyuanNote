@@ -9,6 +9,14 @@ import { useSettingsStore } from '../stores/settings';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useTilesStore } from '../stores/tiles';
 import { track } from '../lib/telemetry';
+import ContextMenu from './ContextMenu.vue';
+import {
+  buildTabStripMenu,
+  buildToolbarActionsMenu,
+  type CtxActionId,
+  type CtxNode,
+  type CtxState,
+} from '../lib/context-menus';
 import { getPlainSelection } from '../lib/plain-selection';
 import { useFiles } from '../composables/useFiles';
 import { useViewport } from '../composables/useViewport';
@@ -62,10 +70,12 @@ const props = withDefaults(
 );
 const isTitlebar = computed(() => props.variant === 'titlebar');
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'open-palette'): void;
   (e: 'open-settings'): void;
   (e: 'open-help'): void;
+  /** Context menus reuse the app menu's dispatch path in App.vue. */
+  (e: 'menu-action', id: string): void;
 }>();
 
 const tabs = useTabsStore();
@@ -76,6 +86,53 @@ const { isNarrow } = useViewport();
 /** Windows desktop keeps the app controls in the 44px title bar; the other
  *  desktop platforms (and a phone) keep them in this header. */
 const appControlsHere = computed(() => !winTitleBar || isNarrow.value);
+
+// ── Right-click on the action icons ───────────────────────────────────────
+// Each icon answers ONE question (which columns are on / what to export /
+// which display preferences), so each opens only that set. The tab strip's
+// empty stretch is its own surface; PaneTabBar keeps the tab-level menu.
+type TbCtxKind = 'left' | 'right' | 'export' | 'more' | 'tabs';
+const tbCtx = ref<{ kind: TbCtxKind; x: number; y: number } | null>(null);
+
+const tbCtxState = computed<CtxState>(() => ({
+  showLeft: settings.showFileTree,
+  showRight: !settings.sidebarDock.collapsed.right,
+  focusMode: settings.focusMode,
+  typewriter: settings.typewriterMode,
+  wordWrap: settings.wordWrap,
+  lineNumbers: settings.showLineNumbers,
+  toolbarHidden: settings.toolbarHidden,
+  // Not a panel menu; the dock fields are inert here.
+  paneId: 'outline',
+  paneSide: 'right',
+  panePinned: false,
+}));
+
+const tbCtxItems = computed<CtxNode[]>(() => {
+  const c = tbCtx.value;
+  if (!c) return [];
+  return c.kind === 'tabs'
+    ? buildTabStripMenu(t)
+    : buildToolbarActionsMenu(c.kind, t, tbCtxState.value);
+});
+
+function openTbCtx(kind: TbCtxKind, e: MouseEvent) {
+  e.preventDefault();
+  e.stopPropagation();
+  tbCtx.value = { kind, x: e.clientX, y: e.clientY };
+}
+
+/** Empty stretch of `#header-tabs`; inside a tab, PaneTabBar owns the event. */
+function onTabsContext(e: MouseEvent) {
+  const el = e.target as HTMLElement | null;
+  if (el?.closest('.tab')) return;
+  openTbCtx('tabs', e);
+}
+
+function onTbCtxPick(id: CtxActionId) {
+  tbCtx.value = null;
+  emit('menu-action', id);
+}
 
 const phone = usePhoneStore();
 // 5.0 §8 — on a phone the header is the editor screen's nav bar: back to 笔记,
@@ -894,6 +951,7 @@ onBeforeUnmount(() => {
         :aria-expanded="exportOpen"
         :class="{ active: exportOpen }"
         @click="toggleDropdown('export', $event)"
+        @contextmenu="openTbCtx('export', $event)"
         @keydown.down.prevent="openByKey('export')"
         :title="t('toolbar.exportTooltip')"
         :aria-label="t('toolbar.exportTooltip')"
@@ -907,6 +965,7 @@ onBeforeUnmount(() => {
         :aria-label="settings.showFileTree ? t('header.hideSidebar') : t('header.showSidebar')"
         :aria-pressed="settings.showFileTree"
         @click="settings.toggleFileTree"
+        @contextmenu="openTbCtx('left', $event)"
       >
         <Icon name="sidebar" />
       </button>
@@ -917,6 +976,7 @@ onBeforeUnmount(() => {
         :aria-label="t('toolbar.rightSidebarTooltip')"
         :aria-pressed="!settings.sidebarDock.collapsed.right"
         @click="settings.toggleRightSidebar"
+        @contextmenu="openTbCtx('right', $event)"
       >
         <Icon name="sidebar-right" />
       </button>
@@ -985,6 +1045,7 @@ onBeforeUnmount(() => {
           :aria-label="settings.showFileTree ? t('header.hideSidebar') : t('header.showSidebar')"
           :aria-pressed="settings.showFileTree"
           @click="settings.toggleFileTree"
+          @contextmenu="openTbCtx('left', $event)"
         >
           <Icon name="sidebar" />
         </button>
@@ -1000,7 +1061,7 @@ onBeforeUnmount(() => {
       <!-- A single pane's tab strip is teleported in here (PaneHost.vue); with
            a split, each pane keeps its own strip and this stays an empty,
            draggable stretch of title bar. -->
-      <div id="header-tabs" class="toolbar__tabs" />
+      <div id="header-tabs" class="toolbar__tabs" @contextmenu="onTabsContext" />
 
       <!-- Mode picker: a dropdown instead of the old four-up segmented
            control, so the row spends ~110px rather than ~180px. It shows the
@@ -1060,6 +1121,7 @@ onBeforeUnmount(() => {
           :class="{ active: moreOpen }"
           data-no-drag
           @click="toggleDropdown('more', $event)"
+          @contextmenu="openTbCtx('more', $event)"
           @keydown.down.prevent="openByKey('more')"
           :title="t('header.more')"
           :aria-label="t('header.more')"
@@ -1092,6 +1154,7 @@ onBeforeUnmount(() => {
           :aria-expanded="exportOpen"
           :class="{ active: exportOpen }"
           @click="toggleDropdown('export', $event)"
+          @contextmenu="openTbCtx('export', $event)"
           @keydown.down.prevent="openByKey('export')"
           :title="t('toolbar.exportTooltip')"
           :aria-label="t('toolbar.exportTooltip')"
@@ -1105,6 +1168,7 @@ onBeforeUnmount(() => {
         class="icon-btn"
         :class="{ active: !settings.sidebarDock.collapsed.right }"
         @click="settings.toggleRightSidebar"
+        @contextmenu="openTbCtx('right', $event)"
         :title="tip('toolbar.rightSidebarTooltip', 'view.toggleRightSidebar')"
         :aria-label="t('toolbar.rightSidebarTooltip')"
         :aria-pressed="!settings.sidebarDock.collapsed.right"
@@ -1120,6 +1184,7 @@ onBeforeUnmount(() => {
           :aria-expanded="moreOpen"
           :class="{ active: moreOpen }"
           @click="toggleDropdown('more', $event)"
+          @contextmenu="openTbCtx('more', $event)"
           @keydown.down.prevent="openByKey('more')"
           :title="t('header.more')"
           :aria-label="t('header.more')"
@@ -1496,6 +1561,18 @@ onBeforeUnmount(() => {
         <PomodoroPopover :open="pomoOpen" @close="pomoOpen = false" />
       </div>
     </Teleport>
+
+    <!-- Context menus for this row's action icons. The items depend on which
+         icon was right-clicked — see lib/context-menus.ts. -->
+    <ContextMenu
+      v-if="tbCtx"
+      :x="tbCtx.x"
+      :y="tbCtx.y"
+      :items="tbCtxItems"
+      :label="t('header.more')"
+      @pick="onTbCtxPick"
+      @close="tbCtx = null"
+    />
 </template>
 
 <style scoped>

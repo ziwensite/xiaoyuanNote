@@ -1409,6 +1409,14 @@ export const nl: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Paneel sluiten',
+    hide: 'Paneel verbergen',
+    open: 'Paneel openen',
+    moveToLeft: 'Paneel naar linkerkolom verplaatsen',
+    moveToRight: 'Paneel naar rechterkolom verplaatsen',
+    manage: 'Panelen beheren…',
+  },
   rsPane: {
     files: 'Bestanden',
     inspector: 'Properties',

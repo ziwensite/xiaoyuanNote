@@ -1406,6 +1406,14 @@ export const ja: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'パネルを閉じる',
+    hide: 'パネルを隠す',
+    open: 'パネルを開く',
+    moveToLeft: 'パネルを左列へ移動',
+    moveToRight: 'パネルを右列へ移動',
+    manage: 'パネルを管理…',
+  },
   rsPane: {
     files: 'ファイル',
     inspector: 'Properties',

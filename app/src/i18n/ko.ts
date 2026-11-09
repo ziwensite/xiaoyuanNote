@@ -1406,6 +1406,14 @@ export const ko: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: '패널 닫기',
+    hide: '패널 숨기기',
+    open: '패널 열기',
+    moveToLeft: '패널을 왼쪽 열로 이동',
+    moveToRight: '패널을 오른쪽 열로 이동',
+    manage: '패널 관리…',
+  },
   rsPane: {
     files: '파일',
     inspector: 'Properties',

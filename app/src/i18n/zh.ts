@@ -1404,6 +1404,14 @@ export const zh: I18n = {
     collapse: '收起侧栏',
     expand: '展开侧栏',
   },
+  panelMenu: {
+    close: '关闭面板',
+    hide: '隐藏面板',
+    open: '打开面板',
+    moveToLeft: '移到左栏',
+    moveToRight: '移到右栏',
+    manage: '管理面板…',
+  },
   rsPane: {
     files: '文件',
     inspector: '属性',

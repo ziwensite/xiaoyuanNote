@@ -1401,6 +1401,14 @@ export const ru: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Закрыть панель',
+    hide: 'Скрыть панель',
+    open: 'Открыть панель',
+    moveToLeft: 'Переместить панель в левый столбец',
+    moveToRight: 'Переместить панель в правый столбец',
+    manage: 'Управление панелями…',
+  },
   rsPane: {
     files: 'Файлы',
     inspector: 'Properties',

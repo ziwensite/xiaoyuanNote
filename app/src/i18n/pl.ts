@@ -1409,6 +1409,14 @@ export const pl: I18n = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
+  panelMenu: {
+    close: 'Zamknij panel',
+    hide: 'Ukryj panel',
+    open: 'Otwórz panel',
+    moveToLeft: 'Przenieś panel do lewej kolumny',
+    moveToRight: 'Przenieś panel do prawej kolumny',
+    manage: 'Zarządzaj panelami…',
+  },
   rsPane: {
     files: 'Pliki',
     inspector: 'Properties',
