@@ -228,33 +228,35 @@ function onSidebarResize(ev: MouseEvent) {
   border-bottom: var(--bd-hair);
   overflow: hidden;
 }
-/* The column divider is drawn ONCE, INSIDE the column, as an opaque hair.
+/* Only the RIGHT column draws a divider. The left column's edge is left as a
+ * surface step — `--bg-sidebar` against the editor's `--bg` — which already
+ * reads as a boundary (1.11:1) without any line: the tint difference is what
+ * makes the pane read as a pane, and a hairline on top of it was a SECOND
+ * painter 1px from the 4px scrollbar pill, which is what looked like "two
+ * borders" and a 1px overhang. Measured at 1x: with the hair, x291 is
+ * #e2e2df (1.17 vs the pane, 1.30 vs the editor); without it, x291 is the
+ * pane tint and the step to the editor is 1.11 — still a visible edge, one
+ * pigment lighter, and no possible double line.
  *
- * It used to be `border-right/left: var(--bd-hair)` on the `<aside>`. At 150%
- * display scaling that hair computes to 0.667px and sits exactly on the column
- * edge, where the neighbouring column's background paints over its outer half
- * in the header band — so the header's line read thinner than the body's, even
- * though one element drew both. An inset ::after is the column's own paint (no
- * sibling can clip it) and `--border` is opaque, so it composites identically
- * over the white header and the tinted pane body. */
-.side-sidebar::after {
+ * Hover/keyboard still paints `.side-sidebar__resize::after` at the same x, so
+ * the edge has unambiguous feedback while it is being dragged; that highlight
+ * is the only line the left edge ever shows.
+ *
+ * The right column keeps its hair: it is not adjacent to a scrollbar, the user
+ * reports no problem there, and it separates white from tint on that side. */
+.side-sidebar--right::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
+  left: 0;
   width: var(--hair-w);
-  background: var(--border);
+  background: var(--hairline);
   pointer-events: none;
   z-index: 1;
 }
-.side-sidebar--left::after {
-  right: 0;
-}
-.side-sidebar--right::after {
-  left: 0;
-}
 .side-sidebar--drop-host {
-  background: var(--bg-2, var(--bg));
+  background: var(--bg-2, var(--bg-sidebar));
 }
 
 /* One stacked region. Stage 1 renders exactly one; stage 2 stacks several. */
@@ -276,13 +278,35 @@ function onSidebarResize(ev: MouseEvent) {
   overflow: hidden;
 }
 
+/* Every scroller in this app — this column's panes, the editor, the right
+ * column — takes the ONE bar from `styles/scrollbars.css`: 8px gutter, 4px
+ * pill, 2px transparent border on each side. A column may not add its own
+ * inset on top of that. A previous round did (`margin-right: var(--sp-1)` on
+ * the left pane's scrollers) to pull the bar away from the divider; that moved
+ * the pill 6px from the column edge while the editor's stays 2px from it, i.e.
+ * the two columns no longer matched. The 2px clearance is already the pill's
+ * own transparent border, so nothing else is needed here. */
+
 /* Drag handle for live-resize. Sits on the outer edge.
  *
  * The 8px band is the HIT AREA ONLY and stays transparent: a translucent
  * fill on it read as two vertical lines (the band's own two hard edges, one
- * either side of the 1px column border). The affordance is a single 2px line
- * centred on that border, the same language as the editor's `.split-divider` —
- * so hover / drag / focus all light the SAME one line. */
+ * either side of the 1px column border). The affordance is a single hairline,
+ * the same language as the editor's `.split-divider` — so hover / drag / focus
+ * all light the SAME one line.
+ *
+ * The line lives entirely INSIDE the column (`right/left: 4px` pins it to the
+ * inner edge of this 8px band, which overhangs the border by 4px a side).
+ * Measured at 150% scaling (dpr 1.5): while it straddled the edge, its outer
+ * 1 CSS px fell inside `.main-col`, and the editor header there is
+ * `position: relative; z-index: 20` with an opaque `--bg` — above this
+ * handle's z-index 10 in the root stacking context — so the header band showed
+ * 1 physical pixel of accent and the body band below it showed 3.
+ *
+ * It is `--hair-w` wide, not 2px: the highlight REPLACES the static
+ * `.side-sidebar::after` hair at exactly the same x, it does not widen the
+ * boundary. A 2px highlight covered the 1px hair plus one extra pixel inside
+ * the column, which read as the border thickening / sticking out on hover. */
 .side-sidebar__resize {
   position: absolute;
   top: 0;
@@ -298,7 +322,7 @@ function onSidebarResize(ev: MouseEvent) {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 2px;
+  width: var(--hair-w);
   background: transparent;
   transition: background var(--dur-fast) var(--ease-out);
 }
@@ -306,17 +330,21 @@ function onSidebarResize(ev: MouseEvent) {
   right: -4px;
 }
 .side-sidebar__resize--right::after {
-  right: 3px;
+  right: 4px;
 }
 .side-sidebar__resize--left {
   left: -4px;
 }
 .side-sidebar__resize--left::after {
-  left: 3px;
+  left: 4px;
 }
 .side-sidebar__resize:hover::after,
 .side-sidebar__resize:focus-visible::after,
 .side-sidebar__resize--active::after {
-  background: var(--accent-ring);
+  /* Opaque, not the translucent --accent-ring: the line crosses the white
+   * header band and the tinted pane body, and a 45% accent composited over two
+   * different backdrops reads as two different weights. Mixing the accent with
+   * --bg up front gives one constant colour for the whole column. */
+  background: color-mix(in srgb, var(--accent) 45%, var(--bg));
 }
 </style>

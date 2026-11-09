@@ -34,7 +34,12 @@
   --r-xl: 14px;
   --r-full: 999px;
 
-  /* Hairline: 1px, halved on 2x screens below — what AppKit draws. */
+  /* Hairline: exactly ONE DEVICE PIXEL at every scale factor, not one CSS
+   * pixel. At 150% a 1px line is 1.5 device pixels; Chrome snaps each edge of
+   * the rect separately, so the same hair measures 1 device pixel when it sits
+   * on the right edge of a column and 2 when it sits on the left edge of the
+   * mirrored one. Dividing by the scale factor keeps it one pixel on both
+   * sides; the ladder below covers the scale factors desktops actually use. */
   --hair-w: 1px;
 
   --z-pane: 10;
@@ -126,9 +131,31 @@
   --accent-fg: #1a1a1a;
 }
 
+/* One device pixel per hairline (see `--hair-w` above). Each step wins over
+ * the previous one because it is later in the sheet. */
+@media (min-resolution: 1.25dppx) {
+  :root {
+    --hair-w: 0.8px;
+  }
+}
+@media (min-resolution: 1.5dppx) {
+  :root {
+    --hair-w: 0.6667px;
+  }
+}
+@media (min-resolution: 1.75dppx) {
+  :root {
+    --hair-w: 0.5714px;
+  }
+}
 @media (min-resolution: 2dppx) {
   :root {
     --hair-w: 0.5px;
+  }
+}
+@media (min-resolution: 3dppx) {
+  :root {
+    --hair-w: 0.3333px;
   }
 }
 

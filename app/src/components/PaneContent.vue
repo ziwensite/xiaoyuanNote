@@ -736,6 +736,7 @@ function onPreviewSearchEvent(e: Event) {
     class="pane-content"
     :class="{
       'pane-content--distinct': settings.distinctSplitPanes && showEditor && showPreview,
+      'pane-content--preview-only': showPreview && !showEditor,
     }"
   >
     <div class="pane pane--editor" v-if="tab" v-show="showEditor" :style="editorPaneStyle">
@@ -794,8 +795,22 @@ function onPreviewSearchEvent(e: Event) {
   min-width: 0;
   height: 100%;
 }
-.pane--editor + .pane--preview {
-  border-left: var(--bd-hair);
+/* Preview-only (viewMode `preview`): the editor pane is still in the DOM, just
+ * `v-show`-hidden, so `.pane--editor + .pane--preview` used to match and paint
+ * a hairline at the very first pixel of the main column — on top of the preview
+ * host's own 1px `--border` left edge (`Preview.vue`). Measured in the real
+ * window at 1.5x that was two painters, ~2 device px wide, starting at x=302
+ * while the editor header band above it has no left line at all, so the body's
+ * boundary sat 0–2 px right of the header band's edge and read as "the left
+ * panel's line does not line up with its own header".
+ *
+ * Both are off here: the left column's `--bg-sidebar` → `--bg` surface step IS
+ * the boundary in preview-only, the same step the header band shows, so the
+ * two right edges are the identical x. In split view the `.split-divider` is
+ * the one and only line between the panes (and the divider already suppresses
+ * the preview host's border just below). */
+.pane-content--preview-only :deep(.preview-host) {
+  border-left: none;
 }
 /* The divider is the line between the panes now; without this the preview
    host's own left border doubles it. */
