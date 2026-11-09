@@ -777,9 +777,87 @@ export function calendarTasksFromEntry(entry: CalendarEntry): CalendarTask[] {
   });
 }
 
-// -------------------------------------------------------------------------
-// Recurrence expansion
-// --------------------------------------------------------------------------
+export interface SeriesSplit {
+  /** The original series, capped before the split. */
+  head: CalendarEvent;
+  /** A new series starting at the split occurrence, with a fresh UID. */
+  tail: CalendarEvent;
+}
+
+function withRulePart(rrule: string, key: 'UNTIL' | 'COUNT', value: string): string {
+  const parts = rrule.split(';').filter((part) => !new RegExp(`^${key}=`, 'i').test(part));
+  parts.push(`${key}=${value}`);
+  return parts.join(';');
+}
+
+/**
+ * Split a series so "this and following" can be edited without touching the
+ * past.
+ *
+ * The head keeps every occurrence before `occurrenceStart` — `UNTIL` is set to
+ * the day before, and `COUNT` is trimmed to the occurrences it keeps, because a
+ * rule that carries both must not keep counting past its end. The tail is a new
+ * event with the same rule and a fresh UID, so both halves remain ordinary
+ * recurring events rather than one becoming an exception list.
+ *
+ * Returns null when the rule ended already, when `occurrenceStart` is not an
+ * occurrence, or when splitting at the first occurrence would leave the head
+ * empty.
+ */
+export function splitSeriesAt(master: CalendarEvent, occurrenceStart: string): SeriesSplit | null {
+  if (!master.rrule) return null;
+  const splitDate = occurrenceStart.slice(0, 10);
+  const startDate = master.dtstart.slice(0, 10);
+  if (compareDate(splitDate, startDate) <= 0) return null;
+
+  const before = addDays(splitDate, -1);
+  const headDates = expandOccurrences(master, startDate, splitDate).map((occ) =>
+    occ.start.slice(0, 10),
+  );
+  if (!headDates.length) return null;
+  const isOccurrence = expandOccurrences(master, splitDate, addDays(splitDate, 1)).some(
+    (occ) => occ.start.slice(0, 10) === splitDate,
+  );
+  if (!isOccurrence) return null;
+
+  const rule = parseRRule(master.rrule);
+  const total = rule?.count ?? null;
+  const headCount = headDates.length;
+  if (total !== null && headCount >= total) return null;
+
+  const originalUntil = rule?.until ? rule.until.slice(0, 10) : null;
+  const headUntil =
+    originalUntil && compareDate(originalUntil, before) < 0 ? originalUntil : before;
+
+  let headRule = withRulePart(master.rrule, 'UNTIL', headUntil.replace(/-/g, ''));
+  if (total !== null) headRule = withRulePart(headRule, 'COUNT', String(headCount));
+  const tailRule = total !== null ? withRulePart(master.rrule, 'COUNT', String(total - headCount)) : master.rrule;
+
+  const span = master.dtend ? daysBetween(startDate, master.dtend.slice(0, 10)) : 0;
+  const endTime = master.dtend ? master.dtend.slice(11) : '';
+  const startWall =
+    occurrenceStart.length > 10 ? occurrenceStart : `${splitDate}T${master.dtstart.slice(11)}`;
+  const tailEnd = master.dtend ? `${addDays(splitDate, span)}T${endTime}` : null;
+
+  return {
+    head: { ...master, rrule: headRule },
+    tail: {
+      ...master,
+      uid: newEventUid(),
+      rrule: tailRule,
+      dtstart: startWall,
+      dtend: tailEnd,
+      exdate: [],
+      seriesUid: null,
+      recurrenceId: null,
+      sequence: 0,
+      path: '',
+      remoteHref: null,
+      etag: null,
+    },
+  };
+}
+
 /**
  * Next date-only due for a recurring task, strictly after `due`.
  *

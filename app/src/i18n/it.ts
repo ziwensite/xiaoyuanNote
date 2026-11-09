@@ -2188,9 +2188,13 @@ export const it: I18n = {
       scopeLabel: 'Applica modifiche a',
       scopeSingle: 'Solo questa occorrenza',
       scopeSeries: 'Intera serie',
+      scopeAfter: 'Questa e le successive',
+      afterHint: 'Le occorrenze precedenti restano nella serie originale; questa e le successive passano a una nuova serie.',
+      splitFailed: 'Impossibile dividere la serie qui.',
       singleHint: 'Viene creata una nota separata per questa occorrenza; il resto della serie non cambia.',
     },
     toastSavedOnce: 'Solo questa occorrenza è stata salvata come evento separato',
+    toastSplit: 'Serie divisa a questa occorrenza',
     filter: {
       placeholder: 'Filtra attività',
       cycle: 'Clic per cambiare stato',

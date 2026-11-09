@@ -2191,9 +2191,13 @@ export const zh: I18n = {
       scopeLabel: '修改范围',
       scopeSingle: '仅此次',
       scopeSeries: '整个系列',
+      scopeAfter: '此次及以后',
+      afterHint: '此前的事件留在原系列中，本次及以后的事件归入新系列。',
+      splitFailed: '无法在此处拆分系列。',
       singleHint: '将为本次事件创建一条独立笔记，系列中其他事件不受影响。',
     },
     toastSavedOnce: '已仅保存本次事件',
+    toastSplit: '已在此次事件处拆分系列',
     filter: {
       placeholder: '筛选任务',
       cycle: '点击切换状态',

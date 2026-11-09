@@ -2205,9 +2205,13 @@ export const tr: I18n = {
       scopeLabel: 'Değişiklikleri uygula',
       scopeSingle: 'Yalnızca bu sefer',
       scopeSeries: 'Tüm seri',
+      scopeAfter: 'Bu ve sonrakiler',
+      afterHint: 'Önceki tekrarlar özgün seride kalır; bu ve sonraki tekrarlar yeni bir seriye taşınır.',
+      splitFailed: 'Seri burada bölünemedi.',
       singleHint: 'Bu sefer için ayrı bir not oluşturulur; serinin geri kalanı değişmez.',
     },
     toastSavedOnce: 'Yalnızca bu tekrar ayrı etkinlik olarak kaydedildi',
+    toastSplit: 'Seri bu tekrarda bölündü',
     filter: {
       placeholder: 'Görevleri filtrele',
       cycle: 'Durumu değiştirmek için tıkla',

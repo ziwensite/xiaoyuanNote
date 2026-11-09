@@ -6,6 +6,7 @@ import {
   explainRRule,
   nextTaskDueDate,
   parseRRule,
+  splitSeriesAt,
   type CalendarEvent,
 } from './calendar';
 
@@ -83,6 +84,50 @@ test('UNTIL and COUNT end the series instead of inventing a date', () => {
 test('an unparsable rule or a non-date due produces nothing', () => {
   assert.equal(nextTaskDueDate('2026-11-01', 'FREQ=FORTNIGHTLY'), null);
   assert.equal(nextTaskDueDate('2026-11-01T09:00', 'FREQ=DAILY'), null);
+});
+
+// ---------------------------------------------------------------------------
+// splitSeriesAt — "this and following"
+// ---------------------------------------------------------------------------
+
+const series = () => event('2026-01-05T09:00:00', 'FREQ=WEEKLY;BYDAY=MO');
+
+test('the head is capped the day before the split and the tail restarts here', () => {
+  const split = splitSeriesAt(series(), '2026-02-02T09:00:00');
+  assert.ok(split);
+  assert.match(split.head.rrule ?? '', /UNTIL=20260201/);
+  assert.equal(split.tail.dtstart, '2026-02-02T09:00:00');
+  assert.equal(split.tail.rrule, 'FREQ=WEEKLY;BYDAY=MO');
+  assert.notEqual(split.tail.uid, split.head.uid);
+});
+
+test('splitting a COUNT series conserves every occurrence', () => {
+  const master = event('2026-01-05T09:00:00', 'FREQ=WEEKLY;BYDAY=MO;COUNT=6');
+  const before = expandOccurrences(master, '2026-01-01', '2027-01-01').map((o) => o.start.slice(0, 10));
+  assert.equal(before.length, 6);
+
+  const split = splitSeriesAt(master, '2026-02-02T09:00:00');
+  assert.ok(split);
+  assert.match(split.head.rrule ?? '', /COUNT=4/);
+  assert.match(split.tail.rrule ?? '', /COUNT=2/);
+
+  const head = expandOccurrences(split.head, '2026-01-01', '2027-01-01').map((o) => o.start.slice(0, 10));
+  const tail = expandOccurrences(split.tail, '2026-01-01', '2027-01-01').map((o) => o.start.slice(0, 10));
+  assert.deepEqual([...head, ...tail].sort(), [...before].sort());
+});
+
+test('an existing UNTIL is preserved on the tail and capped on the head', () => {
+  const master = event('2026-01-05T09:00:00', 'FREQ=DAILY;UNTIL=20260110');
+  const split = splitSeriesAt(master, '2026-01-08T09:00:00');
+  assert.ok(split);
+  assert.match(split.head.rrule ?? '', /UNTIL=20260107/);
+  assert.match(split.tail.rrule ?? '', /UNTIL=20260110/);
+});
+
+test('a split point that is not an occurrence, or the first one, refuses', () => {
+  assert.equal(splitSeriesAt(series(), '2026-01-05T09:00:00'), null); // first occurrence
+  assert.equal(splitSeriesAt(series(), '2026-02-03T09:00:00'), null); // a Tuesday
+  assert.equal(splitSeriesAt(event('2026-01-05T09:00:00', ''), '2026-02-02T09:00:00'), null);
 });
 
 test('BYDAY negative ordinal: last Friday of every month', () => {

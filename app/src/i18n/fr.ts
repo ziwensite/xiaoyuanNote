@@ -2188,9 +2188,13 @@ export const fr: I18n = {
       scopeLabel: 'Appliquer les modifications à',
       scopeSingle: 'Cette occurrence uniquement',
       scopeSeries: 'Toute la série',
+      scopeAfter: 'Celui-ci et les suivants',
+      afterHint: 'Les occurrences précédentes restent dans la série d’origine ; celle-ci et les suivantes passent dans une nouvelle série.',
+      splitFailed: 'Impossible de scinder la série ici.',
       singleHint: 'Une note séparée est créée pour cette occurrence ; le reste de la série est inchangé.',
     },
     toastSavedOnce: 'Seule cette occurrence a été enregistrée comme événement séparé',
+    toastSplit: 'Série scindée à cette occurrence',
     filter: {
       placeholder: 'Filtrer les tâches',
       cycle: 'Cliquer pour changer de statut',

@@ -34,6 +34,7 @@ import {
   makeExceptionEvent,
   newEventUid,
   shiftMonth,
+  splitSeriesAt,
   writeCalendarEvent,
   type CalendarEntry,
   type CalendarEvent,
@@ -515,6 +516,8 @@ async function saveEditor() {
     } else if (draft.path) {
       if (draft.recurring && draft.scope === 'single') {
         await createExceptionNote(draft.path, event);
+      } else if (draft.recurring && draft.scope === 'after') {
+        await splitSeriesNote(draft, event);
       } else {
         const ok = await persistExisting(draft.path, Promise.resolve(draft.snapshot), event);
         if (ok) toasts.success(t('calendar.toastSaved'));
@@ -578,6 +581,53 @@ async function createExceptionNote(masterPath: string, event: CalendarEvent) {
   window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
   editor.value = null;
   toasts.success(t('calendar.toastSavedOnce'));
+}
+
+/**
+ * "This and following": cap the original series before this occurrence and
+ * start a new series here with the edited values.
+ *
+ * Both halves stay ordinary recurring events (`splitSeriesAt` puts `UNTIL` on
+ * the head and keeps the rule on the tail), so nothing later has to understand
+ * a third kind of event. The head is written first: if that write is refused
+ * because of a conflict, no orphan tail is created.
+ */
+async function splitSeriesNote(draft: EditorDraft, tail: CalendarEvent) {
+  if (!draft.path || !draft.source || !draft.recurrenceId) return;
+  const split = splitSeriesAt(draft.source, draft.recurrenceId);
+  if (!split) {
+    editorError.value = t('calendar.editor.splitFailed');
+    return;
+  }
+  const dir = parentDirOf(draft.path) ?? workspace.currentFolder;
+  if (!dir) {
+    editorError.value = t('calendar.openFolder');
+    return;
+  }
+  const ok = await persistExisting(draft.path, Promise.resolve(draft.snapshot), split.head);
+  if (!ok) return;
+
+  let uid = split.tail.uid;
+  let path = joinInFolder(dir, eventFileName(tail.dtstart.slice(0, 10), tail.summary, uid));
+  if (await invoke<boolean>('fs_file_exists', { path }).catch(() => false)) {
+    uid = newEventUid();
+    path = joinInFolder(dir, eventFileName(tail.dtstart.slice(0, 10), tail.summary, uid));
+  }
+  const created: CalendarEvent = {
+    ...tail,
+    uid,
+    rrule: split.tail.rrule,
+    seriesUid: null,
+    recurrenceId: null,
+    sequence: 0,
+    exdate: [],
+    path,
+  };
+  const text = createCalendarEvent(created, '');
+  noteOwnWrite(path, text);
+  await invoke('write_file', { path, content: text, encoding: 'UTF-8' });
+  window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+  toasts.success(t('calendar.toastSplit'));
 }
 
 /**

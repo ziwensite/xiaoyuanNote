@@ -2188,9 +2188,13 @@ export const es: I18n = {
       scopeLabel: 'Aplicar cambios a',
       scopeSingle: 'Solo esta ocurrencia',
       scopeSeries: 'Toda la serie',
+      scopeAfter: 'Esta y las siguientes',
+      afterHint: 'Las ocurrencias anteriores permanecen en la serie original; esta y las siguientes pasan a una nueva serie.',
+      splitFailed: 'No se pudo dividir la serie aquí.',
       singleHint: 'Se crea una nota independiente para esta ocurrencia; el resto de la serie no cambia.',
     },
     toastSavedOnce: 'Solo se guardó esta ocurrencia como evento independiente',
+    toastSplit: 'Serie dividida en esta ocurrencia',
     filter: {
       placeholder: 'Filtrar tareas',
       cycle: 'Clic para cambiar el estado',

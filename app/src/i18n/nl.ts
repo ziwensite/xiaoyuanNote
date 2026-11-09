@@ -2205,9 +2205,13 @@ export const nl: I18n = {
       scopeLabel: 'Wijzigingen toepassen op',
       scopeSingle: 'Alleen deze keer',
       scopeSeries: 'Hele reeks',
+      scopeAfter: 'Deze en volgende',
+      afterHint: 'Eerdere keren blijven in de oorspronkelijke reeks; deze en latere gaan naar een nieuwe reeks.',
+      splitFailed: 'Kon de reeks hier niet splitsen.',
       singleHint: 'Er wordt een aparte notitie voor deze keer aangemaakt; de rest van de reeks blijft ongewijzigd.',
     },
     toastSavedOnce: 'Alleen deze keer is als aparte afspraak opgeslagen',
+    toastSplit: 'Reeks gesplitst bij deze keer',
     filter: {
       placeholder: 'Taken filteren',
       cycle: 'Klik om de status te wisselen',

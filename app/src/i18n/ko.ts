@@ -2187,9 +2187,13 @@ export const ko: I18n = {
       scopeLabel: '변경 범위',
       scopeSingle: '이번만',
       scopeSeries: '전체 시리즈',
+      scopeAfter: '이번 이후',
+      afterHint: '이전 일정은 원래 시리즈에 남고, 이번 일정부터는 새 시리즈로 옮깁니다.',
+      splitFailed: '이 위치에서 시리즈를 나눌 수 없습니다.',
       singleHint: '이번 일정만 별도 노트로 저장되며, 나머지 시리즈는 변경되지 않습니다.',
     },
     toastSavedOnce: '이번 일정만 별도 이벤트로 저장했습니다',
+    toastSplit: '이번 일정에서 시리즈를 나눴습니다',
     filter: {
       placeholder: '작업 필터',
       cycle: '클릭하여 상태 전환',

@@ -2217,9 +2217,13 @@
       scopeLabel: 'Apply changes to',
       scopeSingle: 'This occurrence only',
       scopeSeries: 'Whole series',
+      scopeAfter: 'This and following',
+      afterHint: 'Occurrences before this one stay in the original series; this one and later move to a new series.',
+      splitFailed: 'Could not split this series here.',
       singleHint: 'A separate note is created for this occurrence; the rest of the series is unchanged.',
     },
     toastSavedOnce: 'This occurrence saved as a separate event',
+    toastSplit: 'Series split at this occurrence',
     filter: {
       placeholder: 'Filter tasks',
       cycle: 'Click to cycle status',

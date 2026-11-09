@@ -2188,9 +2188,13 @@ export const de: I18n = {
       scopeLabel: 'Änderungen anwenden auf',
       scopeSingle: 'Nur dieser Termin',
       scopeSeries: 'Gesamte Serie',
+      scopeAfter: 'Dieser und folgende',
+      afterHint: 'Frühere Termine bleiben in der ursprünglichen Serie; dieser und alle späteren wandern in eine neue Serie.',
+      splitFailed: 'Die Serie konnte hier nicht geteilt werden.',
       singleHint: 'Für diesen Termin wird eine eigene Notiz angelegt; der Rest der Serie bleibt unverändert.',
     },
     toastSavedOnce: 'Nur dieser Termin wurde als eigenes Ereignis gespeichert',
+    toastSplit: 'Serie an diesem Termin geteilt',
     filter: {
       placeholder: 'Aufgaben filtern',
       cycle: 'Klicken, um den Status zu wechseln',

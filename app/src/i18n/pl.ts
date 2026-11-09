@@ -2205,9 +2205,13 @@ export const pl: I18n = {
       scopeLabel: 'Zastosuj zmiany do',
       scopeSingle: 'Tylko to wystąpienie',
       scopeSeries: 'Cała seria',
+      scopeAfter: 'To i kolejne',
+      afterHint: 'Wcześniejsze wystąpienia zostają w oryginalnej serii; to i kolejne trafiają do nowej serii.',
+      splitFailed: 'Nie udało się podzielić serii w tym miejscu.',
       singleHint: 'Dla tego wystąpienia powstanie osobna notatka; reszta serii pozostaje bez zmian.',
     },
     toastSavedOnce: 'Zapisano tylko to wystąpienie jako osobne wydarzenie',
+    toastSplit: 'Podzielono serię na tym wystąpieniu',
     filter: {
       placeholder: 'Filtruj zadania',
       cycle: 'Kliknij, aby zmienić stan',

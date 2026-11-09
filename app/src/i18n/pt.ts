@@ -2190,9 +2190,13 @@ export const pt: I18n = {
       scopeLabel: 'Aplicar alterações a',
       scopeSingle: 'Apenas esta ocorrência',
       scopeSeries: 'Série inteira',
+      scopeAfter: 'Esta e as seguintes',
+      afterHint: 'As ocorrências anteriores ficam na série original; esta e as seguintes passam para uma nova série.',
+      splitFailed: 'Não foi possível dividir a série aqui.',
       singleHint: 'Uma nota separada é criada para esta ocorrência; o restante da série permanece inalterado.',
     },
     toastSavedOnce: 'Apenas esta ocorrência foi salva como evento separado',
+    toastSplit: 'Série dividida nesta ocorrência',
     filter: {
       placeholder: 'Filtrar tarefas',
       cycle: 'Clique para alternar o estado',

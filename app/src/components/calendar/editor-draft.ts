@@ -20,10 +20,12 @@ export interface EditorDraft {
   recurring: boolean;
   /**
    * Recurring edits only: `series` rewrites the master note, `single` writes a
-   * detached exception note (same `series_uid`, original `recurrence_id`).
+   * detached exception note (same `series_uid`, original `recurrence_id`),
+   * `after` splits the series at this occurrence — the master is capped there
+   * and a new series starts with the edited values.
    * Non-recurring edits always use `single`.
    */
-  scope: 'single' | 'series';
+  scope: 'single' | 'series' | 'after';
   /** Master UID when `source` is one of its occurrences. */
   seriesUid: string | null;
   /** The occurrence start this exception replaces (canonical wall time). */

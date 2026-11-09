@@ -2187,9 +2187,13 @@ export const ja: I18n = {
       scopeLabel: '変更の範囲',
       scopeSingle: '今回のみ',
       scopeSeries: 'シリーズ全体',
+      scopeAfter: '今回以降',
+      afterHint: 'これより前の予定は元のシリーズに残り、今回以降は新しいシリーズになります。',
+      splitFailed: 'この位置でシリーズを分割できませんでした。',
       singleHint: 'この回だけ別ノートを作成します。シリーズの他の予定は変更されません。',
     },
     toastSavedOnce: 'この回のみ別イベントとして保存しました',
+    toastSplit: 'この回でシリーズを分割しました',
     filter: {
       placeholder: 'タスクを絞り込む',
       cycle: 'クリックで状態を切り替え',

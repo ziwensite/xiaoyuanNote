@@ -2205,9 +2205,13 @@ export const sv: I18n = {
       scopeLabel: 'Tillämpa ändringar på',
       scopeSingle: 'Endast denna förekomst',
       scopeSeries: 'Hela serien',
+      scopeAfter: 'Denna och följande',
+      afterHint: 'Tidigare förekomster stannar i originalserien; denna och senare flyttas till en ny serie.',
+      splitFailed: 'Det gick inte att dela serien här.',
       singleHint: 'En separat anteckning skapas för denna förekomst; resten av serien ändras inte.',
     },
     toastSavedOnce: 'Endast denna förekomst sparades som separat händelse',
+    toastSplit: 'Serien delades vid denna förekomst',
     filter: {
       placeholder: 'Filtrera uppgifter',
       cycle: 'Klicka för att växla status',

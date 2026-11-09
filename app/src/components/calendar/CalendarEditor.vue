@@ -3,8 +3,9 @@
  * Event composer shared by the month split and the floating day/week panel.
  *
  * Fields mutate the draft object in place; the workspace owns the draft and
- * decides when it is saved. Date/time inputs are disabled for repeating events
- * because M2 does not edit recurrence — the hint explains that.
+ * decides when it is saved. Date/time inputs are disabled when the edit targets
+ * the whole series, because those fields belong to the master's DTSTART — the
+ * hint explains that.
  *
  * Reminders are edited as trigger strings (`-PT15M`, `09:00`, absolute ISO).
  * The draft keeps the full `{trigger, action}` pair so an imported non-DISPLAY
@@ -132,6 +133,10 @@ function removeAlarm(index: number) {
         <input v-model="draft.scope" type="radio" value="series">
         <span>{{ t('calendar.editor.scopeSeries') }}</span>
       </label>
+      <label class="cal-editor__check">
+        <input v-model="draft.scope" type="radio" value="after">
+        <span>{{ t('calendar.editor.scopeAfter') }}</span>
+      </label>
     </div>
 
     <div class="cal-editor__row">
@@ -210,6 +215,9 @@ function removeAlarm(index: number) {
     </p>
     <p v-if="draft.recurring && draft.scope === 'single'" class="cal-editor__hint">
       {{ t('calendar.editor.singleHint') }}
+    </p>
+    <p v-if="draft.recurring && draft.scope === 'after'" class="cal-editor__hint">
+      {{ t('calendar.editor.afterHint') }}
     </p>
     <p v-if="draft.ruleUnsupported.length" class="cal-editor__warning">
       {{ t('calendar.editor.ruleWarning', { parts: draft.ruleUnsupported.join(', ') }) }}
