@@ -40,11 +40,11 @@ const { t } = useI18n();
 
 /**
  * 5.0 (docs/v5-ui-spec.md §3). One component, two placements:
- *  - `header` (default): the 52px row over the editor — sidebar button when
+ *  - `header` (default): the 36px row over the editor — sidebar button when
  *    the sidebar is hidden, the tabs (PaneHost teleports a single pane's tab
- *    strip into `#header-tabs`), the 实时/源码/预览 switch and the action
+ *    strip into `#header-tabs`), the 实时/源码/预览 picker and the action
  *    buttons.
- *  - `titlebar`: Windows only — the 44px frameless title bar above
+ *  - `titlebar`: Windows only — the 36px frameless title bar above
  *    everything: app icon, the in-app menus, the inline search box, caption
  *    buttons.
  */
@@ -271,10 +271,12 @@ async function onOpenExternal() {
 
 const exportOpen = ref(false);
 const moreOpen = ref(false);
+const modesOpen = ref(false);
 const pomoOpen = ref(false);
 
 const exportBtnRef = ref<HTMLElement | null>(null);
 const moreBtnRef = ref<HTMLElement | null>(null);
+const modesBtnRef = ref<HTMLElement | null>(null);
 
 /**
  * The More menu holds everything the 4.x strip carried that the header no
@@ -297,13 +299,17 @@ type ViewModeId = 'edit' | 'split' | 'liveEdit' | 'preview' | 'reading';
 /** The header's segmented switch: the four modes people move between while
  *  writing (split = source left, preview right). Reading stays in the View
  *  menu and the palette. */
-const segModes: Array<{ mode: ViewModeId; label: string }> = [
-  { mode: 'liveEdit', label: 'header.segLive' },
-  { mode: 'edit', label: 'header.segSource' },
-  { mode: 'split', label: 'header.segSplit' },
-  { mode: 'preview', label: 'header.segPreview' },
+const segModes: Array<{ mode: ViewModeId; label: string; icon: string }> = [
+  { mode: 'liveEdit', label: 'header.segLive', icon: 'view-live' },
+  { mode: 'edit', label: 'header.segSource', icon: 'view-edit' },
+  { mode: 'split', label: 'header.segSplit', icon: 'view-split' },
+  { mode: 'preview', label: 'header.segPreview', icon: 'view-preview' },
 ];
-const segIndex = computed(() => segModes.findIndex((m) => m.mode === settings.viewMode));
+/** The closed control shows the mode in effect, so the row never needs the
+ *  four-up segmented control (~180px) to say where you are. */
+const currentMode = computed(
+  () => segModes.find((m) => m.mode === settings.viewMode) ?? segModes[0],
+);
 function pickViewMode(mode: ViewModeId) {
   closeAllDropdowns();
   settings.setViewMode(mode);
@@ -431,6 +437,7 @@ function shortPath(p: string) {
 // More reliable than @blur which doesn't fire consistently across browsers.
 function closeAllDropdowns() {
   exportOpen.value = false;
+  modesOpen.value = false;
   moreOpen.value = false;
   morePage.value = 'root';
   pomoOpen.value = false;
@@ -561,7 +568,7 @@ const middleSegEl = ref<HTMLElement | null>(null);
 const middleWidth = ref(Number.POSITIVE_INFINITY);
 const foldViewModes = computed(() => shouldFoldViewModes(middleWidth.value));
 const showViewModeSwitch = computed(
-  () => isMarkdown.value && !settings.toolbarHidden && !foldViewModes.value,
+  () => isMarkdown.value && !isNarrow.value && !settings.toolbarHidden && !foldViewModes.value,
 );
 let middleObserver: ResizeObserver | null = null;
 onMounted(() => {
@@ -652,10 +659,12 @@ onBeforeUnmount(() => {
   }
 });
 // Exclusive open: opening one dropdown closes others.
-type DropdownName = 'export' | 'more';
-// Both triggers sit at the right end of the header.
+type DropdownName = 'export' | 'modes' | 'more';
+// Export and More sit at the right end of the header; the mode picker opens
+// under its own button at the middle of the row.
 const dropdowns: Record<DropdownName, { open: typeof exportOpen; btn: typeof exportBtnRef; align: 'left' | 'right' }> = {
   export: { open: exportOpen, btn: exportBtnRef, align: 'right' },
+  modes: { open: modesOpen, btn: modesBtnRef, align: 'left' },
   more: { open: moreOpen, btn: moreBtnRef, align: 'right' },
 };
 /** The trigger of the menu that is open now, so Escape can hand focus back. */
@@ -676,7 +685,7 @@ function openByKey(name: DropdownName) {
   if (!dropdowns[name].open.value) toggleDropdown(name);
   void focusMenuItem('first');
 }
-const anyToolbarMenuOpen = computed(() => exportOpen.value || moreOpen.value);
+const anyToolbarMenuOpen = computed(() => exportOpen.value || modesOpen.value || moreOpen.value);
 watch(
   () => [menuPos.value, anyToolbarMenuOpen.value, menubarOpen.value],
   () => {
@@ -993,25 +1002,52 @@ onBeforeUnmount(() => {
            draggable stretch of title bar. -->
       <div id="header-tabs" class="toolbar__tabs" />
 
-      <div
-        v-if="showViewModeSwitch"
-        class="seg"
-        :class="{ 'seg--none': segIndex < 0 }"
-        role="radiogroup"
-        :aria-label="t('header.viewModes')"
-        :style="{ '--seg-i': Math.max(0, segIndex) }"
-      >
-        <span class="seg__thumb" aria-hidden="true" />
+      <!-- Mode picker: a dropdown instead of the old four-up segmented
+           control, so the row spends ~110px rather than ~180px. It shows the
+           mode in effect; the menu lists the same four (same i18n keys, same
+           `setViewMode` path and shortcuts). -->
+      <div v-if="showViewModeSwitch" class="dropdown">
         <button
-          v-for="m in segModes"
-          :key="m.mode"
-          class="seg__btn"
-          :class="{ 'is-on': settings.viewMode === m.mode }"
-          role="radio"
-          :aria-checked="settings.viewMode === m.mode"
-          @click="pickViewMode(m.mode)"
-        >{{ t(m.label) }}</button>
+          ref="modesBtnRef"
+          class="mode-btn"
+          aria-haspopup="menu"
+          :aria-expanded="modesOpen"
+          :class="{ active: modesOpen }"
+          data-no-drag
+          @click="toggleDropdown('modes', $event)"
+          @keydown.down.prevent="openByKey('modes')"
+          :title="t('header.viewModes')"
+          :aria-label="`${t('header.viewModes')}: ${t(currentMode.label)}`"
+        >
+          <Icon :name="currentMode.icon" :size="14" />
+          <span class="mode-btn__label">{{ t(currentMode.label) }}</span>
+          <Icon name="chevron-down" :size="12" />
+        </button>
       </div>
+      <Teleport to="body">
+        <div
+          v-if="modesOpen"
+          class="dropdown__menu dropdown__menu--modes"
+          role="menu"
+          data-tb-menu
+          :aria-label="t('header.viewModes')"
+          :style="floatStyle"
+          @keydown="onMenuKeydown"
+        >
+          <button
+            v-for="m in segModes"
+            :key="m.mode"
+            class="dropdown__item dropdown__item--single"
+            role="menuitemradio"
+            :aria-checked="settings.viewMode === m.mode"
+            tabindex="-1"
+            @mousedown.prevent="pickViewMode(m.mode)"
+          >
+            <span class="dropdown__check">{{ settings.viewMode === m.mode ? '✓' : '' }}</span>
+            <span class="dropdown__name">{{ t(m.label) }}</span>
+          </button>
+        </div>
+      </Teleport>
       <div v-if="!isNarrow && !settings.toolbarHidden" class="dropdown">
         <button
           ref="moreBtnRef"
@@ -1541,16 +1577,17 @@ onBeforeUnmount(() => {
   display: inline-flex;
 }
 
-/* Icon buttons — 32px, quiet until hovered. */
+/* Icon buttons — one size with the dock tabs and the menu pills
+   (`--ctl-size`), quiet until hovered. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--ctl-size);
+  height: var(--ctl-size);
   padding: 0;
   border: 0;
-  border-radius: var(--r-md);
+  border-radius: var(--ctl-radius);
   background: transparent;
   color: var(--text-2);
   cursor: default;
@@ -1576,9 +1613,9 @@ onBeforeUnmount(() => {
     width: 40px;
     height: 40px;
   }
-  .seg__btn {
+  .mode-btn {
     height: 32px;
-    padding: 0 14px;
+    padding: 0 10px;
   }
 }
 /* ── Phone nav bar (5.0 §8) ──────────────────────────────────────────── */
@@ -1636,44 +1673,16 @@ onBeforeUnmount(() => {
   color: var(--text);
 }
 
-/* ── Segmented 实时 / 源码 / 预览 — the thumb slides ─────────────────── */
-.seg {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(44px, 1fr));
-  grid-auto-columns: 1fr;
-  padding: 3px;
-  gap: 0;
-  border-radius: var(--r-md);
-  background: var(--fill-1);
-  flex-shrink: 0;
-  margin: 0 6px;
-}
-.seg__thumb {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  width: calc((100% - 6px) / 4);
-  border-radius: var(--r-sm);
-  background: var(--bg);
-  box-shadow: var(--sh-thumb);
-  transform: translateX(calc(var(--seg-i) * 100%));
-  transition: transform var(--dur) var(--ease-out), opacity var(--dur-fast);
-}
-:root[data-theme="dark"] .seg__thumb {
-  background: var(--fill-2);
-}
-.seg--none .seg__thumb {
-  opacity: 0;
-}
-.seg__btn {
-  position: relative;
-  z-index: 1;
-  height: 26px;
-  min-width: 0;
-  padding: 0 12px;
+/* ── Mode picker: 实时 / 源码 / 分栏 / 预览 ───────────────────────────── */
+.mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--ctl-size);
+  max-width: 132px;
+  padding: 0 8px;
   border: 0;
+  border-radius: var(--ctl-radius);
   background: transparent;
   font: inherit;
   font-size: 12px;
@@ -1681,22 +1690,26 @@ onBeforeUnmount(() => {
   color: var(--text-2);
   white-space: nowrap;
   cursor: default;
-  border-radius: var(--r-sm);
-  transition: color var(--dur-fast) var(--ease-out);
+  flex-shrink: 0;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
 }
-.seg__btn:hover {
+.mode-btn:hover,
+.mode-btn.active {
   color: var(--text);
+  background: var(--fill-1);
 }
-.seg__btn.is-on {
-  color: var(--text);
-  font-weight: 560;
-}
-.seg__btn:focus-visible {
+.mode-btn:focus-visible {
   outline: none;
   box-shadow: var(--ring);
 }
-/* The switch needs ~180px; below ~640px it moves into "More". */
-.toolbar--narrow .seg {
+.mode-btn__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* A phone nav bar has no room for the picker; the mode lives in "More". */
+.toolbar--narrow .mode-btn {
   display: none;
 }
 
@@ -1748,10 +1761,10 @@ onBeforeUnmount(() => {
   z-index: 1;
 }
 .menubar__btn {
-  height: 28px;
+  height: var(--ctl-size);
   padding: 0 9px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   background: transparent;
   font: inherit;
   font-size: 13px;
@@ -1814,6 +1827,10 @@ onBeforeUnmount(() => {
 }
 .dropdown__menu--more {
   min-width: min(264px, calc(100vw - 16px));
+}
+/* Four short mode labels: the 240px default would be mostly empty space. */
+.dropdown__menu--modes {
+  min-width: min(176px, calc(100vw - 16px));
 }
 .dropdown__item {
   display: flex;
