@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * One dock COLUMN: a 52px header (the icon tab strip) plus the body, or the
+ * One dock COLUMN: a 36px header (the icon tab strip) plus the body, or the
  * floating drawer on a tablet/phone.
  *
  * In the three-column shell this `<aside>` is the column. Its width comes from
@@ -17,8 +17,9 @@
  * `files` is pinned first on the left and never a drag source; drops before
  * it are clamped to after it.
  */
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
+import { useI18n } from '../../i18n';
 import {
   type DockGroupView,
   type SidebarDockState,
@@ -52,6 +53,7 @@ const emit = defineEmits<{
 }>();
 
 const settings = useSettingsStore();
+const { t } = useI18n();
 
 function tabsOf(group: DockGroupView) {
   return group.panes
@@ -91,8 +93,17 @@ const isDropHost = computed(
   () => !!dockDrag.id && dockDrag.over?.side === props.side,
 );
 
+const resizing = ref(false);
+
+/** Keyboard: one step per press; the allocator clamps to 212–560. */
+function nudge(dx: number) {
+  const delta = props.side === 'right' ? -dx : dx;
+  settings.setDockWidth(props.side, displayWidth.value + delta);
+}
+
 function onSidebarResize(ev: MouseEvent) {
   ev.preventDefault();
+  resizing.value = true;
   const startX = ev.clientX;
   // Start from the displayed (possibly window-clamped) width, so the first
   // pixel of the drag never jumps.
@@ -108,6 +119,7 @@ function onSidebarResize(ev: MouseEvent) {
     document.removeEventListener('mouseup', onUp);
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    resizing.value = false;
   };
   document.body.style.cursor = 'ew-resize';
   document.body.style.userSelect = 'none';
@@ -129,8 +141,17 @@ function onSidebarResize(ev: MouseEvent) {
     <div
       v-if="!props.overlay"
       class="side-sidebar__resize"
-      :class="props.side === 'left' ? 'side-sidebar__resize--right' : 'side-sidebar__resize--left'"
+      :class="[
+        props.side === 'left' ? 'side-sidebar__resize--right' : 'side-sidebar__resize--left',
+        resizing ? 'side-sidebar__resize--active' : '',
+      ]"
+      role="separator"
+      aria-orientation="vertical"
+      tabindex="0"
+      :aria-label="t('rightSidebar.dragToResize')"
       @mousedown="onSidebarResize"
+      @keydown.left.prevent="nudge(-8)"
+      @keydown.right.prevent="nudge(8)"
     />
 
     <!-- Column header: belongs to this column, same `<aside>` width as the
@@ -201,11 +222,30 @@ function onSidebarResize(ev: MouseEvent) {
   border-bottom: var(--bd-hair);
   overflow: hidden;
 }
-.side-sidebar--left {
-  border-right: var(--bd-hair);
+/* The column divider is drawn ONCE, INSIDE the column, as an opaque hair.
+ *
+ * It used to be `border-right/left: var(--bd-hair)` on the `<aside>`. At 150%
+ * display scaling that hair computes to 0.667px and sits exactly on the column
+ * edge, where the neighbouring column's background paints over its outer half
+ * in the header band — so the header's line read thinner than the body's, even
+ * though one element drew both. An inset ::after is the column's own paint (no
+ * sibling can clip it) and `--border` is opaque, so it composites identically
+ * over the white header and the tinted pane body. */
+.side-sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--hair-w);
+  background: var(--border);
+  pointer-events: none;
+  z-index: 1;
 }
-.side-sidebar--right {
-  border-left: var(--bd-hair);
+.side-sidebar--left::after {
+  right: 0;
+}
+.side-sidebar--right::after {
+  left: 0;
 }
 .side-sidebar--drop-host {
   background: var(--bg-2, var(--bg));
@@ -230,7 +270,13 @@ function onSidebarResize(ev: MouseEvent) {
   overflow: hidden;
 }
 
-/* Drag handle for live-resize. Sits on the outer edge. */
+/* Drag handle for live-resize. Sits on the outer edge.
+ *
+ * The 8px band is the HIT AREA ONLY and stays transparent: a translucent
+ * fill on it read as two vertical lines (the band's own two hard edges, one
+ * either side of the 1px column border). The affordance is a single 2px line
+ * centred on that border, the same language as the editor's `.split-divider` —
+ * so hover / drag / focus all light the SAME one line. */
 .side-sidebar__resize {
   position: absolute;
   top: 0;
@@ -239,15 +285,32 @@ function onSidebarResize(ev: MouseEvent) {
   cursor: ew-resize;
   z-index: 10;
   background: transparent;
+  outline: none;
+}
+.side-sidebar__resize::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background var(--dur-fast) var(--ease-out);
 }
 .side-sidebar__resize--right {
   right: -4px;
 }
+.side-sidebar__resize--right::after {
+  right: 3px;
+}
 .side-sidebar__resize--left {
   left: -4px;
 }
-.side-sidebar__resize:hover {
-  background: var(--accent);
-  opacity: 0.35;
+.side-sidebar__resize--left::after {
+  left: 3px;
+}
+.side-sidebar__resize:hover::after,
+.side-sidebar__resize:focus-visible::after,
+.side-sidebar__resize--active::after {
+  background: var(--accent-ring);
 }
 </style>

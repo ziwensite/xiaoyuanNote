@@ -190,27 +190,6 @@ const currentFileFolder = computed(() => {
   };
 });
 
-// ── width + resize (moved here from FileTree) ───────────────────────────────
-const resizing = ref(false);
-function onResizeStart(e: MouseEvent) {
-  e.preventDefault();
-  resizing.value = true;
-  const startX = e.clientX;
-  const startWidth = settings.fileTreeWidth;
-  document.body.style.cursor = 'ew-resize';
-  document.body.style.userSelect = 'none';
-  const onMove = (m: MouseEvent) => settings.setFileTreeWidth(startWidth + m.clientX - startX);
-  const onUp = () => {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-    resizing.value = false;
-  };
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-}
-
 // ── outside click / Escape closes the recent popover ────────────────────────
 function onWindowClick() {
   recentOpen.value = false;
@@ -231,7 +210,7 @@ onBeforeUnmount(() => {
 <template>
   <aside
     class="sb"
-    :class="{ 'sb--inset': props.macInset && !phone, 'sb--resizing': resizing, 'sb--phone': phone, 'sb--embedded': embedded }"
+    :class="{ 'sb--inset': props.macInset && !phone, 'sb--phone': phone, 'sb--embedded': embedded }"
     :style="{ '--sb-w': settings.fileTreeWidth + 'px' }"
     data-testid="sidebar"
   >
@@ -431,13 +410,6 @@ onBeforeUnmount(() => {
         <Icon name="settings" :size="16" />
       </button>
     </footer>
-
-    <div
-      v-if="!phone && !embedded"
-      class="sb__resize"
-      :class="{ 'sb__resize--active': resizing }"
-      @mousedown="onResizeStart"
-    />
 
     <div
       v-if="recentOpen"
@@ -837,31 +809,6 @@ onBeforeUnmount(() => {
 .sb__icon-btn:hover {
   background: var(--fill-1);
   color: var(--text);
-}
-
-/* ── resize handle ── */
-.sb__resize {
-  position: absolute;
-  top: 0;
-  right: -3px;
-  bottom: 0;
-  width: 6px;
-  cursor: ew-resize;
-  z-index: var(--z-pane);
-}
-.sb__resize::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 2px;
-  width: 2px;
-  background: transparent;
-  transition: background var(--dur-fast) var(--ease-out);
-}
-.sb__resize:hover::after,
-.sb__resize--active::after {
-  background: var(--accent-ring);
 }
 
 /* ── recent popover (spec §6) ── */
