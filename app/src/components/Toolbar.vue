@@ -1500,7 +1500,11 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 .toolbar__seg--left {
-  flex: 0 0 auto;
+  /* Shrinkable, but not below its contents (`min-width: auto`): the panel
+     tabs and the toggle never compress, while the inline search gives up width
+     (down to its own 160px floor) before the editor tabs do. */
+  flex: 0 1 auto;
+  min-width: auto;
 }
 .toolbar__seg--middle {
   flex: 1 1 auto;
