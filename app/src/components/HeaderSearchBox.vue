@@ -331,21 +331,25 @@ function escapeRe(s: string) {
 
 <style scoped>
 /* 胶囊输入：与 GlobalSearch / 命令面板的输入行同一观感（--fill-1 底、
-   focus-within 换成 --bg + --ring）。 */
+   focus-within 换成 --bg + --ring-tight）。 */
 .hsearch {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 29px;
+  /* Same as the icon buttons next to it (24px), so the field sits centred in
+     the 36px menu row instead of protruding. */
+  height: var(--ctl-size);
   padding: 0 9px;
-  border-radius: var(--r-md);
+  border-radius: var(--ctl-radius);
   background: var(--fill-1);
   color: var(--text-3);
   transition: background 0.12s ease, box-shadow 0.12s ease;
 }
 .hsearch:focus-within {
   background: var(--bg);
-  box-shadow: var(--ring);
+  /* 1px halo, not the 4px --ring: the focus frame must not look bigger than
+     the field it belongs to. */
+  box-shadow: var(--ring-tight);
 }
 .hsearch__icon {
   flex: none;
