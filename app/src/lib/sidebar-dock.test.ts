@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+  AGENT_DOCK_WIDTH,
   DEFAULT_DOCK_WIDTH,
   MAX_DOCK_WIDTH,
   MIN_DOCK_WIDTH,
   defaultSidebarDock,
+  dockActiveId,
   dockPane,
+  effectiveDockWidth,
   isDockPaneVisible,
   mergeFilesPane,
   migrateSidebarDock,
@@ -278,6 +281,39 @@ test('order follows the stored rsPaneOrder and appends unknown future ids', () =
   // Duplicates in the stored order are not duplicated in the result.
   const duplicate = migrateSidebarDock(legacy({ rsPaneOrder: ['agent', 'agent'] }));
   assert.equal(idsOn(duplicate, 'right').filter((id) => id === 'agent').length, 1);
+});
+
+test('dockActiveId follows the stored active pane and falls back to the first renderable', () => {
+  const groups = [
+    {
+      panes: [
+        { id: 'files' as const, visible: true, available: true },
+        { id: 'outline' as const, visible: true, available: true },
+      ],
+      active: 'files' as const,
+    },
+  ];
+  assert.equal(dockActiveId(groups), 'files');
+  assert.equal(dockActiveId([{ ...groups[0], active: null }]), 'files');
+  assert.equal(
+    dockActiveId([{ panes: [{ id: 'outline' as const, visible: false, available: true }], active: null }]),
+    null,
+  );
+  assert.equal(
+    dockActiveId([
+      { panes: [], active: null },
+      { panes: [{ id: 'agent' as const, visible: true, available: true }], active: 'agent' },
+    ]),
+    'agent',
+  );
+});
+
+test('effectiveDockWidth only widens Agent at or below the default', () => {
+  assert.equal(effectiveDockWidth(292, 'agent'), AGENT_DOCK_WIDTH);
+  assert.equal(effectiveDockWidth(212, 'agent'), AGENT_DOCK_WIDTH);
+  assert.equal(effectiveDockWidth(400, 'agent'), 400);
+  assert.equal(effectiveDockWidth(292, 'outline'), 292);
+  assert.equal(effectiveDockWidth(292, null), 292);
 });
 
 test('active falls back to the first renderable pane and never to calendar', () => {

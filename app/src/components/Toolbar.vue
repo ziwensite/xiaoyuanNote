@@ -1,9 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Icon from './Icons.vue';
 import BrandMark from './BrandMark.vue';
 import HeaderSearchBox from './HeaderSearchBox.vue';
-import DockTabStrip from './sidebar/DockTabStrip.vue';
 import PomodoroPopover from './PomodoroPopover.vue';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
@@ -15,7 +14,6 @@ import { useFiles } from '../composables/useFiles';
 import { useViewport } from '../composables/useViewport';
 import { shortcutLabel } from '../lib/keybindings';
 import { itemShortcut, type MenuNode, type TopMenu } from '../lib/app-menu';
-import type { DockGroupView } from '../lib/sidebar-dock';
 import { useAppMenu } from '../composables/useAppMenu';
 import { useExport } from '../composables/useExport';
 import { useToastsStore } from '../stores/toasts';
@@ -28,7 +26,8 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { isIOS, isMobile, isWindowsDesktop, usesCommandKey } from '../lib/platform';
-import { macTitleBar, winTitleBar, customTitleBar, MAC_TRAFFIC_INSET } from '../lib/chrome';
+import { winTitleBar, MAC_TRAFFIC_INSET } from '../lib/chrome';
+import { dragWindowFromChrome, toggleMaximizeFromChrome } from '../lib/window-drag';
 import { shouldFoldViewModes } from '../lib/header-segments';
 import { displayTabTitle } from '../lib/tab-title';
 
@@ -52,26 +51,21 @@ const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     variant?: 'header' | 'titlebar';
-    /** Panel tab view models, owned by App (pane availability is its call). */
-    leftDockGroups?: readonly DockGroupView[];
-    rightDockGroups?: readonly DockGroupView[];
-    /** Tablet drawer: the dock renders its own in-panel strip instead. */
-    dockOverlay?: boolean;
+    /** macOS: this header is the leftmost visible column's header, so it owns
+     *  the traffic-light inset (App decides which column that is). */
+    macInset?: boolean;
   }>(),
   {
     variant: 'header',
-    leftDockGroups: () => [],
-    rightDockGroups: () => [],
-    dockOverlay: false,
+    macInset: false,
   },
 );
 const isTitlebar = computed(() => props.variant === 'titlebar');
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'open-palette'): void;
   (e: 'open-settings'): void;
   (e: 'open-help'): void;
-  (e: 'manage-dock', ev: MouseEvent): void;
 }>();
 
 const tabs = useTabsStore();
@@ -79,34 +73,13 @@ const settings = useSettingsStore();
 
 const { isNarrow } = useViewport();
 
-/**
- * Panel tab strips in the header row. They belong to the panel below them:
- * the left panel's tabs in the row's left segment, the right panel's in the
- * right segment. Hidden when the side is collapsed (the segment must vanish,
- * not leave a hole), when the dock is a tablet drawer (the drawer keeps its
- * own strip), and on a phone (there is no panel column there). The toggle
- * itself always stays, so a collapsed side still has a way back.
- */
-function hasRenderablePane(groups: readonly DockGroupView[]): boolean {
-  return groups.some((group) => group.panes.some((pane) => pane.visible && pane.available));
-}
-const showLeftDockTabs = computed(
-  () =>
-    !isNarrow.value &&
-    !props.dockOverlay &&
-    !settings.sidebarDock.collapsed.left &&
-    hasRenderablePane(props.leftDockGroups),
-);
-const showRightDockTabs = computed(
-  () =>
-    !isNarrow.value &&
-    !props.dockOverlay &&
-    !settings.sidebarDock.collapsed.right &&
-    hasRenderablePane(props.rightDockGroups),
-);
+/** Windows desktop keeps the app controls in the 44px title bar; the other
+ *  desktop platforms (and a phone) keep them in this header. */
+const appControlsHere = computed(() => !winTitleBar || isNarrow.value);
+
+const phone = usePhoneStore();
 // 5.0 §8 — on a phone the header is the editor screen's nav bar: back to 笔记,
 // the note's title, preview, share, more.
-const phone = usePhoneStore();
 const activeTabDisplayTitle = computed(() =>
   displayTabTitle(tabs.activeTab, settings.tabTitleFromFirstLine),
 );
@@ -134,36 +107,16 @@ const toasts = useToastsStore();
 
 const isMarkdown = computed(() => tabs.activeTab?.language === 'markdown');
 
-// #127 — drag the window by the title bar. The declarative
-// `data-tauri-drag-region` attribute proved unreliable on macOS once the
-// unified title bar shipped (the empty spacer carried the attr yet the window
-// would not move). Drive the OS drag explicitly via `startDragging()` on
-// mousedown over any non-interactive region of the bar, and replicate the
-// native double-click-to-zoom. Listener is in the capture phase so it fires
-// before any child stops propagation, and only runs inside the Tauri shell.
-// The same path serves the frameless Windows build (startDragging sends
-// WM_NCLBUTTONDOWN/HTCAPTION under the hood, so Aero-snap drag works).
-function isInteractiveTitleBarTarget(el: EventTarget | null): boolean {
-  const node = el as HTMLElement | null;
-  return !!node?.closest?.(
-    // `[role="tab"]`: 5.0 moved the tab strip into this bar, and a tab is a
-    // div — so pressing one started a window drag, the OS kept the mouseup,
-    // and the click that switches tabs never fired (Windows VM, 2026-10-08).
-    // The strip's empty space still drags the window.
-    'button, input, select, textarea, a, [role="tab"], [contenteditable="true"], .dropdown__menu, [data-no-drag]',
-  );
-}
+// #127 — drag the window by the chrome. Shared with the side-column headers
+// (`lib/window-drag.ts`), because in the three-column shell the left/right
+// headers are part of the same top row when the platform draws no title bar.
+// Capture phase so it fires before any child stops propagation; interactive
+// targets (buttons, tabs, inputs, `[data-no-drag]`) opt out.
 function onTitleBarMouseDown(e: MouseEvent) {
-  if (!customTitleBar || e.button !== 0 || e.detail > 1) return;
-  if (isInteractiveTitleBarTarget(e.target)) return;
-  if (!('__TAURI_INTERNALS__' in window)) return;
-  void getCurrentWindow().startDragging();
+  dragWindowFromChrome(e);
 }
 function onTitleBarDblClick(e: MouseEvent) {
-  if (!customTitleBar) return;
-  if (isInteractiveTitleBarTarget(e.target)) return;
-  if (!('__TAURI_INTERNALS__' in window)) return;
-  void getCurrentWindow().toggleMaximize();
+  toggleMaximizeFromChrome(e);
 }
 
 /**
@@ -921,6 +874,44 @@ onBeforeUnmount(() => {
     <div class="titlebar__search-wrap">
       <HeaderSearchBox v-if="!isNarrow" />
     </div>
+    <!-- App controls in the 44px row, left of the caption buttons: export and
+         the two panel toggles. `data-no-drag` keeps clicks from turning into
+         a window drag. -->
+    <div class="titlebar__actions" data-no-drag>
+      <button
+        ref="exportBtnRef"
+        class="icon-btn"
+        aria-haspopup="menu"
+        :aria-expanded="exportOpen"
+        :class="{ active: exportOpen }"
+        @click="toggleDropdown('export', $event)"
+        @keydown.down.prevent="openByKey('export')"
+        :title="t('toolbar.exportTooltip')"
+        :aria-label="t('toolbar.exportTooltip')"
+      >
+        <Icon name="share" />
+      </button>
+      <button
+        class="icon-btn"
+        :class="{ active: settings.showFileTree }"
+        :title="settings.showFileTree ? t('header.hideSidebar') : t('header.showSidebar')"
+        :aria-label="settings.showFileTree ? t('header.hideSidebar') : t('header.showSidebar')"
+        :aria-pressed="settings.showFileTree"
+        @click="settings.toggleFileTree"
+      >
+        <Icon name="sidebar" />
+      </button>
+      <button
+        class="icon-btn"
+        :class="{ active: !settings.sidebarDock.collapsed.right }"
+        :title="tip('toolbar.rightSidebarTooltip', 'view.toggleRightSidebar')"
+        :aria-label="t('toolbar.rightSidebarTooltip')"
+        :aria-pressed="!settings.sidebarDock.collapsed.right"
+        @click="settings.toggleRightSidebar"
+      >
+        <Icon name="sidebar-right" />
+      </button>
+    </div>
     <div class="win-controls" data-no-drag>
       <button class="win-controls__btn" @click="winMinimize" :title="t('menubar.minimize')" tabindex="-1">
         <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor" stroke-width="1" /></svg>
@@ -951,16 +942,18 @@ onBeforeUnmount(() => {
       'toolbar--minimal': settings.toolbarHidden,
       'toolbar--narrow': isNarrow,
     }"
-    :style="macTitleBar ? { paddingLeft: `${MAC_TRAFFIC_INSET}px` } : undefined"
+    :style="props.macInset ? { paddingLeft: `${MAC_TRAFFIC_INSET}px` } : undefined"
     @mousedown.capture="onTitleBarMouseDown"
     @dblclick="onTitleBarDblClick"
   >
-    <!-- Three visual segments (left panels · editor · right panels). The two
-         panel segments now also carry the panels' icon tab strips, which
-         replaced the 32px band that used to sit inside each panel; `#header-tabs`
-         keeps its mount point for PaneHost. The Windows 44px title bar is a
-         different row and keeps the menus, the search box and ─ □ ×. -->
-    <div class="toolbar__seg toolbar__seg--left" role="group" :aria-label="t('header.leftPanels')">
+    <!-- Three columns have their own headers; this row only owns the editor
+         column's header. `#header-tabs` keeps its mount point for PaneHost. -->
+    <div
+      v-if="isNarrow || !winTitleBar"
+      class="toolbar__seg toolbar__seg--left"
+      role="group"
+      :aria-label="t('header.leftPanels')"
+    >
       <template v-if="isNarrow">
         <button class="toolbar__back" type="button" @click="phone.show('home')">
           <Icon name="chevron-left" :size="22" />
@@ -969,12 +962,11 @@ onBeforeUnmount(() => {
         <span class="toolbar__phone-title">{{ phoneTitle }}</span>
       </template>
       <template v-else>
-        <!-- Stage 1 — collapse moved here (the dock no longer has a rail or a
-             chevron). Always visible so an expanded primary sidebar still has
-             a visible close affordance; `data-no-drag` keeps the click from
-             turning into a window drag. On macOS the toolbar's padding-left
-             (`MAC_TRAFFIC_INSET`) already places this after the traffic
-             lights. Same action/state as ⌘B, the View menu and the palette. -->
+        <!-- Left panel toggle. It lives in the EDITOR column's header, not in
+             the left column's header: collapsing left unmounts that whole
+             column, and this button is the only way back. Same action/state as
+             ⌘B, the View menu and the palette. `data-no-drag` keeps the click
+             from turning into a window drag. -->
         <button
           type="button"
           class="icon-btn toolbar__sidebar-btn"
@@ -987,15 +979,6 @@ onBeforeUnmount(() => {
         >
           <Icon name="sidebar" />
         </button>
-        <!-- Left panel's tabs, at the left segment of the row above that panel. -->
-        <DockTabStrip
-          v-if="showLeftDockTabs"
-          side="left"
-          :groups="props.leftDockGroups"
-          :dock-width="settings.sidebarDock.width.left"
-          @manage="emit('manage-dock', $event)"
-        />
-        <HeaderSearchBox v-if="!winTitleBar" class="toolbar__search" />
       </template>
     </div>
 
@@ -1029,13 +1012,27 @@ onBeforeUnmount(() => {
           @click="pickViewMode(m.mode)"
         >{{ t(m.label) }}</button>
       </div>
+      <div v-if="!isNarrow && !settings.toolbarHidden" class="dropdown">
+        <button
+          ref="moreBtnRef"
+          class="icon-btn"
+          aria-haspopup="menu"
+          :aria-expanded="moreOpen"
+          :class="{ active: moreOpen }"
+          data-no-drag
+          @click="toggleDropdown('more', $event)"
+          @keydown.down.prevent="openByKey('more')"
+          :title="t('header.more')"
+          :aria-label="t('header.more')"
+        >
+          <Icon name="more" />
+        </button>
+      </div>
     </div>
 
     <div
       v-if="!settings.toolbarHidden"
-      class="toolbar__actions toolbar__seg--right"
-      role="group"
-      :aria-label="t('header.rightPanels')"
+      class="toolbar__actions toolbar__app"
     >
       <button
         v-if="isNarrow && isMarkdown"
@@ -1047,7 +1044,8 @@ onBeforeUnmount(() => {
       >
         <Icon :name="settings.viewMode === 'preview' ? 'pencil' : 'eye'" />
       </button>
-      <div class="dropdown">
+      <HeaderSearchBox v-if="appControlsHere && !isNarrow" class="toolbar__search" />
+      <div v-if="appControlsHere" class="dropdown">
         <button
           ref="exportBtnRef"
           class="icon-btn"
@@ -1061,68 +1059,10 @@ onBeforeUnmount(() => {
         >
           <Icon name="share" />
         </button>
-        <Teleport to="body">
-          <div v-if="exportOpen" class="dropdown__menu" role="menu" data-tb-menu :style="floatStyle" @keydown="onMenuKeydown">
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportHtml())">
-              <span class="dropdown__name">{{ t('toolbar.exportHtml') }}</span>
-            </button>
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportDocx())">
-              <span class="dropdown__name">{{ t('toolbar.exportDocx') }}</span>
-            </button>
-            <!-- Gitee IK8QJQ — the two PDF paths differ (vector text via the
-                 OS print engine vs. a rasterised file with no dialog); say so. -->
-            <button class="dropdown__item" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportPdfPrint())">
-              <span class="dropdown__row">
-                <span class="dropdown__name">{{ t('toolbar.exportPdfPrint') }}</span>
-                <span v-if="chord('export.pdfPrint')" class="dropdown__shortcut">{{ chord('export.pdfPrint') }}</span>
-              </span>
-              <span class="dropdown__path">{{ t('toolbar.exportPdfPrintHint') }}</span>
-            </button>
-            <button class="dropdown__item" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportPdf())">
-              <span class="dropdown__name">{{ t('toolbar.exportPdf') }}</span>
-              <span class="dropdown__path">{{ t('toolbar.exportPdfHint') }}</span>
-            </button>
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportImage())">
-              <span class="dropdown__name">{{ t('toolbar.exportImage') }}</span>
-            </button>
-            <div class="dropdown__sep"></div>
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsHtml())">
-              <span class="dropdown__name">{{ t('toolbar.copyHtml') }}</span>
-              <span v-if="chord('export.copyHtml')" class="dropdown__shortcut">{{ chord('export.copyHtml') }}</span>
-            </button>
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsWord())">
-              <span class="dropdown__name">{{ t('toolbar.copyWord') }}</span>
-              <span v-if="chord('export.copyWord')" class="dropdown__shortcut">{{ chord('export.copyWord') }}</span>
-            </button>
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsPlainText())">
-              <span class="dropdown__name">{{ t('toolbar.copyPlain') }}</span>
-            </button>
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsMarkdown())">
-              <span class="dropdown__name">{{ t('toolbar.copyMarkdown') }}</span>
-              <span v-if="chord('export.copyMd')" class="dropdown__shortcut">{{ chord('export.copyMd') }}</span>
-            </button>
-            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsImage())">
-              <span class="dropdown__name">{{ t('toolbar.copyImage') }}</span>
-            </button>
-            <template v-if="!isMobile()">
-              <div class="dropdown__sep"></div>
-              <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.printDocument())">
-                <span class="dropdown__name">{{ t('menubar.print') }}</span>
-                <span v-if="chord('file.print')" class="dropdown__shortcut">{{ chord('file.print') }}</span>
-              </button>
-            </template>
-            <template v-if="isIOS()">
-              <div class="dropdown__sep"></div>
-              <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(onOpenExternal)">
-                <span class="dropdown__name">{{ t('header.share') }}</span>
-              </button>
-            </template>
-          </div>
-        </Teleport>
       </div>
 
       <button
-        v-if="!isNarrow"
+        v-if="!isNarrow && appControlsHere"
         class="icon-btn"
         :class="{ active: !settings.sidebarDock.collapsed.right }"
         @click="settings.toggleRightSidebar"
@@ -1133,7 +1073,7 @@ onBeforeUnmount(() => {
         <Icon name="sidebar-right" />
       </button>
 
-      <div class="dropdown">
+      <div v-if="isNarrow" class="dropdown">
         <button
           ref="moreBtnRef"
           class="icon-btn"
@@ -1147,7 +1087,9 @@ onBeforeUnmount(() => {
         >
           <Icon name="more" />
         </button>
-        <Teleport to="body">
+      </div>
+
+      <Teleport to="body">
           <div
             v-if="moreOpen"
             class="dropdown__menu dropdown__menu--more"
@@ -1445,19 +1387,69 @@ onBeforeUnmount(() => {
             </template>
           </div>
         </Teleport>
-      </div>
     </div>
+  </div>
 
-    <!-- The right panel's tabs close the row, at the far right above that
-         panel. Kept outside the `toolbarHidden` guard so a "minimal" toolbar
-         still lets the user switch the right panel's panes. -->
-    <DockTabStrip
-      v-if="showRightDockTabs"
-      side="right"
-      :groups="props.rightDockGroups"
-      :dock-width="settings.sidebarDock.width.right"
-      @manage="emit('manage-dock', $event)"
-    />
+
+
+        <Teleport to="body">
+          <div v-if="exportOpen" class="dropdown__menu" role="menu" data-tb-menu :style="floatStyle" @keydown="onMenuKeydown">
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportHtml())">
+              <span class="dropdown__name">{{ t('toolbar.exportHtml') }}</span>
+            </button>
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportDocx())">
+              <span class="dropdown__name">{{ t('toolbar.exportDocx') }}</span>
+            </button>
+            <!-- Gitee IK8QJQ — the two PDF paths differ (vector text via the
+                 OS print engine vs. a rasterised file with no dialog); say so. -->
+            <button class="dropdown__item" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportPdfPrint())">
+              <span class="dropdown__row">
+                <span class="dropdown__name">{{ t('toolbar.exportPdfPrint') }}</span>
+                <span v-if="chord('export.pdfPrint')" class="dropdown__shortcut">{{ chord('export.pdfPrint') }}</span>
+              </span>
+              <span class="dropdown__path">{{ t('toolbar.exportPdfPrintHint') }}</span>
+            </button>
+            <button class="dropdown__item" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportPdf())">
+              <span class="dropdown__name">{{ t('toolbar.exportPdf') }}</span>
+              <span class="dropdown__path">{{ t('toolbar.exportPdfHint') }}</span>
+            </button>
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.exportImage())">
+              <span class="dropdown__name">{{ t('toolbar.exportImage') }}</span>
+            </button>
+            <div class="dropdown__sep"></div>
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsHtml())">
+              <span class="dropdown__name">{{ t('toolbar.copyHtml') }}</span>
+              <span v-if="chord('export.copyHtml')" class="dropdown__shortcut">{{ chord('export.copyHtml') }}</span>
+            </button>
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsWord())">
+              <span class="dropdown__name">{{ t('toolbar.copyWord') }}</span>
+              <span v-if="chord('export.copyWord')" class="dropdown__shortcut">{{ chord('export.copyWord') }}</span>
+            </button>
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsPlainText())">
+              <span class="dropdown__name">{{ t('toolbar.copyPlain') }}</span>
+            </button>
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsMarkdown())">
+              <span class="dropdown__name">{{ t('toolbar.copyMarkdown') }}</span>
+              <span v-if="chord('export.copyMd')" class="dropdown__shortcut">{{ chord('export.copyMd') }}</span>
+            </button>
+            <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.copyAsImage())">
+              <span class="dropdown__name">{{ t('toolbar.copyImage') }}</span>
+            </button>
+            <template v-if="!isMobile()">
+              <div class="dropdown__sep"></div>
+              <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(() => exporter.printDocument())">
+                <span class="dropdown__name">{{ t('menubar.print') }}</span>
+                <span v-if="chord('file.print')" class="dropdown__shortcut">{{ chord('file.print') }}</span>
+              </button>
+            </template>
+            <template v-if="isIOS()">
+              <div class="dropdown__sep"></div>
+              <button class="dropdown__item dropdown__item--single" role="menuitem" tabindex="-1" @mousedown.prevent="act(onOpenExternal)">
+                <span class="dropdown__name">{{ t('header.share') }}</span>
+              </button>
+            </template>
+          </div>
+        </Teleport>
 
     <!-- Writing-session presets, opened from the palette ("solomd:open-pomodoro"). -->
     <Teleport to="body">
@@ -1465,7 +1457,6 @@ onBeforeUnmount(() => {
         <PomodoroPopover :open="pomoOpen" @close="pomoOpen = false" />
       </div>
     </Teleport>
-  </div>
 </template>
 
 <style scoped>
@@ -1500,22 +1491,20 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 .toolbar__seg--left {
-  /* Shrinkable, but not below its contents (`min-width: auto`): the panel
-     tabs and the toggle never compress, while the inline search gives up width
-     (down to its own 160px floor) before the editor tabs do. */
-  flex: 0 1 auto;
+  /* The left toggle only; collapsing left is why it lives in this column's
+     header instead of the (unmounted) left column's header. */
+  flex: 0 0 auto;
   min-width: auto;
 }
 .toolbar__seg--middle {
   flex: 1 1 auto;
   min-width: 0;
   padding-left: 8px;
-  border-left: var(--bd-hair);
 }
-.toolbar__seg--right {
+/* Application controls (search / export / right toggle, or a phone's preview
+   and More) sit at the end of the editor column's header. */
+.toolbar__app {
   flex: 0 0 auto;
-  padding-left: 8px;
-  border-left: var(--bd-hair);
 }
 .toolbar--minimal .toolbar__tabs {
   justify-content: center;
@@ -1609,7 +1598,7 @@ onBeforeUnmount(() => {
 .toolbar--narrow .toolbar__seg--middle {
   display: none;
 }
-.toolbar--narrow .toolbar__seg--right {
+.toolbar--narrow .toolbar__app {
   padding-left: 0;
   border-left: 0;
 }
@@ -1740,6 +1729,17 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 420px;
   min-width: 180px;
+}
+/* Export + the two panel toggles, immediately left of the caption buttons.
+   Buttons are excluded from window dragging via `data-no-drag`. */
+.titlebar__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
 }
 .menubar {
   display: flex;

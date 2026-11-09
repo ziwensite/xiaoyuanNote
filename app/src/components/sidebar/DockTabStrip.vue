@@ -1,34 +1,27 @@
 <script setup lang="ts">
 /**
- * One side's ICON-ONLY tab strip, rendered in the editor toolbar row.
+ * One side's ICON-ONLY tab strip: the header of its dock column, and the same
+ * strip inside the tablet/phone drawer.
  *
- * It used to live inside each panel (`SidebarDock.vue`) as a 32px band above
- * the body. That band is now the header row's job: the left panel's tabs sit in
- * the row's left segment and the right panel's tabs in its right segment. The
- * editor tab strip is a different row-level thing and stays untouched
- * (`#header-tabs`). The Windows 44px title bar (menus + search + caption
- * buttons) is NOT involved.
+ * In the three-column shell the strip is the first child of the column's
+ * `<aside>`, so it is exactly as wide as the panel below it. It fills that
+ * width (`width: 100%`); the column resizes live, the strip's ResizeObserver
+ * reports the new width in the same frame, and `dockStripLayout` recomputes
+ * `»` immediately. No window-level cap, no second width number to sync.
  *
- * Room is finite up there, so this component never compresses icons:
- *
- *  - Its width is capped at `min(dock width, 25% of the window)`
- *    (`lib/dock-strip-fit.ts`), which keeps the inline search box, the editor
- *    tab strip and the header actions a computable minimum no matter how many
- *    panes the user parked on one side.
- *  - Tabs that do not fit move into a `»` list (icon + name), so every pane
- *    stays reachable. `+` is always the last item.
- *  - Empty strip space is still a drag handle for the window; only the buttons
- *    opt out (they are `<button>`s, which Toolbar's capture handler skips).
+ * The strip never compresses icons: tabs that do not fit move into a `»` list
+ * (icon + name), so every pane stays reachable. `+` is always the last item.
+ * Empty strip space is still a drag handle for the window; only the buttons
+ * opt out (they are `<button>`s, which the chrome drag handler skips).
  *
  * Drag: Pointer Events only (HTML5 DnD is swallowed by Tauri's native file
- * drop). Window-level `pointermove` means a pointer crossing the inline search
- * box never gets "eaten" by the input: focus only changes on a real click, and
- * no `setPointerCapture` is involved. Dropping on a non-strip target (the
- * search box and the editor tabs included) is defined as a cancel — `over`
- * stays null and nothing moves.
+ * drop). Window-level `pointermove` means a pointer crossing another column
+ * never gets "eaten": focus only changes on a real click, and no
+ * `setPointerCapture` is involved. Dropping on a non-dock target is defined as
+ * a cancel — `over` stays null and nothing moves.
  *
- * Collapsed side: the caller unmounts this strip, so the middle segment takes
- * the width; the side's toggle in the same row stays as the way back.
+ * Collapsed side: the caller unmounts the whole column, so the editor takes the
+ * width; the side's toggle in the top chrome stays as the way back.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
@@ -41,18 +34,16 @@ import {
   type SidebarSide,
 } from '../../lib/sidebar-dock';
 import { dockDrag } from '../../lib/dock-drag';
-import { dockStripCap, dockStripLayout } from '../../lib/dock-strip-fit';
+import { dockStripLayout } from '../../lib/dock-strip-fit';
 import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
 import Icon from '../Icons.vue';
 
 const props = defineProps<{
   side: SidebarSide;
   groups: readonly DockGroupView[];
-  /** The panel this strip controls — the width cap starts from this. */
-  dockWidth: number;
-  /** Override for the drawer (tablet/phone), whose width is not the dock width. */
+  /** Drawer only: the floating panel's width cap (320). Column mode fills. */
   maxWidth?: number;
-  /** Drawer placement: a 32px band inside the panel instead of the header row. */
+  /** Drawer placement: a 32px band inside the panel instead of a column header. */
   drawer?: boolean;
 }>();
 
@@ -112,38 +103,28 @@ const tabs = computed<RenderedTab[]>(() => {
 /* ---------------------------------------------------------------- overflow --- */
 const rootEl = ref<HTMLElement | null>(null);
 const measured = ref(0);
-const viewportW = ref(typeof window === 'undefined' ? 0 : window.innerWidth);
 
-const cap = computed(
-  () => props.maxWidth ?? dockStripCap(props.dockWidth, viewportW.value || 0),
-);
 const layout = computed(() => dockStripLayout(tabs.value.length, measured.value));
 const visibleTabs = computed(() => tabs.value.slice(0, layout.value.visible));
 const hiddenTabs = computed(() => tabs.value.slice(layout.value.visible));
 
 /**
- * Overflowing strips take the FULL cap as a definite width. If they stayed
- * content-sized, measuring → fewer tabs → a narrower box → measuring again
- * would ratchet the count down to zero; a definite width keeps the measured
- * value stable and lets the `+` sit at the cap's right edge. Non-overflowing
- * strips stay content-sized so a single tab does not reserve the whole cap.
+ * Column mode fills the header, which is the column width. A 100% width is a
+ * definite width, so measuring → `»` → measuring cannot ratchet the count down
+ * (the reason the old capped strip had to take a fixed width when overflowing).
+ * The drawer keeps its content-sized 32px band and an optional 320px cap.
  */
 const stripStyle = computed(() => ({
-  maxWidth: `${cap.value}px`,
-  width: layout.value.overflow ? `${cap.value}px` : undefined,
+  width: props.drawer ? undefined : '100%',
+  maxWidth: props.maxWidth ? `${props.maxWidth}px` : undefined,
 }));
 
 let observer: ResizeObserver | null = null;
-function onWindowResize() {
-  viewportW.value = window.innerWidth;
-}
 onMounted(() => {
-  onWindowResize();
-  window.addEventListener('resize', onWindowResize);
   if (rootEl.value && typeof ResizeObserver !== 'undefined') {
     // `clientWidth` includes the strip's own padding, which `dockStripLayout`
-    // budgets for (border-box is global). A 1px border-left on the right strip
-    // is excluded — it is outside the tab budget.
+    // budgets for (border-box is global). Column resize (including every frame
+    // of a drag) therefore reflows `»` immediately.
     observer = new ResizeObserver(() => {
       measured.value = rootEl.value?.clientWidth ?? 0;
     });
@@ -153,7 +134,6 @@ onMounted(() => {
   document.addEventListener('pointerdown', onDocPointerDown, true);
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', onWindowResize);
   observer?.disconnect();
   document.removeEventListener('pointerdown', onDocPointerDown, true);
 });
@@ -435,23 +415,16 @@ const dropAt = computed<number | null>(() => {
 </template>
 
 <style scoped>
-/* Sits in the header row: full row height, content-sized, capped by the inline
- * `max-width`. When the cap bites it becomes a definite-width flex item and
- * may shrink; the ResizeObserver turns the lost width into `»`. */
+/* Column header: fills the header width, full header height. */
 .dock-strip {
   display: flex;
   align-items: center;
   gap: 2px;
-  /* Content-sized by default: one tab must not reserve the whole cap. Under
-     pressure only the overflowing state may shrink (see --overflow). */
   flex: 0 0 auto;
   min-width: 0;
   height: 100%;
   padding: 0 4px;
   overflow: hidden;
-}
-.dock-strip--overflow {
-  flex-shrink: 1;
 }
 /* Drawer (tablet/phone): the strip is the same 32px band the panels used to
  * have, because there is no header row above the drawer to merge it into. */

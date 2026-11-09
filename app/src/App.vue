@@ -19,7 +19,15 @@ import TileRoot from './components/TileRoot.vue';
 import StatsPill from './components/StatsPill.vue';
 import SidebarDock from './components/sidebar/SidebarDock.vue';
 import { SIDEBAR_PANE_DEFS, type ImplementedSidebarPaneId, type SidebarPaneAvailabilityCtx } from './panes/sidebar-panes';
-import { dockPane, isDockPaneVisible, isPendingPane } from './lib/sidebar-dock';
+import {
+  dockActiveId,
+  dockPane,
+  effectiveDockWidth,
+  isDockPaneVisible,
+  isPendingPane,
+} from './lib/sidebar-dock';
+import { shellColumnWidths } from './lib/shell-columns';
+import { MAC_TRAFFIC_INSET, macTitleBar } from './lib/chrome';
 const TableEditor = defineAsyncComponent(() => import('./components/TableEditor.vue'));
 const FormulaEditor = defineAsyncComponent(() => import('./components/FormulaEditor.vue'));
 import { useAutoCommit } from './composables/useAutoCommit';
@@ -1846,6 +1854,73 @@ const rightDockPanes = computed(() => rightDockGroups.value.flatMap((group) => g
 /** A side mounts once it owns at least one real (non-reserved) pane. */
 const hasLeftDock = computed(() => leftDockPanes.value.length > 0);
 const hasRightDock = computed(() => rightDockPanes.value.length > 0);
+
+/**
+ * Three-column shell geometry. The docks and the editor are three flex items
+ * in one row; this is the only place that turns the measured window width plus
+ * the two stored dock widths into displayed widths. Each column owns its header
+ * (`SidebarDock` for the sides, `Toolbar` for the middle), so the header cannot
+ * drift from the body it belongs to.
+ */
+const shellEl = ref<HTMLElement | null>(null);
+const shellWidth = ref(typeof window === 'undefined' ? 0 : window.innerWidth);
+let shellObserver: ResizeObserver | null = null;
+
+const leftColumnVisible = computed(
+  () =>
+    hasLeftDock.value &&
+    !isNarrow.value &&
+    !isTabletOverlay.value &&
+    !settings.sidebarDock.collapsed.left,
+);
+const rightColumnVisible = computed(
+  () =>
+    hasRightDock.value &&
+    !isNarrow.value &&
+    !settings.sidebarDock.collapsed.right,
+);
+
+const leftNaturalWidth = computed(() =>
+  effectiveDockWidth(
+    settings.sidebarDock.width.left,
+    dockActiveId(leftDockGroups.value),
+  ),
+);
+const rightNaturalWidth = computed(() =>
+  effectiveDockWidth(
+    settings.sidebarDock.width.right,
+    dockActiveId(rightDockGroups.value),
+  ),
+);
+
+const columns = computed(() =>
+  shellColumnWidths({
+    shellWidth: shellWidth.value || window.innerWidth,
+    left: leftColumnVisible.value ? leftNaturalWidth.value : null,
+    right: rightColumnVisible.value ? rightNaturalWidth.value : null,
+  }),
+);
+
+/** macOS traffic lights float over the leftmost visible column's header. The
+ *  left column takes the 80px when it exists; otherwise the middle column does
+ *  (right is never leftmost — the editor column always exists). */
+const leftTrafficInset = computed(() =>
+  macTitleBar && leftColumnVisible.value ? MAC_TRAFFIC_INSET : 0,
+);
+const middleTrafficInset = computed(() => macTitleBar && !leftColumnVisible.value);
+
+onMounted(() => {
+  if (!shellEl.value || typeof ResizeObserver === 'undefined') return;
+  shellObserver = new ResizeObserver(() => {
+    shellWidth.value = shellEl.value?.clientWidth ?? 0;
+  });
+  shellObserver.observe(shellEl.value);
+  shellWidth.value = shellEl.value.clientWidth;
+});
+onBeforeUnmount(() => {
+  shellObserver?.disconnect();
+  shellObserver = null;
+});
 const renderableOn = (views: readonly { visible: boolean; available: boolean }[]) =>
   views.some((pane) => pane.visible && pane.available);
 
@@ -2143,7 +2218,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       @open-settings="openSettingsAt()"
       @open-help="helpOpen = true"
     />
-    <div v-show="settings.viewMode !== 'reading'" class="shell">
+    <div v-show="settings.viewMode !== 'reading'" ref="shellEl" class="shell">
         <!-- #168 — on a phone the side panes float over the editor instead of
              stealing its width; this catches the tap that dismisses them. -->
         <div
@@ -2170,12 +2245,26 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           <GlobalSearch v-else class="phone-search" :prefill="phoneSearchPrefill" @close="phone.show('home')" />
           <PhoneTabBar @open-settings="openSettingsAt()" />
         </div>
+        <!-- Left column: header (tab strip) + body, one aside. Width comes from
+             the same allocation the resize handle writes to. -->
+        <SidebarDock
+          v-if="leftColumnVisible"
+          class="shell__column"
+          side="left"
+          :width="columns.left"
+          :traffic-inset="leftTrafficInset"
+          :groups="leftDockGroups"
+          :outline-line="outlineLine"
+          @manage="openSidebarCtx"
+          @close-pane="onPaneClose"
+          @filter-tag="onFilterTag"
+          @outline-goto="onOutlineGoto"
+          @open-settings="(section?: string) => openSettingsAt(section)"
+          @open-quick-switcher="quickSwitcherOpen = true"
+        />
         <div v-show="!isNarrow || phone.view === 'editor'" class="main-col">
       <Toolbar
-        :left-dock-groups="leftDockGroups"
-        :right-dock-groups="rightDockGroups"
-        :dock-overlay="isTabletOverlay"
-        @manage-dock="openSidebarCtx"
+        :mac-inset="middleTrafficInset"
         @open-palette="paletteOpen = true"
         @open-settings="openSettingsAt()"
         @open-help="helpOpen = true"
@@ -2183,10 +2272,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       <TelemetryBanner />
       <div class="workspace">
         <SidebarDock
-          v-if="hasLeftDock && !isNarrow && !settings.sidebarDock.collapsed.left"
+          v-if="isTabletOverlay && !isNarrow && hasLeftDock && !settings.sidebarDock.collapsed.left"
           side="left"
           :groups="leftDockGroups"
-          :overlay="isNarrow || isTabletOverlay"
+          overlay
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
           @close-pane="onPaneClose"
@@ -2204,10 +2293,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           <StatsPill v-if="!basesOpen && !inboxViewOpen && !typeLensOpen && !viewPaneVisible" :line="cursorLine" :col="cursorCol" :selection-text="selectionText" />
         </div>
         <SidebarDock
-          v-if="hasRightDock && !settings.sidebarDock.collapsed.right"
+          v-if="isNarrow && hasRightDock && !settings.sidebarDock.collapsed.right"
           side="right"
           :groups="rightDockGroups"
-          :overlay="isNarrow"
+          overlay
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
           @close-pane="onPaneClose"
@@ -2218,6 +2307,22 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
         />
       </div>
         </div>
+        <!-- Right column: header (tab strip) + body, one aside. Same widths the
+             resize handle writes to. -->
+        <SidebarDock
+          v-if="rightColumnVisible"
+          class="shell__column"
+          side="right"
+          :width="columns.right"
+          :groups="rightDockGroups"
+          :outline-line="outlineLine"
+          @manage="openSidebarCtx"
+          @close-pane="onPaneClose"
+          @filter-tag="onFilterTag"
+          @outline-goto="onOutlineGoto"
+          @open-settings="(section?: string) => openSettingsAt(section)"
+          @open-quick-switcher="quickSwitcherOpen = true"
+        />
       </div>
       <!-- Grid editor for the table under the caret. The pane that found the
            table supplies the write-back closure, so this stays pane-agnostic. -->
@@ -2455,6 +2560,12 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   display: flex;
   min-height: 0;
   position: relative;
+}
+/* Three-column shell: the side asides own their exact width (the allocator
+ * already accounts for the middle minimum), so they must not flex; the middle
+ * column absorbs everything left over. */
+.shell__column {
+  flex: 0 0 auto;
 }
 .layout-debug {
   position: fixed;

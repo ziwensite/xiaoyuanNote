@@ -1,12 +1,11 @@
 /**
- * Geometry for the dock tab strip that now lives in the top chrome row.
+ * Geometry for the dock tab strip in a column header (and the tablet drawer).
  *
- * The strip used to sit inside each panel (`SidebarDock.vue`), so it could
- * overflow horizontally into its own `overflow: hidden` and simply hide tabs.
- * In the top row there is no such spare room: a hidden tab is an unreachable
- * pane, and letting the strip grow would push the inline search box and the
- * window caption buttons around. Hence a hard width cap per side plus a
- * `»` list for whatever does not fit.
+ * Each dock column owns its header, so the strip fills the column's content
+ * width. The column is a real flex item: when it gets narrower, the strip gets
+ * narrower in the same frame and `dockStripLayout` decides how many tabs still
+ * fit. Anything that does not fit moves into the `»` list — never a squeezed
+ * icon, never an unreachable pane.
  *
  * All numbers are the fixed sizes from the tab component. They are exported so
  * the component's CSS and this fit math cannot drift apart — and so the rules
@@ -23,28 +22,6 @@ export const DOCK_STRIP_PAD = 8;
 export const DOCK_ADD_W = DOCK_TAB_SIZE;
 /** Width of the `»` overflow trigger. */
 export const DOCK_OVERFLOW_W = DOCK_TAB_SIZE;
-
-/**
- * Share of the window width one side's strip may claim.
- *
- * Two strips can therefore never take more than half the row, which leaves the
- * inline search, the editor tab strip and the caption buttons a computable
- * minimum at every window width. 25% at 1440px is 360px — still above
- * `MAX_DOCK_WIDTH` (560), so the panel width only binds below ~1440px, which
- * is exactly where the cap should apply.
- */
-export const DOCK_STRIP_VIEWPORT_SHARE = 0.25;
-
-/**
- * Width cap for one side's strip: the panel it controls, but never more than
- * 25% of the window.
- */
-export function dockStripCap(dockWidth: number, viewportWidth: number): number {
-  const share = Math.round(viewportWidth * DOCK_STRIP_VIEWPORT_SHARE);
-  const cap = Math.min(dockWidth, share);
-  // Even when the row is tiny the strip must still be able to show `»` and `+`.
-  return Math.max(cap, DOCK_STRIP_PAD + DOCK_ADD_W + DOCK_OVERFLOW_W + DOCK_TAB_GAP);
-}
 
 export interface DockStripLayout {
   /** Tabs rendered in the strip (the rest move into the `»` list). */

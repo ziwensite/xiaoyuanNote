@@ -7,7 +7,6 @@ import {
   DOCK_STRIP_PAD,
   DOCK_TAB_GAP,
   DOCK_TAB_SIZE,
-  dockStripCap,
   dockStripLayout,
   tabsWidth,
 } from './dock-strip-fit.ts';
@@ -19,20 +18,6 @@ test('tabsWidth is zero for an empty strip', () => {
 test('tabsWidth counts one gap between tabs, not after the last one', () => {
   assert.equal(tabsWidth(1), DOCK_TAB_SIZE);
   assert.equal(tabsWidth(3), DOCK_TAB_SIZE * 3 + DOCK_TAB_GAP * 2);
-});
-
-test('dockStripCap uses the dock width when that is the tighter bound', () => {
-  assert.equal(dockStripCap(212, 1440), 212);
-  assert.equal(dockStripCap(292, 1024), 256); // 25% of 1024
-  assert.equal(dockStripCap(560, 2000), 500);
-});
-
-test('dockStripCap never falls below the room `»` + `+` need', () => {
-  // 25% of 200 would be 50px, below the 62px floor.
-  assert.equal(
-    dockStripCap(212, 200),
-    DOCK_STRIP_PAD + DOCK_ADD_W + DOCK_OVERFLOW_W + DOCK_TAB_GAP,
-  );
 });
 
 test('dockStripLayout renders all tabs when they fit with the `+`', () => {

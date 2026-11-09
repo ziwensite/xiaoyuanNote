@@ -476,6 +476,37 @@ export function resolveGroupActive(
   return renderable[0] ?? null;
 }
 
+/** Agent chat needs real estate; used when the user has not chosen a wider-than-
+ *  default width themselves. Never written back to the store. */
+export const AGENT_DOCK_WIDTH = 472;
+
+/** Active pane of a side's first renderable region. App.vue uses this to size
+ *  the column before any component mounts. */
+export function dockActiveId(
+  groups: readonly DockGroupView[],
+): ImplementedSidebarPaneId | null {
+  for (const group of groups) {
+    const renderable = group.panes
+      .filter((pane) => pane.visible && pane.available)
+      .map((pane) => pane.id);
+    if (renderable.length === 0) continue;
+    if (group.active && renderable.includes(group.active)) return group.active;
+    return renderable[0];
+  }
+  return null;
+}
+
+/** Displayed dock width: stored width, widened for Agent but only when the user
+ *  has not already picked something wider than the default. */
+export function effectiveDockWidth(
+  storedWidth: number,
+  activeId: ImplementedSidebarPaneId | null,
+): number {
+  return activeId === 'agent' && storedWidth <= DEFAULT_DOCK_WIDTH
+    ? AGENT_DOCK_WIDTH
+    : storedWidth;
+}
+
 /** Next activation after hiding `id`: scan forward then backward in its group. */
 export function nextActiveAfterHide(
   state: SidebarDockState,

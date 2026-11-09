@@ -1,33 +1,31 @@
 <script setup lang="ts">
 /**
- * The dock body: one or more stacked regions, each with one active pane.
+ * One dock COLUMN: a 52px header (the icon tab strip) plus the body, or the
+ * floating drawer on a tablet/phone.
  *
- * Stage 1 — the 32px rail is gone and the icon tab strip moved OUT of the
- * panel. On desktop it is rendered by `DockTabStrip.vue` inside the editor
- * toolbar row (Toolbar.vue), above the panel it controls. What is left here is
- * the body plus the resize handle.
+ * In the three-column shell this `<aside>` is the column. Its width comes from
+ * App (`shellColumnWidths`), and the header is its first child — so the strip
+ * and the body below it are the same element's width by construction. There is
+ * no second width number to keep in sync, and a live resize changes both at
+ * once.
  *
- * The one exception is the drawer (phone narrow / iPad portrait overlay):
- * there is no header row above a floating drawer, so the drawer keeps the
- * in-panel strip. That also keeps the tablets' pane switching reachable.
+ * The drawer (phone narrow / iPad portrait overlay) has no column header above
+ * it, so it keeps the in-panel 32px strip.
  *
  * Tabs drag within a side and across the two sides via Pointer Events
  * (HTML5 DnD is unusable here: Tauri's native file-drop swallows it).
  * `files` is pinned first on the left and never a drag source; drops before
  * it are clamped to after it.
- *
- * Stage 2 will create more than one group per side; this component already
- * renders `groups[]`, and each drawer group gets its own strip.
  */
 import { computed } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
 import {
-  DEFAULT_DOCK_WIDTH,
   type DockGroupView,
   type SidebarDockState,
   type SidebarSide,
 } from '../../lib/sidebar-dock';
 import { dockDrag } from '../../lib/dock-drag';
+import { dragWindowFromChrome, toggleMaximizeFromChrome } from '../../lib/window-drag';
 import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
 import DockTabStrip from './DockTabStrip.vue';
 import SidebarPaneBody from './SidebarPaneBody.vue';
@@ -37,6 +35,10 @@ const props = defineProps<{
   groups: readonly DockGroupView[];
   /** Narrow-screen drawer: App's CSS owns the width/position. */
   overlay?: boolean;
+  /** Displayed column width (already clamped by `shellColumnWidths`). */
+  width?: number;
+  /** macOS traffic-light inset on the leftmost visible column's header. */
+  trafficInset?: number;
   outlineLine: number;
 }>();
 
@@ -68,21 +70,21 @@ const storedWidth = computed(
   () => (settings.sidebarDock as SidebarDockState).width[props.side],
 );
 
-/** Agent chat needs real estate; only widen when the user has not chosen a
- *  wider-than-default width themselves. Never written back to the store. */
-const dockWidth = computed(() => {
-  const base = storedWidth.value;
-  const active = props.groups[0] ? activeOf(props.groups[0]) : null;
-  return active === 'agent' && base <= DEFAULT_DOCK_WIDTH ? 472 : base;
-});
+/** App passes the allocated width; the stored value is only a fallback for
+ *  tests/mounts that do not (e.g. a drawer never resizes). */
+const displayWidth = computed(() => props.width ?? storedWidth.value);
 
 const dockStyle = computed(() =>
   props.overlay
     ? undefined
     : {
-        width: `min(${dockWidth.value}px, 45vw)`,
-        flexBasis: `min(${dockWidth.value}px, 45vw)`,
+        width: `${displayWidth.value}px`,
+        flexBasis: `${displayWidth.value}px`,
       },
+);
+
+const headerStyle = computed(() =>
+  props.trafficInset ? { paddingLeft: `${props.trafficInset}px` } : undefined,
 );
 
 const isDropHost = computed(
@@ -92,7 +94,9 @@ const isDropHost = computed(
 function onSidebarResize(ev: MouseEvent) {
   ev.preventDefault();
   const startX = ev.clientX;
-  const startW = dockWidth.value;
+  // Start from the displayed (possibly window-clamped) width, so the first
+  // pixel of the drag never jumps.
+  const startW = displayWidth.value;
   const onMove = (m: MouseEvent) => {
     const dx = m.clientX - startX;
     // Right dock: drag left = wider. Left dock: drag right = wider.
@@ -129,13 +133,26 @@ function onSidebarResize(ev: MouseEvent) {
       @mousedown="onSidebarResize"
     />
 
-    <!-- Desktop: the strip lives in the header row (Toolbar.vue). Drawer: there
-         is no row above the floating panel, so it keeps the in-panel strip. -->
+    <!-- Column header: belongs to this column, same `<aside>` width as the
+         body. Drawer: no row above the floating panel, so it keeps the
+         in-panel strip. -->
+    <div
+      v-if="!props.overlay"
+      class="side-sidebar__header"
+      :style="headerStyle"
+      @mousedown.capture="dragWindowFromChrome($event)"
+      @dblclick="toggleMaximizeFromChrome($event)"
+    >
+      <DockTabStrip
+        :side="props.side"
+        :groups="props.groups"
+        @manage="emit('manage', $event)"
+      />
+    </div>
     <DockTabStrip
-      v-if="props.overlay"
+      v-else
       :side="props.side"
       :groups="props.groups"
-      :dock-width="320"
       :max-width="320"
       drawer
       @manage="emit('manage', $event)"
@@ -169,8 +186,20 @@ function onSidebarResize(ev: MouseEvent) {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 200px;
+  /* The three-column allocator can go below the stored 212 minimum on very
+   * narrow windows; do not reintroduce a wider CSS floor here. */
+  min-width: 0;
   background: var(--bg);
+}
+/* The column's own header, exactly as tall as the editor header next to it. */
+.side-sidebar__header {
+  flex: 0 0 var(--header-h);
+  height: var(--header-h);
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  border-bottom: var(--bd-hair);
+  overflow: hidden;
 }
 .side-sidebar--left {
   border-right: var(--bd-hair);
