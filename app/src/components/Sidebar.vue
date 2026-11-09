@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <div class="sb__search-wrap">
+    <div v-if="!embedded" class="sb__search-wrap">
       <button class="sb__search" type="button" @click="emit('open-quick-switcher')">
         <Icon name="search" :size="14" class="sb__search-icon" />
         <span class="sb__search-ph">{{ t('sidebar.search') }}</span>

@@ -178,6 +178,8 @@ export const pt: I18n = {
     openExternal: "Abrir no app padrão",
     share: "Compartilhar",
     noRecent: "Nenhum arquivo recente",
+    searchLabel: "Pesquisar notas",
+    searchClear: "Limpar pesquisa",
   },
   toolbar: {
     leftSidebarTooltip: 'Alternar barra lateral principal — Arquivos',

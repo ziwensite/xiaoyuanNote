@@ -176,6 +176,8 @@ export const nl: I18n = {
     openExternal: "Openen met standaardapp",
     share: "Delen",
     noRecent: "Geen recente bestanden",
+    searchLabel: "Notities zoeken",
+    searchClear: "Zoekopdracht wissen",
   },
   toolbar: {
     leftSidebarTooltip: 'Hoofdzijbalk wisselen — Bestanden',

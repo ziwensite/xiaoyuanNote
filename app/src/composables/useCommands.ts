@@ -276,6 +276,13 @@ export function useCommands(): Command[] {
     },
 
     {
+      id: 'search.semantic',
+      title: 'Search Notes by Meaning…',
+      hint: 'Semantic (RAG) search over the vault index — requires AI settings',
+      run: () => window.dispatchEvent(new CustomEvent('solomd:open-rag-search')),
+    },
+
+    {
       id: 'theme.customCss',
       title: 'Theme: Set Custom CSS File…',
       hint: 'Pick a .css file to override SoloMD styles',

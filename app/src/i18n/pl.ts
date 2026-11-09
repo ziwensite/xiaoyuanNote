@@ -176,6 +176,8 @@ export const pl: I18n = {
     openExternal: "Otwórz w domyślnej aplikacji",
     share: "Udostępnij",
     noRecent: "Brak ostatnich plików",
+    searchLabel: "Szukaj notatek",
+    searchClear: "Wyczyść wyszukiwanie",
   },
   toolbar: {
     leftSidebarTooltip: 'Przełącz pasek boczny główny — Pliki',

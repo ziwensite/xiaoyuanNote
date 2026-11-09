@@ -40,7 +40,7 @@ import SidebarPaneBody from './SidebarPaneBody.vue';
 
 export interface SidebarDockPaneView {
   id: ImplementedSidebarPaneId;
-  /** User asked for it (dock switch, tab.showOutline, session search). */
+  /** User asked for it (dock switch, tab.showOutline, session-only panes). */
   visible: boolean;
   /** Current context can draw it (markdown / folder / autoGit / build). */
   available: boolean;
@@ -57,7 +57,6 @@ const props = defineProps<{
   groups: readonly SidebarDockGroupView[];
   /** Narrow-screen drawer: App's CSS owns the width/position. */
   overlay?: boolean;
-  searchPrefill?: string;
   outlineLine: number;
 }>();
 
@@ -326,7 +325,6 @@ function dropIndexFor(groupIndex: number, group: SidebarDockGroupView): number |
       <div v-if="activeOf(group)" class="rs-pane-host" :data-rs-pane="activeOf(group)">
         <SidebarPaneBody
           :id="activeOf(group) as ImplementedSidebarPaneId"
-          :search-prefill="props.searchPrefill"
           :outline-line="props.outlineLine"
           @close="emit('closePane', activeOf(group) as ImplementedSidebarPaneId)"
           @filter-tag="(tag: string) => emit('filterTag', tag)"

@@ -21,8 +21,6 @@ interface Hooks {
   openSettings?: () => void;
   openHelp?: () => void;
   openGlobalSearch?: () => void;
-  /** v2.3: open the RAG / semantic-search panel. */
-  openRagSearch?: () => void;
   /** v2.5: open the VSCode-style ⌘P quick file switcher. */
   openQuickSwitcher?: () => void;
   /** v2.5 F6: open the CJK proofread panel (⌘⇧J — J for "句"/sentence). */
@@ -195,12 +193,10 @@ export function useShortcuts(hooks: Hooks = {}) {
 
     'palette.open': () => hooks.openPalette?.(),
     'quickSwitcher.open': () => hooks.openQuickSwitcher?.(),
-    // Prefers semantic search when the user has opted in; otherwise keeps the
-    // keyword search so muscle memory carries over.
-    'search.global': () => {
-      if (settings.ragEnabled) hooks.openRagSearch?.();
-      else hooks.openGlobalSearch?.();
-    },
+    // ⌘⇧F only focuses the top search box — it never opens the right-dock
+    // search pane (that pane no longer exists). Semantic / RAG search has its
+    // own command, `search.semantic`, so the two never race for one chord.
+    'search.global': () => hooks.openGlobalSearch?.(),
     // Only the preview pane needs our own find; anywhere else the event must
     // fall through to CodeMirror's.
     'editor.find': () => {

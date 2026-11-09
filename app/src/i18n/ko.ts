@@ -176,6 +176,8 @@ export const ko: I18n = {
     openExternal: "기본 앱으로 열기",
     share: "공유",
     noRecent: "최근 파일 없음",
+    searchLabel: "노트 검색",
+    searchClear: "검색 지우기",
   },
   toolbar: {
     leftSidebarTooltip: '기본 사이드바 전환(파일)',

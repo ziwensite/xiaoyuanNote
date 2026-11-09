@@ -177,6 +177,8 @@ export const zh: I18n = {
     openExternal: "用默认应用打开",
     share: "分享",
     noRecent: "没有最近文件",
+    searchLabel: "搜索笔记",
+    searchClear: "清除搜索",
   },
   toolbar: {
     leftSidebarTooltip: '切换主侧栏（文件）',

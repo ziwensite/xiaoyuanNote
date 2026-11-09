@@ -176,6 +176,8 @@ export const tr: I18n = {
     openExternal: "Varsayılan uygulamada aç",
     share: "Paylaş",
     noRecent: "Son dosya yok",
+    searchLabel: "Notları ara",
+    searchClear: "Aramayı temizle",
   },
   toolbar: {
     leftSidebarTooltip: 'Ana kenar çubuğunu aç/kapat — Dosyalar',

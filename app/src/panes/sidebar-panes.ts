@@ -23,7 +23,6 @@
 
 export type SidebarPaneId =
   | 'files'
-  | 'search'
   | 'outline'
   | 'backlinks'
   | 'relationships'
@@ -93,15 +92,6 @@ export const SIDEBAR_PANE_DEFS: readonly SidebarPaneDef[] = [
     defaultVisible: true,
     icon: 'folder',
     titleKey: 'rsPane.files',
-    available: () => true,
-  },
-  {
-    id: 'search',
-    visibility: 'session',
-    defaultSide: 'right',
-    defaultVisible: false,
-    icon: 'search',
-    titleKey: 'rsPane.search',
     available: () => true,
   },
   {

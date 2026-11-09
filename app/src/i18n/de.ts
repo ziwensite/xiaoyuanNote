@@ -176,6 +176,8 @@ export const de: I18n = {
     openExternal: "Mit Standard-App öffnen",
     share: "Teilen",
     noRecent: "Keine zuletzt geöffneten Dateien",
+    searchLabel: "Notizen durchsuchen",
+    searchClear: "Suche löschen",
   },
   toolbar: {
     leftSidebarTooltip: 'Primäre Seitenleiste umschalten — Dateien',

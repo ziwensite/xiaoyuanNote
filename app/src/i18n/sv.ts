@@ -176,6 +176,8 @@ export const sv: I18n = {
     openExternal: "Öppna i standardappen",
     share: "Dela",
     noRecent: "Inga senaste filer",
+    searchLabel: "Sök anteckningar",
+    searchClear: "Rensa sökning",
   },
   toolbar: {
     leftSidebarTooltip: 'Växla primär sidopanel — Filer',

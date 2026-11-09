@@ -176,6 +176,8 @@ export const ru: I18n = {
     openExternal: "Открыть в приложении по умолчанию",
     share: "Поделиться",
     noRecent: "Нет недавних файлов",
+    searchLabel: "Поиск заметок",
+    searchClear: "Очистить поиск",
   },
   toolbar: {
     leftSidebarTooltip: 'Переключить основную боковую панель — Файлы',

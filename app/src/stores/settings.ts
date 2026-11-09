@@ -505,7 +505,7 @@ interface Settings {
   // `3.14 …` also matches), so CJK-report users opt in.
   markdownAutoNumberHeadings: boolean;
   // v4.3.0: user-customisable order of the right-sidebar panes. Each entry
-  // is a pane id (search / outline / backlinks / tags / history / agent).
+  // is a pane id (outline / backlinks / tags / history / agent).
   // Default matches the pre-v4.3.0 hardcoded order. Panes not in the list
   // (newly added in a future release) get appended to the end so the user's
   // saved layout isn't blown away by a SoloMD update. Issue #57b.
@@ -861,7 +861,7 @@ function defaults(): Settings {
     smartQuotesOptInMigrated: true,
     pdfPageSizeAutoMigrated: true,
     markdownAutoNumberHeadings: false,
-    rsPaneOrder: ['search', 'outline', 'backlinks', 'relationships', 'tags', 'tasks', 'neighborhood', 'types', 'history', 'inspector', 'agent'],
+    rsPaneOrder: ['outline', 'backlinks', 'relationships', 'tags', 'tasks', 'neighborhood', 'types', 'history', 'inspector', 'agent'],
     previewFontSize: 16,
     attachmentMode: 'shared',
     defaultExportDir: '',
@@ -1466,8 +1466,8 @@ export const useSettingsStore = defineStore('settings', {
       this.syncLegacySwitches();
       this.persist();
     },
-    /** Stage 1 — a pane switched on outside the dock actions (⌘⇧F search,
-     *  View → Outline, tag click, AI auto-open) must become the tab its region
+    /** Stage 1 — a pane switched on outside the dock actions (View → Outline,
+     *  tag click, AI auto-open) must become the tab its region
      *  draws. Callers own the pane's own `visible` source, so this only moves
      *  the region's active tab and expands the side it lives on. */
     focusDockPane(id: SidebarPaneId) {

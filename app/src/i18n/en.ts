@@ -176,6 +176,8 @@
     openExternal: "Open in default app",
     share: "Share",
     noRecent: "No recent files",
+    searchLabel: "Search notes",
+    searchClear: "Clear search",
   },
   toolbar: {
     leftSidebarTooltip: 'Toggle primary sidebar — Files',

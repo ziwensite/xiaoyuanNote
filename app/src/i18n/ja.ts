@@ -176,6 +176,8 @@ export const ja: I18n = {
     openExternal: "既定のアプリで開く",
     share: "共有",
     noRecent: "最近のファイルはありません",
+    searchLabel: "ノートを検索",
+    searchClear: "検索をクリア",
   },
   toolbar: {
     leftSidebarTooltip: 'メインサイドバーを切り替え（ファイル）',

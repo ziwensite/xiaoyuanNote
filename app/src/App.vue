@@ -83,6 +83,7 @@ import { IS_APP_STORE_BUILD } from './lib/app-build';
 import { runWhenIdle } from './lib/idle';
 import { MERMAID_INSERT_SNIPPET } from './lib/insert-snippet';
 import { focusActiveEditorSoon } from './lib/editor-focus';
+import { requestHeaderSearch } from './lib/header-search';
 const UiPreview = defineAsyncComponent(() => import('./components/UiPreview.vue'));
 
 /* v4.6 dev-only UI gallery. `?uikit` renders ONLY the design-system preview
@@ -218,11 +219,11 @@ function openHelpAt(tab: 'syntax' | 'shortcuts' | 'cli' = 'syntax') {
   helpTab.value = tab;
   helpOpen.value = true;
 }
-const searchOpen = ref(false);
-// v4.0.2 — search is now a sidebar pane (PR #50 by @beihai23). Tag clicks
-// from TagsPanel prefill `#tag` into the search box; the watcher in
-// GlobalSearch refocuses on every prefill change.
-const searchPrefill = ref<string | undefined>(undefined);
+// 5.0 — the inline search box in the title row is the only global-search
+// entry point. This ref is the phone shell's full-screen search screen only
+// (tag clicks from the phone home prefill it); desktop tag clicks go to the
+// header box through `requestHeaderSearch`.
+const phoneSearchPrefill = ref<string | undefined>(undefined);
 
 // v4.3.0 PR #75 (beihai23) — right-click context menu on the sidebar gives
 // quick access to per-pane visibility toggles. Toggling off the last
@@ -241,35 +242,6 @@ function closeSidebarCtx() { sidebarCtx.value = null; }
 function ctxToggle(toggleFn: () => void) {
   toggleFn();
   closeSidebarCtx();
-}
-
-/**
- * #209 — every way of opening the search pane has to go through `ctxToggle`,
- * never a bare `searchOpen` flip.
- *
- * `showRightSidebar` lets the persisted `rightSidebarHidden` master toggle win
- * over the individual panes, so once the user has dismissed the strip (toolbar
- * ×, ⌥⌘B, palette) flipping `searchOpen` renders nothing at all: ⌘⇧F, the
- * toolbar button and View → Search in Folder each looked completely dead, and
- * pressing again silently flipped the flag back off. The other panes never hit
- * this because they were already routed through `ctxToggle`, which un-hides the
- * strip when a toggle turns a pane on.
- */
-function toggleGlobalSearch() {
-  ctxToggle(() => {
-    searchOpen.value = !searchOpen.value;
-    // S2 — the dock draws one pane per side, so switching search on has to
-    // make it the active tab (and expand its side) or nothing appears.
-    if (searchOpen.value) settings.focusDockPane('search');
-  });
-}
-
-/** As above, but for callers that mean "show it", not "flip it". */
-function openGlobalSearchPane() {
-  ctxToggle(() => {
-    searchOpen.value = true;
-    settings.focusDockPane('search');
-  });
 }
 
 const ragSearchOpen = ref(false);
@@ -385,8 +357,7 @@ const shortcuts = useShortcuts({
   openPalette: () => (paletteOpen.value = true),
   openSettings: () => (settingsOpen.value = true),
   openHelp: () => openHelpAt('syntax'),
-  openGlobalSearch: () => toggleGlobalSearch(),
-  openRagSearch: () => (ragSearchOpen.value = true),
+  openGlobalSearch: () => requestHeaderSearch(),
   openQuickSwitcher: () => (quickSwitcherOpen.value = true),
   openCjkProofread: () => (cjkProofreadOpen.value = true),
 });
@@ -459,7 +430,6 @@ function onEsc(e: KeyboardEvent) {
   else if (cjkProofreadOpen.value) cjkProofreadOpen.value = false;
   else if (ragSearchOpen.value) ragSearchOpen.value = false;
   else if (fileChangedOpen.value) fileChangedOpen.value = false;
-  else if (searchOpen.value) searchOpen.value = false;
   else if (helpOpen.value) helpOpen.value = false;
   else if (quickSwitcherOpen.value) quickSwitcherOpen.value = false;
   else if (paletteOpen.value) paletteOpen.value = false;
@@ -543,10 +513,10 @@ watch(
 const applyWindowTitle = async (name?: string) => {
   const title = name ? `${name} — SoloMD` : 'SoloMD';
   document.title = title;
-  // macOS uses `titleBarStyle: "Overlay"` + `hiddenTitle: true` — the
-  // document name is shown in the in-app toolbar (SoloMD mark + filename).
-  // Calling setTitle() here would un-hide the native macOS title bar text,
-  // which overlaps and obscures the in-app toolbar's document name.
+  // macOS uses `titleBarStyle: "Overlay"` + `hiddenTitle: true` — the in-app
+  // header owns that strip (top row = the inline search box; the document
+  // name lives in the tab, not the header). Calling setTitle() here would
+  // un-hide the native macOS title bar text, which overlaps the in-app header.
   // Skip the native call on macOS; document.title above is enough for
   // taskbar / mission-control / window-switcher labels.
   if (isMacOS()) return;
@@ -888,29 +858,29 @@ watch(
 function onOpenHelpEvent() {
   openHelpAt('syntax');
 }
+/** Command palette / View › Search in Folder — the one event every menu path
+ *  already dispatches; all of them land on the header search box. */
 function onOpenSearchEvent() {
-  toggleGlobalSearch();
+  requestHeaderSearch();
+}
+function onOpenRagSearchEvent() {
+  ragSearchOpen.value = true;
 }
 function onOpenCjkProofreadEvent() {
   cjkProofreadOpen.value = true;
 }
 
-// TagsPanel emits `filter-tag` when the user clicks a tag — open the search
-// pane and prefill `#tag`. If the same tag is clicked while search is
-// already open, clear/reset the prefill ref to retrigger the watcher.
+// TagsPanel emits `filter-tag` when the user clicks a tag — on desktop the
+// `#tag` goes into the header search box; on a phone it prefills the
+// full-screen search screen (the header box is not rendered when narrow).
 function onFilterTag(tag: string) {
-  const newPrefill = `#${tag}`;
-  if (searchOpen.value && searchPrefill.value === newPrefill) {
-    searchPrefill.value = undefined;
-    nextTick(() => {
-      searchPrefill.value = newPrefill;
-    });
+  const term = `#${tag}`;
+  if (isNarrow.value) {
+    phoneSearchPrefill.value = term;
+    phone.show('search');
   } else {
-    searchPrefill.value = newPrefill;
+    requestHeaderSearch(term);
   }
-  // #209 — same hidden-sidebar trap: clicking a tag has to un-hide the strip,
-  // otherwise the prefill lands in a pane nobody can see.
-  openGlobalSearchPane();
 }
 
 let unlistenOpened: UnlistenFn | null = null;
@@ -1376,6 +1346,7 @@ onMounted(async () => {
   window.addEventListener('focus', onWindowFocus);
   window.addEventListener('solomd:open-help', onOpenHelpEvent as EventListener);
   window.addEventListener('solomd:open-global-search', onOpenSearchEvent as EventListener);
+  window.addEventListener('solomd:open-rag-search', onOpenRagSearchEvent as EventListener);
   window.addEventListener('solomd:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
 
   track('app_launched', {
@@ -1780,6 +1751,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('focus', onWindowFocus);
   window.removeEventListener('solomd:open-help', onOpenHelpEvent as EventListener);
   window.removeEventListener('solomd:open-global-search', onOpenSearchEvent as EventListener);
+  window.removeEventListener('solomd:open-rag-search', onOpenRagSearchEvent as EventListener);
   window.removeEventListener('solomd:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
   window.removeEventListener('solomd:wiki-open', onWikiOpen as EventListener);
   window.removeEventListener('solomd:ai-rewrite-accept', onAIRewriteAccept as EventListener);
@@ -1822,10 +1794,9 @@ const paneAvailabilityCtx = computed<SidebarPaneAvailabilityCtx>(() => ({
   appStoreBuild: IS_APP_STORE_BUILD,
 }));
 
-/** User-facing on/off. `outline` is per tab, `search` is per session. */
+/** User-facing on/off. `outline` is per tab; every other pane is a dock switch. */
 const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() => ({
   files: true,
-  search: searchOpen.value,
   outline: !!tabs.activeTab?.showOutline,
   backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),
   relationships: isDockPaneVisible(settings.sidebarDock, 'relationships'),
@@ -1936,7 +1907,7 @@ watch(isNarrow, (narrow, wasNarrow) => {
         settings.toggleFileTree();
       }
     } else if (phone.view === 'search') {
-      openGlobalSearchPane();
+      requestHeaderSearch();
     }
   } else if (!wasNarrow && narrow) {
     // Folded (inner → outer display):
@@ -2086,13 +2057,11 @@ watch(
   { deep: true },
 );
 
-// Pane × buttons. Search is session-only, Outline is per tab; other panes
-// just switch their dock entry off. Collapse a side once it has nothing left
-// to draw (the rail stays as the way back in).
+// Pane × buttons. Outline is per tab; other panes just switch their dock
+// entry off. Collapse a side once it has nothing left to draw (the top-row
+// toggle stays as the way back in).
 function onPaneClose(id: ImplementedSidebarPaneId) {
-  if (id === 'search') {
-    searchOpen.value = false;
-  } else if (id === 'outline') {
+  if (id === 'outline') {
     const tab = tabs.activeTab;
     if (tab) tabs.toggleOutline(tab.id);
   } else {
@@ -2173,7 +2142,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       @open-palette="paletteOpen = true"
       @open-settings="openSettingsAt()"
       @open-help="helpOpen = true"
-      @open-search="toggleGlobalSearch()"
     />
     <div v-show="settings.viewMode !== 'reading'" class="shell">
         <!-- #168 — on a phone the side panes float over the editor instead of
@@ -2197,9 +2165,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
             variant="phone"
             @open-settings="openSettingsAt()"
             @open-quick-switcher="quickSwitcherOpen = true"
-            @filter-tag="(tag: string) => { searchPrefill = `#${tag}`; phone.show('search'); }"
+            @filter-tag="(tag: string) => { phoneSearchPrefill = `#${tag}`; phone.show('search'); }"
           />
-          <GlobalSearch v-else class="phone-search" :prefill="searchPrefill" @close="phone.show('home')" />
+          <GlobalSearch v-else class="phone-search" :prefill="phoneSearchPrefill" @close="phone.show('home')" />
           <PhoneTabBar @open-settings="openSettingsAt()" />
         </div>
         <div v-show="!isNarrow || phone.view === 'editor'" class="main-col">
@@ -2207,7 +2175,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
         @open-palette="paletteOpen = true"
         @open-settings="openSettingsAt()"
         @open-help="helpOpen = true"
-        @open-search="toggleGlobalSearch()"
       />
       <TelemetryBanner />
       <div class="workspace">
@@ -2216,7 +2183,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           side="left"
           :groups="leftDockGroups"
           :overlay="isNarrow || isTabletOverlay"
-          :search-prefill="searchPrefill"
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
           @close-pane="onPaneClose"
@@ -2238,7 +2204,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           side="right"
           :groups="rightDockGroups"
           :overlay="isNarrow"
-          :search-prefill="searchPrefill"
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
           @close-pane="onPaneClose"
@@ -2276,10 +2241,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           :style="{ left: sidebarCtx.x + 'px', top: sidebarCtx.y + 'px' }"
           @click.stop
         >
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { searchOpen = !searchOpen; if (searchOpen) settings.focusDockPane('search') })">
-            <span class="sidebar-ctx__check">{{ searchOpen ? '✓' : '' }}</span>
-            {{ t('rsPane.search') }}
-          </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { if (tabs.activeTab) tabs.toggleOutline(tabs.activeTab.id) })">
             <span class="sidebar-ctx__check">{{ dockPaneVisible.outline ? '✓' : '' }}</span>
             {{ t('rsPane.outline') }}

@@ -4,15 +4,14 @@ import { useViewport } from '../composables/useViewport';
 // can report a fine pointer, so the CSS coarse-pointer rule alone missed it).
 const { isNarrow } = useViewport();
 /**
- * Global workspace search — persistent right-sidebar pane (v4.0.2).
+ * Global workspace search — the phone shell's full-screen search screen.
  *
- * Earlier versions opened as a modal dialog over the editor. The persistent
- * panel layout — contributed by @beihai23 in PR #50 — keeps results visible
- * while the user clicks through matches, which fits the search-browse-compare
- * workflow common in knowledge-base editing.
+ * Earlier versions opened as a modal dialog over the editor, then as a
+ * persistent right-sidebar pane (PR #50 by @beihai23). Desktop search now
+ * lives in the title-row inline box (HeaderSearchBox.vue); this component is
+ * rendered only for the phone view (`phone.view === 'search'`).
  *
- * Mounts when the parent renders the 'search' pane in the rs-pane-host stack;
- * unmounts on close. ⌘⇧F toggles the parent's `searchOpen` ref.
+ * Mounts when the phone screen renders it; unmounts on close.
  */
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useGlobalSearch, type SearchHit } from '../composables/useGlobalSearch';

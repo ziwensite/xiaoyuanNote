@@ -10,7 +10,6 @@
  */
 import { defineAsyncComponent } from 'vue';
 import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
-import GlobalSearch from '../GlobalSearch.vue';
 import Outline from '../Outline.vue';
 import BacklinksPanel from '../BacklinksPanel.vue';
 import Sidebar from '../Sidebar.vue';
@@ -28,7 +27,6 @@ const CalendarPanel = defineAsyncComponent(() => import('../CalendarPanel.vue'))
 
 const props = defineProps<{
   id: ImplementedSidebarPaneId;
-  searchPrefill?: string;
   outlineLine: number;
 }>();
 
@@ -48,11 +46,6 @@ const emit = defineEmits<{
     @open-settings="emit('openSettings')"
     @open-quick-switcher="emit('openQuickSwitcher')"
     @filter-tag="(tag: string) => emit('filterTag', tag)"
-  />
-  <GlobalSearch
-    v-if="props.id === 'search'"
-    :prefill="props.searchPrefill"
-    @close="emit('close')"
   />
   <Outline v-if="props.id === 'outline'" :cursor-line="props.outlineLine" @goto="(line: number) => emit('outlineGoto', line)" />
   <BacklinksPanel v-if="props.id === 'backlinks'" @close="emit('close')" />

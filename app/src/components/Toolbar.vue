@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Icon from './Icons.vue';
 import BrandMark from './BrandMark.vue';
+import HeaderSearchBox from './HeaderSearchBox.vue';
 import PomodoroPopover from './PomodoroPopover.vue';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
@@ -26,7 +27,6 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { isIOS, isMobile, isWindowsDesktop, usesCommandKey } from '../lib/platform';
 import { macTitleBar, winTitleBar, customTitleBar, MAC_TRAFFIC_INSET } from '../lib/chrome';
-import { paneDef } from '../lib/sidebar-dock';
 import { shouldFoldViewModes } from '../lib/header-segments';
 import { displayTabTitle } from '../lib/tab-title';
 
@@ -41,9 +41,11 @@ const { t } = useI18n();
  * 5.0 (docs/v5-ui-spec.md §3). One component, two placements:
  *  - `header` (default): the 52px row over the editor — sidebar button when
  *    the sidebar is hidden, the tabs (PaneHost teleports a single pane's tab
- *    strip into `#header-tabs`), the 实时/源码/预览 switch and four buttons.
+ *    strip into `#header-tabs`), the 实时/源码/预览 switch and the action
+ *    buttons.
  *  - `titlebar`: Windows only — the 44px frameless title bar above
- *    everything: app icon, the in-app menus, the title, caption buttons.
+ *    everything: app icon, the in-app menus, the inline search box, caption
+ *    buttons.
  */
 const props = withDefaults(defineProps<{ variant?: 'header' | 'titlebar' }>(), { variant: 'header' });
 const isTitlebar = computed(() => props.variant === 'titlebar');
@@ -52,7 +54,6 @@ defineEmits<{
   (e: 'open-palette'): void;
   (e: 'open-settings'): void;
   (e: 'open-help'): void;
-  (e: 'open-search'): void;
 }>();
 
 const tabs = useTabsStore();
@@ -565,17 +566,6 @@ const foldViewModes = computed(() => shouldFoldViewModes(middleWidth.value));
 const showViewModeSwitch = computed(
   () => isMarkdown.value && !settings.toolbarHidden && !foldViewModes.value,
 );
-/** Title of the pane the primary dock's first region shows — the left
- *  segment's caption. Reuses the existing `rsPane.*` labels; it is text, not a
- *  tab (D1: panel tabs do not move into the header). Stage 2 may make this
- *  per-region; stage 1 has exactly one region on the left. */
-const leftPanelTitle = computed(() => {
-  const group = settings.sidebarDock.groups.left[0];
-  const id = group?.active ?? group?.panes[0] ?? null;
-  if (!id) return '';
-  const key = paneDef(id)?.titleKey;
-  return key ? t(key) : id;
-});
 let middleObserver: ResizeObserver | null = null;
 onMounted(() => {
   const el = middleSegEl.value;
@@ -884,7 +874,9 @@ onBeforeUnmount(() => {
         </div>
       </Teleport>
     </nav>
-    <span class="titlebar__title" aria-hidden="true">{{ activeTabDisplayTitle ? `${activeTabDisplayTitle} — SoloMD` : 'SoloMD' }}</span>
+    <div class="titlebar__search-wrap">
+      <HeaderSearchBox v-if="!isNarrow" />
+    </div>
     <div class="win-controls" data-no-drag>
       <button class="win-controls__btn" @click="winMinimize" :title="t('menubar.minimize')" tabindex="-1">
         <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor" stroke-width="1" /></svg>
@@ -919,9 +911,9 @@ onBeforeUnmount(() => {
     @mousedown.capture="onTitleBarMouseDown"
     @dblclick="onTitleBarDblClick"
   >
-    <!-- Three visual segments (D1: panel labels do NOT move in here — the
-         left one is a caption for the pane the primary dock is showing).
-         Grouping only: `#header-tabs` keeps its mount point for PaneHost. -->
+    <!-- Three visual segments (the left one holds the sidebar toggle and the
+         inline global-search box). Grouping only: `#header-tabs` keeps its
+         mount point for PaneHost. -->
     <div class="toolbar__seg toolbar__seg--left" role="group" :aria-label="t('header.leftPanels')">
       <template v-if="isNarrow">
         <button class="toolbar__back" type="button" @click="phone.show('home')">
@@ -949,7 +941,7 @@ onBeforeUnmount(() => {
         >
           <Icon name="sidebar" />
         </button>
-        <span v-if="settings.showFileTree && leftPanelTitle" class="toolbar__panel-name" :title="leftPanelTitle">{{ leftPanelTitle }}</span>
+        <HeaderSearchBox v-if="!winTitleBar && !isNarrow" class="toolbar__search" />
       </template>
     </div>
 
@@ -1001,16 +993,6 @@ onBeforeUnmount(() => {
       >
         <Icon :name="settings.viewMode === 'preview' ? 'pencil' : 'eye'" />
       </button>
-      <button
-        v-if="!isNarrow"
-        class="icon-btn"
-        @click="$emit('open-search')"
-        :title="tip('toolbar.searchTooltip', 'search.global')"
-        :aria-label="t('toolbar.searchTooltip')"
-      >
-        <Icon name="search" />
-      </button>
-
       <div class="dropdown">
         <button
           ref="exportBtnRef"
@@ -1466,31 +1448,22 @@ onBeforeUnmount(() => {
   padding-left: 8px;
   border-left: var(--bd-hair);
 }
-/* Caption for the pane the primary dock shows — 12px, no pill, so it cannot be
-   mistaken for one of the editor tabs next to it. */
-.toolbar__panel-name {
-  min-width: 0;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-3);
-}
 .toolbar--minimal .toolbar__tabs {
   justify-content: center;
 }
-/* "Hide the toolbar" keeps its old content: no caption, no dividers. */
-.toolbar--minimal .toolbar__panel-name {
-  display: none;
-}
+/* "Hide the toolbar" keeps its old content: no dividers. */
 .toolbar--minimal .toolbar__seg--middle {
   padding-left: 0;
   border-left: 0;
 }
 .toolbar__sidebar-btn {
   margin-right: 2px;
+}
+/* Header variant: the inline search box lives right of the sidebar toggle, so
+   on macOS it naturally starts after the 80px traffic-light inset. */
+.toolbar__search {
+  flex: 0 1 320px;
+  min-width: 160px;
 }
 .toolbar__tabs {
   flex: 1 1 auto;
@@ -1685,18 +1658,19 @@ onBeforeUnmount(() => {
   justify-content: center;
   flex-shrink: 0;
 }
-.titlebar__title {
-  flex: 1 1 0;
+/* The title row's centre segment: the inline search box, centred and capped so
+   it never squeezes the menubar or the window buttons (spec D6). */
+.titlebar__search-wrap {
+  flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  justify-content: center;
   padding: 0 12px;
-  line-height: 32px;
-  text-align: center;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 12px;
-  color: var(--text-3);
-  pointer-events: none;
+}
+.titlebar__search-wrap .hsearch {
+  width: 100%;
+  max-width: 420px;
+  min-width: 180px;
 }
 .menubar {
   display: flex;

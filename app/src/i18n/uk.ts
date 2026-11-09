@@ -176,6 +176,8 @@ export const uk: I18n = {
     openExternal: "Відкрити в типовій програмі",
     share: "Поділитися",
     noRecent: "Немає нещодавніх файлів",
+    searchLabel: "Пошук нотаток",
+    searchClear: "Очистити пошук",
   },
   toolbar: {
     leftSidebarTooltip: 'Перемкнути основну бічну панель — Файли',

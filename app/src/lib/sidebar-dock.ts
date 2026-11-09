@@ -16,8 +16,8 @@
  *  - `files` is shell chrome, not a user choice: it is pinned to
  *    `groups.left[0].panes[0]`, always visible, and never a drag source.
  *  - `visible` is a separate map now (a pane can be switched off without
- *    leaving its tab group). `outline` / `search` still answer from their own
- *    runtime source in App.vue.
+ *    leaving its tab group). `outline` still answers from its own runtime
+ *    source in App.vue.
  */
 
 import {

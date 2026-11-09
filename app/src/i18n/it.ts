@@ -176,6 +176,8 @@ export const it: I18n = {
     openExternal: "Apri con l’app predefinita",
     share: "Condividi",
     noRecent: "Nessun file recente",
+    searchLabel: "Cerca nelle note",
+    searchClear: "Cancella ricerca",
   },
   toolbar: {
     leftSidebarTooltip: 'Mostra/nascondi barra laterale principale — File',
