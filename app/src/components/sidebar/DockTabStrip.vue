@@ -507,10 +507,10 @@ const dropAt = computed<number | null>(() => {
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 28px;
+  min-height: var(--ctl-text-h);
   padding: 4px 8px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   background: transparent;
   color: var(--text);
   font: inherit;

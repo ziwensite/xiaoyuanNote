@@ -1044,6 +1044,9 @@ onBeforeUnmount(() => {
             @mousedown.prevent="pickViewMode(m.mode)"
           >
             <span class="dropdown__check">{{ settings.viewMode === m.mode ? '✓' : '' }}</span>
+            <!-- Same glyph the trigger shows for this mode, so the row and the
+                 menu read as one control. -->
+            <Icon :name="m.icon" :size="14" />
             <span class="dropdown__name">{{ t(m.label) }}</span>
           </button>
         </div>
@@ -1828,16 +1831,20 @@ onBeforeUnmount(() => {
 .dropdown__menu--more {
   min-width: min(264px, calc(100vw - 16px));
 }
-/* Four short mode labels: the 240px default would be mostly empty space. */
+/* Four short mode labels: size the menu to its widest row instead of the
+   240px default, which was mostly empty space. `max-content` still caps at the
+   window so a long translation cannot overflow it. */
 .dropdown__menu--modes {
-  min-width: min(176px, calc(100vw - 16px));
+  width: max-content;
+  min-width: 0;
+  max-width: min(240px, calc(100vw - 16px));
 }
 .dropdown__item {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  min-height: 28px;
+  min-height: var(--ctl-text-h);
   padding: 4px 10px;
   border: 0;
   background: transparent;
@@ -1845,7 +1852,7 @@ onBeforeUnmount(() => {
   font-size: var(--ui-font-size, 13px);
   text-align: left;
   color: var(--text);
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   cursor: default;
 }
 .dropdown__item:hover,

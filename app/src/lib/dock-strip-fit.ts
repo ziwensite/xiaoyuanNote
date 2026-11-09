@@ -13,7 +13,7 @@
  */
 
 /** `.dock-tab` width / height (mirrors `--ctl-size` in tokens.css). */
-export const DOCK_TAB_SIZE = 24;
+export const DOCK_TAB_SIZE = 22;
 /** `.dock-strip` flex `gap` between tabs. */
 export const DOCK_TAB_GAP = 2;
 /** `.dock-strip` horizontal padding (4px each side). */

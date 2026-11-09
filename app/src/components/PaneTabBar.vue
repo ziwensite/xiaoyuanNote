@@ -705,9 +705,11 @@ onBeforeUnmount(() => {
   gap: 4px;
   flex: 0 0 auto;
   max-width: 220px;
-  height: 30px;
-  padding: 0 6px 0 12px;
-  border-radius: var(--r-md);
+  /* A tab's target is a 13px label, not a glyph, so it takes the text-chip
+   * height (--ctl-text-h) and the same corner as every other chip. */
+  height: var(--ctl-text-h);
+  padding: 0 6px 0 10px;
+  border-radius: var(--ctl-radius);
   cursor: default;
   font-size: 13px;
   font-weight: 450;
@@ -758,10 +760,10 @@ onBeforeUnmount(() => {
 .tablist__filter {
   width: 100%;
   box-sizing: border-box;
-  height: 26px;
+  height: var(--ctl-text-h);
   padding: 0 8px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   background: var(--fill-1);
   color: var(--text);
   font: inherit;
@@ -834,14 +836,14 @@ onBeforeUnmount(() => {
 }
 .tabbar__btn {
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
+  width: var(--ctl-size);
+  height: var(--ctl-size);
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   background: transparent;
   color: var(--text-2);
   cursor: default;
@@ -878,14 +880,14 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 28px;
+  height: var(--ctl-text-h);
   padding: 0 10px;
   text-align: left;
   font-size: 13px;
   color: var(--text);
   background: none;
   border: none;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   cursor: default;
 }
 .ctx-item:hover:not(:disabled) {

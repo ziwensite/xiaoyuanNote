@@ -620,14 +620,14 @@ onBeforeUnmount(() => {
 }
 .sb__row-tool {
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: var(--ctl-size);
+  height: var(--ctl-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   background: transparent;
   color: var(--text-3);
   opacity: 0;
@@ -794,14 +794,14 @@ onBeforeUnmount(() => {
 }
 .sb__icon-btn {
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: var(--ctl-size);
+  height: var(--ctl-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   background: transparent;
   color: var(--text-2);
   cursor: default;

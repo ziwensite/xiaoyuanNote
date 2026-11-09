@@ -50,20 +50,28 @@
   --dur-slow: 220ms;
 
   /* Header / chrome geometry.
-   * 36px everywhere on the top: the menu row is 24px pills + 6px each side,
+   * 36px everywhere on the top: the menu row is 22px pills + 7px each side,
    * and its 46x36 caption buttons still clear Windows' 32px minimum. The
-   * header row is the same 36px, which is set by the tallest thing in it — a
-   * 30px editor tab (3px each side) — so the 24px icon buttons get 6px and
-   * nothing is clipped. One 36px band also means the Windows title bar and the
-   * header below it are the same height, with no 40-vs-36 step. */
+   * header row is the same 36px — a 26px editor tab leaves 5px each side, so
+   * neither the tab nor the 22px icon buttons inside it is clipped. One 36px
+   * band also means the Windows title bar and the header below it are the same
+   * height, with no 40-vs-36 step. */
   --header-h: 36px;
   --win-titlebar-h: 36px;
-  /* One size for every icon-only control and its selected-state block: the
-   * menu row, the header row and the dock column headers all read these, so a
-   * 16px icon always gets the same 24px block (4px of padding a side) and the
-   * highlight never looks like a slab. 24px is the low end of the usable-target
-   * range (24-28px); touch layouts override it to 40px. */
-  --ctl-size: 24px;
+  /* Two chip sizes, one corner:
+   *  - `--ctl-size` is the square block behind an icon: a 16px glyph plus 3px
+   *    a side, so the highlight reads as a chip rather than a slab. The menu
+   *    row, the toolbar, the dock column headers and the search field all read
+   *    it; touch layouts override the buttons to 40px in Toolbar.vue.
+   *  - `--ctl-text-h` is the same 3px a side around a ~20px text line, for
+   *    controls whose target is a label: editor tabs, menu rows, context-menu
+   *    rows. Text cannot be 16px tall, so it gets its own token instead of a
+   *    literal.
+   * 22px is 2px under the 24px pointer-target floor; the chips sit in a 36px
+   * band with 3px gaps between them, and every one of them is at least 16px
+   * of glyph, so nothing here is a 4px hairline target. */
+  --ctl-size: 22px;
+  --ctl-text-h: 26px;
   --ctl-radius: 6px;
   --sidebar-w: 260px;
   --measure: 680px;
