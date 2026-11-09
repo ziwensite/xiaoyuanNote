@@ -210,7 +210,13 @@ function onSidebarResize(ev: MouseEvent) {
   /* The three-column allocator can go below the stored 212 minimum on very
    * narrow windows; do not reintroduce a wider CSS floor here. */
   min-width: 0;
-  background: var(--bg);
+  /* Both side columns are one continuous surface: the 36px header band and the
+   * pane body below it share `--bg-sidebar`, which is also what the panes paint
+   * themselves (`Sidebar.vue`). Panes that do not set a background of their own
+   * (outline, backlinks, …) are transparent and therefore inherit this one, so
+   * the column reads as a single sheet rather than a white strip above a tinted
+   * panel. The middle column stays `--bg` (white) and is the only focus area. */
+  background: var(--bg-sidebar);
 }
 /* The column's own header, exactly as tall as the editor header next to it. */
 .side-sidebar__header {
