@@ -179,6 +179,7 @@ export const zh: I18n = {
     noRecent: "没有最近文件",
   },
   toolbar: {
+    leftSidebarTooltip: '切换主侧栏（文件）',
     newMarkdown: '新建 Markdown',
     newPlainText: '新建文本',
     openFile: '打开文件',
@@ -1395,6 +1396,8 @@ export const zh: I18n = {
     selectionTooltip: '当前选中文本的字数和字符数',
   },
   sidebarDock: {
+    openPanel: '打开「{name}」面板',
+    addPanel: '打开面板',
     collapse: '收起侧栏',
     expand: '展开侧栏',
   },

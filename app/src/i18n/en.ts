@@ -178,6 +178,7 @@
     noRecent: "No recent files",
   },
   toolbar: {
+    leftSidebarTooltip: 'Toggle primary sidebar — Files',
     newMarkdown: 'New Markdown',
     newPlainText: 'New Plain Text',
     openFile: 'Open File',
@@ -1407,6 +1408,8 @@
     selectionTooltip: 'Word and character count for the current selection',
   },
   sidebarDock: {
+    openPanel: 'Open {name} panel',
+    addPanel: 'Open a panel',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

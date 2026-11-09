@@ -178,6 +178,7 @@ export const fr: I18n = {
     noRecent: "Aucun fichier récent",
   },
   toolbar: {
+    leftSidebarTooltip: 'Afficher/masquer la barre latérale principale — Fichiers',
     newMarkdown: 'Nouveau Markdown',
     newPlainText: 'Nouveau texte brut',
     openFile: 'Ouvrir un fichier',
@@ -1397,6 +1398,8 @@ export const fr: I18n = {
     selectionTooltip: 'Nombre de mots et caractères de la sélection',
   },
   sidebarDock: {
+    openPanel: 'Ouvrir le panneau {name}',
+    addPanel: 'Ouvrir un panneau',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

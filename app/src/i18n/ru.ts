@@ -178,6 +178,7 @@ export const ru: I18n = {
     noRecent: "Нет недавних файлов",
   },
   toolbar: {
+    leftSidebarTooltip: 'Переключить основную боковую панель — Файлы',
     newMarkdown: 'Новый Markdown',
     newPlainText: 'Новый простой текст',
     openFile: 'Открыть файл',
@@ -1392,6 +1393,8 @@ export const ru: I18n = {
     selectionTooltip: 'Число слов и символов в выделении',
   },
   sidebarDock: {
+    openPanel: 'Открыть панель «{name}»',
+    addPanel: 'Открыть панель',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

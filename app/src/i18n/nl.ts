@@ -178,6 +178,7 @@ export const nl: I18n = {
     noRecent: "Geen recente bestanden",
   },
   toolbar: {
+    leftSidebarTooltip: 'Hoofdzijbalk wisselen — Bestanden',
     newMarkdown: 'Nieuwe Markdown',
     newPlainText: 'Nieuwe platte tekst',
     openFile: 'Bestand openen',
@@ -1400,6 +1401,8 @@ export const nl: I18n = {
     selectionTooltip: 'Woord- en tekenaantal van de selectie',
   },
   sidebarDock: {
+    openPanel: 'Paneel {name} openen',
+    addPanel: 'Paneel openen',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

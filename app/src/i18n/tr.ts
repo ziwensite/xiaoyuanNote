@@ -178,6 +178,7 @@ export const tr: I18n = {
     noRecent: "Son dosya yok",
   },
   toolbar: {
+    leftSidebarTooltip: 'Ana kenar çubuğunu aç/kapat — Dosyalar',
     newMarkdown: 'Yeni Markdown',
     newPlainText: 'Yeni Düz Metin',
     openFile: 'Dosya Aç',
@@ -1400,6 +1401,8 @@ export const tr: I18n = {
     selectionTooltip: 'Seçimin kelime ve karakter sayısı',
   },
   sidebarDock: {
+    openPanel: '{name} panelini aç',
+    addPanel: 'Panel aç',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

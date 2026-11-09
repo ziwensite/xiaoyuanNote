@@ -178,6 +178,7 @@ export const de: I18n = {
     noRecent: "Keine zuletzt geöffneten Dateien",
   },
   toolbar: {
+    leftSidebarTooltip: 'Primäre Seitenleiste umschalten — Dateien',
     newMarkdown: 'Neues Markdown',
     newPlainText: 'Neuer Text',
     openFile: 'Datei öffnen',
@@ -1397,6 +1398,8 @@ export const de: I18n = {
     selectionTooltip: 'Wort- und Zeichenzahl der aktuellen Auswahl',
   },
   sidebarDock: {
+    openPanel: '{name}-Panel öffnen',
+    addPanel: 'Panel öffnen',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

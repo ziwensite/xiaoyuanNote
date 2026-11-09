@@ -178,6 +178,7 @@ export const ja: I18n = {
     noRecent: "最近のファイルはありません",
   },
   toolbar: {
+    leftSidebarTooltip: 'メインサイドバーを切り替え（ファイル）',
     newMarkdown: '新規 Markdown',
     newPlainText: '新規プレーンテキスト',
     openFile: 'ファイルを開く',
@@ -1397,6 +1398,8 @@ export const ja: I18n = {
     selectionTooltip: '選択範囲の語数と文字数',
   },
   sidebarDock: {
+    openPanel: '{name} パネルを開く',
+    addPanel: 'パネルを開く',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

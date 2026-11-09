@@ -565,11 +565,13 @@ const foldViewModes = computed(() => shouldFoldViewModes(middleWidth.value));
 const showViewModeSwitch = computed(
   () => isMarkdown.value && !settings.toolbarHidden && !foldViewModes.value,
 );
-/** Title of the pane the primary dock is showing — the left segment's caption.
- *  Reuses the existing `rsPane.*` labels; it is text, not a tab (D1: panel tabs
- *  do not move into the header). */
+/** Title of the pane the primary dock's first region shows — the left
+ *  segment's caption. Reuses the existing `rsPane.*` labels; it is text, not a
+ *  tab (D1: panel tabs do not move into the header). Stage 2 may make this
+ *  per-region; stage 1 has exactly one region on the left. */
 const leftPanelTitle = computed(() => {
-  const id = settings.sidebarDock.active.left;
+  const group = settings.sidebarDock.groups.left[0];
+  const id = group?.active ?? group?.panes[0] ?? null;
   if (!id) return '';
   const key = paneDef(id)?.titleKey;
   return key ? t(key) : id;
@@ -928,16 +930,27 @@ onBeforeUnmount(() => {
         </button>
         <span class="toolbar__phone-title">{{ phoneTitle }}</span>
       </template>
-      <button
-        v-else-if="!settings.showFileTree"
-        class="icon-btn toolbar__sidebar-btn"
-        @click="settings.toggleFileTree"
-        :title="tip('header.showSidebar', 'view.toggleFileTree')"
-        :aria-label="t('header.showSidebar')"
-      >
-        <Icon name="sidebar" />
-      </button>
-      <span v-else-if="leftPanelTitle" class="toolbar__panel-name" :title="leftPanelTitle">{{ leftPanelTitle }}</span>
+      <template v-else>
+        <!-- Stage 1 — collapse moved here (the dock no longer has a rail or a
+             chevron). Always visible so an expanded primary sidebar still has
+             a visible close affordance; `data-no-drag` keeps the click from
+             turning into a window drag. On macOS the toolbar's padding-left
+             (`MAC_TRAFFIC_INSET`) already places this after the traffic
+             lights. Same action/state as ⌘B, the View menu and the palette. -->
+        <button
+          type="button"
+          class="icon-btn toolbar__sidebar-btn"
+          :class="{ active: settings.showFileTree }"
+          data-no-drag
+          :title="settings.showFileTree ? t('header.hideSidebar') : t('header.showSidebar')"
+          :aria-label="settings.showFileTree ? t('header.hideSidebar') : t('header.showSidebar')"
+          :aria-pressed="settings.showFileTree"
+          @click="settings.toggleFileTree"
+        >
+          <Icon name="sidebar" />
+        </button>
+        <span v-if="settings.showFileTree && leftPanelTitle" class="toolbar__panel-name" :title="leftPanelTitle">{{ leftPanelTitle }}</span>
+      </template>
     </div>
 
     <div

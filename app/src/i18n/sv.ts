@@ -178,6 +178,7 @@ export const sv: I18n = {
     noRecent: "Inga senaste filer",
   },
   toolbar: {
+    leftSidebarTooltip: 'Växla primär sidopanel — Filer',
     newMarkdown: 'Ny Markdown',
     newPlainText: 'Ny vanlig text',
     openFile: 'Öppna fil',
@@ -1400,6 +1401,8 @@ export const sv: I18n = {
     selectionTooltip: 'Antal ord och tecken i markeringen',
   },
   sidebarDock: {
+    openPanel: 'Öppna panelen {name}',
+    addPanel: 'Öppna en panel',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

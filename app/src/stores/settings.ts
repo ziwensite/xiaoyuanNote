@@ -5,12 +5,14 @@ import {
   PRIMARY_PANE_ID,
   clampDockWidth,
   defaultSidebarDock,
-  dockPane,
   isPendingPane,
   migrateSidebarDock,
   mergeFilesPane,
+  moveDockTab as applyMoveDockTab,
   nextActiveAfterHide,
+  paneGroup,
   sideDockPanes,
+  type DockTabTarget,
   type LegacySidebarBlob,
   type SidebarDockState,
   type SidebarSide,
@@ -145,6 +147,10 @@ interface Settings {
    *  into the left dock's `files` container. Kept separate from v510 so the
    *  merge can be re-run independently of the dock migration. */
   v511FileTreeMerged: boolean;
+  /** Stage 1 — bookkeeping only: the flat `panes[]` dock state has been
+   *  upgraded to `groups[]`. The upgrade itself is shape-based, so this
+   *  marker can never lose data if it goes out of sync with the blob. */
+  v512DockGroupsMigrated: boolean;
   /** V1 — false once, until the "outline moved to the secondary sidebar"
    *  toast has been shown. Fresh installs start at `true` (nothing to say). */
   v511OutlineSideNoticeShown: boolean;
@@ -892,6 +898,7 @@ function defaults(): Settings {
     })(),
     v510SidebarDockMigrated: true,
     v511FileTreeMerged: true,
+    v512DockGroupsMigrated: true,
     v511OutlineSideNoticeShown: true,
   };
 }
@@ -1099,6 +1106,7 @@ function load(): Settings {
         });
         merged.sidebarDock = merge.dock;
       }
+      merged.v512DockGroupsMigrated = true;
       // D6 — a theme outside the built-in list (e.g. a hand-edited or
       // MCP-written 'system') rendered as a bare white page; reset it to the
       // default, and treat a literal 'system' as the follow-OS option.
@@ -1370,8 +1378,11 @@ export const useSettingsStore = defineStore('settings', {
       if (!rightPanes.some((pane) => pane.visible)) {
         const fallback = rightPanes.find((pane) => pane.id === 'agent') ?? rightPanes[0];
         if (fallback) {
-          fallback.visible = true;
-          this.sidebarDock.active.right = fallback.id;
+          this.sidebarDock.visible[fallback.id] = true;
+          const location = paneGroup(this.sidebarDock, fallback.id);
+          if (location) {
+            this.sidebarDock.groups[location.side][location.group].active = fallback.id;
+          }
         }
       }
       // Those panes are still gated on a folder/markdown tab. Ask the shell
@@ -1398,89 +1409,109 @@ export const useSettingsStore = defineStore('settings', {
         this.persist();
       }
     },
-    // ---- S2 dock actions ---------------------------------------------------
-    /** V1 — keep the legacy `showFileTree` switch in sync with the primary
-     *  dock: collapsed(left) means the file tree is "hidden", but the 32px
-     *  rail stays on screen. */
-    syncPrimarySidebar() {
+    // ---- Dock actions (stage 1: groups) ------------------------------------
+    /** Keep the frozen legacy switches honest for their remaining readers:
+     *  `showFileTree` (phone home / tablet scrim / Settings) and
+     *  `outlineSide` (the Settings picker). Both are derived from the live
+     *  dock; no layout code reads them as input any more. */
+    syncLegacySwitches() {
       this.showFileTree = !this.sidebarDock.collapsed.left;
+      const outline = paneGroup(this.sidebarDock, 'outline');
+      if (outline) this.outlineSide = outline.side;
     },
     toggleDockPane(id: SidebarPaneId) {
-      const pane = dockPane(this.sidebarDock, id);
-      if (!pane || isPendingPane(id) || id === PRIMARY_PANE_ID) return;
-      pane.visible = !pane.visible;
-      if (pane.visible) {
-        this.sidebarDock.active[pane.side] = id;
-        this.sidebarDock.collapsed[pane.side] = false;
-      } else if (this.sidebarDock.active[pane.side] === id) {
-        this.sidebarDock.active[pane.side] = nextActiveAfterHide(this.sidebarDock, id);
+      if (id === PRIMARY_PANE_ID || isPendingPane(id)) return;
+      const location = paneGroup(this.sidebarDock, id);
+      if (!location) return;
+      const group = this.sidebarDock.groups[location.side][location.group];
+      const nextVisible = !this.sidebarDock.visible[id];
+      this.sidebarDock.visible[id] = nextVisible;
+      if (nextVisible) {
+        group.active = id;
+        this.sidebarDock.collapsed[location.side] = false;
+      } else if (group.active === id) {
+        group.active = nextActiveAfterHide(this.sidebarDock, id);
       }
-      this.syncPrimarySidebar();
+      this.syncLegacySwitches();
       this.persist();
     },
     showDockPane(id: SidebarPaneId) {
-      const pane = dockPane(this.sidebarDock, id);
-      if (!pane || isPendingPane(id)) return;
-      pane.visible = true;
-      this.sidebarDock.active[pane.side] = id;
-      this.sidebarDock.collapsed[pane.side] = false;
-      this.syncPrimarySidebar();
+      if (isPendingPane(id)) return;
+      const location = paneGroup(this.sidebarDock, id);
+      if (!location) return;
+      this.sidebarDock.visible[id] = true;
+      this.sidebarDock.groups[location.side][location.group].active = id;
+      this.sidebarDock.collapsed[location.side] = false;
+      this.syncLegacySwitches();
       this.persist();
     },
     hideDockPane(id: SidebarPaneId) {
-      const pane = dockPane(this.sidebarDock, id);
-      if (!pane || isPendingPane(id) || id === PRIMARY_PANE_ID) return;
-      pane.visible = false;
-      if (this.sidebarDock.active[pane.side] === id) {
-        this.sidebarDock.active[pane.side] = nextActiveAfterHide(this.sidebarDock, id);
-      }
-      this.syncPrimarySidebar();
+      if (id === PRIMARY_PANE_ID || isPendingPane(id)) return;
+      const location = paneGroup(this.sidebarDock, id);
+      if (!location) return;
+      const group = this.sidebarDock.groups[location.side][location.group];
+      this.sidebarDock.visible[id] = false;
+      if (group.active === id) group.active = nextActiveAfterHide(this.sidebarDock, id);
+      this.syncLegacySwitches();
       this.persist();
     },
     setActiveDockPane(side: SidebarSide, id: SidebarPaneId | null) {
-      this.sidebarDock.active[side] = id;
+      if (id) {
+        const location = paneGroup(this.sidebarDock, id);
+        if (location) this.sidebarDock.groups[location.side][location.group].active = id;
+      } else {
+        this.sidebarDock.groups[side][0].active = null;
+      }
       this.sidebarDock.collapsed[side] = false;
-      this.syncPrimarySidebar();
+      this.syncLegacySwitches();
       this.persist();
     },
-    /** S2 — a pane switched on outside the dock actions (⌘⇧F search,
-     *  View → Outline, tag click, AI auto-open) must become the pane its side
-     *  draws; otherwise the single-active dock renders nothing new. Callers
-     *  own the pane's own `visible` source (session flag / tab field), so this
-     *  only moves `active` and expands the side it lives on. */
+    /** Stage 1 — a pane switched on outside the dock actions (⌘⇧F search,
+     *  View → Outline, tag click, AI auto-open) must become the tab its region
+     *  draws. Callers own the pane's own `visible` source, so this only moves
+     *  the region's active tab and expands the side it lives on. */
     focusDockPane(id: SidebarPaneId) {
-      const pane = dockPane(this.sidebarDock, id);
-      if (!pane || isPendingPane(id)) return;
-      if (this.sidebarDock.active[pane.side] === id && !this.sidebarDock.collapsed[pane.side]) return;
-      this.sidebarDock.active[pane.side] = id;
-      this.sidebarDock.collapsed[pane.side] = false;
-      this.syncPrimarySidebar();
+      if (isPendingPane(id)) return;
+      const location = paneGroup(this.sidebarDock, id);
+      if (!location) return;
+      const group = this.sidebarDock.groups[location.side][location.group];
+      if (group.active === id && !this.sidebarDock.collapsed[location.side]) return;
+      group.active = id;
+      this.sidebarDock.collapsed[location.side] = false;
+      this.syncLegacySwitches();
       this.persist();
     },
     setDockCollapsed(side: SidebarSide, collapsed: boolean) {
       this.sidebarDock.collapsed[side] = collapsed;
-      this.syncPrimarySidebar();
+      this.syncLegacySwitches();
       this.persist();
     },
     toggleDockCollapsed(side: SidebarSide) {
       this.sidebarDock.collapsed[side] = !this.sidebarDock.collapsed[side];
-      this.syncPrimarySidebar();
+      this.syncLegacySwitches();
       this.persist();
     },
     setDockWidth(side: SidebarSide, width: number) {
       this.sidebarDock.width[side] = clampDockWidth(width);
       this.persist();
     },
+    /** Pure reorder / cross-side move from the icon-strip drag. `files` and
+     *  pending panes are rejected inside `moveDockTab`. */
+    moveDockTab(id: SidebarPaneId, target: DockTabTarget) {
+      const next = applyMoveDockTab(this.sidebarDock, id, target);
+      if (next === this.sidebarDock) return;
+      this.sidebarDock = next;
+      this.sidebarDock.collapsed[target.side] = false;
+      this.syncLegacySwitches();
+      this.persist();
+    },
     movePaneToSide(id: SidebarPaneId, side: SidebarSide) {
       if (id === PRIMARY_PANE_ID) return;
-      const pane = dockPane(this.sidebarDock, id);
-      if (!pane || pane.side === side) return;
-      const oldSide = pane.side;
-      pane.side = side;
-      if (this.sidebarDock.active[oldSide] === id) this.sidebarDock.active[oldSide] = null;
-      this.sidebarDock.active[side] = id;
+      const location = paneGroup(this.sidebarDock, id);
+      if (!location || location.side === side) return;
+      this.sidebarDock = applyMoveDockTab(this.sidebarDock, id, { side, group: 0 });
       this.sidebarDock.collapsed[side] = false;
-      this.syncPrimarySidebar();
+      this.syncLegacySwitches();
       this.persist();
     },
     toggleLivePreview() {
@@ -1672,8 +1703,8 @@ export const useSettingsStore = defineStore('settings', {
       // pane no longer disables sync. Re-enabling sync surfaces the panel
       // again only if the user hasn't explicitly hidden it.
       if (this.autoGitEnabled) {
-        const history = dockPane(this.sidebarDock, 'history');
-        if (history && !history.visible) history.visible = true;
+        const historyVisible = this.sidebarDock.visible.history;
+        if (!historyVisible) this.sidebarDock.visible.history = true;
       }
       this.persist();
     },
@@ -1707,10 +1738,16 @@ export const useSettingsStore = defineStore('settings', {
       this.rsPaneOrder = [...d.rsPaneOrder];
       this.sideSidebarWidth = d.sideSidebarWidth;
       // S2 — reset order + width but keep the user's on/off choices, matching
-      // the old "heights, order and width" semantics.
-      this.sidebarDock.panes = [...this.sidebarDock.panes].sort(
-        (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
-      );
+      // the old "heights, order and width" semantics. Stage 1 sorts within
+      // each region; `files` stays pinned first on the left.
+      const rank = (id: SidebarPaneId) =>
+        id === PRIMARY_PANE_ID ? -1 : (order.get(id) ?? 0);
+      for (const side of ['left', 'right'] as const) {
+        this.sidebarDock.groups[side] = this.sidebarDock.groups[side].map((group) => ({
+          ...group,
+          panes: [...group.panes].sort((a, b) => rank(a) - rank(b)),
+        }));
+      }
       this.sidebarDock.width = { left: DEFAULT_DOCK_WIDTH, right: DEFAULT_DOCK_WIDTH };
       this.persist();
     },

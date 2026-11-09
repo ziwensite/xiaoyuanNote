@@ -178,6 +178,7 @@ export const ko: I18n = {
     noRecent: "최근 파일 없음",
   },
   toolbar: {
+    leftSidebarTooltip: '기본 사이드바 전환(파일)',
     newMarkdown: '새 Markdown',
     newPlainText: '새 일반 텍스트',
     openFile: '파일 열기',
@@ -1397,6 +1398,8 @@ export const ko: I18n = {
     selectionTooltip: '선택한 텍스트의 단어 수 및 문자 수',
   },
   sidebarDock: {
+    openPanel: '{name} 패널 열기',
+    addPanel: '패널 열기',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

@@ -178,6 +178,7 @@ export const pl: I18n = {
     noRecent: "Brak ostatnich plików",
   },
   toolbar: {
+    leftSidebarTooltip: 'Przełącz pasek boczny główny — Pliki',
     newMarkdown: 'Nowy Markdown',
     newPlainText: 'Nowy zwykły tekst',
     openFile: 'Otwórz plik',
@@ -1400,6 +1401,8 @@ export const pl: I18n = {
     selectionTooltip: 'Liczba słów i znaków w zaznaczeniu',
   },
   sidebarDock: {
+    openPanel: 'Otwórz panel {name}',
+    addPanel: 'Otwórz panel',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

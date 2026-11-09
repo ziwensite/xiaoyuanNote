@@ -178,6 +178,7 @@ export const uk: I18n = {
     noRecent: "Немає нещодавніх файлів",
   },
   toolbar: {
+    leftSidebarTooltip: 'Перемкнути основну бічну панель — Файли',
     newMarkdown: 'Новий Markdown',
     newPlainText: 'Новий звичайний текст',
     openFile: 'Відкрити файл',
@@ -1400,6 +1401,8 @@ export const uk: I18n = {
     selectionTooltip: 'Кількість слів та символів виділеного тексту',
   },
   sidebarDock: {
+    openPanel: 'Відкрити панель {name}',
+    addPanel: 'Відкрити панель',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

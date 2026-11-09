@@ -19,7 +19,7 @@ import TileRoot from './components/TileRoot.vue';
 import StatsPill from './components/StatsPill.vue';
 import SidebarDock from './components/sidebar/SidebarDock.vue';
 import { SIDEBAR_PANE_DEFS, type ImplementedSidebarPaneId, type SidebarPaneAvailabilityCtx } from './panes/sidebar-panes';
-import { dockPane, isDockPaneVisible, isPendingPane, sideDockPanes } from './lib/sidebar-dock';
+import { dockPane, isDockPaneVisible, isPendingPane } from './lib/sidebar-dock';
 const TableEditor = defineAsyncComponent(() => import('./components/TableEditor.vue'));
 const FormulaEditor = defineAsyncComponent(() => import('./components/FormulaEditor.vue'));
 import { useAutoCommit } from './composables/useAutoCommit';
@@ -1850,31 +1850,31 @@ const dockPaneAvailable = computed<Record<ImplementedSidebarPaneId, boolean>>(()
   return out;
 });
 
-function dockViewsFor(side: 'left' | 'right') {
-  return sideDockPanes(settings.sidebarDock, side)
-    .filter((pane) => !isPendingPane(pane.id))
-    .map((pane) => {
-      const id = pane.id as ImplementedSidebarPaneId;
-      return {
-        id,
-        visible: dockPaneVisible.value[id],
-        available: dockPaneAvailable.value[id],
-      };
-    });
+/** Per-region view for the dock. Stage 1 has exactly one region per side;
+ *  stage 2 stacks more without changing this shape. */
+function dockGroupsFor(side: 'left' | 'right') {
+  return settings.sidebarDock.groups[side].map((group) => ({
+    panes: group.panes
+      .filter((id) => !isPendingPane(id))
+      .map((id) => {
+        const paneId = id as ImplementedSidebarPaneId;
+        return {
+          id: paneId,
+          visible: dockPaneVisible.value[paneId],
+          available: dockPaneAvailable.value[paneId],
+        };
+      }),
+    active: group.active as ImplementedSidebarPaneId | null,
+  }));
 }
 
-const leftDockPanes = computed(() => dockViewsFor('left'));
-const rightDockPanes = computed(() => dockViewsFor('right'));
+const leftDockGroups = computed(() => dockGroupsFor('left'));
+const rightDockGroups = computed(() => dockGroupsFor('right'));
+const leftDockPanes = computed(() => leftDockGroups.value.flatMap((group) => group.panes));
+const rightDockPanes = computed(() => rightDockGroups.value.flatMap((group) => group.panes));
 /** A side mounts once it owns at least one real (non-reserved) pane. */
 const hasLeftDock = computed(() => leftDockPanes.value.length > 0);
 const hasRightDock = computed(() => rightDockPanes.value.length > 0);
-/** `calendar` is reserved but never renderable; the Dock falls back for it. */
-const activeLeft = computed(
-  () => settings.sidebarDock.active.left as ImplementedSidebarPaneId | null,
-);
-const activeRight = computed(
-  () => settings.sidebarDock.active.right as ImplementedSidebarPaneId | null,
-);
 const renderableOn = (views: readonly { visible: boolean; available: boolean }[]) =>
   views.some((pane) => pane.visible && pane.available);
 
@@ -2212,15 +2212,12 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       <TelemetryBanner />
       <div class="workspace">
         <SidebarDock
-          v-if="hasLeftDock && !isNarrow"
+          v-if="hasLeftDock && !isNarrow && !settings.sidebarDock.collapsed.left"
           side="left"
-          :panes="leftDockPanes"
-          :active="activeLeft"
-          :collapsed="settings.sidebarDock.collapsed.left"
+          :groups="leftDockGroups"
           :overlay="isNarrow || isTabletOverlay"
           :search-prefill="searchPrefill"
           :outline-line="outlineLine"
-          @contextmenu="openSidebarCtx"
           @manage="openSidebarCtx"
           @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
@@ -2237,15 +2234,12 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           <StatsPill v-if="!basesOpen && !inboxViewOpen && !typeLensOpen && !viewPaneVisible" :line="cursorLine" :col="cursorCol" :selection-text="selectionText" />
         </div>
         <SidebarDock
-          v-if="hasRightDock"
+          v-if="hasRightDock && !settings.sidebarDock.collapsed.right"
           side="right"
-          :panes="rightDockPanes"
-          :active="activeRight"
-          :collapsed="settings.sidebarDock.collapsed.right"
+          :groups="rightDockGroups"
           :overlay="isNarrow"
           :search-prefill="searchPrefill"
           :outline-line="outlineLine"
-          @contextmenu="openSidebarCtx"
           @manage="openSidebarCtx"
           @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
@@ -2511,12 +2505,13 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   pointer-events: none;
 }
 /* 5.0 §7 — iPad portrait: the primary sidebar floats over the editor.
-   V1 — the file tree now lives inside the left dock, so the dock itself is
-   the drawer; when collapsed it falls back to its 32px rail. */
+   Stage 1 — the file tree lives inside the left dock, so the dock itself is
+   the drawer. Collapse is zero-width and App unmounts the dock, so there is
+   no collapsed rail to position. */
 .app--tablet-overlay .workspace {
   position: relative;
 }
-.app--tablet-overlay .workspace > .side-sidebar--left:not(.side-sidebar--collapsed) {
+.app--tablet-overlay .workspace > .side-sidebar--left {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -2527,10 +2522,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   flex: none;
   min-width: 0;
   box-shadow: var(--sh-modal);
-}
-.app--tablet-overlay .workspace > .side-sidebar--left.side-sidebar--collapsed {
-  width: 32px;
-  flex: 0 0 32px;
 }
 /* 5.0 §8 — a phone home / search screen fills the window. */
 .phone-screen {
@@ -2592,11 +2583,8 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
 .app--narrow .side-sidebar--left {
   left: 0;
 }
-/* S2 — a collapsed dock is just its 32px rail; on a phone that is not worth a
-   whole drawer, so hide the dock until a pane is picked. */
-.app--narrow .side-sidebar--collapsed {
-  display: none;
-}
+/* Stage 1 — a collapsed dock is unmounted (zero width), so there is nothing
+   for the phone layout to hide. */
 /* The drag-to-resize handles moved with SidebarDock.vue — they are its
    descendants, so App's scopeId no longer reaches them. */
 .workspace__scrim {
