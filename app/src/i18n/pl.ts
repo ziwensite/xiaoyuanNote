@@ -563,6 +563,11 @@ export const pl: I18n = {
     dailyNotesFolder: 'Folder notatek dziennych (względem obszaru roboczego)',
     dailyNotesFormat: 'Format nazwy plików notatek dziennych',
     dailyNotesTemplate: 'Szablon notatek dziennych (zostaw puste dla domyślnego)',
+    recurringTaskPlacement: 'Ukończone zadanie cykliczne',
+    recurringTaskPlacementBelow: 'Dodaj następne wystąpienie poniżej',
+    recurringTaskPlacementAbove: 'Dodaj następne wystąpienie powyżej',
+    recurringTaskPlacementHint:
+      'Ukończona linia zostaje w notatce; to ustawienie wybiera tylko miejsce nowej linii.',
     autoGitEnabled: 'Włącz historię wersji (auto-commit przy każdym zapisie)',
     autoGitHelp: 'Każde {key} tworzy migawkę w lokalnym .git wewnątrz obszaru roboczego. Panel Historia po prawej wyświetla wersje każdego pliku. Wszystko lokalnie — nic nie opuszcza Twojego komputera.',
     versionHistoryHeading: 'Historia wersji',

@@ -251,6 +251,13 @@ interface Settings {
   showTagsPanel: boolean;
   // Workspace-wide task panel: every `- [ ]` in the vault, grouped by file.
   showTasksPanel: boolean;
+  /**
+   * Where the next occurrence of a completed recurring task is written:
+   * `below` (the line after the one that was ticked) or `above`.
+   */
+  recurringTaskPlacement: RecurringTaskPlacement;
+  /** One-time marker: the placement default was applied to older blobs. */
+  recurringTaskPlacementMigrated: boolean;
   // v4.6 F4: Neighborhood — per-note relationship explorer pane (frontmatter
   // wikilink groups + inverse scan + body backlinks).
   showNeighborhood: boolean;
@@ -765,6 +772,11 @@ function defaults(): Settings {
     dailyNotesFolder: 'Daily',
     dailyNotesFormat: 'YYYY-MM-DD.md',
     dailyNotesTemplate: '',
+    // A recurring task's next occurrence goes right after the one just ticked:
+    // that is the order a list is read in, and it keeps the line the user
+    // clicked from moving out from under the pointer.
+    recurringTaskPlacement: 'below',
+    recurringTaskPlacementMigrated: true,
     showTagsPanel: true,
     showTasksPanel: false,
     showNeighborhood: false,
@@ -948,6 +960,10 @@ export function clampSplitRatio(n: unknown): number {
 export type LtMode = 'off' | 'local' | 'premium' | 'public';
 export const LT_MODES: readonly LtMode[] = ['off', 'local', 'premium', 'public'];
 
+/** Where the next occurrence of a completed recurring task is written. */
+export type RecurringTaskPlacement = 'below' | 'above';
+export const RECURRING_TASK_PLACEMENTS: readonly RecurringTaskPlacement[] = ['below', 'above'];
+
 /** Keep only the strings of a saved list (tampered / older blobs). */
 function stringList(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim() !== '') : [];
@@ -985,6 +1001,16 @@ function load(): Settings {
       merged.splitRatio = clampSplitRatio(merged.splitRatio);
       if (!LT_MODES.includes(merged.ltMode)) merged.ltMode = 'off';
       if (merged.ltLevel !== 'picky') merged.ltLevel = 'default';
+      // New in this release: a blob written before the option existed has no
+      // value, so `defaults()` supplies `below`. The marker records that the
+      // one-time upgrade ran; the convergence above stays unconditional so a
+      // hand-edited or tampered value can never reach the writer.
+      if (!RECURRING_TASK_PLACEMENTS.includes(merged.recurringTaskPlacement)) {
+        merged.recurringTaskPlacement = 'below';
+      }
+      if (!parsed.recurringTaskPlacementMigrated) {
+        merged.recurringTaskPlacementMigrated = true;
+      }
       merged.ltDisabledRules = stringList(parsed.ltDisabledRules);
       merged.ltUserWords = stringList(parsed.ltUserWords);
       // The old default Ctrl+Alt+M was also the formula editor's chord, and
@@ -1671,6 +1697,10 @@ export const useSettingsStore = defineStore('settings', {
     },
     setDailyNotesTemplate(t: string) {
       this.dailyNotesTemplate = t;
+      this.persist();
+    },
+    setRecurringTaskPlacement(p: RecurringTaskPlacement) {
+      this.recurringTaskPlacement = RECURRING_TASK_PLACEMENTS.includes(p) ? p : 'below';
       this.persist();
     },
     toggleAiEnabled() {

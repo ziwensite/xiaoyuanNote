@@ -563,6 +563,11 @@ export const sv: I18n = {
     dailyNotesFolder: 'Mapp för dagliga anteckningar (relativ till arbetsytan)',
     dailyNotesFormat: 'Filnamnsformat för dagliga anteckningar',
     dailyNotesTemplate: 'Mall för dagliga anteckningar (lämna tom för standard)',
+    recurringTaskPlacement: 'Återkommande uppgift slutförd',
+    recurringTaskPlacementBelow: 'Lägg till nästa förekomst nedan',
+    recurringTaskPlacementAbove: 'Lägg till nästa förekomst ovan',
+    recurringTaskPlacementHint:
+      'Den slutförda raden finns kvar i anteckningen; detta bestämmer bara var den nya raden hamnar.',
     autoGitEnabled: 'Aktivera versionshistorik (autocommit vid varje sparning)',
     autoGitHelp: 'Varje {key} skapar en ögonblicksbild i ett lokalt .git inuti din arbetsyta. Historikpanelen till höger listar varje version per fil. Allt är lokalt — inget lämnar din maskin.',
     versionHistoryHeading: 'Versionshistorik',

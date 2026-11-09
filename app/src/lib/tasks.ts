@@ -89,6 +89,7 @@ const REMINDER_TOKEN = /⏰\s*(-?P[A-Za-z0-9]+|[0-9]{1,2}:[0-9]{2}|\d{4}-\d{2}-\
 const RRULE_TOKEN = /🔁\s*(FREQ=[A-Za-z0-9=;,:+-]+)/iu;
 
 const TASK_LINE = /^(\s*[-*+]\s+\[[ xX]\])(.*)$/u;
+const TASK_PARTS = /^(\s*[-*+]\s+)\[([ xX])\]([\s\S]*)$/u;
 
 export function parseTaskMeta(text: string): TaskMeta {
   let rest = text;
@@ -295,3 +296,59 @@ export function setTaskReminder(
   return lines.join('\n');
 }
 
+export interface RecurringCompletion {
+  content: string;
+  /** 1-based line of the new, open occurrence. */
+  line: number;
+}
+
+/** The due token as written, so the rewrite can keep `📅` vs `due:` spelling. */
+function matchDueToken(body: string): { index: number; token: string; date: string } | null {
+  for (const pattern of DUE_PATTERNS) {
+    const re = new RegExp(pattern.source, pattern.flags.includes('i') ? 'iu' : 'u');
+    const m = re.exec(body);
+    if (m) return { index: m.index, token: m[0], date: m[1] };
+  }
+  return null;
+}
+
+/**
+ * Complete one occurrence of a recurring task: tick the old line and add the
+ * next occurrence as a new open line.
+ *
+ * The old line keeps every token it had (including `🔁` and `📅`), because it
+ * is the record of what was done. The new line copies the body with only the
+ * due date advanced; its `🆔` is dropped so the two lines do not claim the same
+ * identity — a fresh one is minted the next time a reminder needs it.
+ *
+ * Returns null when the line is not an open task, has no due token, or the
+ * insert would be out of range — the caller must not write the file then.
+ */
+export function completeRecurringTaskLine(
+  content: string,
+  line1Based: number,
+  nextDue: string,
+  placement: 'below' | 'above',
+): RecurringCompletion | null {
+  const lines = content.split('\n');
+  const idx = line1Based - 1;
+  if (idx < 0 || idx >= lines.length) return null;
+  const line = lines[idx];
+  const cr = line.endsWith('\r') ? '\r' : '';
+  const m = TASK_PARTS.exec(cr ? line.slice(0, -1) : line);
+  if (!m) return null;
+  if (m[2] !== ' ') return null;
+  const due = matchDueToken(m[3]);
+  if (!due) return null;
+
+  const advanced =
+    m[3].slice(0, due.index) +
+    due.token.replace(due.date, nextDue) +
+    m[3].slice(due.index + due.token.length);
+  const nextBody = advanced.replace(/\s*🆔\s*[A-Za-z0-9_-]{4,}/u, '');
+
+  lines[idx] = `${m[1]}[x]${m[3]}${cr}`;
+  const at = placement === 'above' ? idx : idx + 1;
+  lines.splice(at, 0, `${m[1]}[ ]${nextBody}${cr}`);
+  return { content: lines.join('\n'), line: at + 1 };
+}

@@ -12,6 +12,7 @@ import {
   isOverdue,
   localDateKey,
   compareTasks,
+  completeRecurringTaskLine,
   setTaskReminder,
   toggleTaskLine,
 } from './tasks';
@@ -235,5 +236,73 @@ test('the written token is re-parsed as the same reminder', () => {
   const meta = parseTaskMeta(next.split('\n')[2].replace(/^- \[ \] /, ''));
   assert.deepEqual(meta.reminders, ['2026-11-09T01:00:00Z']);
   assert.equal(meta.due, '2026-11-09');
+});
+
+// ---------------------------------------------------------------------------
+// completeRecurringTaskLine — one line per occurrence
+// ---------------------------------------------------------------------------
+
+const RECURRING = [
+  '# Habits',
+  '',
+  '- [ ] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO',
+  '- [ ] unrelated task 📅 2026-12-01',
+  '',
+].join('\n');
+
+test('completing below ticked the old line and opens the next one right after it', () => {
+  const result = completeRecurringTaskLine(RECURRING, 3, '2026-11-16', 'below');
+  assert.ok(result);
+  const lines = result.content.split('\n');
+  assert.equal(lines[2], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(lines[3], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(result.line, 4);
+  // Everything outside the two affected lines is untouched.
+  assert.deepEqual(
+    lines.filter((_, i) => i !== 2 && i !== 3),
+    RECURRING.split('\n').filter((_, i) => i !== 2),
+  );
+});
+
+test('completing above puts the new occurrence before the completed line', () => {
+  const result = completeRecurringTaskLine(RECURRING, 3, '2026-11-16', 'above');
+  assert.ok(result);
+  const lines = result.content.split('\n');
+  assert.equal(lines[2], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(lines[3], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(result.line, 3);
+});
+
+test('the ASCII due spelling survives the advance', () => {
+  const result = completeRecurringTaskLine('- [ ] report due:2026-11-09', 1, '2026-11-10', 'below');
+  assert.ok(result);
+  assert.equal(result.content, ['- [x] report due:2026-11-09', '- [ ] report due:2026-11-10'].join('\n'));
+});
+
+test('a completed line or a missing due refuses instead of guessing', () => {
+  assert.equal(completeRecurringTaskLine('- [x] done 📅 2026-11-09', 1, '2026-11-10', 'below'), null);
+  assert.equal(completeRecurringTaskLine('- [ ] no date 🔁 FREQ=DAILY', 1, '2026-11-10', 'below'), null);
+  assert.equal(completeRecurringTaskLine('plain text', 1, '2026-11-10', 'below'), null);
+  assert.equal(completeRecurringTaskLine('- [ ] ok 📅 2026-11-09', 0, '2026-11-10', 'below'), null);
+});
+
+test('CRLF notes keep their line endings on both affected lines', () => {
+  const doc = ['- [ ] a 📅 2026-11-09', '- [ ] b 📅 2026-12-01'].join('\r\n');
+  const result = completeRecurringTaskLine(doc, 1, '2026-11-10', 'below');
+  assert.ok(result);
+  assert.equal(
+    result.content,
+    ['- [x] a 📅 2026-11-09', '- [ ] a 📅 2026-11-10', '- [ ] b 📅 2026-12-01'].join('\r\n'),
+  );
+});
+
+test('the new occurrence is parseable as the next task', () => {
+  const result = completeRecurringTaskLine(RECURRING, 3, '2026-11-16', 'below');
+  assert.ok(result);
+  const meta = parseTaskMeta(result.content.split('\n')[3].replace(/^- \[ \] /, ''));
+  assert.equal(meta.due, '2026-11-16');
+  assert.deepEqual(meta.reminders, ['09:00']);
+  assert.equal(meta.rrule, 'FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(meta.uid, undefined);
 });
 

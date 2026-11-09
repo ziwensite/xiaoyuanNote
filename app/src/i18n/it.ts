@@ -563,6 +563,11 @@ export const it: I18n = {
     dailyNotesFolder: 'Cartella note giornaliere (relativa al workspace)',
     dailyNotesFormat: 'Formato nome file note giornaliere',
     dailyNotesTemplate: 'Modello note giornaliere (vuoto = predefinito)',
+    recurringTaskPlacement: 'Attività ricorrente completata',
+    recurringTaskPlacementBelow: 'Aggiungi la prossima occorrenza sotto',
+    recurringTaskPlacementAbove: 'Aggiungi la prossima occorrenza sopra',
+    recurringTaskPlacementHint:
+      'La riga completata resta nella nota; questo decide solo dove va la nuova riga aperta.',
     autoGitEnabled: 'Attiva cronologia versioni (commit automatico al salvataggio)',
     autoGitHelp: 'Ogni {key} crea uno snapshot in un .git locale dentro il workspace. Il pannello Cronologia a destra elenca ogni versione per file. Tutto locale — nulla lascia la macchina.',
     versionHistoryHeading: 'Cronologia versioni',

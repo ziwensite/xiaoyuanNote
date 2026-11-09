@@ -563,6 +563,11 @@ export const nl: I18n = {
     dailyNotesFolder: 'Map voor dagelijkse notities (relatief aan werkruimte)',
     dailyNotesFormat: 'Bestandsnaamformaat dagelijkse notities',
     dailyNotesTemplate: 'Sjabloon dagelijkse notities (laat leeg voor standaard)',
+    recurringTaskPlacement: 'Terugkerende taak voltooid',
+    recurringTaskPlacementBelow: 'Volgende keer eronder toevoegen',
+    recurringTaskPlacementAbove: 'Volgende keer erboven toevoegen',
+    recurringTaskPlacementHint:
+      'De afgeronde regel blijft in de notitie; dit bepaalt alleen waar de nieuwe open regel komt.',
     autoGitEnabled: 'Versiegeschiedenis inschakelen (auto-commit bij elke opslag)',
     autoGitHelp: 'Elke {key} maakt een snapshot in een lokale .git binnen je werkruimte. Het Geschiedenis-paneel rechts toont elke versie per bestand. Alles lokaal — niets verlaat je computer.',
     versionHistoryHeading: 'Versiegeschiedenis',

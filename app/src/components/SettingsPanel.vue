@@ -2229,6 +2229,18 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
+        <section data-cat="advanced">
+          <label>{{ t('settings.recurringTaskPlacement') }}</label>
+          <select
+            :value="settings.recurringTaskPlacement"
+            @change="settings.setRecurringTaskPlacement(($event.target as HTMLSelectElement).value as 'below' | 'above')"
+          >
+            <option value="below">{{ t('settings.recurringTaskPlacementBelow') }}</option>
+            <option value="above">{{ t('settings.recurringTaskPlacementAbove') }}</option>
+          </select>
+          <p class="setting-hint">{{ t('settings.recurringTaskPlacementHint') }}</p>
+        </section>
+
         <div data-cat="export"><CitationPickerSettings /></div>
 
         <!-- App Store builds strip the AI / Agent / Recipes / CostMeter

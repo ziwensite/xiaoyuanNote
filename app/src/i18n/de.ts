@@ -563,6 +563,11 @@ export const de: I18n = {
     dailyNotesFolder: 'Ordner für Tagesnotizen (relativ zum Workspace)',
     dailyNotesFormat: 'Dateinamenformat für Tagesnotizen',
     dailyNotesTemplate: 'Vorlage für Tagesnotizen (leer = Standard)',
+    recurringTaskPlacement: 'Wiederkehrende Aufgabe abgeschlossen',
+    recurringTaskPlacementBelow: 'Nächste Wiederholung darunter einfügen',
+    recurringTaskPlacementAbove: 'Nächste Wiederholung darüber einfügen',
+    recurringTaskPlacementHint:
+      'Die erledigte Zeile bleibt in der Notiz; hier wird nur festgelegt, wo die neue offene Zeile steht.',
     autoGitEnabled: 'Versionsverlauf aktivieren (automatischer Commit beim Speichern)',
     autoGitHelp: 'Jedes {key} erstellt einen Snapshot in einem lokalen .git in Ihrem Workspace. Das Verlaufs-Panel rechts listet alle Versionen pro Datei auf. Alles lokal — nichts verlässt Ihre Maschine.',
     versionHistoryHeading: 'Versionsverlauf',

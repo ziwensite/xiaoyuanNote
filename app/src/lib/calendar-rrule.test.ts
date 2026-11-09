@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   expandOccurrences,
   explainRRule,
+  nextTaskDueDate,
   parseRRule,
   type CalendarEvent,
 } from './calendar';
@@ -45,6 +46,43 @@ test('BYDAY ordinal: second Tuesday of every month', () => {
     dates('2026-01-13T09:00:00', 'FREQ=MONTHLY;BYDAY=2TU', '2026-11-01', '2027-02-01'),
     ['2026-11-10', '2026-12-08', '2027-01-12'],
   );
+});
+
+// ---------------------------------------------------------------------------
+// nextTaskDueDate — the day a completed recurring task moves to
+// ---------------------------------------------------------------------------
+
+test('a daily task crosses month and year boundaries', () => {
+  assert.equal(nextTaskDueDate('2026-01-31', 'FREQ=DAILY'), '2026-02-01');
+  assert.equal(nextTaskDueDate('2026-12-31', 'FREQ=DAILY'), '2027-01-01');
+});
+
+test('a daily task steps onto a leap day and off it', () => {
+  assert.equal(nextTaskDueDate('2028-02-28', 'FREQ=DAILY'), '2028-02-29');
+  assert.equal(nextTaskDueDate('2028-02-29', 'FREQ=DAILY'), '2028-03-01');
+});
+
+test('a yearly task on 29 February waits for the next leap year', () => {
+  assert.equal(nextTaskDueDate('2028-02-29', 'FREQ=YEARLY'), '2032-02-29');
+});
+
+test('weekly BYDAY and INTERVAL pick the next matching date', () => {
+  assert.equal(nextTaskDueDate('2026-11-06', 'FREQ=WEEKLY;BYDAY=FR'), '2026-11-13');
+  assert.equal(nextTaskDueDate('2026-11-02', 'FREQ=WEEKLY;INTERVAL=2'), '2026-11-16');
+});
+
+test('monthly ordinal BYDAY advances to next month', () => {
+  assert.equal(nextTaskDueDate('2026-11-10', 'FREQ=MONTHLY;BYDAY=2TU'), '2026-12-08');
+});
+
+test('UNTIL and COUNT end the series instead of inventing a date', () => {
+  assert.equal(nextTaskDueDate('2026-11-01', 'FREQ=DAILY;UNTIL=20261101'), null);
+  assert.equal(nextTaskDueDate('2026-11-01', 'FREQ=DAILY;COUNT=1'), null);
+});
+
+test('an unparsable rule or a non-date due produces nothing', () => {
+  assert.equal(nextTaskDueDate('2026-11-01', 'FREQ=FORTNIGHTLY'), null);
+  assert.equal(nextTaskDueDate('2026-11-01T09:00', 'FREQ=DAILY'), null);
 });
 
 test('BYDAY negative ordinal: last Friday of every month', () => {

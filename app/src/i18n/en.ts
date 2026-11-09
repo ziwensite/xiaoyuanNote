@@ -566,6 +566,11 @@
     dailyNotesFolder: 'Daily notes folder (workspace-relative)',
     dailyNotesFormat: 'Daily notes filename format',
     dailyNotesTemplate: 'Daily notes template (leave empty for default)',
+    recurringTaskPlacement: 'Completed recurring task',
+    recurringTaskPlacementBelow: 'Add the next occurrence below',
+    recurringTaskPlacementAbove: 'Add the next occurrence above',
+    recurringTaskPlacementHint:
+      'The completed occurrence stays in the note; this only sets where the new open line goes.',
     autoGitEnabled: 'Enable version history (auto-commit on every save)',
     autoGitHelp: 'Each {key} creates a snapshot in a local .git inside your workspace. The History panel on the right lists every version per file. All local — nothing leaves your machine.',
     versionHistoryHeading: 'Version history',

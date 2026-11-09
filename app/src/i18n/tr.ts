@@ -563,6 +563,11 @@ export const tr: I18n = {
     dailyNotesFolder: 'Günlük not klasörü (çalışma alanına göre)',
     dailyNotesFormat: 'Günlük not dosya adı biçimi',
     dailyNotesTemplate: 'Günlük not şablonu (varsayılan için boş bırakın)',
+    recurringTaskPlacement: 'Yinelenen görev tamamlandığında',
+    recurringTaskPlacementBelow: 'Sonraki tekrarı aşağıya ekle',
+    recurringTaskPlacementAbove: 'Sonraki tekrarı yukarıya ekle',
+    recurringTaskPlacementHint:
+      'Tamamlanan satır notta kalır; bu yalnızca yeni açık satırın yerini belirler.',
     autoGitEnabled: 'Sürüm geçmişini etkinleştir (her kayıtta otomatik commit)',
     autoGitHelp: 'Her {key}, çalışma alanınızdaki yerel .git içinde bir anlık görüntü oluşturur. Sağdaki Geçmiş paneli her dosyanın tüm sürümlerini listeler. Tamamen yerel — hiçbir şey makinenizden çıkmaz.',
     versionHistoryHeading: 'Sürüm geçmişi',

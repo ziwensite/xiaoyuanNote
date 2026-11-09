@@ -565,6 +565,11 @@ export const pt: I18n = {
     dailyNotesFolder: 'Pasta de notas diárias (relativa ao workspace)',
     dailyNotesFormat: 'Formato do nome de arquivo das notas diárias',
     dailyNotesTemplate: 'Modelo de notas diárias (vazio = padrão)',
+    recurringTaskPlacement: 'Tarefa recorrente concluída',
+    recurringTaskPlacementBelow: 'Adicionar a próxima ocorrência abaixo',
+    recurringTaskPlacementAbove: 'Adicionar a próxima ocorrência acima',
+    recurringTaskPlacementHint:
+      'A linha concluída permanece na nota; isto só define onde fica a nova linha aberta.',
     autoGitEnabled: 'Ativar histórico de versões (commit automático ao salvar)',
     autoGitHelp: 'Cada {key} cria um snapshot em um .git local dentro do seu workspace. O painel Histórico à direita lista cada versão por arquivo. Tudo local — nada sai da sua máquina.',
     versionHistoryHeading: 'Histórico de versões',

@@ -780,6 +780,52 @@ export function calendarTasksFromEntry(entry: CalendarEntry): CalendarTask[] {
 // -------------------------------------------------------------------------
 // Recurrence expansion
 // --------------------------------------------------------------------------
+/**
+ * Next date-only due for a recurring task, strictly after `due`.
+ *
+ * A task's `due` has no clock, so it is modelled as a synthetic timed event on
+ * that date and expanded with the same `expandOccurrences` the calendar uses —
+ * one RRULE implementation, so `BYDAY`, `INTERVAL`, `UNTIL` and month-end
+ * clamping cannot disagree between events and tasks.
+ *
+ * Returns null when the rule is unparsable or produces nothing.
+ */
+export function nextTaskDueDate(due: string, rrule: string, horizonDays = 365 * 5): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return null;
+  const synthetic: CalendarEvent = {
+    kind: 'event',
+    uid: 'task-rule',
+    summary: '',
+    description: '',
+    notes: null,
+    dtstart: `${due}T09:00:00`,
+    dtend: `${due}T09:15:00`,
+    tzid: null,
+    allDay: false,
+    status: 'CONFIRMED',
+    categories: [],
+    location: null,
+    rrule,
+    exdate: [],
+    seriesUid: null,
+    recurrenceId: null,
+    alarms: [],
+    relatedNote: null,
+    source: 'local',
+    remoteHref: null,
+    etag: null,
+    sequence: 0,
+    path: '',
+    mtime: 0,
+  };
+  const from = addDays(due, 1);
+  const to = addDays(due, horizonDays);
+  for (const occ of expandOccurrences(synthetic, from, to)) {
+    const date = occ.start.slice(0, 10);
+    if (date > due) return date;
+  }
+  return null;
+}
 
 function occurrenceOf(
   event: CalendarEvent,

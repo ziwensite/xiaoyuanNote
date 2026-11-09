@@ -11,9 +11,18 @@ import { invoke } from '@tauri-apps/api/core';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
+import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
 import { useFiles } from './useFiles';
-import { parseTaskMeta, compareTasks, setTaskReminder, toggleTaskLine, type TaskMeta } from '../lib/tasks';
+import { nextTaskDueDate } from '../lib/calendar';
+import {
+  completeRecurringTaskLine,
+  parseTaskMeta,
+  compareTasks,
+  setTaskReminder,
+  toggleTaskLine,
+  type TaskMeta,
+} from '../lib/tasks';
 import type { FileReadResult } from '../types';
 
 export interface WorkspaceTask {
@@ -31,6 +40,7 @@ export function useTasks() {
   const idx = useWorkspaceIndexStore();
   const tabs = useTabsStore();
   const toasts = useToastsStore();
+  const settings = useSettingsStore();
   const { t } = useI18n();
   const files = useFiles();
 
@@ -97,8 +107,30 @@ export function useTasks() {
     }
   }
 
-  /** Tick / untick a task and persist it. */
+  /**
+   * Tick / untick a task and persist it.
+   *
+   * Ticking a recurring task does not just flip the box: it writes the next
+   * occurrence as a new open line, because a recurring task is one line per
+   * occurrence, not one line whose date keeps being overwritten. Unticking
+   * stays a plain flip — there is no rule to advance backwards.
+   */
   async function toggle(task: WorkspaceTask): Promise<void> {
+    if (!task.done && task.meta.rrule && task.meta.due) {
+      const nextDue = nextTaskDueDate(task.meta.due, task.meta.rrule);
+      if (nextDue) {
+        await writeTaskLine(task, (content, line) => {
+          const done = completeRecurringTaskLine(
+            content,
+            line,
+            nextDue,
+            settings.recurringTaskPlacement,
+          );
+          return done ? done.content : null;
+        });
+        return;
+      }
+    }
     await writeTaskLine(task, (content, line) => toggleTaskLine(content, line));
   }
 
