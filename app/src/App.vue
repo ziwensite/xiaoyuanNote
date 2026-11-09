@@ -2618,6 +2618,17 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  /* Only the 36px band behind the tool row is tinted, exactly the same
+   * --bg-sidebar as the title row above and the two dock columns beside it.
+   * The toolbar is opaque and covers the band everywhere except its two
+   * rounded top corners, so those corners read as the white sheet sitting
+   * inside the frame instead of as white notches. The band stops at
+   * --header-h, so the body below keeps the plain white it always had and no
+   * tint can show through at the toolbar's bottom hairline. */
+  background-image: linear-gradient(var(--bg-sidebar), var(--bg-sidebar));
+  background-repeat: no-repeat;
+  background-size: 100% var(--header-h);
+  background-position: top left;
 }
 .workspace {
   flex: 1;

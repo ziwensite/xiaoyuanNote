@@ -1510,9 +1510,30 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   padding: 0 10px 0 12px;
   background: var(--bg);
-  border-bottom: var(--bd-hair);
+  /* The tool row is the top of the white sheet, so only its two TOP corners
+   * are rounded: they are cut out of the tinted frame (title row above, dock
+   * columns beside). The bottom edge stays square and keeps the hairline, so
+   * the row and the editor body below it remain one continuous sheet with no
+   * tint showing at the seam.
+   *
+   * --r-md (8px) rather than --r-sm (6px): at 1.5x a 6px corner is only 9
+   * device px and reads as a slightly chipped edge, which looks like a bug
+   * rather than a shape; 8px is visibly deliberate while still 22% of the
+   * 36px band. --r-lg (10px) turns the band into a card and starts to fight
+   * the square 26px tab chips that begin 5px below its top edge.
+   *
+   * Scoped away from `.toolbar--titlebar`: the Windows title row reuses this
+   * class but spans the whole window above the sheet, so it must stay square
+   * (see the rule below). */
   user-select: none;
   -webkit-user-select: none;
+}
+/* The editor column's header is the top of the white sheet, so only its two
+ * TOP corners are rounded: they are cut out of the tinted frame (title row
+ * above, dock columns beside). The bottom edge stays square so the row and the
+ * editor body below it remain one continuous sheet. */
+.toolbar:not(.toolbar--titlebar) {
+  border-radius: var(--r-md) var(--r-md) 0 0;
 }
 /* macOS reserves the traffic-light inset inline (`MAC_TRAFFIC_INSET`, see
    lib/chrome.ts) on top of this padding: `titleBarStyle: "Overlay"` draws the
