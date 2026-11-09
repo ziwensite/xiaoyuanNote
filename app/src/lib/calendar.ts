@@ -1268,6 +1268,8 @@ export interface ExceptionPatch {
   dtstart: CalendarWallTime;
   dtend: CalendarWallTime | null;
   status?: EventStatus;
+  /** Edited alarms for this occurrence only; omitted keeps the master's. */
+  alarms?: CalendarAlarm[];
 }
 
 /**
@@ -1295,6 +1297,7 @@ export function makeExceptionEvent(
     dtstart: patch.dtstart,
     dtend: patch.dtend,
     status: patch.status ?? master.status,
+    alarms: patch.alarms ? patch.alarms.map((alarm) => ({ ...alarm })) : master.alarms.map((alarm) => ({ ...alarm })),
     rrule: null,
     exdate: [],
     seriesUid: master.uid,

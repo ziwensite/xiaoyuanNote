@@ -378,6 +378,7 @@ function openNew(date: string, startMin = 540, allDay = false) {
     seriesUid: null,
     recurrenceId: null,
     ruleUnsupported: [],
+    alarms: [],
   };
   editorError.value = '';
 }
@@ -408,6 +409,9 @@ async function openEdit(occ: CalendarOccurrence) {
     seriesUid: recurring ? source.uid : source.seriesUid,
     recurrenceId: recurring ? occ.start : null,
     ruleUnsupported: explainRRule(source.rrule).unsupported,
+    // Copied so cancelling the editor cannot mutate the rendered event and so
+    // a non-DISPLAY action survives an unrelated edit.
+    alarms: source.alarms.map((alarm) => ({ ...alarm })),
   };
   editorError.value = '';
   // Snapshot for conflict detection. A failure leaves '' — any non-empty disk
@@ -466,6 +470,7 @@ function buildEvent(draft: EditorDraft): CalendarEvent | null {
       dtstart,
       dtend,
       status: draft.status,
+      alarms: draft.alarms,
     });
   }
 
@@ -478,6 +483,7 @@ function buildEvent(draft: EditorDraft): CalendarEvent | null {
     dtstart,
     dtend,
     status: draft.status,
+    alarms: draft.alarms,
   };
 }
 

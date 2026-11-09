@@ -1,4 +1,4 @@
-import type { CalendarEvent } from '../../lib/calendar';
+import type { CalendarAlarm, CalendarEvent } from '../../lib/calendar';
 
 /** Form state for the event composer; lives outside the SFC so both files share it. */
 export interface EditorDraft {
@@ -30,4 +30,11 @@ export interface EditorDraft {
   recurrenceId: string | null;
   /** RRULE parts the parser could not honour; shown as a visible warning. */
   ruleUnsupported: string[];
+  /**
+   * VALARM entries, edited as triggers. Copied (not referenced) from the
+   * source event so cancelling the editor cannot mutate the rendered event;
+   * `action` rides along so an imported `EMAIL`/`AUDIO` alarm is not silently
+   * downgraded to `DISPLAY` when the user edits something else.
+   */
+  alarms: CalendarAlarm[];
 }

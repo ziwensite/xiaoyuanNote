@@ -85,7 +85,8 @@ export function parseAlarmDuration(value: string): number | null {
   const minutes = Number(m[5] ?? 0);
   const seconds = Number(m[6] ?? 0);
   if (![weeks, days, hours, minutes, seconds].every(Number.isFinite)) return null;
-  if (!/P(?:\d|T)/.test(value.trim().toUpperCase())) return null;
+  // `P` and `PT` parse to zero everywhere above; ISO-8601 wants a component.
+  if ([m[2], m[3], m[4], m[5], m[6]].every((part) => part === undefined)) return null;
   return sign * (((weeks * 7 + days) * 24 + hours) * 60 * 60 + minutes * 60 + seconds) * 1000;
 }
 
@@ -124,6 +125,22 @@ export function alarmFireAt(
   const base = Date.parse(startUtc);
   if (Number.isNaN(base)) return null;
   return new Date(base + delta).toISOString();
+}
+
+/**
+ * Is this string a trigger the scheduler can resolve?
+ *
+ * Used by the editor to refuse a typo instead of saving an alarm that will
+ * never fire. Keep it aligned with `alarmFireAt` — both read the same three
+ * shapes, and `calendar-reminders.test.ts` asserts they agree.
+ */
+export function isValidAlarmTrigger(trigger: string): boolean {
+  const t = trigger.trim();
+  if (!t) return false;
+  if (ABSOLUTE_TRIGGER.test(t)) return !Number.isNaN(Date.parse(t));
+  const clock = CLOCK_TRIGGER.exec(t);
+  if (clock) return Number(clock[1]) <= 23 && Number(clock[2]) <= 59;
+  return parseAlarmDuration(t) !== null;
 }
 
 /** A task's date-only due date becomes 09:00 device-local. */

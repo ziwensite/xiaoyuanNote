@@ -13,10 +13,17 @@ import {
   TASK_DUE_HOUR,
   alarmFireAt,
   buildReminderSchedule,
+  isValidAlarmTrigger,
   parseAlarmDuration,
   taskDueBaseUtc,
 } from './calendar-reminders';
-import type { CalendarEntry } from './calendar';
+import {
+  calendarEventFromEntry,
+  createCalendarEvent,
+  type CalendarEntry,
+  type CalendarEvent,
+} from './calendar';
+import { splitFrontmatter } from './frontmatter';
 
 const NOW = new Date(2026, 10, 8, 12, 0, 0).getTime(); // local noon, 2026-11-08
 
@@ -144,3 +151,92 @@ test('reminder ids stay stable across recomputes', () => {
   assert.equal(a[0].id, b[0].id);
   assert.equal(a[0].id, `event:evt-1:${a[0].fireAt}`);
 });
+
+// ---------------------------------------------------------------------------
+// Editor contract: the trigger validator and the alarm round-trip
+// ---------------------------------------------------------------------------
+
+function bareEvent(overrides: Partial<CalendarEvent> = {}): CalendarEvent {
+  return {
+    kind: 'event',
+    uid: 'evt-1',
+    summary: 'Sync',
+    description: '',
+    notes: null,
+    dtstart: '2026-11-09T09:00:00',
+    dtend: '2026-11-09T10:00:00',
+    tzid: null,
+    allDay: false,
+    status: 'CONFIRMED',
+    categories: [],
+    location: null,
+    rrule: null,
+    exdate: [],
+    seriesUid: null,
+    recurrenceId: null,
+    alarms: [],
+    relatedNote: null,
+    source: 'local',
+    remoteHref: null,
+    etag: null,
+    sequence: 0,
+    path: 'Calendar/evt.md',
+    mtime: 0,
+    ...overrides,
+  };
+}
+
+test('isValidAlarmTrigger agrees with alarmFireAt on both valid and invalid shapes', () => {
+  const start = '2026-11-09T14:00:00.000Z';
+  const valid = ['-PT15M', '09:00', '2026-11-09T12:00:00Z', '-P1D', 'PT0S'];
+  for (const trigger of valid) {
+    assert.equal(isValidAlarmTrigger(trigger), true, `valid: ${trigger}`);
+    assert.notEqual(alarmFireAt(start, '2026-11-09', null, trigger), null, `resolves: ${trigger}`);
+  }
+  const invalid = ['', 'tomorrow', '25:00', 'P', 'PT', '  '];
+  for (const trigger of invalid) {
+    assert.equal(isValidAlarmTrigger(trigger), false, `invalid: ${trigger}`);
+    assert.equal(alarmFireAt(start, '2026-11-09', null, trigger), null, `rejects: ${trigger}`);
+  }
+});
+
+test('alarms survive a note round-trip with their action and order', () => {
+  const event = bareEvent({
+    alarms: [
+      { trigger: '-PT15M', action: 'DISPLAY' },
+      { trigger: '09:00', action: 'EMAIL' },
+    ],
+  });
+  const text = createCalendarEvent(event, 'body text');
+  const { data } = splitFrontmatter(text);
+  const parsed = calendarEventFromEntry({
+    path: 'Calendar/evt.md',
+    frontmatter: data,
+    tasks: [],
+    mtime: 0,
+  });
+  assert.ok(parsed);
+  assert.deepEqual(parsed.alarms.map((a) => a.trigger), ['-PT15M', '09:00']);
+  assert.deepEqual(parsed.alarms.map((a) => a.action), ['DISPLAY', 'EMAIL']);
+});
+
+test('an edited alarm set reaches the schedule (editor → note → reminders)', () => {
+  const event = bareEvent({
+    alarms: [
+      { trigger: '-PT15M', action: 'DISPLAY' },
+      { trigger: '09:00', action: 'DISPLAY' },
+    ],
+  });
+  const { data } = splitFrontmatter(createCalendarEvent(event, ''));
+  const items = buildReminderSchedule(
+    [{ path: 'Calendar/evt.md', frontmatter: data, tasks: [], mtime: 0 }],
+    NOW,
+    { notBeforeMs: 0 },
+  );
+  assert.equal(items.length, 2);
+  assert.deepEqual(items.map((i) => i.fireAt), [
+    localIso(2026, 11, 9, 8, 45),
+    localIso(2026, 11, 9, 9, 0),
+  ]);
+});
+
