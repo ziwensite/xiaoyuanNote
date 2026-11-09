@@ -537,8 +537,10 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  scrollbar-width: thin;
-  scrollbar-color: var(--fill-2) transparent;
+  /* No `scrollbar-width` / `scrollbar-color` here: in WebView2 either one
+   * switches off every ::-webkit-scrollbar rule (see scrollbars.css) and the
+   * pane falls back to the chunky system bar — a 10px gutter whose 6px thumb
+   * hugs the column divider and reads as a second border. */
 }
 .sb__nav {
   flex: none;

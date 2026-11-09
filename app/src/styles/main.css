@@ -530,8 +530,10 @@ button:disabled {
   border-bottom: 1px solid var(--border);
   padding: 6px;
   gap: 4px;
-  scrollbar-width: none;
 }
+/* Hidden bar, WebKit-only: `scrollbar-width: none` would switch off every
+   ::-webkit-scrollbar rule for the element (see styles/scrollbars.css). */
+:root.narrow-viewport .settings__nav::-webkit-scrollbar { height: 0; }
 :root.narrow-viewport .settings__nav-item {
   flex: 0 0 auto;
   min-height: 40px;
@@ -571,7 +573,6 @@ button:disabled {
   overflow-x: auto;
   overflow-y: hidden;
   flex-wrap: nowrap;
-  scrollbar-width: none;
 }
 :root.narrow-viewport .tabbar::-webkit-scrollbar { height: 0; }
 

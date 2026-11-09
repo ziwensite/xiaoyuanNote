@@ -684,7 +684,6 @@ onBeforeUnmount(() => {
   min-width: 0;
   height: 100%;
   overflow-x: auto;
-  scrollbar-width: none;
   /* Momentum + horizontal touch panning for the overflowing strip on iOS. */
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;

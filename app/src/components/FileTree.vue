@@ -2932,8 +2932,9 @@ export const FileTreeNode = defineComponent({
   overflow-y: auto;
   overflow-x: auto;
   padding-bottom: var(--sp-2);
-  scrollbar-width: thin;
-  scrollbar-color: var(--fill-2) transparent;
+  /* App-wide 8px bar from scrollbars.css. Do NOT set `scrollbar-width` /
+   * `scrollbar-color`: in WebView2 they disable the ::-webkit-scrollbar rules
+   * and bring back the chunky system bar. */
 }
 
 /* #282 — a persisted filter must never be invisible. */

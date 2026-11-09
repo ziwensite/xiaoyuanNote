@@ -1,8 +1,9 @@
 /* SoloMD 5.0 — app-wide scrollbars (docs/v5-ui-spec.md §2).
  *
  * Thin, overlay-looking bars: 8px gutter, a 4px pill thumb inset by a
- * transparent border, no track. Quiet at rest (--fill-2), legible on hover
- * (--text-3).
+ * transparent border, no track. Quiet at rest (--scroll-thumb), legible on
+ * hover (--text-3). One rule for every scroller in the app: the editor, the
+ * dock columns, the right column and the modal bodies all read this file.
  *
  * Only the WebKit/Blink pseudo-elements are styled. Do NOT add the standard
  * `scrollbar-width` / `scrollbar-color` here: in Chromium ≥121 (WebView2)
@@ -24,7 +25,13 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--fill-2);
+  /* Opaque, not `--fill-2`. A translucent fill composites to a DIFFERENT
+   * pixel over `--bg` (editor, #ededed) than over `--bg-sidebar` (panes,
+   * #e2e2df), so the left column's pill did not match the editor's even
+   * though both read this rule. `--scroll-thumb` is the same 8% ink already
+   * flattened onto `--bg`, so every scrollbar paints one pigment on every
+   * surface. */
+  background-color: var(--scroll-thumb);
   background-clip: padding-box;
   border: 2px solid transparent;
   border-radius: var(--r-full);

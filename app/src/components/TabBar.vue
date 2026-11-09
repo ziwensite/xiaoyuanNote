@@ -190,7 +190,6 @@ function onTabsWheel(e: WheelEvent) {
   display: flex;
   flex: 1;
   overflow-x: auto;
-  scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar { display: none; }
 

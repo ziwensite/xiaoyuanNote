@@ -86,6 +86,11 @@
   --bg-pop: var(--bg);
   --fill-1: color-mix(in srgb, var(--text) 6%, transparent);
   --fill-2: color-mix(in srgb, var(--text) 10%, transparent);
+  /* Scrollbar pill: `--fill-2` flattened onto `--bg` (opaque on purpose — see
+   * scrollbars.css). A translucent thumb composites differently over the
+   * editor's white and the panes' tinted surface, so the two would never
+   * measure the same. */
+  --scroll-thumb: color-mix(in srgb, var(--text) 10%, var(--bg));
   --hairline: color-mix(in srgb, var(--text) 10%, transparent);
   --text-2: var(--text-muted);
   --text-3: color-mix(in srgb, var(--text-muted) 80%, var(--bg));
@@ -165,6 +170,8 @@
   --bg-pop: #ffffff;
   --fill-1: rgba(31, 30, 28, 0.05);
   --fill-2: rgba(31, 30, 28, 0.08);
+  /* = --fill-2 composited over --bg (#ffffff). */
+  --scroll-thumb: #ededed;
   --hairline: rgba(31, 30, 28, 0.08);
   --text-2: #5e5b55;
   --text-3: #78756e;
@@ -181,6 +188,8 @@
   --bg-pop: #2c2c2f;
   --fill-1: rgba(255, 255, 255, 0.07);
   --fill-2: rgba(255, 255, 255, 0.11);
+  /* = --fill-2 composited over --bg (#1c1c1e). */
+  --scroll-thumb: #353537;
   --hairline: rgba(255, 255, 255, 0.08);
   --text-2: #a9a6a0;
   --text-3: #8c8984;
