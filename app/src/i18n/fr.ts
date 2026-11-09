@@ -2146,6 +2146,9 @@ export const fr: I18n = {
     toastFailed: "Échec de l'enregistrement : {error}",
     toastTabDirty: "Enregistrez l'onglet ouvert avant de modifier cet événement.",
     toastTaskGone: 'Cette tâche a bougé — rouvrez la liste.',
+    taskReminderAdd: 'Ajouter un rappel à 09:00',
+    taskReminderRemove: 'Supprimer le rappel',
+    taskReminderNeedsDue: 'Définissez d’abord une échéance — sans elle, aucun rappel ne se déclenche.',
     editor: {
       newTitle: 'Nouvel événement',
       editTitle: "Modifier l'événement",

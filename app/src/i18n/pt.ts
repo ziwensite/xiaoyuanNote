@@ -2148,6 +2148,9 @@ export const pt: I18n = {
     toastFailed: 'Falha ao guardar: {error}',
     toastTabDirty: 'Guarde o separador aberto antes de editar este evento.',
     toastTaskGone: 'Essa tarefa mudou — reabra a lista.',
+    taskReminderAdd: 'Adicionar lembrete às 09:00',
+    taskReminderRemove: 'Remover lembrete',
+    taskReminderNeedsDue: 'Defina primeiro um prazo — sem ele o lembrete nunca dispara.',
     editor: {
       newTitle: 'Novo evento',
       editTitle: 'Editar evento',

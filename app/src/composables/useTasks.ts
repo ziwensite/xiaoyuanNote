@@ -13,7 +13,7 @@ import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import { useFiles } from './useFiles';
-import { parseTaskMeta, compareTasks, toggleTaskLine, type TaskMeta } from '../lib/tasks';
+import { parseTaskMeta, compareTasks, setTaskReminder, toggleTaskLine, type TaskMeta } from '../lib/tasks';
 import type { FileReadResult } from '../types';
 
 export interface WorkspaceTask {
@@ -52,19 +52,22 @@ export function useTasks() {
   });
 
   /**
-   * Tick / untick a task and persist it.
+   * Apply `transform` to one line of the task's note and persist it.
    *
-   * When the file is open in a tab, the toggle has to go through the tab's
-   * copy: writing the file directly would be overwritten the moment that tab
-   * saves. The tab is then saved, because clicking a checkbox is an explicit
-   * act — leaving it dirty would show the panel (which reads the index, i.e.
-   * disk) disagreeing with what the user just clicked.
+   * When the file is open in a tab, the edit has to go through the tab's copy:
+   * writing the file directly would be overwritten the moment that tab saves.
+   * The tab is then saved, because clicking a checkbox is an explicit act —
+   * leaving it dirty would show the panel (which reads the index, i.e. disk)
+   * disagreeing with what the user just clicked.
    */
-  async function toggle(task: WorkspaceTask): Promise<void> {
+  async function writeTaskLine(
+    task: WorkspaceTask,
+    transform: (content: string, line: number) => string | null,
+  ): Promise<void> {
     const openTab = tabs.tabs.find((t) => t.filePath === task.path);
     try {
       if (openTab) {
-        const next = toggleTaskLine(openTab.content ?? '', task.line);
+        const next = transform(openTab.content ?? '', task.line);
         if (next === null) {
           toasts.warning('That line is no longer a task — reopen the note.');
           return;
@@ -74,7 +77,7 @@ export function useTasks() {
         return;
       }
       const read = await invoke<FileReadResult>('read_file', { path: task.path });
-      const next = toggleTaskLine(read.content, task.line);
+      const next = transform(read.content, task.line);
       if (next === null) {
         // The index is behind the file. Refusing to write is the whole point:
         // rewriting whatever now sits on that line would corrupt the note.
@@ -94,5 +97,22 @@ export function useTasks() {
     }
   }
 
-  return { tasks, toggle };
+  /** Tick / untick a task and persist it. */
+  async function toggle(task: WorkspaceTask): Promise<void> {
+    await writeTaskLine(task, (content, line) => toggleTaskLine(content, line));
+  }
+
+  /**
+   * Set (`trigger`) or clear (`null`) the task's `⏰`.
+   *
+   * The UID is injected when a reminder is added, not before: a task that never
+   * had a reminder keeps its line byte-identical. An existing `🆔` is reused so
+   * adding a reminder twice cannot mint a second identity.
+   */
+  async function setReminder(task: WorkspaceTask, trigger: string | null): Promise<void> {
+    const uid = task.meta.uid ?? (trigger ? crypto.randomUUID().slice(0, 8) : undefined);
+    await writeTaskLine(task, (content, line) => setTaskReminder(content, line, trigger, uid));
+  }
+
+  return { tasks, toggle, setReminder };
 }

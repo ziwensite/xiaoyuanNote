@@ -2163,6 +2163,9 @@ export const nl: I18n = {
     toastFailed: 'Opslaan mislukt: {error}',
     toastTabDirty: 'Sla het open tabblad eerst op voordat je deze afspraak hier bewerkt.',
     toastTaskGone: 'Die taak is verplaatst — open de lijst opnieuw.',
+    taskReminderAdd: 'Herinnering om 09:00 toevoegen',
+    taskReminderRemove: 'Herinnering verwijderen',
+    taskReminderNeedsDue: 'Stel eerst een vervaldatum in — zonder werkt de herinnering nooit.',
     editor: {
       newTitle: 'Nieuwe afspraak',
       editTitle: 'Afspraak bewerken',

@@ -2163,6 +2163,9 @@ export const tr: I18n = {
     toastFailed: 'Kaydedilemedi: {error}',
     toastTabDirty: 'Bu etkinliği burada düzenlemeden önce açık sekmeyi kaydedin.',
     toastTaskGone: 'O görev taşındı — listeyi yeniden açın.',
+    taskReminderAdd: '09:00 için hatırlatıcı ekle',
+    taskReminderRemove: 'Hatırlatıcıyı kaldır',
+    taskReminderNeedsDue: 'Önce bir son tarih belirleyin — olmadan hatırlatıcı hiç çalmaz.',
     editor: {
       newTitle: 'Yeni etkinlik',
       editTitle: 'Etkinliği düzenle',

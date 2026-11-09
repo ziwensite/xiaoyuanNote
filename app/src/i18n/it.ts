@@ -2146,6 +2146,9 @@ export const it: I18n = {
     toastFailed: 'Salvataggio non riuscito: {error}',
     toastTabDirty: 'Salva la scheda aperta prima di modificare questo evento.',
     toastTaskGone: "Quell'attività si è spostata — riapri l'elenco.",
+    taskReminderAdd: 'Aggiungi un promemoria alle 09:00',
+    taskReminderRemove: 'Rimuovi promemoria',
+    taskReminderNeedsDue: 'Imposta prima una scadenza — senza, il promemoria non scatta mai.',
     editor: {
       newTitle: 'Nuovo evento',
       editTitle: 'Modifica evento',

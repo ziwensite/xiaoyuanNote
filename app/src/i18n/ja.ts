@@ -2146,6 +2146,9 @@ export const ja: I18n = {
     toastFailed: '保存できませんでした：{error}',
     toastTabDirty: '開いているタブを先に保存してください。',
     toastTaskGone: 'タスクが移動しました。一覧を開き直してください。',
+    taskReminderAdd: '09:00 にリマインダーを追加',
+    taskReminderRemove: 'リマインダーを削除',
+    taskReminderNeedsDue: '先に期限を設定してください。期限のないリマインダーは通知されません。',
     editor: {
       newTitle: '新しい予定',
       editTitle: '予定を編集',

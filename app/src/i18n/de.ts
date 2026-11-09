@@ -2146,6 +2146,9 @@ export const de: I18n = {
     toastFailed: 'Speichern fehlgeschlagen: {error}',
     toastTabDirty: 'Speichere zuerst den offenen Tab.',
     toastTaskGone: 'Aufgabe wurde verschoben — Liste neu öffnen.',
+    taskReminderAdd: 'Erinnerung um 09:00 hinzufügen',
+    taskReminderRemove: 'Erinnerung entfernen',
+    taskReminderNeedsDue: 'Zuerst ein Fälligkeitsdatum setzen — ohne es wird nie erinnert.',
     editor: {
       newTitle: 'Neues Ereignis',
       editTitle: 'Ereignis bearbeiten',

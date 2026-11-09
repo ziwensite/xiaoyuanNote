@@ -2163,6 +2163,9 @@ export const sv: I18n = {
     toastFailed: 'Kunde inte spara: {error}',
     toastTabDirty: 'Spara den öppna fliken innan du redigerar händelsen här.',
     toastTaskGone: 'Uppgiften har flyttats — öppna listan igen.',
+    taskReminderAdd: 'Lägg till en påminnelse 09:00',
+    taskReminderRemove: 'Ta bort påminnelse',
+    taskReminderNeedsDue: 'Ange först ett förfallodatum — utan det larmar påminnelsen aldrig.',
     editor: {
       newTitle: 'Ny händelse',
       editTitle: 'Redigera händelse',

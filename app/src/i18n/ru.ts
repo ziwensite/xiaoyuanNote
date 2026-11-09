@@ -2137,6 +2137,9 @@ export const ru: I18n = {
     toastFailed: 'Не удалось сохранить: {error}',
     toastTabDirty: 'Сохраните открытую вкладку перед редактированием этого события.',
     toastTaskGone: 'Задача переместилась — откройте список снова.',
+    taskReminderAdd: 'Добавить напоминание на 09:00',
+    taskReminderRemove: 'Удалить напоминание',
+    taskReminderNeedsDue: 'Сначала задайте срок — без него напоминание не сработает.',
     editor: {
       newTitle: 'Новое событие',
       editTitle: 'Редактировать событие',

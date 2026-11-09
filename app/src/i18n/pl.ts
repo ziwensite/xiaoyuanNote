@@ -2163,6 +2163,9 @@ export const pl: I18n = {
     toastFailed: 'Nie udało się zapisać: {error}',
     toastTabDirty: 'Zapisz otwartą kartę przed edycją tego wydarzenia.',
     toastTaskGone: 'To zadanie się przeniosło — otwórz listę ponownie.',
+    taskReminderAdd: 'Dodaj przypomnienie o 09:00',
+    taskReminderRemove: 'Usuń przypomnienie',
+    taskReminderNeedsDue: 'Najpierw ustaw termin — bez niego przypomnienie nigdy nie zadziała.',
     editor: {
       newTitle: 'Nowe wydarzenie',
       editTitle: 'Edytuj wydarzenie',

@@ -88,6 +88,8 @@ const UID_TOKEN = /🆔\s*([A-Za-z0-9_-]{4,})/u;
 const REMINDER_TOKEN = /⏰\s*(-?P[A-Za-z0-9]+|[0-9]{1,2}:[0-9]{2}|\d{4}-\d{2}-\d{2}T[0-9:]+Z?)/u;
 const RRULE_TOKEN = /🔁\s*(FREQ=[A-Za-z0-9=;,:+-]+)/iu;
 
+const TASK_LINE = /^(\s*[-*+]\s+\[[ xX]\])(.*)$/u;
+
 export function parseTaskMeta(text: string): TaskMeta {
   let rest = text;
   let priority: TaskPriority = null;
@@ -203,3 +205,93 @@ export function toggleTaskLine(content: string, line1Based: number): string | nu
   lines[idx] = `${m[1]}${m[2] === ' ' ? 'x' : ' '}${m[3]}`;
   return lines.join('\n');
 }
+
+/**
+ * Strict trigger shapes for a token we are about to *write*.
+ *
+ * The parser is lenient (it must never eat text it does not understand), but a
+ * new `⏰` should only be added when the scheduler can resolve it. This mirrors
+ * `isValidAlarmTrigger` in `calendar-reminders.ts`; it is duplicated rather
+ * than imported because `calendar.ts` already imports this module, and a
+ * `tasks → calendar-reminders → calendar → tasks` cycle is worse than a dozen
+ * lines of regex.
+ */
+function isWritableTrigger(trigger: string): boolean {
+  const clock = /^(\d{1,2}):(\d{2})$/.exec(trigger);
+  if (clock) return Number(clock[1]) <= 23 && Number(clock[2]) <= 59;
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})?$/.test(trigger)) {
+    return !Number.isNaN(Date.parse(trigger));
+  }
+  const m = /^(-)?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(
+    trigger.toUpperCase(),
+  );
+  if (!m) return false;
+  // `P` and `PT` parse to nothing; a duration needs at least one component.
+  return [m[2], m[3], m[4], m[5], m[6]].some((part) => part !== undefined);
+}
+
+/**
+ * Remove every `⏰ <trigger>` together with one adjacent space.
+ *
+ * The adjacency rule is what keeps `ship it ⏰ 09:00` from becoming
+ * `ship it ` (trailing space) or `ship it  ` (double space) — the rest of the
+ * line is meant to survive byte for byte.
+ */
+function stripReminderTokens(body: string): string {
+  const scan = new RegExp(REMINDER_TOKEN.source, 'gu');
+  let out = body;
+  let m: RegExpExecArray | null;
+  while ((m = scan.exec(out))) {
+    const start = m.index;
+    const end = start + m[0].length;
+    if (start > 0 && /[ \t]/.test(out[start - 1])) {
+      out = out.slice(0, start - 1) + out.slice(end);
+    } else if (end < out.length && /[ \t]/.test(out[end])) {
+      out = out.slice(0, start) + out.slice(end + 1);
+    } else {
+      out = out.slice(0, start) + out.slice(end);
+    }
+    scan.lastIndex = start;
+  }
+  return out;
+}
+
+/**
+ * Add or remove the reminder token on the task at `line1Based`.
+ *
+ * `trigger === null` removes every `⏰`. Otherwise the trigger replaces them,
+ * and a `🆔` is injected when one is missing so the reminder keeps a stable
+ * identity if the note is renamed.
+ *
+ * Returns the whole document, like `toggleTaskLine`, or null when the line is
+ * not a task or the trigger is not writable — the caller must not write the
+ * file in that case.
+ */
+export function setTaskReminder(
+  content: string,
+  line1Based: number,
+  trigger: string | null,
+  uid?: string,
+): string | null {
+  const lines = content.split('\n');
+  const idx = line1Based - 1;
+  if (idx < 0 || idx >= lines.length) return null;
+  const line = lines[idx];
+  const cr = line.endsWith('\r') ? '\r' : '';
+  const m = TASK_LINE.exec(cr ? line.slice(0, -1) : line);
+  if (!m) return null;
+
+  let rest = stripReminderTokens(m[2]);
+  if (trigger !== null) {
+    const value = trigger.trim();
+    if (!isWritableTrigger(value)) return null;
+    const trailing = /[ \t]*$/.exec(rest)?.[0] ?? '';
+    const core = rest.slice(0, rest.length - trailing.length);
+    rest = `${core} ⏰ ${value}${trailing}`;
+    if (uid && !UID_TOKEN.test(rest)) rest = `${rest} 🆔 ${uid}`;
+  }
+
+  lines[idx] = `${m[1]}${rest}${cr}`;
+  return lines.join('\n');
+}
+

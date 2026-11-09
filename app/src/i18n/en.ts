@@ -2175,6 +2175,9 @@
     toastFailed: 'Could not save: {error}',
     toastTabDirty: 'Save the open tab before editing this event here.',
     toastTaskGone: 'That task moved — reopen the list.',
+    taskReminderAdd: 'Add a reminder at 09:00',
+    taskReminderRemove: 'Remove reminder',
+    taskReminderNeedsDue: 'Set a due date first — a reminder without one never fires.',
     editor: {
       newTitle: 'New event',
       editTitle: 'Edit event',

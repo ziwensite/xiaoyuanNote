@@ -2146,6 +2146,9 @@ export const es: I18n = {
     toastFailed: 'No se pudo guardar: {error}',
     toastTabDirty: 'Guarda la pestaña abierta antes de editar este evento.',
     toastTaskGone: 'Esa tarea se movió — vuelve a abrir la lista.',
+    taskReminderAdd: 'Añadir un recordatorio a las 09:00',
+    taskReminderRemove: 'Quitar recordatorio',
+    taskReminderNeedsDue: 'Primero define una fecha límite; sin ella el recordatorio nunca suena.',
     editor: {
       newTitle: 'Nuevo evento',
       editTitle: 'Editar evento',

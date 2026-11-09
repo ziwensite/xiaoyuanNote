@@ -12,6 +12,7 @@ import {
   isOverdue,
   localDateKey,
   compareTasks,
+  setTaskReminder,
   toggleTaskLine,
 } from './tasks';
 
@@ -140,5 +141,99 @@ test('malformed calendar tokens are not eaten', () => {
   assert.equal(m.uid, undefined);
   assert.equal(m.rrule, undefined);
   assert.equal(m.reminders, undefined);
+});
+
+// ---------------------------------------------------------------------------
+// setTaskReminder — the explicit add/remove entry point
+// ---------------------------------------------------------------------------
+
+const DOC = [
+  '# Notes',
+  '',
+  '- [ ] pay rent 📅 2026-11-09 #home',
+  '- [x] done thing',
+  '  * [ ] nested 📅 2026-12-01',
+  'a plain paragraph',
+  '',
+].join('\n');
+
+/** Every line except `line1Based`, which is what "byte-identical" means here. */
+function otherLines(doc: string, line1Based: number): string[] {
+  return doc.split('\n').filter((_, i) => i !== line1Based - 1);
+}
+
+test('adding a reminder touches only the target line', () => {
+  const next = setTaskReminder(DOC, 3, '09:00', 'abc12345');
+  assert.ok(next);
+  assert.deepEqual(otherLines(next, 3), otherLines(DOC, 3));
+  assert.equal(next.split('\n')[2], '- [ ] pay rent 📅 2026-11-09 #home ⏰ 09:00 🆔 abc12345');
+});
+
+test('removing a reminder drops the token, keeps the uid, and leaves the rest of the note alone', () => {
+  const added = setTaskReminder(DOC, 3, '-PT15M', 'abc12345');
+  assert.ok(added);
+  const removed = setTaskReminder(added, 3, null);
+  assert.ok(removed);
+  assert.deepEqual(otherLines(removed, 3), otherLines(DOC, 3));
+  // The UID is a task identity, not part of the reminder: it is injected once
+  // and then kept, so the note is not rewritten again on every toggle.
+  assert.equal(removed.split('\n')[2], '- [ ] pay rent 📅 2026-11-09 #home 🆔 abc12345');
+});
+
+test('adding twice replaces instead of duplicating, and the uid is not re-injected', () => {
+  const once = setTaskReminder(DOC, 3, '09:00', 'abc12345');
+  assert.ok(once);
+  const twice = setTaskReminder(once, 3, '-PT30M', 'ffff9999');
+  assert.ok(twice);
+  const meta = parseTaskMeta(twice.split('\n')[2].replace(/^- \[ \] /, ''));
+  assert.deepEqual(meta.reminders, ['-PT30M']);
+  assert.equal(meta.uid, 'abc12345');
+  assert.equal((twice.match(/🆔/gu) ?? []).length, 1);
+});
+
+test('every existing reminder is removed at once', () => {
+  const line = '- [ ] meds 📅 2026-11-09 ⏰ 09:00 ⏰ -PT10M';
+  assert.equal(setTaskReminder(line, 1, null), '- [ ] meds 📅 2026-11-09');
+});
+
+test('removal keeps the space before the token out of the way', () => {
+  assert.equal(setTaskReminder('- [ ] x ⏰ 09:00', 1, null), '- [ ] x');
+  assert.equal(setTaskReminder('- [ ] ⏰ 09:00 x', 1, null), '- [ ] x');
+  assert.equal(setTaskReminder('- [ ] ⏰ 09:00', 1, null), '- [ ]');
+});
+
+test('a non-writable trigger refuses and writes nothing', () => {
+  for (const bad of ['', 'tomorrow', '25:00', 'P', 'PT']) {
+    assert.equal(setTaskReminder(DOC, 3, bad, 'abc12345'), null, `rejects: ${bad}`);
+  }
+});
+
+test('a line that is not a task refuses rather than corrupting it', () => {
+  assert.equal(setTaskReminder(DOC, 6, '09:00', 'abc12345'), null);
+  assert.equal(setTaskReminder(DOC, 1, null), null);
+  assert.equal(setTaskReminder(DOC, 0, '09:00'), null);
+  assert.equal(setTaskReminder(DOC, 99, null), null);
+});
+
+test('indentation, checkbox state and CRLF survive the rewrite', () => {
+  assert.equal(
+    setTaskReminder('  * [x] nested 📅 2026-12-01', 1, '09:00'),
+    '  * [x] nested 📅 2026-12-01 ⏰ 09:00',
+  );
+  const crlf = ['- [ ] one', '- [ ] two'].join('\r\n');
+  assert.equal(setTaskReminder(crlf, 2, '09:00'), '- [ ] one\r\n- [ ] two ⏰ 09:00');
+  assert.equal(setTaskReminder('- [ ] one\r\n- [ ] two', 1, null), '- [ ] one\r\n- [ ] two');
+});
+
+test('trailing whitespace stays on the line, after the token', () => {
+  assert.equal(setTaskReminder('- [ ] spaced   ', 1, '09:00'), '- [ ] spaced ⏰ 09:00   ');
+});
+
+test('the written token is re-parsed as the same reminder', () => {
+  const next = setTaskReminder(DOC, 3, '2026-11-09T01:00:00Z', 'abc12345');
+  assert.ok(next);
+  const meta = parseTaskMeta(next.split('\n')[2].replace(/^- \[ \] /, ''));
+  assert.deepEqual(meta.reminders, ['2026-11-09T01:00:00Z']);
+  assert.equal(meta.due, '2026-11-09');
 });
 

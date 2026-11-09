@@ -2146,6 +2146,9 @@ export const ko: I18n = {
     toastFailed: '저장 실패: {error}',
     toastTabDirty: '열린 탭을 먼저 저장하세요.',
     toastTaskGone: '작업이 이동했습니다. 목록을 다시 여세요.',
+    taskReminderAdd: '09:00 알림 추가',
+    taskReminderRemove: '알림 제거',
+    taskReminderNeedsDue: '먼저 마감일을 설정하세요. 마감일 없는 알림은 울리지 않습니다.',
     editor: {
       newTitle: '새 일정',
       editTitle: '일정 편집',

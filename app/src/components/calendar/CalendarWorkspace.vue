@@ -661,6 +661,29 @@ async function toggleTask(task: CalendarTask) {
   await taskList.toggle(live);
 }
 
+/**
+ * Explicit reminder toggle: a task with no `⏰` gets one at the task due hour
+ * (09:00), and one that already has reminders has them removed.
+ *
+ * Nothing is written on its own — this only runs when the bell is clicked — so
+ * a note that never used reminders stays byte-identical.
+ */
+async function toggleTaskReminder(task: CalendarTask) {
+  const live = taskList.tasks.value.find((x) => samePath(x.path, task.path) && x.line === task.line);
+  if (!live) {
+    toasts.warning(t('calendar.toastTaskGone'));
+    return;
+  }
+  const has = (live.meta.reminders?.length ?? 0) > 0;
+  if (!has && !live.meta.due) {
+    // The scheduler has no anchor without a due date, so the reminder would
+    // silently never fire. Say it instead of writing a dead token.
+    toasts.warning(t('calendar.taskReminderNeedsDue'));
+    return;
+  }
+  await taskList.setReminder(live, has ? null : '09:00');
+}
+
 async function jumpToTask(task: CalendarTask) {
   calendar.closeDialog();
   await files.openPath(task.path, { bypassNewWindow: true });
@@ -1034,6 +1057,14 @@ onBeforeUnmount(() => {
                 @click.stop="toggleTask(task)"
               />
               <span class="cal-task-row__title">{{ task.title }}</span>
+              <span
+                class="cal-task-row__bell"
+                :class="{ 'is-on': task.reminders.length > 0 }"
+                role="button"
+                :title="task.reminders.length ? t('calendar.taskReminderRemove') : t('calendar.taskReminderAdd')"
+                :aria-label="task.reminders.length ? t('calendar.taskReminderRemove') : t('calendar.taskReminderAdd')"
+                @click.stop="toggleTaskReminder(task)"
+              >⏰</span>
               <span v-if="task.due" class="cal-task-row__due">{{ task.due.slice(5) }}</span>
             </button>
           </section>
@@ -1560,6 +1591,19 @@ onBeforeUnmount(() => {
   flex: none;
   color: var(--text-3);
   font-size: 11px;
+}
+
+.cal-task-row__bell {
+  flex: none;
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.25;
+  cursor: pointer;
+}
+
+.cal-task-row__bell:hover,
+.cal-task-row__bell.is-on {
+  opacity: 1;
 }
 
 /* Day/week single-column layout */

@@ -2163,6 +2163,9 @@ export const uk: I18n = {
     toastFailed: 'Не вдалося зберегти: {error}',
     toastTabDirty: 'Збережіть відкриту вкладку перед редагуванням цієї події.',
     toastTaskGone: 'Це завдання перемістилося — відкрийте список знову.',
+    taskReminderAdd: 'Додати нагадування на 09:00',
+    taskReminderRemove: 'Видалити нагадування',
+    taskReminderNeedsDue: 'Спершу встановіть термін — без нього нагадування не спрацює.',
     editor: {
       newTitle: 'Нова подія',
       editTitle: 'Редагувати подію',

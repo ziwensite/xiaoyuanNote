@@ -2150,6 +2150,9 @@ export const zh: I18n = {
     toastFailed: '保存失败：{error}',
     toastTabDirty: '这个事件正在标签页中编辑，请先保存标签页。',
     toastTaskGone: '任务已移动，请重新打开列表。',
+    taskReminderAdd: '添加 09:00 提醒',
+    taskReminderRemove: '移除提醒',
+    taskReminderNeedsDue: '请先设置截止日期，否则提醒不会触发。',
     editor: {
       newTitle: '新建事件',
       editTitle: '编辑事件',
