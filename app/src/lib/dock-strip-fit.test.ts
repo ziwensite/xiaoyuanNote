@@ -21,16 +21,16 @@ test('tabsWidth counts one gap between tabs, not after the last one', () => {
 });
 
 test('dockStripLayout renders all tabs when they fit with the `+`', () => {
-  // 1 tab: 8 + 26 + 2 + 26 = 62
-  assert.deepEqual(dockStripLayout(1, 62), { visible: 1, overflow: false });
-  // 2 tabs: 8 + 54 + 2 + 26 = 90
-  assert.deepEqual(dockStripLayout(2, 90), { visible: 2, overflow: false });
+  // 1 tab: 8 + 24 + 2 + 24 = 58
+  assert.deepEqual(dockStripLayout(1, 58), { visible: 1, overflow: false });
+  // 2 tabs: 8 + 50 + 2 + 24 = 84
+  assert.deepEqual(dockStripLayout(2, 84), { visible: 2, overflow: false });
 });
 
 test('dockStripLayout overflows one pixel short of fitting', () => {
-  // 3 tabs without `»`: 8 + 82 + 2 + 26 = 118.
-  assert.deepEqual(dockStripLayout(3, 117), { visible: 1, overflow: true });
-  assert.deepEqual(dockStripLayout(3, 118), { visible: 3, overflow: false });
+  // 3 tabs without `»`: 8 + (24*3 + 2*2) + 2 + 24 = 110.
+  assert.deepEqual(dockStripLayout(3, 109), { visible: 1, overflow: true });
+  assert.deepEqual(dockStripLayout(3, 110), { visible: 3, overflow: false });
 });
 
 test('dockStripLayout moves at least one tab into the `»` list', () => {

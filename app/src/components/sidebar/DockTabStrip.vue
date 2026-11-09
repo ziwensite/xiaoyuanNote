@@ -451,11 +451,14 @@ const dropAt = computed<number | null>(() => {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
+  /* Same control size and highlight radius as the header's icon buttons and
+   * the menu pills (`--ctl-size`); `DOCK_TAB_SIZE` in dock-strip-fit.ts is the
+   * arithmetic mirror of this value — change both or the `»` math drifts. */
+  width: var(--ctl-size);
+  height: var(--ctl-size);
   padding: 0;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--ctl-radius);
   background: transparent;
   color: var(--text-3);
   cursor: pointer;

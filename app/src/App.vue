@@ -2205,9 +2205,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       stack and scroll/DOM state survive entering and leaving reading mode.
     -->
     <ReadingView v-if="settings.viewMode === 'reading'" />
-    <!-- 5.0 window (docs/v5-ui-spec.md §3): on Windows a 44px frameless title
+    <!-- 5.0 window (docs/v5-ui-spec.md §3): on Windows a 36px frameless title
          bar spans the window; below it — and on every other platform at the
-         top — the sidebar runs full height beside a column holding the 52px
+         top — the sidebar runs full height beside a column holding the 36px
          header and the workspace. On macOS the traffic lights sit in the
          sidebar's top inset, or over the header when the sidebar is hidden. -->
     <Toolbar

@@ -4,14 +4,15 @@ import { isMacOS, isWindowsDesktop } from './platform';
 /**
  * Chrome options for windows created at runtime, so every SoloMD window looks
  * like the main one (tauri.conf.json): on macOS the traffic lights float over
- * our 52px header line; Windows is frameless with our own title bar.
+ * our 36px header row (y = 12 centres the 12px buttons); Windows is frameless
+ * with our own 36px title bar.
  */
 export function windowChromeOptions() {
   if (isMacOS()) {
     return {
       titleBarStyle: 'overlay' as const,
       hiddenTitle: true,
-      trafficLightPosition: new LogicalPosition(20, 20),
+      trafficLightPosition: new LogicalPosition(20, 12),
     };
   }
   return { decorations: !isWindowsDesktop() };

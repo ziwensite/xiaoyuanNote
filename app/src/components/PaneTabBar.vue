@@ -21,7 +21,7 @@ const props = withDefaults(
     paneId: string;
     activeTabId: string;
     /** 'pane': the strip at the top of a pane (default). 'header': rendered
-     *  inside the 52px window header by the shell (5.0 §3). */
+     *  inside the 36px window header by the shell (5.0 §3). */
     placement?: 'pane' | 'header';
   }>(),
   { placement: 'pane' },
@@ -475,7 +475,7 @@ onBeforeUnmount(() => {
 <template>
   <!-- 5.0 §3 — quiet pill tabs. `placement="pane"`: the strip at the top of
        a pane (40px, hairline under it). `placement="header"`: rendered by the
-       shell inside the 52px window header, no chrome of its own; the empty
+       shell inside the 36px window header, no chrome of its own; the empty
        part of the strip is a window drag region, the tabs are not. -->
   <div
     class="pane-tabbar"

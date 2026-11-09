@@ -49,9 +49,22 @@
   --dur: 180ms;
   --dur-slow: 220ms;
 
-  /* Header / chrome geometry */
-  --header-h: 52px;
-  --win-titlebar-h: 44px;
+  /* Header / chrome geometry.
+   * 36px everywhere on the top: the menu row is 24px pills + 6px each side,
+   * and its 46x36 caption buttons still clear Windows' 32px minimum. The
+   * header row is the same 36px, which is set by the tallest thing in it — a
+   * 30px editor tab (3px each side) — so the 24px icon buttons get 6px and
+   * nothing is clipped. One 36px band also means the Windows title bar and the
+   * header below it are the same height, with no 40-vs-36 step. */
+  --header-h: 36px;
+  --win-titlebar-h: 36px;
+  /* One size for every icon-only control and its selected-state block: the
+   * menu row, the header row and the dock column headers all read these, so a
+   * 16px icon always gets the same 24px block (4px of padding a side) and the
+   * highlight never looks like a slab. 24px is the low end of the usable-target
+   * range (24-28px); touch layouts override it to 40px. */
+  --ctl-size: 24px;
+  --ctl-radius: 6px;
   --sidebar-w: 260px;
   --measure: 680px;
 
@@ -85,6 +98,9 @@
 
   --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
   --ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent-ring);
+  /* One-pixel halo for fields: the 4px ring above reads as a separate frame
+   * around a 24px-tall input, so inputs grow by exactly 1px instead. */
+  --ring-tight: 0 0 0 1px var(--accent-ring);
 
   --danger: #d64545;
   --danger-fg: #ffffff;
@@ -162,5 +178,16 @@
     --dur-fast: 0ms;
     --dur: 0ms;
     --dur-slow: 0ms;
+  }
+}
+
+/* Touch (iPad / touch laptops used as tablets): the 36px desktop band is under
+ * the 44px finger-target guideline, so touch keeps the row at 44px. Only the
+ * row grows here — `--ctl-size` stays put because the dock strip's `»` maths is
+ * derived from the same number in TypeScript (DOCK_TAB_SIZE); the 40px icon
+ * buttons come from the `pointer: coarse` block in Toolbar.vue. */
+@media (pointer: coarse) {
+  :root {
+    --header-h: 44px;
   }
 }
