@@ -1402,6 +1402,7 @@ export const ja: I18n = {
   sidebarDock: {
     openPanel: '{name} パネルを開く',
     addPanel: 'パネルを開く',
+    moreTabs: 'その他のパネル',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

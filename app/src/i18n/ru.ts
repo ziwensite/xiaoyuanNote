@@ -1397,6 +1397,7 @@ export const ru: I18n = {
   sidebarDock: {
     openPanel: 'Открыть панель «{name}»',
     addPanel: 'Открыть панель',
+    moreTabs: 'Ещё панели',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

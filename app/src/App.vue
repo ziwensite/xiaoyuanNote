@@ -2172,6 +2172,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
         </div>
         <div v-show="!isNarrow || phone.view === 'editor'" class="main-col">
       <Toolbar
+        :left-dock-groups="leftDockGroups"
+        :right-dock-groups="rightDockGroups"
+        :dock-overlay="isTabletOverlay"
+        @manage-dock="openSidebarCtx"
         @open-palette="paletteOpen = true"
         @open-settings="openSettingsAt()"
         @open-help="helpOpen = true"

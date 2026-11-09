@@ -24,6 +24,7 @@ import {
   SIDEBAR_PANE_DEFS,
   type SidebarPaneDef,
   type SidebarPaneId,
+  type ImplementedSidebarPaneId,
 } from '../panes/sidebar-panes';
 
 export type SidebarSide = 'left' | 'right';
@@ -54,6 +55,26 @@ export interface SidebarDockPaneState {
   id: SidebarPaneId;
   side: SidebarSide;
   visible: boolean;
+}
+
+/**
+ * Render-time view of one pane, built by App.vue from the stored state plus
+ * the current document/folder context. Shared by the dock body and the tab
+ * strip that now lives in the header row.
+ */
+export interface DockPaneView {
+  id: ImplementedSidebarPaneId;
+  /** User asked for it (dock switch, tab.showOutline, session-only panes). */
+  visible: boolean;
+  /** Current context can draw it (markdown / folder / autoGit / build). */
+  available: boolean;
+}
+
+/** Render-time view of one stacked region. */
+export interface DockGroupView {
+  /** Registry order of this region — tab order. */
+  panes: readonly DockPaneView[];
+  active: ImplementedSidebarPaneId | null;
 }
 
 /** Content width. The numbers are unchanged on purpose: 292 used to be

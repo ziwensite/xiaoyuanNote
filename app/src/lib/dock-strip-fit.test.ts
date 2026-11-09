@@ -1,0 +1,78 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+
+import {
+  DOCK_ADD_W,
+  DOCK_OVERFLOW_W,
+  DOCK_STRIP_PAD,
+  DOCK_TAB_GAP,
+  DOCK_TAB_SIZE,
+  dockStripCap,
+  dockStripLayout,
+  tabsWidth,
+} from './dock-strip-fit.ts';
+
+test('tabsWidth is zero for an empty strip', () => {
+  assert.equal(tabsWidth(0), 0);
+});
+
+test('tabsWidth counts one gap between tabs, not after the last one', () => {
+  assert.equal(tabsWidth(1), DOCK_TAB_SIZE);
+  assert.equal(tabsWidth(3), DOCK_TAB_SIZE * 3 + DOCK_TAB_GAP * 2);
+});
+
+test('dockStripCap uses the dock width when that is the tighter bound', () => {
+  assert.equal(dockStripCap(212, 1440), 212);
+  assert.equal(dockStripCap(292, 1024), 256); // 25% of 1024
+  assert.equal(dockStripCap(560, 2000), 500);
+});
+
+test('dockStripCap never falls below the room `»` + `+` need', () => {
+  // 25% of 200 would be 50px, below the 62px floor.
+  assert.equal(
+    dockStripCap(212, 200),
+    DOCK_STRIP_PAD + DOCK_ADD_W + DOCK_OVERFLOW_W + DOCK_TAB_GAP,
+  );
+});
+
+test('dockStripLayout renders all tabs when they fit with the `+`', () => {
+  // 1 tab: 8 + 26 + 2 + 26 = 62
+  assert.deepEqual(dockStripLayout(1, 62), { visible: 1, overflow: false });
+  // 2 tabs: 8 + 54 + 2 + 26 = 90
+  assert.deepEqual(dockStripLayout(2, 90), { visible: 2, overflow: false });
+});
+
+test('dockStripLayout overflows one pixel short of fitting', () => {
+  // 3 tabs without `»`: 8 + 82 + 2 + 26 = 118.
+  assert.deepEqual(dockStripLayout(3, 117), { visible: 1, overflow: true });
+  assert.deepEqual(dockStripLayout(3, 118), { visible: 3, overflow: false });
+});
+
+test('dockStripLayout moves at least one tab into the `»` list', () => {
+  const layout = dockStripLayout(12, 300);
+  assert.equal(layout.overflow, true);
+  assert.ok(layout.visible < 12);
+  assert.ok(layout.visible > 0);
+  assert.ok(
+    DOCK_STRIP_PAD +
+      tabsWidth(layout.visible) +
+      DOCK_TAB_GAP +
+      DOCK_ADD_W +
+      DOCK_TAB_GAP +
+      DOCK_OVERFLOW_W <=
+      300,
+  );
+});
+
+test('dockStripLayout degrades to `»` + `+` only when nothing else fits', () => {
+  const width = DOCK_STRIP_PAD + DOCK_ADD_W + DOCK_OVERFLOW_W + DOCK_TAB_GAP;
+  assert.deepEqual(dockStripLayout(6, width), { visible: 0, overflow: true });
+});
+
+test('dockStripLayout treats an unmeasured strip as "show everything"', () => {
+  assert.deepEqual(dockStripLayout(8, 0), { visible: 8, overflow: false });
+});
+
+test('dockStripLayout does not overflow an empty strip', () => {
+  assert.deepEqual(dockStripLayout(0, 40), { visible: 0, overflow: false });
+});

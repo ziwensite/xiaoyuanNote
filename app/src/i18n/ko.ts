@@ -1402,6 +1402,7 @@ export const ko: I18n = {
   sidebarDock: {
     openPanel: '{name} 패널 열기',
     addPanel: '패널 열기',
+    moreTabs: '패널 더 보기',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

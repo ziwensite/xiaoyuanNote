@@ -1402,6 +1402,7 @@ export const fr: I18n = {
   sidebarDock: {
     openPanel: 'Ouvrir le panneau {name}',
     addPanel: 'Ouvrir un panneau',
+    moreTabs: 'Plus de panneaux',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

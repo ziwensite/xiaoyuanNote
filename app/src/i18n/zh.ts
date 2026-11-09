@@ -1400,6 +1400,7 @@ export const zh: I18n = {
   sidebarDock: {
     openPanel: '打开「{name}」面板',
     addPanel: '打开面板',
+    moreTabs: '更多面板',
     collapse: '收起侧栏',
     expand: '展开侧栏',
   },

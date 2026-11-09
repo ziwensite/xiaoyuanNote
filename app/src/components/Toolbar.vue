@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Icon from './Icons.vue';
 import BrandMark from './BrandMark.vue';
 import HeaderSearchBox from './HeaderSearchBox.vue';
+import DockTabStrip from './sidebar/DockTabStrip.vue';
 import PomodoroPopover from './PomodoroPopover.vue';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
@@ -14,6 +15,7 @@ import { useFiles } from '../composables/useFiles';
 import { useViewport } from '../composables/useViewport';
 import { shortcutLabel } from '../lib/keybindings';
 import { itemShortcut, type MenuNode, type TopMenu } from '../lib/app-menu';
+import type { DockGroupView } from '../lib/sidebar-dock';
 import { useAppMenu } from '../composables/useAppMenu';
 import { useExport } from '../composables/useExport';
 import { useToastsStore } from '../stores/toasts';
@@ -47,19 +49,61 @@ const { t } = useI18n();
  *    everything: app icon, the in-app menus, the inline search box, caption
  *    buttons.
  */
-const props = withDefaults(defineProps<{ variant?: 'header' | 'titlebar' }>(), { variant: 'header' });
+const props = withDefaults(
+  defineProps<{
+    variant?: 'header' | 'titlebar';
+    /** Panel tab view models, owned by App (pane availability is its call). */
+    leftDockGroups?: readonly DockGroupView[];
+    rightDockGroups?: readonly DockGroupView[];
+    /** Tablet drawer: the dock renders its own in-panel strip instead. */
+    dockOverlay?: boolean;
+  }>(),
+  {
+    variant: 'header',
+    leftDockGroups: () => [],
+    rightDockGroups: () => [],
+    dockOverlay: false,
+  },
+);
 const isTitlebar = computed(() => props.variant === 'titlebar');
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'open-palette'): void;
   (e: 'open-settings'): void;
   (e: 'open-help'): void;
+  (e: 'manage-dock', ev: MouseEvent): void;
 }>();
 
 const tabs = useTabsStore();
 const settings = useSettingsStore();
 
 const { isNarrow } = useViewport();
+
+/**
+ * Panel tab strips in the header row. They belong to the panel below them:
+ * the left panel's tabs in the row's left segment, the right panel's in the
+ * right segment. Hidden when the side is collapsed (the segment must vanish,
+ * not leave a hole), when the dock is a tablet drawer (the drawer keeps its
+ * own strip), and on a phone (there is no panel column there). The toggle
+ * itself always stays, so a collapsed side still has a way back.
+ */
+function hasRenderablePane(groups: readonly DockGroupView[]): boolean {
+  return groups.some((group) => group.panes.some((pane) => pane.visible && pane.available));
+}
+const showLeftDockTabs = computed(
+  () =>
+    !isNarrow.value &&
+    !props.dockOverlay &&
+    !settings.sidebarDock.collapsed.left &&
+    hasRenderablePane(props.leftDockGroups),
+);
+const showRightDockTabs = computed(
+  () =>
+    !isNarrow.value &&
+    !props.dockOverlay &&
+    !settings.sidebarDock.collapsed.right &&
+    hasRenderablePane(props.rightDockGroups),
+);
 // 5.0 §8 — on a phone the header is the editor screen's nav bar: back to 笔记,
 // the note's title, preview, share, more.
 const phone = usePhoneStore();
@@ -911,9 +955,11 @@ onBeforeUnmount(() => {
     @mousedown.capture="onTitleBarMouseDown"
     @dblclick="onTitleBarDblClick"
   >
-    <!-- Three visual segments (the left one holds the sidebar toggle and the
-         inline global-search box). Grouping only: `#header-tabs` keeps its
-         mount point for PaneHost. -->
+    <!-- Three visual segments (left panels · editor · right panels). The two
+         panel segments now also carry the panels' icon tab strips, which
+         replaced the 32px band that used to sit inside each panel; `#header-tabs`
+         keeps its mount point for PaneHost. The Windows 44px title bar is a
+         different row and keeps the menus, the search box and ─ □ ×. -->
     <div class="toolbar__seg toolbar__seg--left" role="group" :aria-label="t('header.leftPanels')">
       <template v-if="isNarrow">
         <button class="toolbar__back" type="button" @click="phone.show('home')">
@@ -941,7 +987,15 @@ onBeforeUnmount(() => {
         >
           <Icon name="sidebar" />
         </button>
-        <HeaderSearchBox v-if="!winTitleBar && !isNarrow" class="toolbar__search" />
+        <!-- Left panel's tabs, at the left segment of the row above that panel. -->
+        <DockTabStrip
+          v-if="showLeftDockTabs"
+          side="left"
+          :groups="props.leftDockGroups"
+          :dock-width="settings.sidebarDock.width.left"
+          @manage="emit('manage-dock', $event)"
+        />
+        <HeaderSearchBox v-if="!winTitleBar" class="toolbar__search" />
       </template>
     </div>
 
@@ -1393,6 +1447,17 @@ onBeforeUnmount(() => {
         </Teleport>
       </div>
     </div>
+
+    <!-- The right panel's tabs close the row, at the far right above that
+         panel. Kept outside the `toolbarHidden` guard so a "minimal" toolbar
+         still lets the user switch the right panel's panes. -->
+    <DockTabStrip
+      v-if="showRightDockTabs"
+      side="right"
+      :groups="props.rightDockGroups"
+      :dock-width="settings.sidebarDock.width.right"
+      @manage="emit('manage-dock', $event)"
+    />
 
     <!-- Writing-session presets, opened from the palette ("solomd:open-pomodoro"). -->
     <Teleport to="body">

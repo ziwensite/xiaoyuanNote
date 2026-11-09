@@ -1405,6 +1405,7 @@ export const tr: I18n = {
   sidebarDock: {
     openPanel: '{name} panelini aç',
     addPanel: 'Panel aç',
+    moreTabs: 'Daha fazla panel',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },

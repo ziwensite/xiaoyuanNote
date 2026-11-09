@@ -1412,6 +1412,7 @@
   sidebarDock: {
     openPanel: 'Open {name} panel',
     addPanel: 'Open a panel',
+    moreTabs: 'More panels',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
   },
