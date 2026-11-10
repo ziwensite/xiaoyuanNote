@@ -260,6 +260,27 @@ function matchPhrase(text: string, today: string): Phrase | null {
   return null;
 }
 
+/**
+ * Parse one standalone date/time phrase ("今天", "下周三", "next monday",
+ * "月末", "2026-11-30", "15:00") into the values the caller turns into a token.
+ *
+ * The space-suggestion menu needs the *structured* value: it writes
+ * `📅 <date>` from the parser's answer rather than echoing what was typed, so
+ * a phrase can never reach the document as prose. Returns null for anything
+ * that is not a whole phrase (`matchPhrase` anchors at the end and requires a
+ * word boundary before it, so `明天见` and `明天下午` do not match).
+ */
+export function parseDatePhrase(
+  phrase: string,
+  today: string,
+): { date?: string; time?: string } | null {
+  const text = phrase.trim();
+  if (!text) return null;
+  const p = matchPhrase(text, today);
+  if (!p || p.start !== 0) return null;
+  return { date: p.date, time: p.time };
+}
+
 function fieldBefore(text: string, start: number): TaskDateField {
   const before = text.slice(0, start).replace(/[ \t]+$/u, '');
   if (/(?:截止|到期|due|deadline)$/iu.test(before)) return 'due';

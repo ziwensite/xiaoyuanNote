@@ -42,6 +42,7 @@ import {
   EDITOR_COMMANDS,
   MARKDOWN_ONLY_COMMANDS,
   autoNumberHeadings,
+  dateTokenEdits,
   dedentCodeBlockSelection,
   deleteWord as deleteWordEdit,
   indentCodeBlockPaste,
@@ -94,7 +95,7 @@ import { languagetoolCoversSpelling, ltAddWord, ltDisableRule, ltIgnore, matchWo
 import { usePandocExport } from '../composables/usePandocExport';
 import type { CitationEntry } from '../lib/citations';
 import { taskListExtension } from '../lib/cm-task-list';
-import { taskDatePhraseExtension } from '../lib/cm-task-date';
+import { taskSuggestExtension } from '../lib/cm-task-suggest';
 import { imeCompositionGuard } from '../lib/cm-ime-guard';
 import {
   sessionRestoreExtension,
@@ -4433,8 +4434,12 @@ function buildExtensions() {
     imagePasteExtension(imagePasteOpts()),
     ...(!windowsImeSafeMode && props.tab.language === 'markdown' && !markdownSafeMode
       ? [
-          // Typing "明天" / "next monday" on a task line lands as `📅 …`.
-          taskDatePhraseExtension(() => localDateKey(new Date())),
+          // Space on a task line offers dates, fields, priorities, statuses
+          // and recurrence rules; the row chosen writes a token.
+          taskSuggestExtension({
+            today: () => localDateKey(new Date()),
+            lang: () => settings.language,
+          }),
           tagAutocompleteExtension(),
           citationsExtension(() => cachedCitations),
           // #297 — opens itself on the third backtick of a fence opener.
@@ -4979,6 +4984,19 @@ function onEditorCommand(e: Event) {
     const v = view;
     const doc = v.state.doc.toString();
     const sel = v.state.selection.main;
+    if (cmd === 'applyDateTokens') {
+      const edit = dateTokenEdits(doc, sel.from, localDateKey(new Date()));
+      if (edit) {
+        v.dispatch({
+          changes: edit.changes,
+          selection: { anchor: edit.selFrom, head: edit.selTo },
+          scrollIntoView: true,
+          userEvent: 'input.format',
+        });
+      }
+      v.focus();
+      return;
+    }
     if (cmd === 'jumpToSelection') {
       v.dispatch({ effects: EditorView.scrollIntoView(sel, { y: 'center' }) });
     } else if (cmd === 'selectWord' || cmd === 'selectLine') {
@@ -5010,6 +5028,18 @@ function onEditorCommand(e: Event) {
   // The flat textarea is the document; in live edit the blocks are slices of
   // plainText, which every block edit keeps current.
   const doc = plainLiveEnabled.value ? plainText.value || '' : plainEditor.value?.value ?? plainText.value ?? '';
+  if (cmd === 'applyDateTokens') {
+    const edit = dateTokenEdits(doc, sel.from, localDateKey(new Date()));
+    if (!edit) return;
+    recordPlainHistory();
+    let next = doc;
+    for (const c of [...edit.changes].sort((a, b) => b.from - a.from)) {
+      next = next.slice(0, c.from) + c.insert + next.slice(c.to);
+    }
+    applyPlainContent(next, edit.selTo);
+    nextTick(() => selectPlainRange(edit.selFrom, edit.selTo, true));
+    return;
+  }
   if (cmd === 'jumpToSelection') {
     selectPlainRange(sel.from, sel.to, true);
     return;

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { autoNumberHeadings, dedentCodeBlockSelection, deleteWord, indentCodeBlockPaste, selectCodeBlockBody, selectLine, selectWord, shiftHeading, taskFromSelection, type Range, type TextEdit } from './editor-commands.ts';
+import { autoNumberHeadings, dateTokenEdits, dedentCodeBlockSelection, deleteWord, indentCodeBlockPaste, selectCodeBlockBody, selectLine, selectWord, shiftHeading, taskFromSelection, type Range, type TextEdit } from './editor-commands.ts';
 
 /** `|` marks the selection ends (one `|` = a bare caret). */
 function parse(marked: string): { doc: string; from: number; to: number } {
@@ -209,4 +209,36 @@ test('indentCodeBlockPaste pads subsequent pasted lines with the code fence inde
   const cursorAtCol0 = docWithCol0BlankLine.indexOf('\n\n') + 1;
   const outAtCol0 = indentCodeBlockPaste(docWithCol0BlankLine, cursorAtCol0, cursorAtCol0, snippet);
   assert.equal(outAtCol0, `${indent8}function hello() {\n${indent8}  return 1;\n${indent8}}`);
+});
+
+test('applyDateTokens rewrites the caret line only', () => {
+  const doc = 'intro\n- [ ] 交报告 明天\ntail';
+  const caret = doc.indexOf('明天') + 2;
+  const edit = dateTokenEdits(doc, caret, '2026-11-10')!;
+  assert.equal(edit.changes.length, 1);
+  assert.equal(edit.changes[0].insert, '📅 2026-11-11');
+  const out = doc.slice(0, edit.changes[0].from) + edit.changes[0].insert + doc.slice(edit.changes[0].to);
+  assert.equal(out, 'intro\n- [ ] 交报告 📅 2026-11-11\ntail');
+  // Caret lands after the token, and no range is selected.
+  assert.equal(out.slice(0, edit.selFrom).endsWith('📅 2026-11-11'), true);
+  assert.equal(edit.selFrom, edit.selTo);
+});
+
+test('applyDateTokens replaces the same field token in one pass, in ascending order', () => {
+  const doc = '- [ ] 交报告 📅 2026-11-01 明天';
+  const edit = dateTokenEdits(doc, doc.length, '2026-11-10')!;
+  assert.equal(edit.changes.length, 2);
+  assert.ok(edit.changes[0].from < edit.changes[1].from);
+  let out = doc;
+  for (const c of [...edit.changes].sort((a, b) => b.from - a.from)) {
+    out = out.slice(0, c.from) + c.insert + out.slice(c.to);
+  }
+  // Only the phrase range is replaced, so the space in front of it stays.
+  assert.equal(out, '- [ ] 交报告 📅 2026-11-11 ');
+});
+
+test('applyDateTokens is a no-op on prose, non-tasks and phrase-free lines', () => {
+  assert.equal(dateTokenEdits('普通段落 明天', 6, '2026-11-10'), null);
+  assert.equal(dateTokenEdits('- 普通列表 明天', 7, '2026-11-10'), null);
+  assert.equal(dateTokenEdits('- [ ] 交报告', 6, '2026-11-10'), null);
 });

@@ -10,6 +10,8 @@
  * result on each path.
  */
 
+import { naturalDateChanges } from './task-date-phrases';
+
 export type EditorCommand =
   | 'selectWord'
   | 'deleteWord'
@@ -19,7 +21,8 @@ export type EditorCommand =
   | 'headingDemote'
   | 'headingParagraph'
   | 'headingAutoNumber'
-  | 'createTaskFromSelection';
+  | 'createTaskFromSelection'
+  | 'applyDateTokens';
 
 export const EDITOR_COMMANDS: EditorCommand[] = [
   'selectWord',
@@ -31,6 +34,7 @@ export const EDITOR_COMMANDS: EditorCommand[] = [
   'headingParagraph',
   'headingAutoNumber',
   'createTaskFromSelection',
+  'applyDateTokens',
 ];
 
 /** Commands that change the text (the rest only move the selection). */
@@ -41,6 +45,7 @@ export const EDITING_COMMANDS = new Set<EditorCommand>([
   'headingParagraph',
   'headingAutoNumber',
   'createTaskFromSelection',
+  'applyDateTokens',
 ]);
 
 /** Commands that only make sense in a Markdown document. */
@@ -50,6 +55,7 @@ export const MARKDOWN_ONLY_COMMANDS = new Set<EditorCommand>([
   'headingParagraph',
   'headingAutoNumber',
   'createTaskFromSelection',
+  'applyDateTokens',
 ]);
 
 /**
@@ -78,6 +84,44 @@ export function taskFromSelection(
 export interface Range {
   from: number;
   to: number;
+}
+
+/**
+ * Batch 5 — the caret's task line, with its natural-language date phrase
+ * rewritten as the canonical token(s).
+ *
+ * The space menu covers the common case, but a line that was edited elsewhere
+ * (pasted, dictated, imported) has no menu to open; this is the explicit way to
+ * ask for the same rewrite. It reuses `naturalDateChanges`, so what counts as a
+ * phrase and which field it targets stay in one place, and it returns the
+ * changes rather than a rewritten line so the caller keeps every other byte.
+ *
+ * Null when the line is not a `- [ ]` task line or ends without a phrase the
+ * parser understands — in which case nothing is written.
+ */
+export function dateTokenEdits(doc: string, from: number, today: string): MultiTextEdit | null {
+  const start = doc.lastIndexOf('\n', from - 1) + 1;
+  let end = doc.indexOf('\n', from);
+  if (end < 0) end = doc.length;
+  const line = doc.slice(start, end).replace(/\r$/u, '');
+  const changes = naturalDateChanges(line, today);
+  if (!changes?.length) return null;
+  const caret = start + line.length + changes.reduce((n, c) => n + c.insert.length - (c.to - c.from), 0);
+  return {
+    changes: changes
+      .map((c) => ({ from: start + c.from, to: start + c.to, insert: c.insert }))
+      .sort((a, b) => a.from - b.from),
+    selFrom: caret,
+    selTo: caret,
+  };
+}
+
+export interface MultiTextEdit {
+  /** Replacements in ascending order; the caller applies them all at once. */
+  changes: { from: number; to: number; insert: string }[];
+  /** Where the caret ends up, in the *new* document. */
+  selFrom: number;
+  selTo: number;
 }
 
 export interface TextEdit {

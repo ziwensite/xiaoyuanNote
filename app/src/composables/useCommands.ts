@@ -529,6 +529,13 @@ export function useCommands(): Command[] {
       run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'createTaskFromSelection' } })),
     },
     {
+      id: 'task.applyDateTokens',
+      title: 'Task: Apply Date Tokens on This Line',
+      hint: 'Rewrite `明天` / `next monday` at the end of the caret\'s task line as 📅 / ⏳ / 🛫 tokens',
+      shortcut: kb('task.applyDateTokens'),
+      run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'applyDateTokens' } })),
+    },
+    {
       id: 'task.migrateRecurrence',
       title: 'Task: Convert Legacy Recurrence Rules…',
       hint: 'Rewrite `🔁 FREQ=…` as Obsidian Tasks natural language, line by line, before writing anything',

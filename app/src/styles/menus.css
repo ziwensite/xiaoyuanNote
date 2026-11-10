@@ -36,7 +36,8 @@
  *   BasesView .......... .bases__col-menu
  *   WritingGoals ....... .writing-goals__popover        (popover: no rows)
  *   Preview ............ .math-edit-popover             (popover: no rows)
- *   CodeMirror ......... .cm-tooltip-autocomplete, .cm-slash-popup
+ *   CodeMirror ......... .cm-tooltip-autocomplete, .cm-slash-popup,
+ *                        .task-suggest (space menu on a task line)
  */
 
 /* ── surface ──────────────────────────────────────────────────────────── */
@@ -59,7 +60,8 @@
   .bases__col-menu,
   .writing-goals__popover,
   .math-edit-popover,
-  .cm-slash-popup
+  .cm-slash-popup,
+  .task-suggest
 ) {
   background: var(--bg-pop);
   color: var(--text);
@@ -94,6 +96,41 @@
 /* The Windows menubar's sub-menu flies out sideways. */
 :root:not(#_) .dropdown__menu--sub {
   transform-origin: top left;
+}
+
+/* Task-line space menu (batch 5). It hangs off the caret with inline `fixed`
+   coordinates, so it keeps its own geometry; surface, rows and the highlight
+   come from the lists above. */
+:root:not(#_) .task-suggest {
+  position: fixed;
+  z-index: 60;
+  min-width: 190px;
+  max-width: 320px;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+:root:not(#_) .task-suggest__label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root:not(#_) .task-suggest__detail {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+:root:not(#_) .task-suggest__group {
+  padding: 6px 8px 2px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+:root:not(#_) .task-suggest__group:first-child {
+  padding-top: 2px;
 }
 
 /* Uses the individual `scale` property, not `transform`, so it composes with
@@ -137,7 +174,8 @@
   .pomo-pill__menu-item,
   .pomo-popover__row,
   .bases__col-menu-item,
-  .cm-slash-row
+  .cm-slash-row,
+  .task-suggest__row
 ) {
   box-sizing: border-box;
   width: 100%;
@@ -172,7 +210,8 @@
   .pomo-pill__menu-item,
   .pomo-popover__row,
   .bases__col-menu-item,
-  .cm-slash-row
+  .cm-slash-row,
+  .task-suggest__row
 ) {
   display: flex;
   align-items: center;
@@ -204,7 +243,8 @@
   .spellcheck-menu__item,
   .pomo-pill__menu-item,
   .pomo-popover__row,
-  .bases__col-menu-item
+  .bases__col-menu-item,
+  .task-suggest__row
 ):is(:hover, :focus-visible):not(:disabled, .dropdown__item--disabled, .ds-dropdown__item--disabled) {
   background: var(--fill-1);
   color: var(--text);
@@ -214,7 +254,8 @@
 :root:not(#_) :is(
   .ds-dropdown__item--active,
   .dropdown__item--sub.active,
-  .cm-slash-row--active
+  .cm-slash-row--active,
+  .task-suggest__row--active
 ) {
   background: var(--fill-1);
 }
