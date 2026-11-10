@@ -1,5 +1,5 @@
 /**
- * The canonical shape of a task line (batch 7).
+ * The canonical shape of a task line (batches 7–8).
  *
  * One place decides what a task line is allowed to look like:
  *
@@ -12,11 +12,14 @@
  *
  * Only the parts we understand are moved: words the tokenizer does not
  * recognise are kept, in their original relative order, after the standard
- * tokens. Nothing is dropped.
+ * tokens. Nothing is dropped. A marker glued to its neighbour (`every day🛫`,
+ * `2026-11-10📅`, `⏫🔁`) is split on the marker, so the canonical rewrite is
+ * also the repair for a line that was written without separators.
  *
- * The menu (`task-suggest.ts`), the task editor and the `normalize` line
- * command all go through this module, so the three can never disagree about
- * the order.
+ * `writeTaskLine` is the single exit every writer goes through — the space menu,
+ * the task editor, the normalize command, the checkbox toggle and the next
+ * occurrence of a recurring task. It serializes the line *and* keeps the status
+ * and the two closing dates (`✅` / `❌`) in step: see `linkTaskDates`.
  */
 
 export type TaskDateField = 'created' | 'start' | 'scheduled' | 'due' | 'completed' | 'cancelled';
@@ -102,12 +105,29 @@ const ID_WORD_RE = /^🆔(.*)$/u;
 const BLOCKED_WORD_RE = /^⛔(.*)$/u;
 const PRIORITY_WORD_RE = /^(🔺|⏫|🔼|🔽|⏬)$/u;
 const RECURRENCE_START = '🔁';
+/** `🏁 keep` / `🏁 delete` — a task token, but not one this module orders. */
+const RECURRENCE_ACTION = '🏁';
+
+/**
+ * Every character that begins a token. Splitting on these is what repairs a
+ * line written without spaces (`every day🛫`, `2026-11-10📅`, `⏫🔁`).
+ */
+const MARKER_CHAR_RE = /([➕🛫⏳📅✅❌🔁🆔⛔🔺⏫🔼🔽⏬⏺🏁])/gu;
+
+/** Whitespace-separated words, with a marker glued to text split off it. */
+function splitWords(body: string): string[] {
+  return body
+    .replace(MARKER_CHAR_RE, ' $1 ')
+    .split(/\s+/u)
+    .filter(Boolean);
+}
 
 /** Does this word begin a marker (so a `🔁` rule must stop before it)? */
 function startsToken(word: string): boolean {
   return (
     word.startsWith('#') ||
     word.startsWith(RECURRENCE_START) ||
+    word === RECURRENCE_ACTION ||
     DATE_WORD_RE.test(word) ||
     ID_WORD_RE.test(word) ||
     BLOCKED_WORD_RE.test(word) ||
@@ -144,7 +164,7 @@ export function parseTaskLine(line: string): TaskLineModel | null {
     extra: [],
   };
 
-  const words = line.slice(m[0].length).split(/\s+/u).filter(Boolean);
+  const words = splitWords(line.slice(m[0].length));
   const leading: string[] = [];
   let seenToken = false;
   const text = (word: string) => {
@@ -267,4 +287,90 @@ export function serializeTaskLine(model: TaskLineModel): string {
 export function normalizeTaskLine(line: string): string | null {
   const model = parseTaskLine(line);
   return model ? serializeTaskLine(model) : null;
+}
+
+/** Which side of the status ↔ closing-date link a write touched. */
+export interface TaskDateLink {
+  /** The status character was the thing being set. */
+  status?: boolean;
+  completed?: boolean;
+  cancelled?: boolean;
+}
+
+/** The date field that records the moment a status closes a task. */
+function closingField(status: string): TaskDateField | null {
+  if (status === 'x' || status === 'X') return 'completed';
+  if (status === '-') return 'cancelled';
+  return null;
+}
+
+/**
+ * Status → date: completing stamps `✅ today`, cancelling stamps `❌ today`, and
+ * every other status (todo, in progress, question…) leaves no closing date at
+ * all. The two never coexist, so the opposite one is dropped.
+ */
+function applyStatus(model: TaskLineModel, today: string): void {
+  const closing = closingField(model.status);
+  if (closing === 'completed') {
+    model.completed = today;
+    model.cancelled = '';
+  } else if (closing === 'cancelled') {
+    model.cancelled = today;
+    model.completed = '';
+  } else {
+    model.completed = '';
+    model.cancelled = '';
+  }
+}
+
+/**
+ * Date → status: setting a closing date decides the status, and the two stay
+ * exclusive. *Clearing* one only removes the token — the status is left alone,
+ * because "done, without a date" is a state the user can ask for on purpose.
+ */
+function applyClosing(model: TaskLineModel, field: 'completed' | 'cancelled'): void {
+  if (!model[field].trim()) return;
+  if (field === 'completed') {
+    model.status = 'x';
+    model.cancelled = '';
+  } else {
+    model.status = '-';
+    model.completed = '';
+  }
+}
+
+/**
+ * Apply the status ↔ `✅`/`❌` link in place.
+ *
+ * `link` names the side the user just changed, in priority order: the status
+ * first, then `✅`, then `❌` — so setting a date and a status in the same write
+ * ends with the explicit date winning. Clearing a date is not a change that
+ * propagates: "done with no date" should stay done. A `null` link changes
+ * nothing except enforcing the mutex (a line may never carry both dates), which
+ * is what every other write — a priority, a tag, the normalize command — gets.
+ */
+export function linkTaskDates(model: TaskLineModel, link: TaskDateLink | null, today: string): void {
+  if (link?.status) applyStatus(model, today);
+  if (link?.completed) applyClosing(model, 'completed');
+  if (link?.cancelled) applyClosing(model, 'cancelled');
+  if (model.completed.trim() && model.cancelled.trim()) {
+    if (closingField(model.status) === 'cancelled') model.completed = '';
+    else model.cancelled = '';
+  }
+}
+
+/**
+ * The one write exit (batch 8): canonical order, single spaces, and the status /
+ * closing-date link applied. Null when the line is not a task — the caller must
+ * not write then.
+ */
+export function writeTaskLine(
+  line: string,
+  today: string,
+  link: TaskDateLink | null = null,
+): string | null {
+  const model = parseTaskLine(line);
+  if (!model) return null;
+  linkTaskDates(model, link, today);
+  return serializeTaskLine(model);
 }

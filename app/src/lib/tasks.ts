@@ -17,6 +17,8 @@
  * words it does not understand is worse than one that shows them.
  */
 
+import { writeTaskLine } from './task-line';
+
 export type TaskPriority = 'highest' | 'high' | 'medium' | 'low' | 'lowest' | null;
 
 /** Obsidian Tasks' status types. Only "done" changes how a click is written. */
@@ -571,17 +573,27 @@ export function compareTasks(a: SortableTask, b: SortableTask): number {
  * the default table this is exactly `[ ]` ↔ `[x]`; an unknown symbol (e.g.
  * `[/]`) is a TODO like in Obsidian Tasks, and toggles to `x`.
  *
+ * The line goes through `writeTaskLine` like every other write, so completing
+ * stamps `✅ <today>` and un-ticking removes both closing dates (batch 8), and a
+ * line that lost its separators comes back canonical.
+ *
  * Returns null when that line is not a task — the caller must not write the
  * file back in that case, because a mismatch means the index is stale and the
  * line now holds something else entirely.
  */
-export function toggleTaskLine(content: string, line1Based: number): string | null {
+export function toggleTaskLine(
+  content: string,
+  line1Based: number,
+  today: string = localDateKey(new Date()),
+): string | null {
   const lines = content.split('\n');
   const idx = line1Based - 1;
   if (idx < 0 || idx >= lines.length) return null;
   const m = /^(\s*[-*+]\s+\[)([^\]\n])(\]\s+.*)$/u.exec(lines[idx]);
   if (!m) return null;
-  lines[idx] = `${m[1]}${taskStatusRule(m[2]).next}${m[3]}`;
+  const next = writeTaskLine(`${m[1]}${taskStatusRule(m[2]).next}${m[3]}`, today, { status: true });
+  if (next === null) return null;
+  lines[idx] = next;
   return lines.join('\n');
 }
 
@@ -719,25 +731,6 @@ function rewriteDateToken(body: string, field: keyof RecurringDates, next: strin
 }
 
 /**
- * Put the `🔁` token in front of the first date token.
- *
- * Obsidian Tasks reads a recurrence best when it stands before the dates, and
- * this project writes it that way. Moving it means removing the token together
- * with the whitespace it owns and re-inserting it; every other character is
- * untouched. A line without dates keeps the rule where it was.
- */
-function moveRecurrenceBeforeDates(body: string): string {
-  const match = RECURRENCE_TOKEN.exec(body);
-  if (!match) return body;
-  const ruleText = match[2].trim();
-  const rest = body.slice(0, match.index) + body.slice(match.index + match[0].length);
-  const firstDate = /(?:📅|⏳|🛫|➕|✅|❌)/u.exec(rest);
-  if (!firstDate) return body;
-  const head = rest.slice(0, firstDate.index).replace(/\s+$/u, ' ');
-  return `${head}🔁 ${ruleText} ${rest.slice(firstDate.index)}`;
-}
-
-/**
  * Complete one occurrence of a recurring task: close the old line and add the
  * next occurrence as a new open line.
  *
@@ -746,13 +739,15 @@ function moveRecurrenceBeforeDates(body: string): string {
  * others are left exactly as written. `when done` is handled there, not here —
  * this function only knows where the dates go.
  *
- * The old line keeps every token it had, including `🔁`, because it is the
- * record of what was done. `🏁 delete` removes it instead; `🏁 keep` (the
- * default) keeps it and marks it done. The new line copies the body with its
- * `🆔` dropped so the two lines do not claim the same identity — a fresh one is
- * minted the next time a reminder needs it. Its `🔁` text is copied verbatim:
- * this function never serialises a rule, so a natural-language rule stays
- * natural and a legacy `FREQ=` is never introduced.
+ * Both lines go through `writeTaskLine`, the same exit the menu and the editor
+ * use, so the new occurrence is canonical and carries no closing date, and the
+ * old one is marked done with `✅ <today>` while keeping every token it had,
+ * including `🔁`, because it is the record of what was done. `🏁 delete` removes
+ * it instead; `🏁 keep` (the default) keeps it and marks it done. The new line
+ * copies the body with its `🆔` dropped so the two lines do not claim the same
+ * identity — a fresh one is minted the next time a reminder needs it. Its `🔁`
+ * text is copied verbatim: this function never serialises a rule, so a
+ * natural-language rule stays natural and a legacy `FREQ=` is never introduced.
  *
  * Returns null when the line is not an open task, a date token cannot be found,
  * or the insert would be out of range — the caller must not write the file then.
@@ -763,6 +758,7 @@ export function completeRecurringTaskLine(
   dates: RecurringDates,
   placement: 'below' | 'above',
   action: TaskRecurrenceAction = 'keep',
+  today: string = localDateKey(new Date()),
 ): RecurringCompletion | null {
   const lines = content.split('\n');
   const idx = line1Based - 1;
@@ -784,18 +780,22 @@ export function completeRecurringTaskLine(
     body = rewritten;
   }
   body = body.replace(/\s*🆔\s*[A-Za-z0-9_-]{4,}/u, '');
-  // A legacy `FREQ=` rule is moved only when it is written, never when it is
-  // carried forward: the new line is the old line with its dates replaced.
-  if (!/🔁\s*FREQ=/iu.test(body)) body = moveRecurrenceBeforeDates(body);
+
+  // The new occurrence is open, so the status link also strips any `✅`/`❌`
+  // that were copied along; the old one is closed, so it gets `✅ today`.
+  const open = writeTaskLine(`${m[1]}[ ]${body}`, today, { status: true });
+  if (open === null) return null;
 
   let at: number;
   if (action === 'delete') {
-    lines.splice(idx, 1, `${m[1]}[ ]${body}${cr}`);
+    lines.splice(idx, 1, `${open}${cr}`);
     at = idx;
   } else {
-    lines[idx] = `${m[1]}[${rule.next}]${m[3]}${cr}`;
+    const done = writeTaskLine(`${m[1]}[${rule.next}]${m[3]}`, today, { status: true });
+    if (done === null) return null;
+    lines[idx] = `${done}${cr}`;
     at = placement === 'above' ? idx : idx + 1;
-    lines.splice(at, 0, `${m[1]}[ ]${body}${cr}`);
+    lines.splice(at, 0, `${open}${cr}`);
   }
   return { content: lines.join('\n'), line: at + 1 };
 }

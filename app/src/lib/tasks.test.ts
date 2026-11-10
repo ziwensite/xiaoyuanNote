@@ -96,15 +96,26 @@ test('sort: open before done, then due, then priority, then title', () => {
   assert.deepEqual(order, ['also today', 'today', 'later', 'no date', 'finished']);
 });
 
-test('toggling rewrites only the checkbox on that line', () => {
-  const doc = ['# H', '', '- [ ] one', '- [x] two', 'plain line'].join('\n');
+test('toggling rewrites the checkbox and stamps the closing date', () => {
+  const doc = ['# H', '', '- [ ] one', '- [x] two ✅ 2026-10-01', 'plain line'].join('\n');
   assert.equal(
-    toggleTaskLine(doc, 3),
-    ['# H', '', '- [x] one', '- [x] two', 'plain line'].join('\n'),
+    toggleTaskLine(doc, 3, '2026-11-10'),
+    ['# H', '', '- [x] one ✅ 2026-11-10', '- [x] two ✅ 2026-10-01', 'plain line'].join('\n'),
   );
   assert.equal(
-    toggleTaskLine(doc, 4),
+    toggleTaskLine(doc, 4, '2026-11-10'),
     ['# H', '', '- [ ] one', '- [ ] two', 'plain line'].join('\n'),
+  );
+});
+
+test('completing moves the closing date to today and drops the cancellation', () => {
+  assert.equal(
+    toggleTaskLine('- [ ] one ❌ 2026-10-01', 1, '2026-11-10'),
+    '- [x] one ✅ 2026-11-10',
+  );
+  assert.equal(
+    toggleTaskLine('- [ ] one ❌ 2026-10-01 ✅ 2026-09-30', 1, '2026-11-10'),
+    '- [x] one ✅ 2026-11-10',
   );
 });
 
@@ -116,8 +127,8 @@ test('toggling a line that is not a task refuses rather than corrupting it', () 
 });
 
 test('toggling preserves indentation and marker style', () => {
-  assert.equal(toggleTaskLine('  * [ ] nested', 1), '  * [x] nested');
-  assert.equal(toggleTaskLine('+ [X] done', 1), '+ [ ] done');
+  assert.equal(toggleTaskLine('  * [ ] nested', 1, '2026-11-10'), '  * [x] nested ✅ 2026-11-10');
+  assert.equal(toggleTaskLine('+ [X] done', 1, '2026-11-10'), '+ [ ] done');
 });
 
 test('calendar tokens: uid, reminders and rrule are parsed out of the title', () => {
@@ -252,11 +263,21 @@ const RECURRING = [
 ].join('\n');
 
 test('completing below ticked the old line and opens the next one right after it', () => {
-  const result = completeRecurringTaskLine(RECURRING, 3, { due: '2026-11-16' }, 'below');
+  const result = completeRecurringTaskLine(
+    RECURRING,
+    3,
+    { due: '2026-11-16' },
+    'below',
+    'keep',
+    '2026-11-10',
+  );
   assert.ok(result);
   const lines = result.content.split('\n');
-  assert.equal(lines[2], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
-  assert.equal(lines[3], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(
+    lines[2],
+    '- [x] water plants 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-09 ✅ 2026-11-10 ⏰ 09:00',
+  );
+  assert.equal(lines[3], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
   assert.equal(result.line, 4);
   // Everything outside the two affected lines is untouched.
   assert.deepEqual(
@@ -265,12 +286,37 @@ test('completing below ticked the old line and opens the next one right after it
   );
 });
 
-test('completing above puts the new occurrence before the completed line', () => {
-  const result = completeRecurringTaskLine(RECURRING, 3, { due: '2026-11-16' }, 'above');
+test('the new occurrence is open and carries no closing date', () => {
+  const result = completeRecurringTaskLine(
+    '- [ ] water 📅 2026-11-09 ✅ 2026-11-01 ❌ 2026-10-01 🔁 every week',
+    1,
+    { due: '2026-11-16' },
+    'below',
+    'keep',
+    '2026-11-10',
+  );
   assert.ok(result);
   const lines = result.content.split('\n');
-  assert.equal(lines[2], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
-  assert.equal(lines[3], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(lines[0], '- [x] water 🔁 every week 📅 2026-11-09 ✅ 2026-11-10');
+  assert.equal(lines[1], '- [ ] water 🔁 every week 📅 2026-11-16');
+});
+
+test('completing above puts the new occurrence before the completed line', () => {
+  const result = completeRecurringTaskLine(
+    RECURRING,
+    3,
+    { due: '2026-11-16' },
+    'above',
+    'keep',
+    '2026-11-10',
+  );
+  assert.ok(result);
+  const lines = result.content.split('\n');
+  assert.equal(lines[2], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
+  assert.equal(
+    lines[3],
+    '- [x] water plants 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-09 ✅ 2026-11-10 ⏰ 09:00',
+  );
   assert.equal(result.line, 3);
 });
 
@@ -280,9 +326,14 @@ test('the ASCII due spelling survives the advance', () => {
     1,
     { due: '2026-11-10' },
     'below',
+    'keep',
+    '2026-11-10',
   );
   assert.ok(result);
-  assert.equal(result.content, ['- [x] report due:2026-11-09', '- [ ] report due:2026-11-10'].join('\n'));
+  assert.equal(
+    result.content,
+    ['- [x] report due:2026-11-09 ✅ 2026-11-10', '- [ ] report due:2026-11-10'].join('\n'),
+  );
 });
 
 test('a completed line or a missing date refuses instead of guessing', () => {
@@ -300,11 +351,11 @@ test('a completed line or a missing date refuses instead of guessing', () => {
 
 test('CRLF notes keep their line endings on both affected lines', () => {
   const doc = ['- [ ] a 📅 2026-11-09', '- [ ] b 📅 2026-12-01'].join('\r\n');
-  const result = completeRecurringTaskLine(doc, 1, { due: '2026-11-10' }, 'below');
+  const result = completeRecurringTaskLine(doc, 1, { due: '2026-11-10' }, 'below', 'keep', '2026-11-10');
   assert.ok(result);
   assert.equal(
     result.content,
-    ['- [x] a 📅 2026-11-09', '- [ ] a 📅 2026-11-10', '- [ ] b 📅 2026-12-01'].join('\r\n'),
+    ['- [x] a 📅 2026-11-09 ✅ 2026-11-10', '- [ ] a 📅 2026-11-10', '- [ ] b 📅 2026-12-01'].join('\r\n'),
   );
 });
 
@@ -325,11 +376,31 @@ test('scheduled and start dates move with the due date, keeping their spacing', 
     1,
     { due: '2026-11-16', scheduled: '2026-11-15', start: '2026-11-14' },
     'below',
+    'keep',
+    '2026-11-10',
   );
   assert.ok(result);
   const lines = result.content.split('\n');
-  assert.equal(lines[0], doc.replace('[ ]', '[x]'));
+  assert.equal(lines[0], '- [x] prep 🔁 every week 🛫 2026-11-07 ⏳ 2026-11-08 📅 2026-11-09 ✅ 2026-11-10');
   assert.equal(lines[1], '- [ ] prep 🔁 every week 🛫 2026-11-14 ⏳ 2026-11-15 📅 2026-11-16');
+});
+
+test('a rule written without separators is repaired on both lines', () => {
+  const result = completeRecurringTaskLine(
+    '- [ ] water 🔁 every day🛫 2026-11-10 📅 2026-11-11 ⏫',
+    1,
+    { due: '2026-11-12', start: '2026-11-11' },
+    'below',
+    'keep',
+    '2026-11-10',
+  );
+  assert.ok(result);
+  const lines = result.content.split('\n');
+  assert.equal(
+    lines[0],
+    '- [x] water 🔁 every day 🛫 2026-11-10 📅 2026-11-11 ⏫ ✅ 2026-11-10',
+  );
+  assert.equal(lines[1], '- [ ] water 🔁 every day 🛫 2026-11-11 📅 2026-11-12 ⏫');
 });
 
 test('a natural-language rule is copied verbatim and never becomes FREQ=', () => {
@@ -338,11 +409,13 @@ test('a natural-language rule is copied verbatim and never becomes FREQ=', () =>
     1,
     { due: '2026-11-23' },
     'above',
+    'keep',
+    '2026-11-10',
   );
   assert.ok(result);
   const lines = result.content.split('\n');
   assert.equal(lines[0], '- [ ] water 🔁 every 2 weeks on monday 📅 2026-11-23');
-  assert.equal(lines[1], '- [x] water 🔁 every 2 weeks on monday 📅 2026-11-09');
+  assert.equal(lines[1], '- [x] water 🔁 every 2 weeks on monday 📅 2026-11-09 ✅ 2026-11-10');
   assert.equal(result.content.includes('FREQ='), false);
 });
 
@@ -408,19 +481,22 @@ test('sorting puts highest first and lowest last, unprioritised after both', () 
 });
 
 test('an unknown status is a TODO that toggles to x, like Obsidian Tasks', () => {
-  assert.equal(toggleTaskLine('- [/] doing it', 1), '- [x] doing it');
-  assert.equal(toggleTaskLine('- [-] dropped', 1), '- [x] dropped');
-  assert.equal(toggleTaskLine('- [?] question', 1), '- [x] question');
+  assert.equal(toggleTaskLine('- [/] doing it', 1, '2026-11-10'), '- [x] doing it ✅ 2026-11-10');
+  assert.equal(toggleTaskLine('- [-] dropped', 1, '2026-11-10'), '- [x] dropped ✅ 2026-11-10');
+  assert.equal(toggleTaskLine('- [?] question', 1, '2026-11-10'), '- [x] question ✅ 2026-11-10');
 });
 
 test('toggling a done custom-status task clears it to todo', () => {
-  assert.equal(toggleTaskLine('- [X] done', 1), '- [ ] done');
-  assert.equal(toggleTaskLine('- [/] doing it', 1), '- [x] doing it');
+  assert.equal(toggleTaskLine('- [X] done', 1, '2026-11-10'), '- [ ] done');
+  assert.equal(toggleTaskLine('- [/] doing it', 1, '2026-11-10'), '- [x] doing it ✅ 2026-11-10');
 });
 
-test('toggling does not eat the rest of a custom-status line', () => {
+test('toggling keeps the rest of a custom-status line and tidies its spacing', () => {
   const line = '  * [/] review ⏳ 2026-09-08 📅 2026-09-10  ';
-  assert.equal(toggleTaskLine(line, 1), '  * [x] review ⏳ 2026-09-08 📅 2026-09-10  ');
+  assert.equal(
+    toggleTaskLine(line, 1, '2026-11-10'),
+    '  * [x] review ⏳ 2026-09-08 📅 2026-09-10 ✅ 2026-11-10',
+  );
 });
 
 test('an in-progress recurring task advances and is completed as x', () => {
@@ -429,13 +505,16 @@ test('an in-progress recurring task advances and is completed as x', () => {
     1,
     { due: '2026-11-16' },
     'above',
+    'keep',
+    '2026-11-10',
   );
   assert.ok(result);
   assert.equal(
     result.content,
-    ['- [ ] water 📅 2026-11-16 🔁 FREQ=WEEKLY;BYDAY=MO', '- [x] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO'].join(
-      '\n',
-    ),
+    [
+      '- [ ] water 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16',
+      '- [x] water 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-09 ✅ 2026-11-10',
+    ].join('\n'),
   );
 });
 

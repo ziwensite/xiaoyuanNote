@@ -1,16 +1,17 @@
 /**
- * The space-triggered suggestion menu for a task line (batches 5–7).
+ * The space-triggered suggestion menu for a task line (batches 5–8).
  *
  * Two levels:
  *
- *   L0 — one icon per marker the line can still carry (status characters,
- *        `🔁`, the four date fields, priority, `❌`, `✅`), plus the task editor.
- *        Icons only: the value of a marker belongs to L1. Markers the line
- *        already has are dropped, and priority is a single row showing the
- *        value already set (or `⏫`), never the whole ladder.
- *   L1 — the values of that one marker: the date chips, the rule catalogue,
- *        or the five priorities plus `⏺` to clear. Last row is always the task
- *        editor, so every level can reach it.
+ *   L0 — one icon per marker the line can still carry, most used first:
+ *        status, `📅`, priority, `⏳`, `🛫`, `🔁`, `➕`, `✅`, `❌`, then the
+ *        task editor. Icons only: the value of a marker belongs to L1. Markers
+ *        the line already has are dropped, except status and priority — the
+ *        status icon carries the current character and priority shows the value
+ *        already set (or `⏫`), never the whole ladder.
+ *   L1 — the values of that one marker: the other status characters, the date
+ *        chips, the rule catalogue, or the five priorities plus `⏺` to clear.
+ *        Last row is always the task editor, so every level can reach it.
  *
  * The opening stage is inferred from the line: a bare marker right before the
  * caret (`📅 ` / `🔁 ` / `⏫ `) opens its L1 directly, anything else needs the
@@ -18,9 +19,9 @@
  *
  * This module is the pure half: it reads one line plus a caret and returns the
  * rows — replacement ranges for a write, the request for a submenu, or the edit
- * row. Nothing changes the document until a row is chosen, and a chosen row is
- * re-serialized through `task-line.ts`, so the line ends up in the canonical
- * order with one space between tokens.
+ * row. Nothing changes the document until a row is chosen, and a chosen row goes
+ * back through `writeTaskLine` in `task-line.ts`: canonical order, one space
+ * between tokens, and the status ↔ `✅`/`❌` link applied.
  *
  * Differences from the reference plugin, by design:
  *   - no `@due()` / `due:` / `截止` aliases are ever written;
@@ -39,9 +40,10 @@ import {
   TASK_LINE_RE,
   parseTaskLine,
   type TaskDateField,
+  type TaskDateLink,
 } from './task-line';
 
-export type TaskSuggestStage = 'marker' | 'date' | 'recurrence' | 'priority';
+export type TaskSuggestStage = 'marker' | 'status' | 'date' | 'recurrence' | 'priority';
 
 export type TaskSuggestField = TaskDateField;
 
@@ -60,6 +62,8 @@ export interface TaskSuggestWrite {
   from: number;
   to: number;
   insert: string;
+  /** The side of the status ↔ date link this write changes, if any. */
+  link?: keyof TaskDateLink;
 }
 
 /** A row that opens the next level; it writes nothing. */
@@ -67,7 +71,7 @@ export interface TaskSuggestMore {
   kind: 'more';
   label: string;
   detail?: string;
-  stage: 'date' | 'recurrence' | 'priority';
+  stage: 'status' | 'date' | 'recurrence' | 'priority';
   field?: TaskSuggestField;
 }
 
@@ -190,40 +194,39 @@ function readLine(line: string, caret: number): LineInfo | null {
   return { statusAt: m[1].length, bodyStart, status: m[2] };
 }
 
+/**
+ * L0 — marker icons, most used first: status, `📅`, priority, `⏳`, `🛫`, `🔁`,
+ * `➕`, `✅`, `❌`. A marker the line already carries is hidden (its L1 is
+ * reached again by typing the marker); status and priority are the two rows
+ * that always stay, showing the value currently in effect.
+ */
 function markerMenu(line: string, info: LineInfo, lang: string): TaskSuggestMenu {
   const model = parseTaskLine(line)!;
-  const { statusAt, status } = info;
+  const { status } = info;
   const rows: TaskSuggestRow[] = [];
 
-  // Status first, matching the canonical order.
-  for (const s of TASK_STATUSES) {
-    if (s.char.toLowerCase() === status.toLowerCase()) continue;
-    rows.push({
-      kind: 'write',
-      label: `[${s.char}]`,
-      detail: pick(s.zh, s.en, lang),
-      from: statusAt,
-      to: statusAt + 1,
-      insert: s.char,
-    });
-  }
+  // Status is one row showing the character in effect; the other four live in
+  // its L1, the same way priority keeps its ladder out of L0.
+  const current = TASK_STATUSES.find((s) => s.char.toLowerCase() === status.toLowerCase());
+  rows.push({
+    kind: 'more',
+    label: `[${status}]`,
+    detail: current ? pick(current.zh, current.en, lang) : pick('状态', 'Status', lang),
+    stage: 'status',
+  });
 
-  if (!model.recurrence) {
-    rows.push({
-      kind: 'more',
-      label: '🔁',
-      detail: pick('重复', 'Repeat', lang),
-      stage: 'recurrence',
-    });
-  }
+  const more = (field: TaskDateField) => {
+    const spec = TASK_DATE_FIELDS.find((f) => f.field === field)!;
+    return {
+      kind: 'more' as const,
+      label: spec.marker,
+      detail: pick(spec.zh, spec.en, lang),
+      stage: 'date' as const,
+      field,
+    };
+  };
 
-  for (const f of TASK_DATE_FIELDS) {
-    // A field that already carries a date is hidden: its L1 is reached again by
-    // typing the marker, which keeps L0 to what is actually missing.
-    if (f.field === 'cancelled' || f.field === 'completed') continue;
-    if (model[f.field]) continue;
-    rows.push({ kind: 'more', label: f.marker, detail: pick(f.zh, f.en, lang), stage: 'date', field: f.field });
-  }
+  if (!model.due) rows.push(more('due'));
 
   // Priority is one row, not five: it shows what is set (or the ⏫ default) and
   // opens the ladder, exactly like the other markers.
@@ -235,16 +238,35 @@ function markerMenu(line: string, info: LineInfo, lang: string): TaskSuggestMenu
     stage: 'priority',
   });
 
-  // ❌ before ✅, matching the canonical order (the menu table lists them the
-  // other way round because ✅ is the more common field).
-  for (const field of ['cancelled', 'completed'] as const) {
-    if (model[field]) continue;
-    const f = TASK_DATE_FIELDS.find((spec) => spec.field === field)!;
-    rows.push({ kind: 'more', label: f.marker, detail: pick(f.zh, f.en, lang), stage: 'date', field });
+  if (!model.scheduled) rows.push(more('scheduled'));
+  if (!model.start) rows.push(more('start'));
+  if (!model.recurrence) {
+    rows.push({ kind: 'more', label: '🔁', detail: pick('重复', 'Repeat', lang), stage: 'recurrence' });
   }
+  if (!model.created) rows.push(more('created'));
+  if (!model.completed) rows.push(more('completed'));
+  if (!model.cancelled) rows.push(more('cancelled'));
 
   rows.push(editRow(lang));
   return { stage: 'marker', rows };
+}
+
+/** L1 of the status icon: the other characters. Picking one replaces the char. */
+function statusMenu(info: LineInfo, lang: string): TaskSuggestMenu {
+  const { statusAt, status } = info;
+  const rows: TaskSuggestRow[] = TASK_STATUSES.filter(
+    (s) => s.char.toLowerCase() !== status.toLowerCase(),
+  ).map((s) => ({
+    kind: 'write',
+    label: `[${s.char}]`,
+    detail: pick(s.zh, s.en, lang),
+    from: statusAt,
+    to: statusAt + 1,
+    insert: s.char,
+    link: 'status',
+  }));
+  rows.push(editRow(lang));
+  return { stage: 'status', title: `[${status}] ${pick('状态', 'Status', lang)}`, rows };
 }
 
 function dateMenu(
@@ -269,6 +291,9 @@ function dateMenu(
   else if (existing) range = { from: bodyStart + existing.index, to: bodyStart + existing.index + existing[0].length };
 
   const rows: TaskSuggestRow[] = [];
+  // A closing date decides the status too (batch 8), so the write says which
+  // side of the link it is.
+  const link = field === 'completed' || field === 'cancelled' ? { link: field } : {};
   for (const chip of DATE_CHIPS) {
     const parsed = parseDatePhrase(chip.phrase, today);
     if (!parsed?.date) continue;
@@ -277,6 +302,7 @@ function dateMenu(
       label: pick(chip.zh, chip.en, lang),
       detail: parsed.date,
       ...range,
+      ...link,
       insert: `${spec.marker} ${parsed.date}`,
     });
   }
@@ -356,6 +382,7 @@ export function taskSuggestions(
   const tail = line.slice(info.bodyStart, caret);
 
   const req = request ?? openingRequest(tail);
+  if (req.stage === 'status') return statusMenu(info, lang);
   if (req.stage === 'date' && req.field) return dateMenu(line, info, caret, today, lang, req.field);
   if (req.stage === 'recurrence') return repeatMenu(line, info, caret, lang);
   if (req.stage === 'priority') return priorityMenu(line, info, caret, lang);

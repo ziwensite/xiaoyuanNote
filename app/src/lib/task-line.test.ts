@@ -2,10 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  linkTaskDates,
   normalizeTaskLine,
   parseTaskLine,
   serializeTaskLine,
   taskLinePrefixLength,
+  writeTaskLine,
 } from './task-line';
 
 /** The shape the user asked for, verbatim. */
@@ -74,4 +76,133 @@ test('parse → serialize is stable for a hand-written line', () => {
   const model = parseTaskLine(line)!;
   assert.equal(serializeTaskLine(model), line);
   assert.equal(normalizeTaskLine(serializeTaskLine(model)), line);
+});
+
+// ---------------------------------------------------------------------------
+// batch 8 — separators: every field is written with exactly one space a side
+// ---------------------------------------------------------------------------
+
+test('every field is written with one space on either side', () => {
+  const model = parseTaskLine('- [ ] 写报告')!;
+  model.tags = ['work'];
+  model.id = 't001';
+  model.blockedBy = 't000';
+  model.recurrence = 'every month';
+  model.created = '2026-11-01';
+  model.start = '2026-11-02';
+  model.scheduled = '2026-11-03';
+  model.due = '2026-11-05';
+  model.priority = '⏫';
+  model.cancelled = '2026-11-04';
+  model.completed = '2026-11-04';
+  const line = serializeTaskLine(model);
+  const tokens = [
+    '#work',
+    '🆔 t001',
+    '⛔ t000',
+    '🔁 every month',
+    '➕ 2026-11-01',
+    '🛫 2026-11-02',
+    '⏳ 2026-11-03',
+    '📅 2026-11-05',
+    '⏫',
+    '❌ 2026-11-04',
+    '✅ 2026-11-04',
+  ];
+  for (const token of tokens) {
+    // ✅ closes the line, so it only needs a space in front of it.
+    assert.ok(
+      line.includes(` ${token} `) || line.endsWith(` ${token}`),
+      `${token} needs one space on each side: ${line}`,
+    );
+  }
+  // The status character is followed by the description with one space, and no
+  // pair of tokens is separated by more than one.
+  assert.ok(line.startsWith('- [ ] 写报告 #work'));
+  assert.equal(/ {2,}/u.test(line), false, `collapsed spacing expected: ${line}`);
+});
+
+test('a line written without separators is repaired when it is written', () => {
+  assert.equal(
+    normalizeTaskLine('- [ ] 写报告 🔁 every day🛫 2026-11-10 📅 2026-11-11 ⏫'),
+    '- [ ] 写报告 🔁 every day 🛫 2026-11-10 📅 2026-11-11 ⏫',
+  );
+  assert.equal(
+    normalizeTaskLine('- [ ] 写报告 📅2026-11-10 ⏫🔁 every day'),
+    '- [ ] 写报告 🔁 every day 📅 2026-11-10 ⏫',
+  );
+  assert.equal(normalizeTaskLine('- [ ] 写报告 🆔t001 ⛔t000 #work'), '- [ ] 写报告 #work 🆔 t001 ⛔ t000');
+});
+
+// ---------------------------------------------------------------------------
+// batch 8 — status ↔ ✅ / ❌
+// ---------------------------------------------------------------------------
+
+const TODAY = '2026-11-10';
+
+test('completing a task stamps ✅ today and drops ❌', () => {
+  assert.equal(writeTaskLine('- [x] 写报告', TODAY, { status: true }), '- [x] 写报告 ✅ 2026-11-10');
+  assert.equal(
+    writeTaskLine('- [x] 写报告 ❌ 2026-10-01 ✅ 2026-10-01', TODAY, { status: true }),
+    '- [x] 写报告 ✅ 2026-11-10',
+  );
+});
+
+test('cancelling stamps ❌ today and every other status clears both dates', () => {
+  assert.equal(writeTaskLine('- [-] 写报告', TODAY, { status: true }), '- [-] 写报告 ❌ 2026-11-10');
+  assert.equal(
+    writeTaskLine('- [/] 写报告 ✅ 2026-10-01 ❌ 2026-10-01', TODAY, { status: true }),
+    '- [/] 写报告',
+  );
+  assert.equal(writeTaskLine('- [ ] 写报告 ✅ 2026-10-01', TODAY, { status: true }), '- [ ] 写报告');
+});
+
+test('setting ✅ completes the task, setting ❌ cancels it, and they never coexist', () => {
+  assert.equal(
+    writeTaskLine('- [ ] 写报告 ✅ 2026-10-01 ❌ 2026-10-02', TODAY, { completed: true }),
+    '- [x] 写报告 ✅ 2026-10-01',
+  );
+  assert.equal(
+    writeTaskLine('- [x] 写报告 ✅ 2026-10-01 ✅ 2026-10-02', TODAY, { completed: true }),
+    '- [x] 写报告 ✅ 2026-10-02',
+  );
+  assert.equal(
+    writeTaskLine('- [ ] 写报告 ❌ 2026-10-02', TODAY, { cancelled: true }),
+    '- [-] 写报告 ❌ 2026-10-02',
+  );
+  assert.equal(
+    writeTaskLine('- [-] 写报告 ✅ 2026-10-01 ❌ 2026-10-02', TODAY, { cancelled: true }),
+    '- [-] 写报告 ❌ 2026-10-02',
+  );
+});
+
+test('clearing a closing date leaves the status alone', () => {
+  // The user asked for "done, but without a date": clearing ✅ must not reopen
+  // the task, and must not touch ❌ either.
+  assert.equal(writeTaskLine('- [x] 写报告', TODAY, { completed: true }), '- [x] 写报告');
+  assert.equal(writeTaskLine('- [-] 写报告', TODAY, { cancelled: true }), '- [-] 写报告');
+});
+
+test('any other write keeps a line with both dates to one of them', () => {
+  assert.equal(
+    writeTaskLine('- [x] 写报告 ✅ 2026-10-01 ❌ 2026-10-02', TODAY),
+    '- [x] 写报告 ✅ 2026-10-01',
+  );
+  assert.equal(
+    writeTaskLine('- [-] 写报告 ✅ 2026-10-01 ❌ 2026-10-02', TODAY),
+    '- [-] 写报告 ❌ 2026-10-02',
+  );
+});
+
+test('writeTaskLine refuses a line that is not a task', () => {
+  assert.equal(writeTaskLine('普通段落 📅 2026-11-12', TODAY), null);
+});
+
+// The model-level half, used by the task editor, which edits fields one by one.
+test('linkTaskDates applies the link to a parsed model in place', () => {
+  const model = parseTaskLine('- [ ] 写报告 ❌ 2026-10-01')!;
+  model.status = 'x';
+  linkTaskDates(model, { status: true }, TODAY);
+  assert.equal(model.completed, TODAY);
+  assert.equal(model.cancelled, '');
 });

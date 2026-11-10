@@ -11,7 +11,7 @@
  */
 
 import { naturalDateChanges } from './task-date-phrases';
-import { normalizeTaskLine } from './task-line';
+import { writeTaskLine } from './task-line';
 
 export type EditorCommand =
   | 'selectWord'
@@ -131,19 +131,26 @@ export interface MultiTextEdit {
 
 /**
  * Rewrite the caret's line into the canonical task shape (batch 7): markers in
- * order, one space between them, extra spaces collapsed. Returns null when the
- * line is not a task line or is already canonical, so pressing the chord on a
- * paragraph or on a tidy line does nothing — no stray undo step.
+ * order, one space between them, extra spaces collapsed — through the same
+ * `writeTaskLine` exit the menu and the task editor use, so a closing date and
+ * the status stay in step. Returns null when the line is not a task line or is
+ * already canonical, so pressing the chord on a paragraph or on a tidy line does
+ * nothing — no stray undo step.
  *
  * Only the line's text is replaced: its indentation, bullet, quote prefix and
  * terminator are untouched.
  */
-export function normalizeLineEdit(doc: string, from: number, caret: number = from): TextEdit | null {
+export function normalizeLineEdit(
+  doc: string,
+  from: number,
+  caret: number = from,
+  today: string,
+): TextEdit | null {
   const start = doc.lastIndexOf('\n', from - 1) + 1;
   let end = doc.indexOf('\n', from);
   if (end < 0) end = doc.length;
   const line = doc.slice(start, end).replace(/\r$/u, '');
-  const next = normalizeTaskLine(line);
+  const next = writeTaskLine(line, today);
   if (next === null || next === line) return null;
   const offset = Math.min(Math.max(caret - start, 0), next.length);
   return { from: start, to: start + line.length, insert: next, selFrom: start + offset, selTo: start + offset };

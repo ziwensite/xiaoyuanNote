@@ -123,12 +123,13 @@ export function useTasks() {
    * than showing the rule as unreadable.
    */
   async function toggle(task: WorkspaceTask): Promise<void> {
+    const today = localDateKey(new Date());
     const recurrence = task.meta.recurrence;
     const nextDates =
       !task.done && recurrence && recurrence.kind !== 'unsupported' && task.meta.rrule
         ? nextTaskDates(task.meta, task.meta.rrule, {
             whenDone: recurrence.whenDone,
-            today: localDateKey(new Date()),
+            today,
           })
         : null;
     if (nextDates) {
@@ -139,12 +140,13 @@ export function useTasks() {
           nextDates,
           settings.recurringTaskPlacement,
           task.meta.recurrenceAction ?? 'keep',
+          today,
         );
         return done ? done.content : null;
       });
       return;
     }
-    await writeTaskLine(task, (content, line) => toggleTaskLine(content, line));
+    await writeTaskLine(task, (content, line) => toggleTaskLine(content, line, today));
   }
 
   /**

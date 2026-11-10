@@ -24,6 +24,7 @@ import {
   TASK_DATE_FIELDS,
   TASK_PRIORITIES,
   TASK_STATUSES,
+  linkTaskDates,
   serializeTaskLine,
   type TaskLineModel,
 } from '../lib/task-line';
@@ -33,6 +34,8 @@ const props = defineProps<{
   model: TaskLineModel | null;
   /** UI language; anything starting with `zh` gets Chinese. */
   lang: string;
+  /** Today as `YYYY-MM-DD`, for the status ↔ `✅`/`❌` link. */
+  today: string;
 }>();
 
 const emit = defineEmits<{ save: [TaskLineModel]; cancel: [] }>();
@@ -86,26 +89,43 @@ watch(
   { immediate: true },
 );
 
-const toModel = (): TaskLineModel => ({
-  open: base.value.open,
-  status: form.status,
-  description: form.description,
-  tags: form.tags
-    .split(/\s+/u)
-    .map((tag) => tag.replace(/^#+/u, ''))
-    .filter(Boolean),
-  id: form.id.trim(),
-  blockedBy: form.blockedBy.trim(),
-  recurrence: form.recurrence.trim().replace(/\s+/gu, ' '),
-  created: form.created,
-  start: form.start,
-  scheduled: form.scheduled,
-  due: form.due,
-  priority: form.priority,
-  cancelled: form.cancelled,
-  completed: form.completed,
-  extra: base.value.extra,
-});
+const toModel = (): TaskLineModel => {
+  const next: TaskLineModel = {
+    open: base.value.open,
+    status: form.status,
+    description: form.description,
+    tags: form.tags
+      .split(/\s+/u)
+      .map((tag) => tag.replace(/^#+/u, ''))
+      .filter(Boolean),
+    id: form.id.trim(),
+    blockedBy: form.blockedBy.trim(),
+    recurrence: form.recurrence.trim().replace(/\s+/gu, ' '),
+    created: form.created,
+    start: form.start,
+    scheduled: form.scheduled,
+    due: form.due,
+    priority: form.priority,
+    cancelled: form.cancelled,
+    completed: form.completed,
+    extra: base.value.extra,
+  };
+  // Batch 8: whatever the user changed on one side of the status ↔ date link,
+  // the other side follows before the line is written. The fields are compared
+  // with the line as it was opened, so a date the dialog filled in itself does
+  // not read as a change the user made.
+  const original = props.model;
+  linkTaskDates(
+    next,
+    {
+      status: !!original && next.status !== original.status,
+      completed: !!original && next.completed !== original.completed,
+      cancelled: !!original && next.cancelled !== original.cancelled,
+    },
+    props.today,
+  );
+  return next;
+};
 
 const preview = computed(() => serializeTaskLine(toModel()));
 

@@ -68,21 +68,26 @@ test('every status character is a task line', () => {
   }
 });
 
-test('L0 is icons only and ends with the task editor', () => {
+test('L0 is one icon per marker, most used first, and ends with the task editor', () => {
   const m = menu('- [ ] 写报告 |');
   assert.equal(m.stage, 'marker');
   assert.equal(m.title, undefined);
   assert.deepEqual(
     m.rows.map((r) => r.label),
-    ['[/]', '[x]', '[-]', '[?]', '🔁', '➕', '🛫', '⏳', '📅', '⏫', '❌', '✅', '任务编辑…'],
+    ['[ ]', '📅', '⏫', '⏳', '🛫', '🔁', '➕', '✅', '❌', '任务编辑…'],
   );
   assert.equal(m.rows.at(-1)!.kind, 'edit');
-  // The status already in effect is not offered again.
-  assert.equal(m.rows.some((r) => r.label === '[ ]'), false);
+  // The status is a single row carrying the character in effect, never the
+  // whole set of four.
+  assert.deepEqual(
+    m.rows.filter((r) => r.label.startsWith('[')).map((r) => r.label),
+    ['[ ]'],
+  );
 });
 
 test('L0 marks each field by its own icon and opens that field', () => {
   const m = menu('- [ ] 写报告 |');
+  assert.equal(more(m, '[ ]').stage, 'status');
   assert.equal(more(m, '📅').stage, 'date');
   assert.equal(more(m, '📅').field, 'due');
   assert.equal(more(m, '🛫').field, 'start');
@@ -94,7 +99,7 @@ test('L0 marks each field by its own icon and opens that field', () => {
   assert.equal(more(m, '⏫').stage, 'priority');
 });
 
-test('L0 hides every marker the line already carries', () => {
+test('L0 hides every marker the line already carries, status included', () => {
   const line = '- [ ] 写报告 📅 2026-11-12 ✅ 2026-11-12 ⏫ 🔁 every week';
   const labels = menu(`${line}|`).rows.map((r) => r.label);
   assert.equal(labels.includes('📅'), false);
@@ -113,12 +118,26 @@ test('L0 shows the current priority as its one priority row', () => {
   assert.equal(priority.detail, '较低');
 });
 
-test('status rows rewrite the checkbox character only', () => {
-  const m = menu('- [ ] 写报告 |');
+test('the status icon opens the other characters and replaces the one in place', () => {
+  const m = menu('- [ ] 写报告 |', 'zh', { stage: 'status' });
+  assert.equal(m.stage, 'status');
+  assert.equal(m.title, '[ ] 状态');
+  assert.deepEqual(
+    m.rows.map((r) => r.label),
+    ['[/]', '[x]', '[-]', '[?]', '任务编辑…'],
+  );
+  assert.equal(m.rows.at(-1)!.kind, 'edit');
   const doing = write(m, '[/]');
   assert.equal(doing.from, 3);
   assert.equal(doing.to, 4);
   assert.equal(doing.insert, '/');
+  // A status write is the status side of the ✅ / ❌ link.
+  assert.equal(doing.link, 'status');
+
+  // Picking one replaces the character, and never offers the current one.
+  const done = menu('- [/] 写报告 |', 'zh', { stage: 'status' });
+  assert.equal(done.rows.some((r) => r.label === '[/]'), false);
+  assert.equal(write(done, '[x]').link, 'status');
 });
 
 test('a bare 📅 opens the date level and replaces the marker', () => {
@@ -215,13 +234,21 @@ test('the priority ladder replaces the current level or clears it', () => {
   assert.equal(line.slice(clear.from, clear.to), '⏫');
 });
 
+test('the closing dates carry the status side of the link, the other dates do not', () => {
+  assert.equal(write(menu('- [ ] 写报告 |', 'zh', { stage: 'date', field: 'completed' }), '明天').link, 'completed');
+  assert.equal(write(menu('- [ ] 写报告 |', 'zh', { stage: 'date', field: 'cancelled' }), '明天').link, 'cancelled');
+  assert.equal(write(menu('- [ ] 写报告 |', 'zh', { stage: 'date', field: 'due' }), '明天').link, undefined);
+  assert.equal(write(menu('- [ ] 写报告 |', 'zh', { stage: 'priority' }), '🔽 较低').link, undefined);
+});
+
 test('English labels for a non-Chinese UI language', () => {
   const m = menu('- [ ] report |', 'en');
+  assert.equal(more(m, '[ ]').stage, 'status');
   assert.equal(more(m, '📅').field, 'due');
   assert.equal(more(m, '⏳').field, 'scheduled');
   assert.deepEqual(
     m.rows.map((r) => r.label),
-    ['[/]', '[x]', '[-]', '[?]', '🔁', '➕', '🛫', '⏳', '📅', '⏫', '❌', '✅', 'Edit task…'],
+    ['[ ]', '📅', '⏫', '⏳', '🛫', '🔁', '➕', '✅', '❌', 'Edit task…'],
   );
 
   const due = menu('- [ ] report |', 'en', { stage: 'date', field: 'due' });

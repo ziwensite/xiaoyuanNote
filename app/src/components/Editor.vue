@@ -5036,7 +5036,7 @@ function onEditorCommand(e: Event) {
       return;
     }
     if (cmd === 'normalizeTaskLine') {
-      const edit = normalizeLineEdit(doc, sel.from, sel.from);
+      const edit = normalizeLineEdit(doc, sel.from, sel.from, localDateKey(new Date()));
       if (edit) {
         v.dispatch({
           changes: edit,
@@ -5092,7 +5092,7 @@ function onEditorCommand(e: Event) {
     return;
   }
   if (cmd === 'normalizeTaskLine') {
-    const edit = normalizeLineEdit(doc, sel.from, sel.from);
+    const edit = normalizeLineEdit(doc, sel.from, sel.from, localDateKey(new Date()));
     if (!edit) return;
     recordPlainHistory();
     const next = doc.slice(0, edit.from) + edit.insert + doc.slice(edit.to);
@@ -6671,6 +6671,7 @@ const cls = computed(() => ({
     :open="!!taskEditor"
     :model="taskEditor?.model ?? null"
     :lang="settings.language"
+    :today="localDateKey(new Date())"
     @save="saveTaskEditor"
     @cancel="taskEditor = null"
   />

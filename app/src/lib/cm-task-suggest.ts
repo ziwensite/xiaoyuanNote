@@ -18,7 +18,7 @@
  *   - the last row of every level hands the line to the task editor.
  *
  * Levels: the marker list is L0. A row that opens the values of one marker
- * (`📅`, `🔁`, `⏫`) is a `more` row — Enter re-opens the same popup at the same
+ * (`[x]`, `📅`, `🔁`, `⏫`) is a `more` row — Enter re-opens the same popup at the same
  * caret with the value list instead, still writing nothing. `ArrowLeft` /
  * `Backspace` go back one level (value list → marker list) and are consumed; at
  * the marker list they are left alone so ordinary editing resumes. Esc always
@@ -31,7 +31,7 @@
 
 import { Prec, type Extension } from '@codemirror/state';
 import { EditorView, ViewPlugin, keymap, type ViewUpdate } from '@codemirror/view';
-import { normalizeTaskLine, taskLinePrefixLength } from './task-line';
+import { taskLinePrefixLength, writeTaskLine, type TaskDateLink } from './task-line';
 import {
   taskSuggestions,
   type TaskSuggestMenu,
@@ -109,17 +109,26 @@ function setActive(view: EditorView, index: number): void {
 
 /**
  * Write one row and close. The write is spliced into the line and the whole
- * line is re-serialized, so extra spaces collapse and the tokens land in the
- * canonical order — one transaction, one undo step.
+ * line goes back through `writeTaskLine`, so extra spaces collapse, the tokens
+ * land in the canonical order and the status ↔ `✅`/`❌` link follows —
+ * one transaction, one undo step.
  */
-function accept(view: EditorView, row: Row): void {
+function accept(view: EditorView, runtime: Runtime, row: Row): void {
   const item = row.item as TaskSuggestWrite;
   close(view);
   const line = view.state.doc.lineAt(row.from);
   const from = row.from - line.from;
   const to = row.to - line.from;
   const raw = line.text.slice(0, from) + item.insert + line.text.slice(to);
-  const next = normalizeTaskLine(raw) ?? raw;
+  const link: TaskDateLink | null =
+    item.link === 'status'
+      ? { status: true }
+      : item.link === 'completed'
+        ? { completed: true }
+        : item.link === 'cancelled'
+          ? { cancelled: true }
+          : null;
+  const next = writeTaskLine(raw, runtime.opts.today(), link) ?? raw;
   // The token may have moved to its canonical slot, so look it up again; a
   // one-character write (a status) or a clear ends with the caret at the end.
   let anchor = line.from + next.length;
@@ -214,7 +223,8 @@ function open(
       } else if (item.kind === 'more') {
         open(view, pos, opts, { stage: item.stage, field: item.field });
       } else {
-        accept(view, row);
+        const runtime = runtimes.get(view);
+        if (runtime) accept(view, runtime, row);
       }
     });
     node.addEventListener('mouseenter', () => setActive(view, index));
@@ -336,7 +346,7 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
         if (!runtime || !row) return false;
         if (row.item.kind === 'edit') requestEdit(view, runtime);
         else if (row.item.kind === 'more') descend(view, runtime, row.item);
-        else accept(view, row);
+        else accept(view, runtime, row);
         return true;
       },
     },
