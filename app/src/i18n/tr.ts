@@ -2179,6 +2179,10 @@ export const tr: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: '{date} gün ayrıntılarını aç',
+      empty: 'Bu günde vadeli görev yok.',
+    },
     openFolder: 'Takvimi görmek için bir klasör açın.',
     empty: 'Planlanmış bir şey yok.',
     today: 'Bugün',

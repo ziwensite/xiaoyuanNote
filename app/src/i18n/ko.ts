@@ -2160,6 +2160,10 @@ export const ko: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: '{date} 일 상세 열기',
+      empty: '이 날짜에 마감인 작업이 없습니다.',
+    },
     openFolder: '폴더를 열어야 달력을 볼 수 있습니다.',
     empty: '예정된 일정이 없습니다.',
     today: '오늘',

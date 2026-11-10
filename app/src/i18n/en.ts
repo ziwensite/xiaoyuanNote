@@ -2191,6 +2191,10 @@
     },
   },
   calendar: {
+    selectedDay: {
+      open: 'Open day details for {date}',
+      empty: 'No tasks due this day.',
+    },
     openFolder: 'Open a folder to see the calendar.',
     empty: 'Nothing scheduled.',
     today: 'Today',

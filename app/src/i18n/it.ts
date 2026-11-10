@@ -2162,6 +2162,10 @@ export const it: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: 'Apri i dettagli del {date}',
+      empty: 'Nessuna attività in scadenza questo giorno.',
+    },
     openFolder: 'Apri una cartella per vedere il calendario.',
     empty: 'Niente in programma.',
     today: 'Oggi',

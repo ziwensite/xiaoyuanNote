@@ -2179,6 +2179,10 @@ export const sv: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: 'Öppna dagens detaljer för {date}',
+      empty: 'Inga uppgifter förfaller denna dag.',
+    },
     openFolder: 'Öppna en mapp för att se kalendern.',
     empty: 'Inget planerat.',
     today: 'I dag',

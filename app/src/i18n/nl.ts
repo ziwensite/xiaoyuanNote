@@ -2179,6 +2179,10 @@ export const nl: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: 'Details van {date} openen',
+      empty: 'Geen taken die op deze dag vervallen.',
+    },
     openFolder: 'Open een map om de agenda te bekijken.',
     empty: 'Niets gepland.',
     today: 'Vandaag',

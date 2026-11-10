@@ -1,11 +1,13 @@
 <script setup lang="ts">
 /**
- * Sidebar calendar — a compact month grid only.
+ * Sidebar calendar — a compact month grid plus the selected day's task list.
  *
  * The dock is 292 px wide (≈35 px per day cell), which cannot hold a usable
  * time grid: detailed day/week/agenda views and editing live in the dialog
- * (`CalendarDialog.vue`). This pane is for scanning and picking a day; clicking
- * one focuses it and opens the dialog.
+ * (`CalendarDialog.vue`). Clicking a day therefore only *selects* it, and the
+ * lines due that day appear underneath, in the same pane — that is the question
+ * a sidebar calendar is usually asked. The dialog stays one click away in the
+ * header (and on Enter, for keyboard users).
  *
  * Month and selected day come from `stores/calendar`, the same state the
  * dialog uses, so the two can never show different months.
@@ -15,11 +17,16 @@ import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
 import { useCalendarStore } from '../stores/calendar';
+import { useTilesStore } from '../stores/tiles';
+import { useToastsStore } from '../stores/toasts';
+import { useTasks } from '../composables/useTasks';
+import { useFiles } from '../composables/useFiles';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
 import PanelHeader from './panel/PanelHeader.vue';
-import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
+import { addDays, localDateKey, type CalendarEntry, type CalendarTask } from '../lib/calendar';
 import { buildCalendarView, monthGridRange } from '../lib/calendar-view';
+import { samePath } from '../lib/path-key';
 import {
   dailyNoteDates,
   dayDensity,
@@ -30,6 +37,10 @@ const idx = useWorkspaceIndexStore();
 const workspace = useWorkspaceStore();
 const settings = useSettingsStore();
 const calendar = useCalendarStore();
+const tiles = useTilesStore();
+const toasts = useToastsStore();
+const files = useFiles();
+const taskList = useTasks();
 const { t, lang } = useI18n();
 
 const emit = defineEmits<{ (e: 'close'): void }>();
@@ -47,6 +58,19 @@ const range = computed(() => {
 
 const viewData = computed(() =>
   buildCalendarView(idx.entries as CalendarEntry[], range.value),
+);
+
+/** The selection IS the shared focus date: one value drives the grid outline,
+ *  the list below and the dialog's starting day. */
+const selectedTasks = computed(
+  () => viewData.value.days.find((day) => day.date === calendar.focusDate)?.tasks ?? [],
+);
+const dayLabel = computed(() =>
+  new Intl.DateTimeFormat(htmlLangFor(lang.value), {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  }).format(wallDate(calendar.focusDate)),
 );
 
 const noteDates = computed(() =>
@@ -146,12 +170,12 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
 }
 
-/** Arrows move the shared focus date; Enter opens that day in the dialog. */
+/** Arrows move the shared focus date; Enter still opens the day in the dialog. */
 function onGridKeydown(event: KeyboardEvent) {
   if (isTypingTarget(event.target)) return;
   if (event.key === 'Enter') {
     event.preventDefault();
-    pick(calendar.focusDate);
+    openSelectedDay();
     return;
   }
   const delta = ARROW_DELTAS[event.key];
@@ -164,8 +188,40 @@ function onGridKeydown(event: KeyboardEvent) {
   });
 }
 
+/** A click only selects — the day's lines are what the pane is for now. */
 function pick(date: string) {
-  calendar.openDialog(date);
+  calendar.setFocusDate(date);
+}
+
+/** The dialog kept its old self, it just moved behind a deliberate button. */
+function openSelectedDay() {
+  calendar.openDialog();
+}
+
+async function toggleSelected(task: CalendarTask) {
+  // Toggle the live index row, not the projection: the calendar's copy is a
+  // snapshot that would go stale the moment the file is written.
+  const live = taskList.tasks.value.find(
+    (x) => samePath(x.path, task.path) && x.line === task.line,
+  );
+  if (!live) {
+    toasts.warning(t('calendar.toastTaskGone'));
+    return;
+  }
+  await taskList.toggle(live);
+}
+
+async function openSelectedTask(task: CalendarTask) {
+  await files.openPath(task.path, { bypassNewWindow: true });
+  // Same jump path as the tasks panel: the editor needs a tick to mount the
+  // document before the line can be revealed.
+  setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent('solomd:outline-goto', {
+        detail: { line: task.line, paneId: tiles.focusedPaneId },
+      }),
+    );
+  }, 120);
 }
 </script>
 
@@ -193,48 +249,87 @@ function pick(date: string) {
       >
         <Icons name="chevron-right" :size="14" />
       </button>
+      <button
+        class="rp-icon-btn"
+        type="button"
+        :title="t('calendar.selectedDay.open', { date: dayLabel })"
+        :aria-label="t('calendar.selectedDay.open', { date: dayLabel })"
+        @click="openSelectedDay"
+      >
+        <Icons name="external" :size="14" />
+      </button>
     </PanelHeader>
 
     <div v-if="!hasFolder" class="rp-empty">{{ t('calendar.openFolder') }}</div>
 
-    <div v-else class="calendar-mini">
-      <div class="calendar-mini__title">{{ monthTitle }}</div>
-      <div class="calendar-mini__weekdays" aria-hidden="true">
-        <span v-for="(label, i) in weekdayLabels" :key="i">{{ label }}</span>
-      </div>
-      <div
-        ref="gridEl"
-        class="calendar-mini__grid"
-        role="grid"
-        :aria-label="monthTitle"
-        @keydown="onGridKeydown"
-      >
-        <button
-          v-for="date in grid"
-          :key="date"
-          type="button"
-          class="calendar-mini__cell"
-          :data-date="date"
-          :class="{
-            'is-outside': !inMonth(date),
-            'is-today': isToday(date),
-            'is-focus': isFocus(date),
-          }"
-          :tabindex="isFocus(date) ? 0 : -1"
-          :title="tooltipFor(date)"
-          :aria-label="tooltipFor(date)"
-          :aria-pressed="isFocus(date)"
-          @click="pick(date)"
+    <template v-else>
+      <div class="calendar-mini">
+        <div class="calendar-mini__title">{{ monthTitle }}</div>
+        <div class="calendar-mini__weekdays" aria-hidden="true">
+          <span v-for="(label, i) in weekdayLabels" :key="i">{{ label }}</span>
+        </div>
+        <div
+          ref="gridEl"
+          class="calendar-mini__grid"
+          role="grid"
+          :aria-label="monthTitle"
+          @keydown="onGridKeydown"
         >
-          <span class="calendar-mini__day">{{ dayNumber(date) }}</span>
-          <span
-            class="calendar-mini__mark"
-            :class="`is-${densityOf(date).state}`"
-            aria-hidden="true"
-          />
-        </button>
+          <button
+            v-for="date in grid"
+            :key="date"
+            type="button"
+            class="calendar-mini__cell"
+            :data-date="date"
+            :class="{
+              'is-outside': !inMonth(date),
+              'is-today': isToday(date),
+              'is-selected': isFocus(date),
+            }"
+            :tabindex="isFocus(date) ? 0 : -1"
+            :title="tooltipFor(date)"
+            :aria-label="tooltipFor(date)"
+            :aria-pressed="isFocus(date)"
+            @click="pick(date)"
+          >
+            <span class="calendar-mini__day">{{ dayNumber(date) }}</span>
+            <span
+              class="calendar-mini__mark"
+              :class="`is-${densityOf(date).state}`"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
       </div>
-    </div>
+
+      <section class="calendar-day">
+        <h4 class="rp-section calendar-day__head">
+          <span class="rp-row__label">{{ dayLabel }}</span>
+          <span class="calendar-day__count">{{ selectedTasks.length }}</span>
+        </h4>
+        <div v-if="selectedTasks.length === 0" class="rp-empty">
+          {{ t('calendar.selectedDay.empty') }}
+        </div>
+        <ul v-else class="rp-list calendar-day__list">
+          <li
+            v-for="task in selectedTasks"
+            :key="`${task.path}:${task.line}`"
+            class="rp-row calendar-day__item"
+            :class="{ 'is-done': task.done }"
+            @click="openSelectedTask(task)"
+          >
+            <input
+              type="checkbox"
+              class="rp-check"
+              :checked="task.done"
+              :aria-label="task.title"
+              @click.stop="toggleSelected(task)"
+            />
+            <span class="rp-row__label">{{ task.title }}</span>
+          </li>
+        </ul>
+      </section>
+    </template>
   </div>
 </template>
 
@@ -247,9 +342,9 @@ function pick(date: string) {
 }
 
 .calendar-mini {
-  flex: 1;
+  flex: 0 0 auto;
   min-height: 0;
-  padding: 8px 10px 12px;
+  padding: 8px 10px 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -313,8 +408,50 @@ function pick(date: string) {
   color: #fff;
 }
 
-.calendar-mini__cell.is-focus {
+/* Selection, not navigation: a soft fill plus the accent hairline is enough to
+   read at 35 px without competing with today's filled dot. */
+.calendar-mini__cell.is-selected {
   border-color: var(--accent, #3b82f6);
+  background: var(--accent-soft);
+}
+
+/* ── Selected day's lines ─────────────────────────────────────────────── */
+.calendar-day {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line-2, rgba(0, 0, 0, 0.08));
+}
+
+.calendar-day__head {
+  flex: 0 0 auto;
+  padding: 8px 18px 4px;
+}
+
+.calendar-day > .rp-empty {
+  padding: 16px;
+}
+
+.calendar-day__list {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 12px;
+}
+
+.calendar-day__item {
+  cursor: pointer;
+}
+
+/* Done lines stay visible — the day's full record — but recede. */
+.calendar-day__item.is-done {
+  color: var(--text-3);
+}
+
+.calendar-day__item.is-done .rp-row__label {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 
 .calendar-mini__mark {

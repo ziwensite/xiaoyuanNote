@@ -2162,6 +2162,10 @@ export const es: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: 'Abrir el detalle del {date}',
+      empty: 'No hay tareas con vencimiento este día.',
+    },
     openFolder: 'Abre una carpeta para ver el calendario.',
     empty: 'No hay nada programado.',
     today: 'Hoy',

@@ -2160,6 +2160,10 @@ export const ja: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: '{date} の日詳細を開く',
+      empty: 'この日に期限のタスクはありません。',
+    },
     openFolder: 'カレンダーを表示するにはフォルダを開いてください。',
     empty: '予定はありません。',
     today: '今日',

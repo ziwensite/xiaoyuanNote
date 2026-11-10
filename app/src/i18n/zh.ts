@@ -2163,6 +2163,10 @@ export const zh: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: '打开 {date} 的日详情',
+      empty: '这一天没有到期任务。',
+    },
     openFolder: '打开一个文件夹后才能查看日历。',
     empty: '暂无日程。',
     today: '今天',

@@ -2164,6 +2164,10 @@ export const pt: I18n = {
     },
   },
   calendar: {
+    selectedDay: {
+      open: 'Abrir detalhes de {date}',
+      empty: 'Nenhuma tarefa com prazo neste dia.',
+    },
     openFolder: 'Abra uma pasta para ver o calendário.',
     empty: 'Nada agendado.',
     today: 'Hoje',
