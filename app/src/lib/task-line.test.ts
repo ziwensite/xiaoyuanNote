@@ -45,6 +45,37 @@ test('scrambled markers are put in order with single spaces', () => {
   );
 });
 
+// Batch 9 (P0): `⏰` used to fall through to `extra`, so every rewrite pushed
+// it to the end of the line. It is a token now and `📅` is the one it follows.
+test('a reminder is a token, serialized right after the due date', () => {
+  const line = '- [ ] 采购硬件 📅 2026-11-05 ⏰ -PT15M ⏫';
+  const model = parseTaskLine(line)!;
+  assert.deepEqual(model.reminders, ['-PT15M']);
+  assert.deepEqual(model.extra, []);
+  assert.equal(serializeTaskLine(model), line);
+});
+
+test('a reminder written anywhere settles after 📅 and stays there', () => {
+  let line = '- [ ] 采购硬件 ⏰ 09:00 📅 2026-11-05 ⏫';
+  for (let i = 0; i < 3; i += 1) line = writeTaskLine(line, TODAY)!;
+  assert.equal(line, '- [ ] 采购硬件 📅 2026-11-05 ⏰ 09:00 ⏫');
+});
+
+test('several reminders keep their order, and a glued one is repaired', () => {
+  const model = parseTaskLine('- [ ] 采购硬件 📅 2026-11-05⏰-PT15M ⏰ 09:00')!;
+  assert.deepEqual(model.reminders, ['-PT15M', '09:00']);
+  assert.equal(
+    serializeTaskLine(model),
+    '- [ ] 采购硬件 📅 2026-11-05 ⏰ -PT15M ⏰ 09:00',
+  );
+});
+
+test('a bare ⏰ is kept as text, not turned into an empty reminder', () => {
+  const model = parseTaskLine('- [ ] 采购硬件 📅 2026-11-05 ⏰')!;
+  assert.deepEqual(model.reminders, []);
+  assert.equal(normalizeTaskLine('- [ ] 采购硬件 📅 2026-11-05 ⏰'), '- [ ] 采购硬件 📅 2026-11-05 ⏰');
+});
+
 test('tags keep their order and unknown fragments land after the tokens', () => {
   const line = '- [ ] 写报告 #b 备注一 📅 2026-11-12 #a 备注二';
   assert.equal(normalizeTaskLine(line), '- [ ] 写报告 #b #a 📅 2026-11-12 备注一 备注二');

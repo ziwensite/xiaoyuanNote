@@ -275,7 +275,7 @@ test('completing below ticked the old line and opens the next one right after it
   const lines = result.content.split('\n');
   assert.equal(
     lines[2],
-    '- [x] water plants 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-09 ✅ 2026-11-10 ⏰ 09:00',
+    '- [x] water plants 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-09 ⏰ 09:00 ✅ 2026-11-10',
   );
   assert.equal(lines[3], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
   assert.equal(result.line, 4);
@@ -315,7 +315,7 @@ test('completing above puts the new occurrence before the completed line', () =>
   assert.equal(lines[2], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
   assert.equal(
     lines[3],
-    '- [x] water plants 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-09 ✅ 2026-11-10 ⏰ 09:00',
+    '- [x] water plants 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-09 ⏰ 09:00 ✅ 2026-11-10',
   );
   assert.equal(result.line, 3);
 });

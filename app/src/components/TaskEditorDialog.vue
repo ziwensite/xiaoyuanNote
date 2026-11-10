@@ -67,11 +67,21 @@ const form = reactive({
   completed: '',
 });
 
-/** The parts the form must not invent: the line's own prefix and leftovers. */
-const base = ref<{ open: string; extra: string[] }>({ open: '- [', extra: [] });
+/** The parts the form must not invent: line prefix, reminders, leftovers. */
+const base = ref<{ open: string; reminders: string[]; extra: string[] }>({
+  open: '- [',
+  reminders: [],
+  extra: [],
+});
 
 function reset(model: TaskLineModel | null): void {
-  base.value = { open: model?.open ?? '- [', extra: [...(model?.extra ?? [])] };
+  base.value = {
+    open: model?.open ?? '- [',
+    // No field for `⏰` here, but it is a token now: carrying it through the
+    // form is what stops the preview from silently dropping a reminder.
+    reminders: [...(model?.reminders ?? [])],
+    extra: [...(model?.extra ?? [])],
+  };
   form.status = model?.status ?? ' ';
   form.description = model?.description ?? '';
   form.tags = (model?.tags ?? []).map((tag) => `#${tag}`).join(' ');
@@ -114,6 +124,7 @@ const toModel = (): TaskLineModel => {
     priority: form.priority,
     cancelled: form.cancelled,
     completed: form.completed,
+    reminders: base.value.reminders,
     extra: base.value.extra,
   };
   // Batch 8: whatever the user changed on one side of the status ↔ date link,

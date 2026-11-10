@@ -3,7 +3,7 @@
  *
  * One place decides what a task line is allowed to look like:
  *
- *   open 状态字符 描述 #tags 🆔 ⛔ 🔁 ➕ 🛫 ⏳ 📅 优先级 ❌ ✅ 未识别片段
+ *   open 状态字符 描述 #tags 🆔 ⛔ 🔁 ➕ 🛫 ⏳ 📅 ⏰ 优先级 ❌ ✅ 未识别片段
  *
  * with exactly one space between neighbours. `open` is everything up to and
  * including `[` — indentation, quote markers and the bullet are never rewritten,
@@ -95,6 +95,13 @@ export interface TaskLineModel {
   priority: string;
   cancelled: string;
   completed: string;
+  /**
+   * `⏰` values, in the order the line had them (`-PT15M`, `09:00`, an absolute
+   * ISO instant). They are tokens of their own now: before batch 9 they fell
+   * through to `extra`, so every rewrite moved a reminder to the end of the
+   * line. Canonically they sit right after `📅`.
+   */
+  reminders: string[];
   /** Words we did not recognise, in their original relative order. */
   extra: string[];
 }
@@ -103,6 +110,8 @@ const ISO_RE = /^\d{4}-\d{2}-\d{2}$/u;
 const DATE_WORD_RE = /^(➕|🛫|⏳|📅|✅|❌)(.*)$/u;
 const ID_WORD_RE = /^🆔(.*)$/u;
 const BLOCKED_WORD_RE = /^⛔(.*)$/u;
+/** `⏰` and whatever value was written after it; the value is not validated. */
+const REMINDER_WORD_RE = /^⏰(.*)$/u;
 const PRIORITY_WORD_RE = /^(🔺|⏫|🔼|🔽|⏬)$/u;
 const RECURRENCE_START = '🔁';
 /** `🏁 keep` / `🏁 delete` — a task token, but not one this module orders. */
@@ -112,7 +121,7 @@ const RECURRENCE_ACTION = '🏁';
  * Every character that begins a token. Splitting on these is what repairs a
  * line written without spaces (`every day🛫`, `2026-11-10📅`, `⏫🔁`).
  */
-const MARKER_CHAR_RE = /([➕🛫⏳📅✅❌🔁🆔⛔🔺⏫🔼🔽⏬⏺🏁])/gu;
+const MARKER_CHAR_RE = /([➕🛫⏳📅⏰✅❌🔁🆔⛔🔺⏫🔼🔽⏬⏺🏁])/gu;
 
 /** Whitespace-separated words, with a marker glued to text split off it. */
 function splitWords(body: string): string[] {
@@ -131,6 +140,7 @@ function startsToken(word: string): boolean {
     DATE_WORD_RE.test(word) ||
     ID_WORD_RE.test(word) ||
     BLOCKED_WORD_RE.test(word) ||
+    REMINDER_WORD_RE.test(word) ||
     PRIORITY_WORD_RE.test(word) ||
     word === TASK_CLEAR_PRIORITY
   );
@@ -161,6 +171,7 @@ export function parseTaskLine(line: string): TaskLineModel | null {
     priority: '',
     cancelled: '',
     completed: '',
+    reminders: [],
     extra: [],
   };
 
@@ -214,6 +225,18 @@ export function parseTaskLine(line: string): TaskLineModel | null {
       model.blockedBy = value;
       seenToken = true;
       continue;
+    }
+
+    const reminder = REMINDER_WORD_RE.exec(word);
+    if (reminder) {
+      let value = reminder[1].trim();
+      if (!value && i + 1 < words.length && !startsToken(words[i + 1])) value = words[++i];
+      // A bare `⏰` is an unfinished token, not a reminder: keep the bytes.
+      if (value) {
+        model.reminders.push(value);
+        seenToken = true;
+        continue;
+      }
     }
 
     if (PRIORITY_WORD_RE.test(word)) {
@@ -270,6 +293,11 @@ export function serializeTaskLine(model: TaskLineModel): string {
     if (spec.field === 'cancelled' || spec.field === 'completed') continue;
     const value = model[spec.field].trim();
     if (value) push(`${spec.marker} ${value}`);
+  }
+  // Batch 9 — reminders are tokens now, and `📅` is the one they follow.
+  for (const reminder of model.reminders) {
+    const value = reminder.trim();
+    if (value) push(`⏰ ${value}`);
   }
   if (model.priority.trim()) push(model.priority.trim());
   if (model.cancelled.trim()) push(`❌ ${model.cancelled.trim()}`);
