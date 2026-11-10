@@ -98,9 +98,9 @@
   transform-origin: top left;
 }
 
-/* Task-line space menu (batch 5). It hangs off the caret with inline `fixed`
-   coordinates, so it keeps its own geometry; surface, rows and the highlight
-   come from the lists above. */
+/* Task-line space menu (batches 5–6). It hangs off the caret with inline
+   `fixed` coordinates, so it keeps its own geometry; surface, rows and the
+   highlight come from the lists above. */
 :root:not(#_) .task-suggest {
   position: fixed;
   z-index: 60;
@@ -131,6 +131,20 @@
 }
 :root:not(#_) .task-suggest__group:first-child {
   padding-top: 2px;
+}
+/* A value level is titled by its marker (`📅 截止`) instead of grouped. */
+:root:not(#_) .task-suggest__title {
+  padding: 4px 8px 6px;
+  margin-bottom: 2px;
+  border-bottom: var(--bd-hair);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+/* Rows that open another level rather than writing a token. */
+:root:not(#_) .task-suggest__row--more .task-suggest__detail {
+  font-size: 14px;
+  line-height: 1;
 }
 
 /* Uses the individual `scale` property, not `transform`, so it composes with

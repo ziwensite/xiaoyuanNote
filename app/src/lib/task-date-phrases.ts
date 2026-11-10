@@ -201,6 +201,12 @@ function matchPhrase(text: string, today: string): Phrase | null {
   if (m) return at(m, { date: monthEnd(today, 1) });
   m = /(?:月)(?:底|末)$/u.exec(text);
   if (m) return at(m, { date: monthEnd(today) });
+  m = /(?:再过?)?(?:一|1)(?:周|星期|礼拜)后$/u.exec(text);
+  if (m) return at(m, { date: addDays(today, 7) });
+  m = /(?:再过?)?(?:两|2)(?:周|星期|礼拜)后$/u.exec(text);
+  if (m) return at(m, { date: addDays(today, 14) });
+  m = /明年$/u.exec(text);
+  if (m) return at(m, { date: shiftMonth(today, 12) });
   m = /下(?:个)?月$/u.exec(text);
   if (m) return at(m, { date: shiftMonth(today, 1) });
   m = /下(?:个)?月(\d{1,2})[日号]$/u.exec(text);

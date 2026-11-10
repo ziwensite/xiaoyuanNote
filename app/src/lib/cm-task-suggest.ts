@@ -1,9 +1,9 @@
 /**
- * CodeMirror half of the task-line space menu (batch 5).
+ * CodeMirror half of the task-line space menu (batches 5–6).
  *
  * `task-suggest.ts` decides *what* the menu offers and what each row writes;
- * this file decides *when* it is shown and owns the popup's lifetime. The
- * contract the batch was written against:
+ * this file decides *when* it is shown, owns the popup's lifetime, and walks
+ * the two levels. The contract these batches were written against:
  *
  *   - the space itself is ordinary typing — the menu only opens after it, and
  *     is never allowed to swallow the key (IME composition included);
@@ -13,6 +13,13 @@
  *   - picking a row is one transaction (`userEvent: input.complete`), so one
  *     undo takes the token away again.
  *
+ * Levels (batch 6): the marker list is L0. A row that opens the values of one
+ * marker (`📅 截止`, `🔁 重复`) is a `more` row — Enter re-opens the same popup
+ * at the same caret with the value list instead, still writing nothing.
+ * `ArrowLeft` / `Backspace` go back one level (value list → marker list) and
+ * are consumed; at the marker list they are left alone so ordinary editing
+ * resumes. Esc always closes outright.
+ *
  * The popup lives on `document.body` with `position: fixed` coordinates from
  * `coordsAtPos`, because the editor's own scroller would clip it. Focus never
  * leaves the editor, so the keymap below keeps working while it is open.
@@ -20,7 +27,16 @@
 
 import { Prec, type Extension } from '@codemirror/state';
 import { EditorView, ViewPlugin, keymap, type ViewUpdate } from '@codemirror/view';
-import { taskSuggestions, type TaskSuggestGroup, type TaskSuggestion } from './task-suggest';
+import {
+  taskSuggestGroupLabel,
+  taskSuggestions,
+  type TaskSuggestGroup,
+  type TaskSuggestMenu,
+  type TaskSuggestMore,
+  type TaskSuggestRequest,
+  type TaskSuggestRow,
+  type TaskSuggestWrite,
+} from './task-suggest';
 
 export interface TaskSuggestOptions {
   /** Today as `YYYY-MM-DD`; called per open so a long session rolls over. */
@@ -29,41 +45,29 @@ export interface TaskSuggestOptions {
   lang: () => string;
 }
 
-/** A row plus the absolute (document) range it replaces. */
-interface Placement {
-  item: TaskSuggestion;
-  from: number;
-  to: number;
-}
-
+/** A rendered row plus the absolute (document) range it replaces. */
 interface Row {
   node: HTMLElement;
-  placement: Placement;
+  item: TaskSuggestRow;
+  from: number;
+  to: number;
 }
 
 interface Runtime {
   el: HTMLElement;
   rows: Row[];
   active: number;
+  /** The level on screen, so a `more` row can be turned into a request. */
+  menu: TaskSuggestMenu;
+  /** Caret the popup is anchored at; never moves while it is open. */
+  pos: number;
+  opts: TaskSuggestOptions;
   onScroll: () => void;
   onResize: () => void;
   onDocMouseDown: (e: MouseEvent) => void;
 }
 
 const runtimes = new WeakMap<EditorView, Runtime>();
-
-const GROUP_LABELS: Record<TaskSuggestGroup, { zh: string; en: string }> = {
-  date: { zh: '日期', en: 'Date' },
-  field: { zh: '字段', en: 'Field' },
-  priority: { zh: '优先级', en: 'Priority' },
-  status: { zh: '状态', en: 'Status' },
-  repeat: { zh: '重复', en: 'Repeat' },
-};
-
-function groupLabel(group: TaskSuggestGroup, lang: string): string {
-  const entry = GROUP_LABELS[group];
-  return lang.toLowerCase().startsWith('zh') ? entry.zh : entry.en;
-}
 
 /** Remove the popup and every listener it installed. Never touches the doc. */
 function close(view: EditorView): void {
@@ -91,40 +95,60 @@ function setActive(view: EditorView, index: number): void {
 }
 
 /** Write one row's token and close. One transaction, one undo step. */
-function accept(view: EditorView, placement: Placement): void {
+function accept(view: EditorView, row: Row): void {
+  const item = row.item as TaskSuggestWrite;
   close(view);
   view.dispatch({
-    changes: { from: placement.from, to: placement.to, insert: placement.item.insert },
-    selection: { anchor: placement.from + placement.item.insert.length },
+    changes: { from: row.from, to: row.to, insert: item.insert },
+    selection: { anchor: row.from + item.insert.length },
     userEvent: 'input.complete',
     scrollIntoView: true,
   });
   view.focus();
 }
 
-function open(view: EditorView, pos: number, opts: TaskSuggestOptions): void {
+/**
+ * Show `request` (or whatever the line implies) at `pos`, replacing any popup
+ * that is already there. Writing nothing is the point — swapping levels is a
+ * DOM operation only, so Esc still leaves the line untouched.
+ */
+function open(
+  view: EditorView,
+  pos: number,
+  opts: TaskSuggestOptions,
+  request?: TaskSuggestRequest,
+): void {
   close(view);
   const line = view.state.doc.lineAt(pos);
   const lang = opts.lang();
-  // Read the line *after* the space landed, so every range already accounts
+  // The caret is read after the space landed, so every range already accounts
   // for it and the token is never glued to the word before the space.
-  const items = taskSuggestions(line.text, pos - line.from, opts.today(), lang);
-  if (!items || !items.length) return;
+  const menu = taskSuggestions(line.text, pos - line.from, opts.today(), lang, request);
+  if (!menu || !menu.rows.length) return;
 
   const el = document.createElement('div');
   el.className = 'task-suggest';
   el.setAttribute('role', 'listbox');
 
+  if (menu.title) {
+    const title = document.createElement('div');
+    title.className = 'task-suggest__title';
+    title.textContent = menu.title;
+    el.appendChild(title);
+  }
+
   const rows: Row[] = [];
   let group: TaskSuggestGroup | null = null;
-  for (const item of items) {
-    if (item.group !== group) {
+  for (const item of menu.rows) {
+    // The marker level groups its rows; a value level is titled instead.
+    if (!menu.title && item.group !== group) {
       group = item.group;
       const heading = document.createElement('div');
       heading.className = 'task-suggest__group';
-      heading.textContent = groupLabel(group, lang);
+      heading.textContent = taskSuggestGroupLabel(group, lang);
       el.appendChild(heading);
     }
+
     const node = document.createElement('div');
     node.className = 'task-suggest__row';
     node.setAttribute('role', 'option');
@@ -134,28 +158,37 @@ function open(view: EditorView, pos: number, opts: TaskSuggestOptions): void {
     label.className = 'task-suggest__label';
     label.textContent = item.label;
     node.appendChild(label);
-    if (item.detail) {
+
+    if (item.kind === 'write' && item.detail) {
       const detail = document.createElement('span');
       detail.className = 'task-suggest__detail';
       detail.textContent = item.detail;
       node.appendChild(detail);
+    } else if (item.kind === 'more') {
+      node.classList.add('task-suggest__row--more');
+      const arrow = document.createElement('span');
+      arrow.className = 'task-suggest__detail';
+      arrow.textContent = '›';
+      node.appendChild(arrow);
     }
 
-    const placement: Placement = {
-      item,
-      from: line.from + item.from,
-      to: line.from + item.to,
-    };
+    const from = line.from + (item.kind === 'write' ? item.from : 0);
+    const to = line.from + (item.kind === 'write' ? item.to : 0);
+    const row: Row = { node, item, from, to };
     const index = rows.length;
     node.addEventListener('mousedown', (e) => {
       // Keep the caret in the editor: no blur, no selection change.
       e.preventDefault();
       e.stopPropagation();
-      accept(view, placement);
+      if (item.kind === 'more') {
+        open(view, pos, opts, { stage: item.stage, field: item.field });
+      } else {
+        accept(view, row);
+      }
     });
     node.addEventListener('mouseenter', () => setActive(view, index));
     el.appendChild(node);
-    rows.push({ node, placement });
+    rows.push(row);
   }
 
   document.body.appendChild(el);
@@ -179,6 +212,9 @@ function open(view: EditorView, pos: number, opts: TaskSuggestOptions): void {
     el,
     rows,
     active: 0,
+    menu,
+    pos,
+    opts,
     onScroll: () => close(view),
     onResize: () => close(view),
     onDocMouseDown: (e) => {
@@ -192,6 +228,16 @@ function open(view: EditorView, pos: number, opts: TaskSuggestOptions): void {
   setActive(view, 0);
 }
 
+/** Enter on a `more` row: same popup, next level, still nothing written. */
+function descend(view: EditorView, runtime: Runtime, item: TaskSuggestMore): void {
+  open(view, runtime.pos, runtime.opts, { stage: item.stage, field: item.field });
+}
+
+/** Back one level (value list → marker list), writing nothing. */
+function ascend(view: EditorView, runtime: Runtime): void {
+  open(view, runtime.pos, runtime.opts, { stage: 'marker' });
+}
+
 export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
   const commands = [
     {
@@ -200,11 +246,16 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
         // While an input method owns the keystrokes, a space is the IME's:
         // never open the menu and never take the key.
         if (view.composing) return false;
+        // With a menu open, a space is just typing: close and let it through.
+        if (runtimes.has(view)) {
+          close(view);
+          return false;
+        }
         const sel = view.state.selection.main;
         if (!sel.empty) return false;
         const line = view.state.doc.lineAt(sel.from);
-        const items = taskSuggestions(line.text, sel.from - line.from, opts.today(), opts.lang());
-        if (!items || !items.length) return false;
+        const menu = taskSuggestions(line.text, sel.from - line.from, opts.today(), opts.lang());
+        if (!menu || !menu.rows.length) return false;
         view.dispatch({
           changes: { from: sel.from, insert: ' ' },
           selection: { anchor: sel.from + 1 },
@@ -241,7 +292,28 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
         const runtime = runtimes.get(view);
         const row = runtime?.rows[runtime.active];
         if (!runtime || !row) return false;
-        accept(view, row.placement);
+        if (row.item.kind === 'more') descend(view, runtime, row.item);
+        else accept(view, row);
+        return true;
+      },
+    },
+    {
+      key: 'ArrowLeft',
+      run: (view: EditorView) => {
+        const runtime = runtimes.get(view);
+        // Only inside a value list: on the marker list this is a caret move,
+        // which closes the popup through the plugin's update().
+        if (!runtime || runtime.menu.stage === 'marker') return false;
+        ascend(view, runtime);
+        return true;
+      },
+    },
+    {
+      key: 'Backspace',
+      run: (view: EditorView) => {
+        const runtime = runtimes.get(view);
+        if (!runtime || runtime.menu.stage === 'marker') return false;
+        ascend(view, runtime);
         return true;
       },
     },
