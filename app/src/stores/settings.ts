@@ -26,6 +26,13 @@ import {
   QUICK_CAPTURE_DEFAULT_SHORTCUT,
   migrateQuickCaptureShortcut,
 } from '../lib/quick-capture-shortcut';
+import {
+  defaultPeriodicConfig,
+  mergePeriodicConfig,
+  type PeriodConfig,
+  type PeriodKind,
+  type PeriodicConfig,
+} from '../lib/periodic-notes';
 
 const LS_KEY = 'solomd.settings.v1';
 
@@ -248,6 +255,16 @@ interface Settings {
   dailyNotesFolder: string;
   dailyNotesFormat: string;
   dailyNotesTemplate: string;
+  /**
+   * Batch 10 / P2 — the five periodic kinds. `periodic.daily` is the canonical
+   * home of the three fields above; the daily setters keep both in sync, and
+   * `load()` derives it from the old keys on upgrade so note paths don't move.
+   */
+  periodic: PeriodicConfig;
+  /** First day of the week for weekly notes: 0 = Sunday … 6 = Saturday. */
+  weekStartsOn: number;
+  /** Heading automatic writes insert under; empty = append at the end. */
+  captureHeading: string;
   showTagsPanel: boolean;
   // Workspace-wide task panel: every `- [ ]` in the vault, grouped by file.
   showTasksPanel: boolean;
@@ -772,6 +789,9 @@ function defaults(): Settings {
     dailyNotesFolder: 'Daily',
     dailyNotesFormat: 'YYYY-MM-DD.md',
     dailyNotesTemplate: '',
+    periodic: defaultPeriodicConfig(),
+    weekStartsOn: 1,
+    captureHeading: '## 任务',
     // Obsidian Tasks writes the next occurrence above the completed line; that
     // is the default here too. A saved choice still wins (see `load`).
     recurringTaskPlacement: 'above',
@@ -981,6 +1001,13 @@ function load(): Settings {
       // sub-key (older settings blob) doesn't yield `undefined` and a
       // tampered numeric stays in range.
       merged.pdfDefaults = mergePdfDefaults(parsed.pdfDefaults);
+      // P2 — five periodic kinds. A blob written before this release has only
+      // the daily triple; `mergePeriodicConfig` folds it into `periodic.daily`
+      // so every existing daily note keeps resolving to the same path.
+      merged.periodic = mergePeriodicConfig(parsed.periodic, parsed as Record<string, unknown>);
+      if (!Number.isInteger(merged.weekStartsOn) || merged.weekStartsOn < 0 || merged.weekStartsOn > 6) {
+        merged.weekStartsOn = 1;
+      }
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
       // 'codemirror' was always a choice; 'native' only counts as one when the
@@ -1686,15 +1713,33 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     setDailyNotesFolder(p: string) {
-      this.dailyNotesFolder = p;
-      this.persist();
+      this.setPeriodicConfig('daily', { folder: p });
     },
     setDailyNotesFormat(f: string) {
-      this.dailyNotesFormat = f;
-      this.persist();
+      this.setPeriodicConfig('daily', { format: f });
     },
     setDailyNotesTemplate(t: string) {
-      this.dailyNotesTemplate = t;
+      this.setPeriodicConfig('daily', { template: t });
+    },
+    /**
+     * Edit one kind's three fields. `daily` also writes the legacy keys, so a
+     * blob read by older code (or by us before the next launch) agrees with it.
+     */
+    setPeriodicConfig(kind: PeriodKind, patch: Partial<PeriodConfig>) {
+      this.periodic = { ...this.periodic, [kind]: { ...this.periodic[kind], ...patch } };
+      if (kind === 'daily') {
+        this.dailyNotesFolder = this.periodic.daily.folder;
+        this.dailyNotesFormat = this.periodic.daily.format;
+        this.dailyNotesTemplate = this.periodic.daily.template;
+      }
+      this.persist();
+    },
+    setWeekStartsOn(n: number) {
+      this.weekStartsOn = Number.isInteger(n) && n >= 0 && n <= 6 ? n : 1;
+      this.persist();
+    },
+    setCaptureHeading(h: string) {
+      this.captureHeading = h;
       this.persist();
     },
     setRecurringTaskPlacement(p: RecurringTaskPlacement) {

@@ -168,16 +168,17 @@ D1 = B 的直接后果：**共用字段在任何时候都只有一份**，就在
 type PeriodKind = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 
 interface PeriodConfig {
-  folder: string;    // 相对工作区，可含 {yyyy}/{MM}
-  format: string;    // 命名格式，见 5.2
-  template: string;  // 相对工作区的模板路径，空 = 无模板
+  folder: string;    // 相对工作区，原样使用（不解析 token）
+  format: string;    // 文件名格式，含扩展名，见 5.2
+  template: string;  // 相对工作区的模板路径，空 = 内置默认
 }
 
 settings.periodic: Record<PeriodKind, PeriodConfig>;
 ```
 
-- 迁移：现有 `dailyNotesFolder` / `dailyNotesFormat` / `dailyNotesTemplate` 在读取时映射为 `periodic.daily`，首次保存设置时写回新键，旧键保留一版（只读）。
-- 默认值：日 `Daily/YYYY-MM-DD`、周 `Weekly/YYYY-[W]WW`、月 `Monthly/YYYY-MM`、季 `Quarterly/YYYY-[Q]Q`、年 `Yearly/YYYY`。
+- 迁移：现有 `dailyNotesFolder` / `dailyNotesFormat` / `dailyNotesTemplate` 在读取时映射为 `periodic.daily`，之后由 `periodic.daily` 作为权威；`setPeriodicConfig('daily', …)` 仍双写旧键，旧键保留一版（只读）。
+- 默认值：日 `Daily/YYYY-MM-DD.md`、周 `Weekly/YYYY-[W]WW.md`、月 `Monthly/YYYY-MM.md`、季 `Quarterly/YYYY-[Q]Q.md`、年 `Yearly/YYYY.md`。`format` 含扩展名——沿用现有日记设置的老约定，迁移才能逐字照搬。
+- `folder` 是**字面量**，不解析 token：否则默认文件夹 `Quarterly` 会被 `Q` 换成 `4uarterly`。日期差异放进 `format`。
 - 新增两个通用项：`weekStartsOn`（默认 1=周一）、`captureHeading`（默认 `## 任务`）。
 
 ### 5.2 命名与锚点
@@ -190,19 +191,21 @@ settings.periodic: Record<PeriodKind, PeriodConfig>;
 | 季 | 季首月 1 日 | `YYYY` `Q` |
 | 年 | 1 月 1 日 | `YYYY` |
 
-- token 解析复用现有日记的格式化器，只新增 `WW`（两位数 ISO 周）与 `Q`；`[...]` 表示原样输出（如 `YYYY-[W]WW`）。
+- token 解析复用现有日记的格式化器，只新增 `WW`（两位数 ISO 周）与 `Q`；解析是单次左到右扫描，`[...]` 原样输出（如 `YYYY-[W]WW` 里的 `W`）。
+- 周笔记的 `YYYY` 取**锚点日的日历年**：2026-01-01（周四）落在 2025-12-29 起始的那一周，因此名为 `2025-W01`；2026-12-28 起始的一周是 `2026-W53`。
 - 路径解析是纯函数 `periodicPath(kind, date) → string`，单测覆盖跨年周、季首、闰年。
 
 ### 5.3 模板
 
-- 纯文本变量替换，不引入模板引擎：`{{date}} {{time}} {{title}} {{yesterday}} {{tomorrow}} {{weekStart}} {{weekEnd}} {{monthStart}} {{monthEnd}} {{quarter}} {{year}} {{prev}} {{next}}`。
+- 纯文本变量替换，不引入模板引擎：`{{date}} {{time}} {{title}} {{yesterday}} {{tomorrow}} {{weekStart}} {{weekEnd}} {{monthStart}} {{monthEnd}} {{quarter}} {{year}} {{prev}} {{next}}`；并保留老日记模板的 `{{day}} {{week}} {{previous}}`，所以既有日记模板输出不变。
+- 变量按周期锚点算：周笔记的 `{{date}}` 是周一，`{{weekStart}}`/`{{weekEnd}}` 是本期首尾，`{{prev}}`/`{{next}}` 是按各自 `format` 算出的 `[[上一期]]`/`[[下一期]]`。
 - 只在文件不存在时套用；已有文件永不覆盖。
-- 模板缺失/读取失败 → 建空文件并提示，不阻断打开。
+- 模板路径读不到 → 回退内置默认模板（日=内置日记模板，其余 `# {{title}}`）并提示，不阻断打开。
 
 ### 5.4 创建规则
 
 - `openOrCreate(kind, date)`：解析路径 → 目录不存在则建 → 文件不存在则套模板写 → 返回路径并打开。
-- 入口：日历标题/侧栏的"打开今天/本周/本月/本季/本年"。
+- 入口：命令面板的"打开今天 / 本周 / 本月 / 本季 / 本年"（`daily.open*` + `periodic.open*`）；侧栏"今天"沿用原入口。
 - 不做定时批量预建（参考实现也没有）。
 
 ### 5.5 聚合

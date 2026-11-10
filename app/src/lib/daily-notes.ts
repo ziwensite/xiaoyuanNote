@@ -11,13 +11,12 @@
  *   DD    → 2-digit day of month (`01`–`31`)
  *   dddd  → full English weekday (`Monday`)
  *   ddd   → short English weekday (`Mon`)
+ *   WW    → 2-digit ISO week (`01`–`53`)
+ *   Q     → quarter (`1`–`4`)
+ *   [X]   → `X` verbatim, so `YYYY-[W]WW` is `2026-W45`
  *
- * Template tokens (Obsidian-ish):
- *   {{date}}     → ISO date (`2026-04-24`)
- *   {{day}}      → full weekday (`Friday`)
- *   {{week}}     → ISO week number (`17`)
- *   {{previous}} → wikilink to yesterday's daily note (`[[2026-04-23]]`)
- *   {{next}}     → wikilink to tomorrow's daily note (`[[2026-04-25]]`)
+ * Template variables live in `periodic-notes.ts`; this module only owns the
+ * filename formatter and the built-in daily template.
  */
 
 const FULL_WEEKDAYS = [
@@ -36,15 +35,20 @@ function pad2(n: number): string {
   return n < 10 ? `0${n}` : String(n);
 }
 
-function isoDate(date: Date): string {
+export function isoDate(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+/** Full English weekday name, e.g. `Friday`. */
+export function weekdayName(date: Date): string {
+  return FULL_WEEKDAYS[date.getDay()];
 }
 
 /**
  * Compute the ISO 8601 week number for a date (1–53).
  * Uses the standard "Thursday in the same week" trick.
  */
-function isoWeek(date: Date): number {
+export function isoWeekNumber(date: Date): number {
   // Copy so we don't mutate the caller's date.
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = (d.getUTCDay() + 6) % 7; // Mon=0..Sun=6
@@ -54,50 +58,57 @@ function isoWeek(date: Date): number {
   return 1 + Math.round((diff - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
 }
 
-/**
- * Substitute filename tokens. Order matters: `dddd` must run before `ddd` so
- * the longer token isn't shadowed; same for `YYYY`/`YY` etc.
- */
-export function formatDailyFilename(date: Date, format: string): string {
-  const yyyy = String(date.getFullYear());
-  const mm = pad2(date.getMonth() + 1);
-  const dd = pad2(date.getDate());
-  const fullDow = FULL_WEEKDAYS[date.getDay()];
-  const shortDow = SHORT_WEEKDAYS[date.getDay()];
-  return format
-    .replace(/YYYY/g, yyyy)
-    .replace(/MM/g, mm)
-    .replace(/DD/g, dd)
-    .replace(/dddd/g, fullDow)
-    .replace(/ddd/g, shortDow);
+/** Longest first, so `dddd` is never shadowed by `ddd`. */
+const FILENAME_TOKENS = ['YYYY', 'dddd', 'ddd', 'WW', 'MM', 'DD', 'Q'] as const;
+
+function tokenValue(token: (typeof FILENAME_TOKENS)[number], date: Date): string {
+  switch (token) {
+    case 'YYYY':
+      return String(date.getFullYear());
+    case 'MM':
+      return pad2(date.getMonth() + 1);
+    case 'DD':
+      return pad2(date.getDate());
+    case 'dddd':
+      return FULL_WEEKDAYS[date.getDay()];
+    case 'ddd':
+      return SHORT_WEEKDAYS[date.getDay()];
+    case 'WW':
+      return pad2(isoWeekNumber(date));
+    case 'Q':
+      return String(Math.floor(date.getMonth() / 3) + 1);
+  }
 }
 
 /**
- * Substitute template tokens. `prevDateLink` / `nextDateLink` are normally the
- * stem of the previous/next day's note (without `.md`); we wrap in `[[…]]`.
- * If the caller already supplies a wikilink (`[[X]]`) we don't double-wrap.
+ * Substitute filename tokens. A single pass, left to right, so a token never
+ * re-scans what a previous token produced (a year like `2026` cannot contain
+ * `DD`). `[...]` is emitted verbatim — that is how `YYYY-[W]WW` keeps its `W`.
  */
-export function applyTemplate(
-  template: string,
-  date: Date,
-  prevDateLink?: string,
-  nextDateLink?: string,
-): string {
-  const dateStr = isoDate(date);
-  const dayStr = FULL_WEEKDAYS[date.getDay()];
-  const weekStr = String(isoWeek(date));
-
-  function asWikilink(s: string | undefined): string {
-    if (!s) return '';
-    return /^\[\[.*\]\]$/.test(s) ? s : `[[${s}]]`;
+export function formatDailyFilename(date: Date, format: string): string {
+  let out = '';
+  let i = 0;
+  while (i < format.length) {
+    if (format[i] === '[') {
+      const end = format.indexOf(']', i + 1);
+      if (end === -1) {
+        out += format.slice(i + 1);
+        break;
+      }
+      out += format.slice(i + 1, end);
+      i = end + 1;
+      continue;
+    }
+    const token = FILENAME_TOKENS.find((t) => format.startsWith(t, i));
+    if (token) {
+      out += tokenValue(token, date);
+      i += token.length;
+      continue;
+    }
+    out += format[i];
+    i += 1;
   }
-
-  return template
-    .replace(/\{\{\s*date\s*\}\}/g, dateStr)
-    .replace(/\{\{\s*day\s*\}\}/g, dayStr)
-    .replace(/\{\{\s*week\s*\}\}/g, weekStr)
-    .replace(/\{\{\s*previous\s*\}\}/g, asWikilink(prevDateLink))
-    .replace(/\{\{\s*next\s*\}\}/g, asWikilink(nextDateLink));
+  return out;
 }
 
 /**

@@ -50,30 +50,34 @@
 
 ## P2. 周期笔记引擎
 
-## - [ ] T2.1 设置扩展（`app/src/stores/settings.ts`）
+## - [x] T2.1 设置扩展（`app/src/stores/settings.ts`）
 
 - 新增 `periodic: Record<PeriodKind, { folder, format, template }>`、`weekStartsOn`、`captureHeading`。
 - 读时把旧 `dailyNotesFolder/Format/Template` 映射成 `periodic.daily`；写时双写一版，旧键保留。
 - 验证：旧设置文件载入后日记路径与现在完全一致（单测 + 手测）。
+- **实施说明**：`mergePeriodicConfig` 只在 `periodic.daily` 缺失时读旧键，旧键随即被双写同步；`format` 含 `.md`（沿用旧约定，迁移逐字照搬）；`folder` 是字面量不解析 token（否则默认 `Quarterly` 会被 `Q` 换成 `4uarterly`，单测抓到过一次）；`weekStartsOn` 越界回落 1，`captureHeading` 默认 `## 任务`。
 
-## - [ ] T2.2 新增 `app/src/lib/periodic-notes.ts`
+## - [x] T2.2 新增 `app/src/lib/periodic-notes.ts`
 
 - `periodicPath(kind, date, config, weekStartsOn) → string`（纯函数）。
 - token：`YYYY MM DD ddd dddd WW Q`，`[...]` 原样输出。
 - 锚点：日=当天；周=当周首日；月=1 日；季=季首月 1 日；年=1 月 1 日。
 - 验证：`periodic-notes.test.ts` — 跨年周（2026-12-28 → 2027 W53/W01 视 ISO 规则）、季首、闰年 2 月。
+- **实施说明**：token 解析下沉到 `daily-notes.ts` 的 `formatDailyFilename`（单次左到右扫描 + `[...]`），日记与周期笔记共用一套；`WW` 是 ISO 周，`YYYY` 取锚点日历年，故 2026-01-01 所在周名为 `2025-W01`、2026-12-28 起始周为 `2026-W53`。15 条单测覆盖锚点、周日/周一两种周首、跨年周、季首、闰日、模板变量与配置合并。
 
-## - [ ] T2.3 `openOrCreate` + 模板变量
+## - [x] T2.3 `openOrCreate` + 模板变量
 
 - 目录缺失则建；文件缺失则套模板；已有文件绝不覆盖。
 - 变量：`{{date}} {{time}} {{title}} {{yesterday}} {{tomorrow}} {{weekStart}} {{weekEnd}} {{monthStart}} {{monthEnd}} {{quarter}} {{year}} {{prev}} {{next}}`。
 - 模板读失败 → 建空文件 + 提示，不阻断。
 - 验证：手测五类各打开一次；已有文件内容 md5 不变。
+- **实施说明**：`useDailyNotes.openPeriodic(kind, date)` 统一了原 `openDateNote`，SAF 分支一并复用；模板改为"工作区相对路径"（读不到就回退内置默认并 toast），保留 `{{day}} {{week}} {{previous}}` 让既有日记模板输出不变。已有文件仍只 `read_file` 探测后直接打开，不重写。
 
-## - [ ] T2.4 打开入口
+## - [x] T2.4 打开入口
 
 - 顶部/侧栏"打开今天 / 本周 / 本月 / 本季 / 本年"。
 - 验证：五个入口各指向 `periodicPath` 的结果。
+- **实施说明**：命令面板新增 `periodic.openWeek/openMonth/openQuarter/openYear`；"今天"仍走 `daily.openToday`，侧栏"今天"未改。五个入口都只调 `openPeriodic(kind, new Date())`，路径由 `periodicPath` 决定。
 
 ## P3. 轻量条目落盘（自动捕获第一层）
 

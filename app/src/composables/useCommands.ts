@@ -660,6 +660,32 @@ export function useCommands(): Command[] {
       title: "Open Tomorrow's Daily Note",
       run: () => daily.openTomorrow(),
     },
+    // P2 — the other four periodic kinds. Same "open or create" path, one
+    // folder + filename format each; nothing aggregates between them.
+    {
+      id: 'periodic.openWeek',
+      title: "Open This Week's Note",
+      hint: 'Weekly note containing today',
+      run: () => daily.openPeriodic('weekly', new Date()),
+    },
+    {
+      id: 'periodic.openMonth',
+      title: "Open This Month's Note",
+      hint: 'Monthly note containing today',
+      run: () => daily.openPeriodic('monthly', new Date()),
+    },
+    {
+      id: 'periodic.openQuarter',
+      title: "Open This Quarter's Note",
+      hint: 'Quarterly note containing today',
+      run: () => daily.openPeriodic('quarterly', new Date()),
+    },
+    {
+      id: 'periodic.openYear',
+      title: "Open This Year's Note",
+      hint: 'Yearly note containing today',
+      run: () => daily.openPeriodic('yearly', new Date()),
+    },
     {
       id: 'tags.refresh',
       title: 'Refresh Tag Index',

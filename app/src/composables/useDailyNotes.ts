@@ -1,21 +1,17 @@
 /**
- * F3 Daily Notes — open or create a daily note file for any date.
+ * Periodic notes (P2) — open or create the note for any of the five kinds.
  *
  * Workflow:
- *   1. Resolve `<workspace>/<dailyNotesFolder>/<formatted>.md`.
- *   2. If the file already exists, open it.
- *   3. Otherwise materialize the configured template (or the built-in
- *      `defaultDailyTemplate` if the user left the setting empty), write it,
- *      then open the new file in the current window.
+ *   1. Resolve `<workspace>/<folder>/<formatted name>` with the pure helpers in
+ *      `lib/periodic-notes.ts` (anchor date → tokens → path).
+ *   2. If the file already exists, open it. Never overwrite.
+ *   3. Otherwise read the configured template (a workspace-relative path),
+ *      substitute its variables, write the file, then open it.
  *
- * We rely on `write_binary_file` to create the file because it also creates
- * any missing parent directory (which `write_file` does not). For an
- * existence check we attempt `read_file` first — cheaper than wiring a
- * dedicated `file_exists` Tauri command and good enough for daily notes.
- *
- * The settings fields (`dailyNotesFolder`, `dailyNotesFormat`,
- * `dailyNotesTemplate`) are read from `useSettingsStore`. The parent harness
- * is responsible for adding them — see SUMMARY.md for the contract.
+ * The three daily settings are still honoured through `settings.periodic.daily`,
+ * which `load()` derives from the old keys and the daily setters keep in sync.
+ * We rely on `write_binary_file` to create parent folders (which `write_file`
+ * does not); existence is a `read_file` attempt, as before.
  */
 
 import { invoke } from '@tauri-apps/api/core';
@@ -25,11 +21,14 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
+import { defaultDailyTemplate } from '../lib/daily-notes';
 import {
-  formatDailyFilename,
-  applyTemplate,
-  defaultDailyTemplate,
-} from '../lib/daily-notes';
+  applyPeriodicTemplate,
+  defaultPeriodicConfig,
+  periodicTarget,
+  type PeriodConfig,
+  type PeriodKind,
+} from '../lib/periodic-notes';
 import {
   isSafPath,
   fromSafPath,
@@ -39,32 +38,6 @@ import {
   safCreate,
   safWrite,
 } from '../lib/saf-fs';
-
-const DEFAULT_FOLDER = 'Daily';
-const DEFAULT_FORMAT = 'YYYY-MM-DD.md';
-
-interface DailySettings {
-  dailyNotesFolder: string;
-  dailyNotesFormat: string;
-  dailyNotesTemplate: string;
-}
-
-/**
- * Pluck Daily-Notes settings off the settings store, defaulting whatever
- * isn't there yet (the parent harness adds these fields, but this composable
- * also has to function before that's wired up).
- */
-function readDailySettings(): DailySettings {
-  const s = useSettingsStore() as unknown as Record<string, unknown>;
-  const folder = typeof s.dailyNotesFolder === 'string' ? s.dailyNotesFolder : '';
-  const format = typeof s.dailyNotesFormat === 'string' ? s.dailyNotesFormat : '';
-  const template = typeof s.dailyNotesTemplate === 'string' ? s.dailyNotesTemplate : '';
-  return {
-    dailyNotesFolder: folder.trim() || DEFAULT_FOLDER,
-    dailyNotesFormat: format.trim() || DEFAULT_FORMAT,
-    dailyNotesTemplate: template,
-  };
-}
 
 function joinPath(...parts: string[]): string {
   // `sep()` is a string accessor on @tauri-apps/api/path. On macOS/Linux it's
@@ -86,63 +59,107 @@ function shiftDate(date: Date, days: number): Date {
   return d;
 }
 
-function stem(filename: string): string {
-  return filename.replace(/\.[^.]+$/, '');
-}
-
-async function fileExists(path: string): Promise<boolean> {
+async function readTextFile(path: string): Promise<string | null> {
   try {
-    await invoke('read_file', { path });
-    return true;
+    return await invoke<string>('read_file', { path });
   } catch {
-    return false;
+    return null;
   }
 }
 
 export function useDailyNotes() {
   const files = useFiles();
   const workspace = useWorkspaceStore();
+  const settings = useSettingsStore();
   const toasts = useToastsStore();
   const { lang, t } = useI18n();
 
+  /** One kind's config, with the defaults filling anything the store lacks. */
+  function readConfig(kind: PeriodKind): PeriodConfig {
+    const fallback = defaultPeriodicConfig()[kind];
+    const cfg = settings.periodic?.[kind];
+    return {
+      folder: (cfg?.folder ?? '').trim() || fallback.folder,
+      format: (cfg?.format ?? '').trim() || fallback.format,
+      template: cfg?.template ?? '',
+    };
+  }
+
   /**
-   * Resolve `(folder, fullPath, filename)` for a given date based on current
-   * settings + workspace folder. Returns null if there is no workspace open.
+   * Resolve the target file for `date` in `kind`. Returns null when there is no
+   * workspace open. `fullPath` is absolute; `folder`/`filename` are kept apart
+   * because the Android SAF path needs them separately.
    */
-  function resolveDailyPath(date: Date): {
+  function resolvePeriodicPath(kind: PeriodKind, date: Date): {
+    config: PeriodConfig;
     folder: string;
     filename: string;
+    stem: string;
     fullPath: string;
   } | null {
     const ws = workspace.currentFolder;
     if (!ws) return null;
-    const cfg = readDailySettings();
-    const filename = formatDailyFilename(date, cfg.dailyNotesFormat);
-    const dir = joinPath(ws, cfg.dailyNotesFolder);
-    const fullPath = joinPath(dir, filename);
-    return { folder: dir, filename, fullPath };
+    const config = readConfig(kind);
+    const target = periodicTarget(kind, date, config, settings.weekStartsOn);
+    const folder = joinPath(ws, target.folder);
+    return {
+      config,
+      folder,
+      filename: target.filename,
+      stem: target.stem,
+      fullPath: joinPath(folder, target.filename),
+    };
   }
 
-  async function openDateNote(date: Date): Promise<void> {
-    const resolved = resolveDailyPath(date);
+  /** Kept for callers (sidebar highlight) that only care about today's note. */
+  function resolveDailyPath(date: Date) {
+    return resolvePeriodicPath('daily', date);
+  }
+
+  /**
+   * The text of a brand-new note: the configured template with its variables
+   * replaced, or the built-in starter when there is none. A template path that
+   * cannot be read is reported and falls back to the starter — never blocks.
+   */
+  async function buildBody(
+    kind: PeriodKind,
+    date: Date,
+    config: PeriodConfig,
+    ws: string,
+  ): Promise<string> {
+    let template = '';
+    const templatePath = config.template.trim();
+    if (templatePath) {
+      const raw = await readTextFile(joinPath(ws, templatePath));
+      if (raw === null) {
+        toasts.warning(`Template not found: ${templatePath} — started from the default instead.`);
+      } else {
+        template = raw;
+      }
+    }
+    if (!template.trim()) {
+      template =
+        kind === 'daily'
+          ? defaultDailyTemplate(lang.value === 'zh' ? 'zh' : 'en')
+          : '# {{title}}\n';
+    }
+    return applyPeriodicTemplate(template, kind, date, config, settings.weekStartsOn);
+  }
+
+  async function openPeriodic(kind: PeriodKind, date: Date): Promise<void> {
+    const resolved = resolvePeriodicPath(kind, date);
     if (!resolved) {
-      toasts.warning('Open a folder first to use daily notes.');
+      toasts.warning('Open a folder first to use periodic notes.');
       return;
     }
-    const { fullPath, filename } = resolved;
-
-    const cfg = readDailySettings();
-    const tmpl = cfg.dailyNotesTemplate.trim()
-      ? cfg.dailyNotesTemplate
-      : defaultDailyTemplate(lang.value === 'zh' ? 'zh' : 'en');
-    const prevStem = stem(formatDailyFilename(shiftDate(date, -1), cfg.dailyNotesFormat));
-    const nextStem = stem(formatDailyFilename(shiftDate(date, 1), cfg.dailyNotesFormat));
-    const body = applyTemplate(tmpl, date, prevStem, nextStem);
-
-    // #502 — Android SAF vault support: create the daily notes subfolder (and
-    // any date-formatted path segments in `filename`) via ContentResolver.
     const ws = workspace.currentFolder;
-    if (ws && isSafPath(ws) && workspace.safTreeUri) {
+    if (!ws) return;
+    const { config, fullPath, filename } = resolved;
+    const body = await buildBody(kind, date, config, ws);
+
+    // #502 — Android SAF vault support: create the periodic subfolder (and any
+    // date-formatted path segments in `filename`) via ContentResolver.
+    if (isSafPath(ws) && workspace.safTreeUri) {
       try {
         const treeUri = workspace.safTreeUri;
         const rootDocId = fromSafPath(ws);
@@ -150,7 +167,7 @@ export function useDailyNotes() {
         const lastSlash = relFile.lastIndexOf('/');
         const extraSubdir = lastSlash >= 0 ? relFile.slice(0, lastSlash) : '';
         const baseFileName = lastSlash >= 0 ? relFile.slice(lastSlash + 1) : relFile;
-        const combinedSubdir = [cfg.dailyNotesFolder, extraSubdir]
+        const combinedSubdir = [config.folder, extraSubdir]
           .filter((s) => s && s.trim())
           .join('/');
         const dirDocId = await safEnsureSubdir(treeUri, rootDocId, combinedSubdir);
@@ -171,7 +188,7 @@ export function useDailyNotes() {
       return;
     }
 
-    if (await fileExists(fullPath)) {
+    if ((await readTextFile(fullPath)) !== null) {
       await files.openPath(fullPath, { bypassNewWindow: true });
       return;
     }
@@ -190,22 +207,23 @@ export function useDailyNotes() {
   }
 
   async function openTodayNote(): Promise<void> {
-    return openDateNote(new Date());
+    return openPeriodic('daily', new Date());
   }
 
   async function openYesterday(): Promise<void> {
-    return openDateNote(shiftDate(new Date(), -1));
+    return openPeriodic('daily', shiftDate(new Date(), -1));
   }
 
   async function openTomorrow(): Promise<void> {
-    return openDateNote(shiftDate(new Date(), 1));
+    return openPeriodic('daily', shiftDate(new Date(), 1));
   }
 
   return {
-    openDateNote,
+    openPeriodic,
     openTodayNote,
     openYesterday,
     openTomorrow,
+    resolvePeriodicPath,
     resolveDailyPath,
   };
 }
