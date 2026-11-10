@@ -2118,6 +2118,16 @@
     disabledHint: 'Folding is switched off in Settings → Basics.',
     plainSourceHint: 'The Windows source view cannot fold — switch to live edit mode.',
   },
+  capture: {
+    inputPrompt: 'Value for {{input}}',
+    done: 'Captured',
+    presetsTitle: 'Capture presets',
+    presetsHint: 'Commands that insert a template into a note. Run them from the command palette.',
+    presetName: 'Preset name',
+    presetAdd: 'New preset',
+    presetRemove: 'Remove',
+    presetOpenAfter: 'Open after capture',
+  },
   quickCapture: {
     placeholder: 'Capture a thought…',
     destination: 'To {folder} / Inbox',

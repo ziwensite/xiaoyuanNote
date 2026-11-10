@@ -130,20 +130,23 @@
 
 ## P5. 捕获预设
 
-## - [ ] T5.1 捕获配置模型与存储
+## - [x] T5.1 捕获配置模型与存储
 
 - 名称、目标（文件 / 文件夹新建 / 周期笔记某类）、插入位置（顶部 / 底部 / 标题之后）、内容模板、变量、自动补 `➕`/`📅`、是否打开。
 - 验证：设置读写往返一致。
+- **实施说明**：`app/src/lib/capture.ts` 定义 `CapturePreset`（`target: file|folder|periodic`、`path`、`fileName`、`period`、`placement`、`heading`、`template`、`autoCreated`、`autoDue`、`openAfter`），设置里新增 `captures: CapturePreset[]` 与 `add/update/removeCapture`。载入时用 `normalizeCapturePresets` 过滤坏数据：缺 id/名称、重复 id、非法枚举一律丢弃或回落默认，避免手改设置把命令面板带崩。
 
-## - [ ] T5.2 捕获执行器
+## - [x] T5.2 捕获执行器
 
 - 变量：选区、剪贴板、输入框、日期。
 - 验证：手测四种变量组合；目标不存在时按模板创建。
+- **实施说明**：`app/src/composables/useCapture.ts` 只在显式调用时运行，先用 `expandCaptureTemplate` 展开 `{{selection}} {{clipboard}} {{input}} {{date}} {{time}} {{title}}`（未知变量原样保留），再 `applyCaptureTokens` 给首条任务行补 `➕`/`📅`（已有则不重复），最后 `insertCaptureSnippet` 按顶部（frontmatter 之后）/底部/标题之后插入；标题不存在时追加标题再插。目标文件不存在时建目录并写文件；有打开的 tab 则改 tab 并静默保存，否则 `noteOwnWrite` + 一次 `write_file`。命令面板为每个预设生成 `capture.preset.<id>` 命令。`{{input}}` 用 `window.prompt`（Windows/Linux/Android 可用；macOS WKWebView 无原生 prompt，取消即中止，不写入半截内容）。
 
-## - [ ] T5.3 设置页
+## - [x] T5.3 设置页
 
 - 列表 + 增删改 + 预览插入结果。
 - 验证：手测一次新增配置后从命令插入到指定标题下。
+- **实施说明**：新增 `CapturePresetsSection.vue`，挂在设置「高级」分区：每个预设可改名称、目标（文件/文件夹/周期笔记 + 周期类型）、路径、文件夹目标文件名、插入位置与标题、模板、`➕`/`📅`/是否打开；底部 `capturePreview` 用示例变量实时渲染将插入的文本，与执行器共用同一套纯函数，不另写一份预览逻辑。文案走 `capture.*` 命名空间，15 个语言均已补齐。
 
 ## P6. 周期窗口（可选）
 

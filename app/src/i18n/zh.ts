@@ -2092,6 +2092,16 @@ export const zh: I18n = {
     disabledHint: '折叠功能已在「设置 → 基础」中关闭。',
     plainSourceHint: 'Windows 的源码模式无法折叠，切换到实时编辑模式即可。',
   },
+  capture: {
+    inputPrompt: '{{input}} 的值',
+    done: '已捕获',
+    presetsTitle: '捕获预设',
+    presetsHint: '把模板插入到指定笔记的命令，可在命令面板中运行。',
+    presetName: '预设名称',
+    presetAdd: '新建预设',
+    presetRemove: '删除',
+    presetOpenAfter: '捕获后打开',
+  },
   quickCapture: {
     placeholder: '记下一个想法…',
     destination: '存入 {folder} / 收件箱',

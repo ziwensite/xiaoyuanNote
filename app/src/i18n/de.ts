@@ -2089,6 +2089,16 @@ export const de: I18n = {
     disabledHint: 'Das Einklappen ist unter Einstellungen → Grundlagen deaktiviert.',
     plainSourceHint: 'Die Windows-Quelltextansicht kann nicht einklappen — wechseln Sie in den Live-Bearbeitungsmodus.',
   },
+  capture: {
+    inputPrompt: 'Wert für {{input}}',
+    done: 'Erfasst',
+    presetsTitle: 'Erfassungsvorlagen',
+    presetsHint: 'Befehle, die eine Vorlage in eine Notiz einfügen. Aus der Befehlspalette ausführen.',
+    presetName: 'Vorlagenname',
+    presetAdd: 'Neue Vorlage',
+    presetRemove: 'Entfernen',
+    presetOpenAfter: 'Nach dem Erfassen öffnen',
+  },
   quickCapture: {
     placeholder: 'Einen Gedanken festhalten…',
     destination: 'Nach {folder} / Posteingang',

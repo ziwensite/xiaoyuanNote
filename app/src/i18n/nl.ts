@@ -2106,6 +2106,16 @@ export const nl: I18n = {
     disabledHint: 'Inklappen staat uit in Instellingen → Basis.',
     plainSourceHint: 'De Windows-bronweergave kan niet inklappen — schakel over naar de live-bewerkmodus.',
   },
+  capture: {
+    inputPrompt: 'Waarde voor {{input}}',
+    done: 'Vastgelegd',
+    presetsTitle: 'Vastleg-presets',
+    presetsHint: 'Opdrachten die een sjabloon in een notitie invoegen. Uit te voeren via het opdrachtenpalet.',
+    presetName: 'Presetnaam',
+    presetAdd: 'Nieuwe preset',
+    presetRemove: 'Verwijderen',
+    presetOpenAfter: 'Openen na vastleggen',
+  },
   quickCapture: {
     placeholder: 'Noteer een gedachte…',
     destination: 'Naar {folder} / Inbox',

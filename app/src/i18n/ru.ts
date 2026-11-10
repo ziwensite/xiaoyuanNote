@@ -2080,6 +2080,16 @@ export const ru: I18n = {
     disabledHint: 'Сворачивание выключено в «Настройки → Основные».',
     plainSourceHint: 'В исходном тексте Windows сворачивание недоступно — переключитесь в режим живого редактирования.',
   },
+  capture: {
+    inputPrompt: 'Значение для {{input}}',
+    done: 'Захвачено',
+    presetsTitle: 'Шаблоны захвата',
+    presetsHint: 'Команды, вставляющие шаблон в заметку. Запускайте из палитры команд.',
+    presetName: 'Название шаблона',
+    presetAdd: 'Новый шаблон',
+    presetRemove: 'Удалить',
+    presetOpenAfter: 'Открыть после захвата',
+  },
   quickCapture: {
     placeholder: 'Запишите мысль…',
     destination: 'В {folder} / Входящие',

@@ -51,6 +51,7 @@ import WebdavSyncSettings from './WebdavSyncSettings.vue';
 import CloudFolderBanner from './CloudFolderBanner.vue';
 import ProxySettings from './ProxySettings.vue';
 import LanguageToolSettings from './LanguageToolSettings.vue';
+import CapturePresetsSection from './CapturePresetsSection.vue';
 import ThemeMarketplace from './ThemeMarketplace.vue';
 import SupportDialog from './SupportDialog.vue';
 import { supporterRecord, badgeInfo, initSupporterState } from '../lib/supporter';
@@ -2240,6 +2241,9 @@ function onSelectPdfFont(v: string) {
           </select>
           <p class="setting-hint">{{ t('settings.recurringTaskPlacementHint') }}</p>
         </section>
+
+        <!-- P5 — capture presets. Each one also shows up in the command palette. -->
+        <section data-cat="advanced"><CapturePresetsSection /></section>
 
         <div data-cat="export"><CitationPickerSettings /></div>
 

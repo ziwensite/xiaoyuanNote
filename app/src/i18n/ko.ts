@@ -2088,6 +2088,16 @@ export const ko: I18n = {
     disabledHint: '접기 기능이 설정 → 기본에서 꺼져 있습니다.',
     plainSourceHint: 'Windows 소스 보기에서는 접을 수 없습니다. 실시간 편집 모드로 전환하세요.',
   },
+  capture: {
+    inputPrompt: '{{input}} 값',
+    done: '캡처됨',
+    presetsTitle: '캡처 프리셋',
+    presetsHint: '노트에 템플릿을 삽입하는 명령입니다. 명령 팔레트에서 실행합니다.',
+    presetName: '프리셋 이름',
+    presetAdd: '새 프리셋',
+    presetRemove: '삭제',
+    presetOpenAfter: '캡처 후 열기',
+  },
   quickCapture: {
     placeholder: '떠오른 생각을…',
     destination: '{folder} / 받은 편지함에 저장',

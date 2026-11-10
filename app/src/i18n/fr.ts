@@ -2089,6 +2089,16 @@ export const fr: I18n = {
     disabledHint: 'Le repliement est désactivé dans Réglages → Général.',
     plainSourceHint: 'La vue source de Windows ne peut pas replier — passez en mode édition live.',
   },
+  capture: {
+    inputPrompt: 'Valeur pour {{input}}',
+    done: 'Capturé',
+    presetsTitle: 'Modèles de capture',
+    presetsHint: 'Commandes qui insèrent un modèle dans une note. À lancer depuis la palette de commandes.',
+    presetName: 'Nom du modèle',
+    presetAdd: 'Nouveau modèle',
+    presetRemove: 'Supprimer',
+    presetOpenAfter: 'Ouvrir après capture',
+  },
   quickCapture: {
     placeholder: 'Noter une idée…',
     destination: 'Vers {folder} / Boîte de réception',

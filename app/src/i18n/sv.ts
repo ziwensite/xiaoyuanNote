@@ -2106,6 +2106,16 @@ export const sv: I18n = {
     disabledHint: 'Ihopfällning är avstängd i Inställningar → Grunder.',
     plainSourceHint: 'Windows källvy kan inte fällas ihop — byt till live-redigeringsläget.',
   },
+  capture: {
+    inputPrompt: 'Värde för {{input}}',
+    done: 'Fångat',
+    presetsTitle: 'Fångstmallar',
+    presetsHint: 'Kommandon som infogar en mall i en anteckning. Kör dem från kommandopaletten.',
+    presetName: 'Mallnamn',
+    presetAdd: 'Ny mall',
+    presetRemove: 'Ta bort',
+    presetOpenAfter: 'Öppna efter fångst',
+  },
   quickCapture: {
     placeholder: 'Fånga en tanke…',
     destination: 'Till {folder} / Inkorg',

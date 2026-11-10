@@ -2106,6 +2106,16 @@ export const pl: I18n = {
     disabledHint: 'Zwijanie jest wyłączone w Ustawienia → Podstawy.',
     plainSourceHint: 'Widok źródła w systemie Windows nie obsługuje zwijania — przełącz się na tryb edycji na żywo.',
   },
+  capture: {
+    inputPrompt: 'Wartość dla {{input}}',
+    done: 'Przechwycono',
+    presetsTitle: 'Ustawienia przechwytywania',
+    presetsHint: 'Polecenia wstawiające szablon do notatki. Uruchamiaj z palety poleceń.',
+    presetName: 'Nazwa ustawienia',
+    presetAdd: 'Nowe ustawienie',
+    presetRemove: 'Usuń',
+    presetOpenAfter: 'Otwórz po przechwyceniu',
+  },
   quickCapture: {
     placeholder: 'Zapisz myśl…',
     destination: 'Do {folder} / Skrzynka odbiorcza',

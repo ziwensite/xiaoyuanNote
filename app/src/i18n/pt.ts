@@ -2091,6 +2091,16 @@ export const pt: I18n = {
     disabledHint: 'O dobrar está desativado em Definições → Básico.',
     plainSourceHint: 'A vista de código do Windows não permite dobrar — mude para o modo de edição ao vivo.',
   },
+  capture: {
+    inputPrompt: 'Valor para {{input}}',
+    done: 'Capturado',
+    presetsTitle: 'Predefinições de captura',
+    presetsHint: 'Comandos que inserem um modelo numa nota. Execute na paleta de comandos.',
+    presetName: 'Nome da predefinição',
+    presetAdd: 'Nova predefinição',
+    presetRemove: 'Remover',
+    presetOpenAfter: 'Abrir após capturar',
+  },
   quickCapture: {
     placeholder: 'Anote uma ideia…',
     destination: 'Para {folder} / Caixa de entrada',

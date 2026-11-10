@@ -27,6 +27,10 @@ import {
   migrateQuickCaptureShortcut,
 } from '../lib/quick-capture-shortcut';
 import {
+  normalizeCapturePresets,
+  type CapturePreset,
+} from '../lib/capture';
+import {
   defaultPeriodicConfig,
   mergePeriodicConfig,
   type PeriodConfig,
@@ -265,6 +269,11 @@ interface Settings {
   weekStartsOn: number;
   /** Heading automatic writes insert under; empty = append at the end. */
   captureHeading: string;
+  /**
+   * P5 — manual capture presets. Explicit user actions only; nothing here runs
+   * on a timer or on a file change.
+   */
+  captures: CapturePreset[];
   showTagsPanel: boolean;
   // Workspace-wide task panel: every `- [ ]` in the vault, grouped by file.
   showTasksPanel: boolean;
@@ -792,6 +801,7 @@ function defaults(): Settings {
     periodic: defaultPeriodicConfig(),
     weekStartsOn: 1,
     captureHeading: '## 任务',
+    captures: [],
     // Obsidian Tasks writes the next occurrence above the completed line; that
     // is the default here too. A saved choice still wins (see `load`).
     recurringTaskPlacement: 'above',
@@ -1005,6 +1015,9 @@ function load(): Settings {
       // the daily triple; `mergePeriodicConfig` folds it into `periodic.daily`
       // so every existing daily note keeps resolving to the same path.
       merged.periodic = mergePeriodicConfig(parsed.periodic, parsed as Record<string, unknown>);
+      // P5 — presets are user data, so a malformed entry is dropped rather than
+      // allowed to break the command palette.
+      merged.captures = normalizeCapturePresets(parsed.captures);
       if (!Number.isInteger(merged.weekStartsOn) || merged.weekStartsOn < 0 || merged.weekStartsOn > 6) {
         merged.weekStartsOn = 1;
       }
@@ -1740,6 +1753,20 @@ export const useSettingsStore = defineStore('settings', {
     },
     setCaptureHeading(h: string) {
       this.captureHeading = h;
+      this.persist();
+    },
+    addCapture(preset: CapturePreset) {
+      this.captures = [...this.captures, preset];
+      this.persist();
+    },
+    updateCapture(id: string, patch: Partial<CapturePreset>) {
+      this.captures = this.captures.map((preset) =>
+        preset.id === id ? { ...preset, ...patch, id: preset.id } : preset,
+      );
+      this.persist();
+    },
+    removeCapture(id: string) {
+      this.captures = this.captures.filter((preset) => preset.id !== id);
       this.persist();
     },
     setRecurringTaskPlacement(p: RecurringTaskPlacement) {

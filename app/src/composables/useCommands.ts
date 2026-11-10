@@ -26,6 +26,7 @@ import { useBasesView } from './useBasesView';
 import { useInboxView } from './useInboxView';
 import { useInbox } from './useInbox';
 import { useSavedViews } from './useSavedViews';
+import { useCapture } from './useCapture';
 import { useAutoCommit } from './useAutoCommit';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useGitHistoryStore } from '../stores/gitHistory';
@@ -58,6 +59,7 @@ export function useCommands(): Command[] {
   const exporter = useExport();
   const toasts = useToastsStore();
   const daily = useDailyNotes();
+  const capture = useCapture();
   const pandoc = usePandocExport();
   const bases = useBasesView();
   const inboxView = useInboxView();
@@ -953,6 +955,14 @@ export function useCommands(): Command[] {
         void inbox.organizeAndAdvance();
       },
     },
+    // P5 — one command per user-defined capture preset. Ids are stable (the
+    // preset id), so a keybinding can be assigned to one.
+    ...settings.captures.map((preset) => ({
+      id: `capture.preset.${preset.id}`,
+      title: `Capture: ${preset.name}`,
+      hint: preset.template.split('\n')[0]?.slice(0, 60),
+      run: () => capture.runPreset(preset.id),
+    })),
   ];
 
   // App Store builds strip AI / Agent commands (Apple 3.1.1).

@@ -2089,6 +2089,16 @@ export const es: I18n = {
     disabledHint: 'El plegado está desactivado en Ajustes → Básicos.',
     plainSourceHint: 'La vista de código de Windows no puede plegar: cambia al modo de edición en vivo.',
   },
+  capture: {
+    inputPrompt: 'Valor para {{input}}',
+    done: 'Capturado',
+    presetsTitle: 'Preajustes de captura',
+    presetsHint: 'Comandos que insertan una plantilla en una nota. Ejecutar desde la paleta de comandos.',
+    presetName: 'Nombre del preajuste',
+    presetAdd: 'Nuevo preajuste',
+    presetRemove: 'Eliminar',
+    presetOpenAfter: 'Abrir tras capturar',
+  },
   quickCapture: {
     placeholder: 'Anota una idea…',
     destination: 'A {folder} / Bandeja de entrada',

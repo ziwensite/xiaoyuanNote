@@ -2088,6 +2088,16 @@ export const ja: I18n = {
     disabledHint: '折りたたみは「設定 → 基本」でオフになっています。',
     plainSourceHint: 'Windows のソース表示では折りたためません。ライブ編集モードに切り替えてください。',
   },
+  capture: {
+    inputPrompt: '{{input}} の値',
+    done: 'キャプチャしました',
+    presetsTitle: 'キャプチャプリセット',
+    presetsHint: 'テンプレートをノートに挿入するコマンドです。コマンドパレットから実行します。',
+    presetName: 'プリセット名',
+    presetAdd: '新しいプリセット',
+    presetRemove: '削除',
+    presetOpenAfter: 'キャプチャ後に開く',
+  },
   quickCapture: {
     placeholder: '思いついたことを…',
     destination: '{folder} / 受信箱へ',

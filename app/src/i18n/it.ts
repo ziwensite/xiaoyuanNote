@@ -2089,6 +2089,16 @@ export const it: I18n = {
     disabledHint: 'La compressione è disattivata in Impostazioni → Base.',
     plainSourceHint: 'La vista sorgente di Windows non può comprimere: passa alla modalità di modifica live.',
   },
+  capture: {
+    inputPrompt: 'Valore per {{input}}',
+    done: 'Acquisito',
+    presetsTitle: 'Preset di acquisizione',
+    presetsHint: 'Comandi che inseriscono un modello in una nota. Eseguili dalla palette dei comandi.',
+    presetName: 'Nome preset',
+    presetAdd: 'Nuovo preset',
+    presetRemove: 'Rimuovi',
+    presetOpenAfter: 'Apri dopo l’acquisizione',
+  },
   quickCapture: {
     placeholder: 'Annota un pensiero…',
     destination: 'In {folder} / Posta in arrivo',

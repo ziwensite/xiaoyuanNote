@@ -2106,6 +2106,16 @@ export const uk: I18n = {
     disabledHint: 'Згортання вимкнено в Налаштування → Основне.',
     plainSourceHint: 'Режим коду у Windows не підтримує згортання — перемкніться на живе редагування.',
   },
+  capture: {
+    inputPrompt: 'Значення для {{input}}',
+    done: 'Захоплено',
+    presetsTitle: 'Шаблони захоплення',
+    presetsHint: 'Команди, що вставляють шаблон у нотатку. Запускайте з палітри команд.',
+    presetName: 'Назва шаблону',
+    presetAdd: 'Новий шаблон',
+    presetRemove: 'Видалити',
+    presetOpenAfter: 'Відкрити після захоплення',
+  },
   quickCapture: {
     placeholder: 'Запишіть думку…',
     destination: 'До {folder} / Вхідні',

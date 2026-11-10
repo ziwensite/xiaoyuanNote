@@ -2106,6 +2106,16 @@ export const tr: I18n = {
     disabledHint: 'Katlama, Ayarlar → Temel bölümünde kapalı.',
     plainSourceHint: 'Windows kaynak görünümü katlanamaz — canlı düzenleme moduna geçin.',
   },
+  capture: {
+    inputPrompt: '{{input}} değeri',
+    done: 'Yakalandı',
+    presetsTitle: 'Yakalama ön ayarları',
+    presetsHint: 'Bir nota şablon ekleyen komutlar. Komut paletinden çalıştırın.',
+    presetName: 'Ön ayar adı',
+    presetAdd: 'Yeni ön ayar',
+    presetRemove: 'Kaldır',
+    presetOpenAfter: 'Yakalamadan sonra aç',
+  },
   quickCapture: {
     placeholder: 'Bir düşünceyi not edin…',
     destination: '{folder} / Gelen Kutusu’na',
