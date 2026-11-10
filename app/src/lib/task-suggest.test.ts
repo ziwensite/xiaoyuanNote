@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   taskSuggestions,
+  type TaskSuggestCandidate,
+  type TaskSuggestEdit,
   type TaskSuggestMenu,
   type TaskSuggestMore,
   type TaskSuggestRequest,
@@ -24,6 +26,19 @@ function at(marked: string): { line: string; caret: number } {
 function menu(marked: string, lang = 'zh', request?: TaskSuggestRequest): TaskSuggestMenu {
   const { line, caret } = at(marked);
   const found = taskSuggestions(line, caret, TODAY, lang, request);
+  assert.ok(found, `expected a menu for ${JSON.stringify(line)}`);
+  return found;
+}
+
+/** Same, with the workspace's ID pool in play (batch 9). */
+function menuWithIds(
+  marked: string,
+  ids: TaskSuggestCandidate[],
+  request?: TaskSuggestRequest,
+  lang = 'zh',
+): TaskSuggestMenu {
+  const { line, caret } = at(marked);
+  const found = taskSuggestions(line, caret, TODAY, lang, request, ids);
   assert.ok(found, `expected a menu for ${JSON.stringify(line)}`);
   return found;
 }
@@ -72,9 +87,11 @@ test('L0 is one icon per marker, most used first, and ends with the task editor'
   const m = menu('- [ ] 写报告 |');
   assert.equal(m.stage, 'marker');
   assert.equal(m.title, undefined);
+  // Batch 9: the two closing dates sit third- and second-to-last, then status,
+  // then the editor.
   assert.deepEqual(
     m.rows.map((r) => r.label),
-    ['[ ]', '📅', '⏫', '⏳', '🛫', '🔁', '➕', '✅', '❌', '任务编辑…'],
+    ['📅', '⏫', '⏳', '🛫', '🔁', '➕', '🆔', '⛔', '❌', '✅', '[ ]', '任务编辑…'],
   );
   assert.equal(m.rows.at(-1)!.kind, 'edit');
   // The status is a single row carrying the character in effect, never the
@@ -248,7 +265,7 @@ test('English labels for a non-Chinese UI language', () => {
   assert.equal(more(m, '⏳').field, 'scheduled');
   assert.deepEqual(
     m.rows.map((r) => r.label),
-    ['[ ]', '📅', '⏫', '⏳', '🛫', '🔁', '➕', '✅', '❌', 'Edit task…'],
+    ['📅', '⏫', '⏳', '🛫', '🔁', '➕', '🆔', '⛔', '❌', '✅', '[ ]', 'Edit task…'],
   );
 
   const due = menu('- [ ] report |', 'en', { stage: 'date', field: 'due' });
@@ -256,6 +273,97 @@ test('English labels for a non-Chinese UI language', () => {
 
   const rep = menu('- [ ] report |', 'en', { stage: 'recurrence' });
   assert.equal(write(rep, 'Every 2 weeks').insert, '🔁 every 2 weeks');
+});
+
+// ---------------------------------------------------------------------------
+// batch 9 — 🆔 / ⛔: free text, so their values are the IDs the vault uses
+// ---------------------------------------------------------------------------
+
+const POOL: TaskSuggestCandidate[] = [
+  { id: 't001', title: '采购硬件' },
+  { id: 't002', title: '写周报' },
+];
+
+test('L0 carries 🆔 and ⛔ between ➕ and ❌, showing the value in effect', () => {
+  const plain = menu('- [ ] 写报告 |');
+  const idRow = more(plain, '🆔');
+  const blocked = more(plain, '⛔');
+  assert.equal(idRow.stage, 'id');
+  assert.equal(idRow.detail, '任务 ID');
+  assert.equal(blocked.stage, 'blockedBy');
+  assert.equal(blocked.detail, '阻塞于');
+
+  const set = menu('- [ ] 写报告 🆔 t001 ⛔ t000 |');
+  assert.equal(more(set, '🆔').detail, 't001');
+  assert.equal(more(set, '⛔').detail, 't000');
+});
+
+test('🆔 lists the IDs already in the workspace and writes the chosen one', () => {
+  const { line, caret } = at('- [ ] 写报告 📅 2026-11-12 |');
+  const m = taskSuggestions(line, caret, TODAY, 'zh', { stage: 'id' }, POOL)!;
+  assert.equal(m.title, '🆔 任务 ID');
+  assert.equal(m.rows.at(-1)!.kind, 'edit');
+
+  const pick = write(m, '🆔 t002');
+  assert.equal(pick.insert, '🆔 t002');
+  assert.equal(pick.detail, '写周报');
+  // A new token lands in its canonical slot: before the dates, not after.
+  assert.equal(pick.from, line.indexOf('📅'));
+  assert.equal(pick.to, pick.from);
+});
+
+test('🆔 hides its own current value and offers a clear row instead', () => {
+  const { line, caret } = at('- [ ] 写报告 🆔 t001 |');
+  const m = taskSuggestions(line, caret, TODAY, 'zh', { stage: 'id' }, POOL)!;
+  assert.equal(m.rows.some((r) => r.label === '🆔 t001'), false);
+  assert.ok(m.rows.some((r) => r.label === '🆔 t002'));
+
+  const clear = write(m, '清除');
+  assert.equal(clear.insert, '');
+  assert.equal(clear.detail, 't001');
+  assert.equal(line.slice(clear.from, clear.to), '🆔 t001');
+});
+
+test('with no workspace index only "type or edit…" (and clear) is left', () => {
+  const empty = menu('- [ ] 写报告 |', 'zh', { stage: 'id' });
+  assert.deepEqual(empty.rows.map((r) => r.label), ['输入/编辑…']);
+  const edit = empty.rows[0] as TaskSuggestEdit;
+  assert.equal(edit.kind, 'edit');
+  assert.equal(edit.focus, 'id');
+
+  const set = menu('- [ ] 写报告 🆔 t001 |', 'zh', { stage: 'id' });
+  assert.deepEqual(set.rows.map((r) => r.label), ['输入/编辑…', '清除']);
+});
+
+test('⛔ shares the ID pool but writes its own marker', () => {
+  const { line, caret } = at('- [ ] 写报告 |');
+  const m = taskSuggestions(line, caret, TODAY, 'zh', { stage: 'blockedBy' }, POOL)!;
+  assert.equal(m.title, '⛔ 阻塞于');
+  const pick = write(m, '⛔ t001');
+  assert.equal(pick.insert, '⛔ t001');
+  assert.equal(pick.detail, '采购硬件');
+  const edit = m.rows.at(-1) as TaskSuggestEdit;
+  assert.equal(edit.focus, 'blockedBy');
+});
+
+test('a bare 🆔 / ⛔ opens its list, and the marker is replaced in place', () => {
+  const { line, caret } = at('- [ ] 写报告 🆔 |');
+  const m = taskSuggestions(line, caret, TODAY, 'zh', undefined, POOL)!;
+  assert.equal(m.stage, 'id');
+  const pick = write(m, '🆔 t002');
+  assert.equal(line.slice(pick.from, pick.to), '🆔 ');
+
+  const blocked = menu('- [ ] 写报告 ⛔ |', 'zh', undefined);
+  assert.equal(blocked.stage, 'blockedBy');
+});
+
+test('English labels for the two ID lists', () => {
+  const id = menu('- [ ] report |', 'en', { stage: 'id' });
+  assert.equal(id.title, '🆔 Task ID');
+  assert.deepEqual(id.rows.map((r) => r.label), ['Type or edit…']);
+  const blocked = menu('- [ ] report ⛔ t000 |', 'en', { stage: 'blockedBy' });
+  assert.equal(blocked.title, '⛔ Blocked by');
+  assert.deepEqual(blocked.rows.map((r) => r.label), ['Type or edit…', 'Clear']);
 });
 
 test('parseDatePhrase reads whole phrases only', () => {

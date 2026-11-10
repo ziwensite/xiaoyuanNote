@@ -98,29 +98,39 @@
   transform-origin: top left;
 }
 
-/* Task-line space menu (batches 5–6). It hangs off the caret with inline
+/* Task-line space menu (batches 5–9). It hangs off the caret with inline
    `fixed` coordinates, so it keeps its own geometry; surface, rows and the
-   highlight come from the lists above. */
+   highlight come from the lists above.
+
+   Width follows the content (batch 9): L0 is a column of icons and is narrow,
+   a value list grows to its longest row and no further. A long detail (a task
+   title under `🆔`) is ellipsized rather than widening the popup. */
 :root:not(#_) .task-suggest {
   position: fixed;
   z-index: 60;
-  min-width: 190px;
-  max-width: 320px;
+  width: max-content;
+  min-width: 88px;
+  max-width: 240px;
   max-height: 320px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 :root:not(#_) .task-suggest__label {
   flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 :root:not(#_) .task-suggest__detail {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
   color: var(--text-3);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* A value level is titled by its marker (`📅 截止`); L0 has neither title nor
    group headings — one icon per row is the whole point of batch 7. */

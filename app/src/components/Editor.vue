@@ -97,6 +97,7 @@ import { usePandocExport } from '../composables/usePandocExport';
 import type { CitationEntry } from '../lib/citations';
 import { taskListExtension } from '../lib/cm-task-list';
 import { taskSuggestExtension, type TaskEditTarget } from '../lib/cm-task-suggest';
+import type { TaskSuggestCandidate } from '../lib/task-suggest';
 import { parseTaskLine, serializeTaskLine, type TaskLineModel } from '../lib/task-line';
 import TaskEditorDialog from './TaskEditorDialog.vue';
 import { imeCompositionGuard } from '../lib/cm-ime-guard';
@@ -239,13 +240,45 @@ interface TaskEditorState {
   to: number;
   original: string;
   model: TaskLineModel;
+  /** Batch 9 — `🆔` / `⛔` asked for the dialog, so its field takes focus. */
+  focus?: 'id' | 'blockedBy';
 }
 const taskEditor = ref<TaskEditorState | null>(null);
 
 function openTaskEditor(target: TaskEditTarget): void {
   const model = parseTaskLine(target.line);
   if (!model) return;
-  taskEditor.value = { from: target.from, to: target.to, original: target.line, model };
+  taskEditor.value = {
+    from: target.from,
+    to: target.to,
+    original: target.line,
+    model,
+    focus: target.focus,
+  };
+}
+
+/**
+ * Batch 9 — the IDs `🆔` / `⛔` can be set to, read from the workspace index
+ * (each task's text, as the Rust side stripped it of the bullet). Both markers
+ * share this one pool; de-duplicated, first spelling wins.
+ */
+const ID_TOKEN = /🆔\s*([^\s#]+)/u;
+
+function knownTaskIds(): TaskSuggestCandidate[] {
+  const seen = new Set<string>();
+  const out: TaskSuggestCandidate[] = [];
+  for (const entry of workspaceIndex.entries) {
+    for (const task of entry.tasks ?? []) {
+      const id = ID_TOKEN.exec(task.text)?.[1];
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      out.push({
+        id,
+        title: task.text.replace(ID_TOKEN, '').replace(/\s+/gu, ' ').trim(),
+      });
+    }
+  }
+  return out;
 }
 
 function saveTaskEditor(next: TaskLineModel): void {
@@ -4476,6 +4509,7 @@ function buildExtensions() {
           taskSuggestExtension({
             today: () => localDateKey(new Date()),
             lang: () => settings.language,
+            knownIds: knownTaskIds,
             onEditTask: openTaskEditor,
           }),
           tagAutocompleteExtension(),
@@ -6672,6 +6706,7 @@ const cls = computed(() => ({
     :model="taskEditor?.model ?? null"
     :lang="settings.language"
     :today="localDateKey(new Date())"
+    :focus="taskEditor?.focus ?? null"
     @save="saveTaskEditor"
     @cancel="taskEditor = null"
   />

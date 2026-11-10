@@ -50,6 +50,18 @@ test('tags keep their order and unknown fragments land after the tokens', () => 
   assert.equal(normalizeTaskLine(line), '- [ ] 写报告 #b #a 📅 2026-11-12 备注一 备注二');
 });
 
+// Batch 9: tags are not tokens of ours — several may exist, and they keep
+// their relative order right after the description.
+test('several tags keep their relative order after the description', () => {
+  const line = '- [ ] 写报告 #work 📅 2026-11-12 #urgent #2026';
+  const model = parseTaskLine(line)!;
+  assert.deepEqual(model.tags, ['work', 'urgent', '2026']);
+  assert.equal(
+    serializeTaskLine(model),
+    '- [ ] 写报告 #work #urgent #2026 📅 2026-11-12',
+  );
+});
+
 test('indentation, quote markers and the bullet are never rewritten', () => {
   assert.equal(normalizeTaskLine('  - [ ]    写报告   📅  2026-11-12'), '  - [ ] 写报告 📅 2026-11-12');
   assert.equal(normalizeTaskLine('> 1. [x] 写报告  ✅  2026-11-12'), '> 1. [x] 写报告 ✅ 2026-11-12');

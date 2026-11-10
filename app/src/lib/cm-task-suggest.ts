@@ -34,6 +34,8 @@ import { EditorView, ViewPlugin, keymap, type ViewUpdate } from '@codemirror/vie
 import { taskLinePrefixLength, writeTaskLine, type TaskDateLink } from './task-line';
 import {
   taskSuggestions,
+  type TaskSuggestCandidate,
+  type TaskSuggestEdit,
   type TaskSuggestMenu,
   type TaskSuggestMore,
   type TaskSuggestRequest,
@@ -47,6 +49,8 @@ export interface TaskEditTarget {
   to: number;
   /** The line's text, as the menu saw it. */
   line: string;
+  /** The field to put the caret in, when a `🆔` / `⛔` value list asked. */
+  focus?: 'id' | 'blockedBy';
 }
 
 export interface TaskSuggestOptions {
@@ -54,6 +58,12 @@ export interface TaskSuggestOptions {
   today: () => string;
   /** UI language, for the row labels (`zh` gets Chinese, everything else English). */
   lang: () => string;
+  /**
+   * IDs already used by tasks in the workspace, for the `🆔` / `⛔` value
+   * lists. Called only when one of those lists opens; absent (no workspace
+   * index) leaves those two rows as "type or edit…" and "clear".
+   */
+  knownIds?: () => TaskSuggestCandidate[];
   /** Opens the task editor for the line the menu is anchored on. */
   onEditTask?: (target: TaskEditTarget) => void;
 }
@@ -146,9 +156,10 @@ function accept(view: EditorView, runtime: Runtime, row: Row): void {
 }
 
 /** The `任务编辑…` row: close the menu and hand the line to the caller. */
-function requestEdit(view: EditorView, runtime: Runtime): void {
+function requestEdit(view: EditorView, runtime: Runtime, item: TaskSuggestEdit): void {
   const line = view.state.doc.lineAt(runtime.pos);
   const target: TaskEditTarget = { from: line.from, to: line.to, line: line.text };
+  if (item.focus) target.focus = item.focus;
   const opts = runtime.opts;
   close(view);
   opts.onEditTask?.(target);
@@ -170,7 +181,10 @@ function open(
   const lang = opts.lang();
   // The caret is read after the space landed, so every range already accounts
   // for it and the token is never glued to the word before the space.
-  const menu = taskSuggestions(line.text, pos - line.from, opts.today(), lang, request);
+  // The ID pool is only read for the two lists that offer it.
+  const wantsIds = !request || request.stage === 'id' || request.stage === 'blockedBy';
+  const candidates = wantsIds ? (opts.knownIds?.() ?? []) : [];
+  const menu = taskSuggestions(line.text, pos - line.from, opts.today(), lang, request, candidates);
   if (!menu || !menu.rows.length) return;
 
   const el = document.createElement('div');
@@ -219,7 +233,7 @@ function open(
       e.stopPropagation();
       if (item.kind === 'edit') {
         const runtime = runtimes.get(view);
-        if (runtime) requestEdit(view, runtime);
+        if (runtime) requestEdit(view, runtime, item);
       } else if (item.kind === 'more') {
         open(view, pos, opts, { stage: item.stage, field: item.field });
       } else {
@@ -344,7 +358,7 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
         const runtime = runtimes.get(view);
         const row = runtime?.rows[runtime.active];
         if (!runtime || !row) return false;
-        if (row.item.kind === 'edit') requestEdit(view, runtime);
+        if (row.item.kind === 'edit') requestEdit(view, runtime, row.item);
         else if (row.item.kind === 'more') descend(view, runtime, row.item);
         else accept(view, runtime, row);
         return true;

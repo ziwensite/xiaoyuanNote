@@ -36,6 +36,12 @@ const props = defineProps<{
   lang: string;
   /** Today as `YYYY-MM-DD`, for the status ↔ `✅`/`❌` link. */
   today: string;
+  /**
+   * Batch 9 — the field the menu's `🆔` / `⛔` rows want focused when the
+   * dialog opens. DsModal honours `data-autofocus`, so this only picks which
+   * input carries it; every other way into the dialog focuses the first field.
+   */
+  focus?: 'id' | 'blockedBy' | null;
 }>();
 
 const emit = defineEmits<{ save: [TaskLineModel]; cancel: [] }>();
@@ -190,11 +196,21 @@ function save(): void {
       <div class="ted__row">
         <label class="ted__field">
           <span class="ted__label">🆔</span>
-          <input v-model="form.id" class="ted__input" type="text" />
+          <input
+            v-model="form.id"
+            class="ted__input"
+            type="text"
+            :data-autofocus="focus === 'id' ? '' : undefined"
+          />
         </label>
         <label class="ted__field">
           <span class="ted__label">⛔</span>
-          <input v-model="form.blockedBy" class="ted__input" type="text" />
+          <input
+            v-model="form.blockedBy"
+            class="ted__input"
+            type="text"
+            :data-autofocus="focus === 'blockedBy' ? '' : undefined"
+          />
         </label>
       </div>
 

@@ -1,16 +1,17 @@
 /**
- * The space-triggered suggestion menu for a task line (batches 5–8).
+ * The space-triggered suggestion menu for a task line (batches 5–9).
  *
  * Two levels:
  *
  *   L0 — one icon per marker the line can still carry, most used first:
- *        status, `📅`, priority, `⏳`, `🛫`, `🔁`, `➕`, `✅`, `❌`, then the
- *        task editor. Icons only: the value of a marker belongs to L1. Markers
- *        the line already has are dropped, except status and priority — the
- *        status icon carries the current character and priority shows the value
- *        already set (or `⏫`), never the whole ladder.
+ *        `📅`, priority, `⏳`, `🛫`, `🔁`, `➕`, `🆔`, `⛔`, `❌`, `✅`, the
+ *        status character, then the task editor. Icons only: the value of a
+ *        marker belongs to L1. Markers the line already has are dropped, except
+ *        status, priority, `🆔` and `⛔` — they carry the value in effect and are
+ *        also how it gets cleared.
  *   L1 — the values of that one marker: the other status characters, the date
- *        chips, the rule catalogue, or the five priorities plus `⏺` to clear.
+ *        chips, the rule catalogue, the five priorities plus `⏺` to clear, or
+ *        for `🆔` / `⛔` the IDs the workspace already uses.
  *        Last row is always the task editor, so every level can reach it.
  *
  * The opening stage is inferred from the line: a bare marker right before the
@@ -43,7 +44,14 @@ import {
   type TaskDateLink,
 } from './task-line';
 
-export type TaskSuggestStage = 'marker' | 'status' | 'date' | 'recurrence' | 'priority';
+export type TaskSuggestStage =
+  | 'marker'
+  | 'status'
+  | 'date'
+  | 'recurrence'
+  | 'priority'
+  | 'id'
+  | 'blockedBy';
 
 export type TaskSuggestField = TaskDateField;
 
@@ -71,7 +79,7 @@ export interface TaskSuggestMore {
   kind: 'more';
   label: string;
   detail?: string;
-  stage: 'status' | 'date' | 'recurrence' | 'priority';
+  stage: 'status' | 'date' | 'recurrence' | 'priority' | 'id' | 'blockedBy';
   field?: TaskSuggestField;
 }
 
@@ -79,6 +87,17 @@ export interface TaskSuggestMore {
 export interface TaskSuggestEdit {
   kind: 'edit';
   label: string;
+  /**
+   * The field to put the caret in, for the two free-text markers that have no
+   * list of values of their own (`🆔` / `⛔` open the editor on theirs).
+   */
+  focus?: 'id' | 'blockedBy';
+}
+
+/** An existing task ID from the workspace index, offered as a value. */
+export interface TaskSuggestCandidate {
+  id: string;
+  title: string;
 }
 
 export type TaskSuggestRow = TaskSuggestWrite | TaskSuggestMore | TaskSuggestEdit;
@@ -172,6 +191,12 @@ function openingRequest(tail: string): TaskSuggestRequest {
     return { stage: 'priority' };
   }
 
+  // A bare `🆔` / `⛔` opens its ID list, the same way the other markers do.
+  const id = /(🆔|⛔)\s*$/u.exec(tail);
+  if (id && (id.index === 0 || /\s/u.test(tail[id.index - 1]))) {
+    return { stage: id[1] === '🆔' ? 'id' : 'blockedBy' };
+  }
+
   const m = /(📅|⏳|🛫|➕|✅|❌|🔁)\s*$/u.exec(tail);
   if (!m) return { stage: 'marker' };
   if (m.index > 0 && !/\s/u.test(tail[m.index - 1])) return { stage: 'marker' };
@@ -195,25 +220,16 @@ function readLine(line: string, caret: number): LineInfo | null {
 }
 
 /**
- * L0 — marker icons, most used first: status, `📅`, priority, `⏳`, `🛫`, `🔁`,
- * `➕`, `✅`, `❌`. A marker the line already carries is hidden (its L1 is
- * reached again by typing the marker); status and priority are the two rows
- * that always stay, showing the value currently in effect.
+ * L0 — marker icons, most used first: `📅`, priority, `⏳`, `🛫`, `🔁`, `➕`,
+ * `🆔`, `⛔`, `❌`, `✅`, then the status character and the task editor.
+ * A marker the line already carries is hidden (its L1 is reached again by
+ * typing the marker); priority, `🆔`, `⛔` and status always stay, because they
+ * show the value in effect and are also how it gets cleared.
  */
 function markerMenu(line: string, info: LineInfo, lang: string): TaskSuggestMenu {
   const model = parseTaskLine(line)!;
   const { status } = info;
   const rows: TaskSuggestRow[] = [];
-
-  // Status is one row showing the character in effect; the other four live in
-  // its L1, the same way priority keeps its ladder out of L0.
-  const current = TASK_STATUSES.find((s) => s.char.toLowerCase() === status.toLowerCase());
-  rows.push({
-    kind: 'more',
-    label: `[${status}]`,
-    detail: current ? pick(current.zh, current.en, lang) : pick('状态', 'Status', lang),
-    stage: 'status',
-  });
 
   const more = (field: TaskDateField) => {
     const spec = TASK_DATE_FIELDS.find((f) => f.field === field)!;
@@ -244,8 +260,34 @@ function markerMenu(line: string, info: LineInfo, lang: string): TaskSuggestMenu
     rows.push({ kind: 'more', label: '🔁', detail: pick('重复', 'Repeat', lang), stage: 'recurrence' });
   }
   if (!model.created) rows.push(more('created'));
-  if (!model.completed) rows.push(more('completed'));
+
+  // `🆔` / `⛔` are free text, so their L1 offers the IDs already in the
+  // workspace; both rows stay even when set, since that is how they are cleared.
+  rows.push({
+    kind: 'more',
+    label: '🆔',
+    detail: model.id || pick('任务 ID', 'Task ID', lang),
+    stage: 'id',
+  });
+  rows.push({
+    kind: 'more',
+    label: '⛔',
+    detail: model.blockedBy || pick('阻塞于', 'Blocked by', lang),
+    stage: 'blockedBy',
+  });
+
   if (!model.cancelled) rows.push(more('cancelled'));
+  if (!model.completed) rows.push(more('completed'));
+
+  // Status is last of the markers: one row showing the character in effect; the
+  // other four live in its L1, like the priority ladder.
+  const current = TASK_STATUSES.find((s) => s.char.toLowerCase() === status.toLowerCase());
+  rows.push({
+    kind: 'more',
+    label: `[${status}]`,
+    detail: current ? pick(current.zh, current.en, lang) : pick('状态', 'Status', lang),
+    stage: 'status',
+  });
 
   rows.push(editRow(lang));
   return { stage: 'marker', rows };
@@ -267,6 +309,76 @@ function statusMenu(info: LineInfo, lang: string): TaskSuggestMenu {
   }));
   rows.push(editRow(lang));
   return { stage: 'status', title: `[${status}] ${pick('状态', 'Status', lang)}`, rows };
+}
+
+/**
+ * L1 of `🆔` / `⛔`.
+ *
+ * Neither has a fixed value set, so the values are the IDs the workspace
+ * already uses (`candidates`, read from the task index by the caller, already
+ * de-duplicated): picking one links these two tasks. Above them sit the two
+ * rows that always exist — "type or edit…" opens the task editor on this field,
+ * and "clear" removes the token when the line has one. Both markers share the
+ * same pool of IDs; the marker in the row label is what says which relation is
+ * being written (`🆔` identifies this task, `⛔` says this one waits for it).
+ *
+ * With no index available the list is only those two rows, which is all the
+ * marker needs to stay usable.
+ */
+function idMenu(
+  line: string,
+  info: LineInfo,
+  caret: number,
+  lang: string,
+  field: 'id' | 'blockedBy',
+  candidates: TaskSuggestCandidate[],
+): TaskSuggestMenu {
+  const marker = field === 'id' ? '🆔' : '⛔';
+  const { bodyStart } = info;
+  const model = parseTaskLine(line)!;
+  const current = (field === 'id' ? model.id : model.blockedBy).trim();
+  const tail = line.slice(bodyStart, caret);
+
+  // The token's own range if the line has one; otherwise the bare marker the
+  // space was pressed after; otherwise just before the dates, so the new token
+  // lands in its canonical slot rather than after them.
+  const existing = new RegExp(`${marker}\\s*[^\\s#]+`, 'u').exec(line.slice(bodyStart));
+  const bare = bareMarker(tail, marker);
+  const firstDateAt = find(ANY_DATE_TOKEN, line, bodyStart);
+  let range =
+    firstDateAt >= 0 ? { from: firstDateAt, to: firstDateAt } : { from: caret, to: caret };
+  if (bare) range = { from: bodyStart + bare.from, to: bodyStart + bare.to };
+  else if (existing) {
+    const at = bodyStart + existing.index;
+    range = { from: at, to: at + existing[0].length };
+  }
+
+  const rows: TaskSuggestRow[] = candidates
+    .filter((candidate) => candidate.id && candidate.id !== current)
+    .map((candidate) => ({
+      kind: 'write' as const,
+      label: `${marker} ${candidate.id}`,
+      detail: candidate.title || undefined,
+      ...range,
+      insert: `${marker} ${candidate.id}`,
+    }));
+
+  rows.push({ kind: 'edit', label: pick('输入/编辑…', 'Type or edit…', lang), focus: field });
+  if (current) {
+    rows.push({
+      kind: 'write',
+      label: pick('清除', 'Clear', lang),
+      detail: current,
+      ...range,
+      insert: '',
+    });
+  }
+
+  const name =
+    field === 'id'
+      ? pick('任务 ID', 'Task ID', lang)
+      : pick('阻塞于', 'Blocked by', lang);
+  return { stage: field, title: `${marker} ${name}`, rows };
 }
 
 function dateMenu(
@@ -376,6 +488,7 @@ export function taskSuggestions(
   today: string,
   lang: string,
   request?: TaskSuggestRequest,
+  candidates: TaskSuggestCandidate[] = [],
 ): TaskSuggestMenu | null {
   const info = readLine(line, caret);
   if (!info) return null;
@@ -383,6 +496,9 @@ export function taskSuggestions(
 
   const req = request ?? openingRequest(tail);
   if (req.stage === 'status') return statusMenu(info, lang);
+  if (req.stage === 'id' || req.stage === 'blockedBy') {
+    return idMenu(line, info, caret, lang, req.stage, candidates);
+  }
   if (req.stage === 'date' && req.field) return dateMenu(line, info, caret, today, lang, req.field);
   if (req.stage === 'recurrence') return repeatMenu(line, info, caret, lang);
   if (req.stage === 'priority') return priorityMenu(line, info, caret, lang);
