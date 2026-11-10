@@ -33,18 +33,20 @@
 - `TaskEditorDialog` 透传 `reminders`，避免"打开编辑器再保存"丢掉提醒。
 - 验证：`task-line.test.ts` 新增 4 条断言（解析/位置/三次写回稳定/粘连修复/裸标记）；`tasks.test.ts` 两处旧期望更新为规范顺序。850 测试通过，build 通过。
 
-## - [ ] T1.2 新增 `app/src/lib/entry.ts`
+## - [x] T1.2 新增 `app/src/lib/entry.ts`
 
 - `entryFromLine(line): Entry | null`、`lineFromEntry(entry): string`（薄封装，内部仍调 `parseTaskLine`/`serializeTaskLine`）。
 - `EntryHome`：`{ kind: 'periodic' | 'event', path, line }`；`entry_uid` 的类型与生成规则。
 - 不做 frontmatter 投影（D1=B 后事件笔记不存共用字段），只定义 extras 的键集合。
 - 验证：`entry.test.ts` — 往返幂等、`entry_uid` 往返、行缺失时 legacy 回退。
+- **实施说明**：`EntryHome` 与 uid 生成规则挪到 T3.1，和真正用它写盘的 `resolveEntryHome` 一起落地，避免先留一个没人调用的类型；`ENTRY_UID_KEY`（frontmatter 键名）已在此定义。
 
-## - [ ] T1.3 `app/src/lib/entry.test.ts`
+## - [x] T1.3 `app/src/lib/entry.test.ts`
 
 - 黄金样例直接落成断言（不再单维护 fixtures.md）。
 - 约定：`parse(serialize(parse(x)))` 稳定；`⏰` 三次写回位置不变。
 - 验证：`pnpm test`。
+- **实施说明**：10 条黄金行 × 往返/三次写回稳定/乱序规范化一次性收敛；另覆盖非任务行、uid 可选、轻/重判定、extras 键表契约。860 测试通过，build 通过。
 
 ## P2. 周期笔记引擎
 
