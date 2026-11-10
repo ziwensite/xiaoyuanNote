@@ -2124,6 +2124,9 @@ export const tr: I18n = {
     empty: 'Henüz görev yok — herhangi bir notta `- [ ]` satırı yazın.',
     openFolder: 'Görevleri toplamak için bir klasör açın.',
     priorityOnly: 'Yalnızca öncelikli görevler',
+    recurrenceLegacy:
+      'Eski FREQ kuralı — Obsidian Tasks bunu genişletemez. Olduğu gibi kalır ve ilerlemez.',
+    recurrenceUnsupported: 'Bu yineleme metni okunamıyor. Olduğu gibi kalır.',
     filter: {
       open: 'Açık',
       today: 'Süre',

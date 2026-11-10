@@ -2124,6 +2124,9 @@ export const sv: I18n = {
     empty: 'Inga uppgifter än — skriv en `- [ ]`-rad i en anteckning.',
     openFolder: 'Öppna en mapp för att samla dess uppgifter.',
     priorityOnly: 'Endast uppgifter med prioritet',
+    recurrenceLegacy:
+      'Äldre FREQ-regel – Obsidian Tasks kan inte expandera den. Bevaras som den är och flyttas inte fram.',
+    recurrenceUnsupported: 'Den här upprepningen kan inte läsas. Bevaras som den är.',
     filter: {
       open: 'Öppna',
       today: 'Förfaller',

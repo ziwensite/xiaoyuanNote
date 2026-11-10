@@ -772,10 +772,9 @@ function defaults(): Settings {
     dailyNotesFolder: 'Daily',
     dailyNotesFormat: 'YYYY-MM-DD.md',
     dailyNotesTemplate: '',
-    // A recurring task's next occurrence goes right after the one just ticked:
-    // that is the order a list is read in, and it keeps the line the user
-    // clicked from moving out from under the pointer.
-    recurringTaskPlacement: 'below',
+    // Obsidian Tasks writes the next occurrence above the completed line; that
+    // is the default here too. A saved choice still wins (see `load`).
+    recurringTaskPlacement: 'above',
     recurringTaskPlacementMigrated: true,
     showTagsPanel: true,
     showTasksPanel: false,
@@ -1002,11 +1001,10 @@ function load(): Settings {
       if (!LT_MODES.includes(merged.ltMode)) merged.ltMode = 'off';
       if (merged.ltLevel !== 'picky') merged.ltLevel = 'default';
       // New in this release: a blob written before the option existed has no
-      // value, so `defaults()` supplies `below`. The marker records that the
-      // one-time upgrade ran; the convergence above stays unconditional so a
-      // hand-edited or tampered value can never reach the writer.
+      // value, so `defaults()` supplies `above`. A blob that already carries a
+      // choice keeps it; the convergence below only rejects garbage.
       if (!RECURRING_TASK_PLACEMENTS.includes(merged.recurringTaskPlacement)) {
-        merged.recurringTaskPlacement = 'below';
+        merged.recurringTaskPlacement = 'above';
       }
       if (!parsed.recurringTaskPlacementMigrated) {
         merged.recurringTaskPlacementMigrated = true;
@@ -1700,7 +1698,7 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     setRecurringTaskPlacement(p: RecurringTaskPlacement) {
-      this.recurringTaskPlacement = RECURRING_TASK_PLACEMENTS.includes(p) ? p : 'below';
+      this.recurringTaskPlacement = RECURRING_TASK_PLACEMENTS.includes(p) ? p : 'above';
       this.persist();
     },
     toggleAiEnabled() {

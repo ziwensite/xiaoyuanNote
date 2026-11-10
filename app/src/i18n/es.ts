@@ -2107,6 +2107,9 @@ export const es: I18n = {
     empty: 'Todavía no hay tareas: escribe una línea `- [ ]` en cualquier nota.',
     openFolder: 'Abre una carpeta para reunir sus tareas.',
     priorityOnly: 'Solo tareas con prioridad',
+    recurrenceLegacy:
+      'Regla FREQ antigua: Obsidian Tasks no puede expandirla. Se conserva tal cual y no avanza.',
+    recurrenceUnsupported: 'Esta recurrencia no se puede leer. Se conserva tal cual.',
     filter: {
       open: 'Abiertas',
       today: 'Vencen',

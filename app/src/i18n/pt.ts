@@ -2109,6 +2109,9 @@ export const pt: I18n = {
     empty: 'Ainda não há tarefas — escreva uma linha `- [ ]` em qualquer nota.',
     openFolder: 'Abra uma pasta para reunir as suas tarefas.',
     priorityOnly: 'Apenas tarefas com prioridade',
+    recurrenceLegacy:
+      'Regra FREQ antiga — o Obsidian Tasks não consegue expandi-la. Mantida como está e não avança.',
+    recurrenceUnsupported: 'Esta recorrência não pode ser lida. Mantida como está.',
     filter: {
       open: 'Abertas',
       today: 'Prazo',

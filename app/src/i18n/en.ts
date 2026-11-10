@@ -2136,6 +2136,9 @@
     empty: 'No tasks yet — write a `- [ ]` line in any note.',
     openFolder: 'Open a folder to collect its tasks.',
     priorityOnly: 'Only tasks with a priority',
+    recurrenceLegacy:
+      'Legacy FREQ rule — Obsidian Tasks cannot expand it. Kept as written, and it does not advance.',
+    recurrenceUnsupported: 'This recurrence text cannot be read. Kept as written.',
     filter: {
       open: 'Open',
       today: 'Due',

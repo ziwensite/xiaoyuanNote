@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   expandOccurrences,
   explainRRule,
+  nextTaskDates,
   nextTaskDueDate,
   parseRRule,
   splitSeriesAt,
@@ -84,6 +85,59 @@ test('UNTIL and COUNT end the series instead of inventing a date', () => {
 test('an unparsable rule or a non-date due produces nothing', () => {
   assert.equal(nextTaskDueDate('2026-11-01', 'FREQ=FORTNIGHTLY'), null);
   assert.equal(nextTaskDueDate('2026-11-01T09:00', 'FREQ=DAILY'), null);
+});
+
+// ---------------------------------------------------------------------------
+// nextTaskDates — the reference date and the relative shift
+// ---------------------------------------------------------------------------
+
+test('the due date is the reference and every date keeps its distance', () => {
+  assert.deepEqual(
+    nextTaskDates(
+      { due: '2026-11-09', scheduled: '2026-11-08', start: '2026-11-06' },
+      'FREQ=WEEKLY',
+      { today: '2026-11-10' },
+    ),
+    { due: '2026-11-16', scheduled: '2026-11-15', start: '2026-11-13' },
+  );
+});
+
+test('without a due date the scheduled date is the reference, then start', () => {
+  assert.deepEqual(
+    nextTaskDates({ scheduled: '2026-11-08', start: '2026-11-06' }, 'FREQ=WEEKLY', {
+      today: '2026-11-10',
+    }),
+    { scheduled: '2026-11-15', start: '2026-11-13' },
+  );
+  assert.deepEqual(
+    nextTaskDates({ start: '2026-11-06' }, 'FREQ=DAILY', { today: '2026-11-10' }),
+    { start: '2026-11-07' },
+  );
+});
+
+test('absent dates stay absent rather than being invented', () => {
+  assert.deepEqual(nextTaskDates({ due: '2026-11-09' }, 'FREQ=DAILY', { today: '2026-11-10' }), {
+    due: '2026-11-10',
+  });
+});
+
+test('when done counts from the completion date, not the old date', () => {
+  assert.deepEqual(
+    nextTaskDates(
+      { due: '2026-11-01', scheduled: '2026-10-30' },
+      'FREQ=WEEKLY',
+      { whenDone: true, today: '2026-11-10' },
+    ),
+    { due: '2026-11-17', scheduled: '2026-11-15' },
+  );
+});
+
+test('no date, or a rule that has ended, produces nothing', () => {
+  assert.equal(nextTaskDates({}, 'FREQ=DAILY', { today: '2026-11-10' }), null);
+  assert.equal(
+    nextTaskDates({ due: '2026-11-09' }, 'FREQ=DAILY;COUNT=1', { today: '2026-11-10' }),
+    null,
+  );
 });
 
 // ---------------------------------------------------------------------------

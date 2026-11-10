@@ -2107,6 +2107,9 @@ export const fr: I18n = {
     empty: 'Aucune tâche pour l’instant — écrivez une ligne `- [ ]` dans une note.',
     openFolder: 'Ouvrez un dossier pour rassembler ses tâches.',
     priorityOnly: 'Uniquement les tâches prioritaires',
+    recurrenceLegacy:
+      'Ancienne règle FREQ — Obsidian Tasks ne peut pas la développer. Conservée telle quelle, sans avancement.',
+    recurrenceUnsupported: 'Cette récurrence n’est pas lisible. Conservée telle quelle.',
     filter: {
       open: 'À faire',
       today: 'Échéance',

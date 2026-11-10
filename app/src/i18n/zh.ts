@@ -2110,6 +2110,8 @@ export const zh: I18n = {
     empty: '还没有任务 —— 在任意笔记里写一行 `- [ ]` 即可。',
     openFolder: '打开一个文件夹后才能汇总任务。',
     priorityOnly: '只看有优先级的任务',
+    recurrenceLegacy: '旧版 FREQ 规则：Obsidian 无法展开，按原文保留且不会推进。',
+    recurrenceUnsupported: '无法识别的重复写法，按原文保留。',
     filter: {
       open: '未完成',
       today: '到期',

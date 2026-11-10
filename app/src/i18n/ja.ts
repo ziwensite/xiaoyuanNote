@@ -2106,6 +2106,8 @@ export const ja: I18n = {
     empty: 'タスクはまだありません —— どのノートでも `- [ ]` の行を書けば表示されます。',
     openFolder: 'フォルダを開くとタスクを集められます。',
     priorityOnly: '優先度つきのみ表示',
+    recurrenceLegacy: '旧形式の FREQ ルール — Obsidian Tasks では展開できません。原文のまま保持し、次回へ進めません。',
+    recurrenceUnsupported: 'この繰り返し表記は読み取れません。原文のまま保持します。',
     filter: {
       open: '未完了',
       today: '期限',

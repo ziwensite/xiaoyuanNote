@@ -2107,6 +2107,9 @@ export const it: I18n = {
     empty: 'Ancora nessuna attività: scrivi una riga `- [ ]` in una nota.',
     openFolder: 'Apri una cartella per raccogliere le sue attività.',
     priorityOnly: 'Solo attività con priorità',
+    recurrenceLegacy:
+      'Vecchia regola FREQ: Obsidian Tasks non può espanderla. Conservata com’è e non avanza.',
+    recurrenceUnsupported: 'Questa ricorrenza non è leggibile. Conservata com’è.',
     filter: {
       open: 'Aperte',
       today: 'Scadenza',

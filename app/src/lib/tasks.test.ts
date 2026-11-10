@@ -12,6 +12,7 @@ import {
   isOverdue,
   localDateKey,
   compareTasks,
+  compileNaturalRecurrence,
   completeRecurringTaskLine,
   setTaskReminder,
   toggleTaskLine,
@@ -251,11 +252,11 @@ const RECURRING = [
 ].join('\n');
 
 test('completing below ticked the old line and opens the next one right after it', () => {
-  const result = completeRecurringTaskLine(RECURRING, 3, '2026-11-16', 'below');
+  const result = completeRecurringTaskLine(RECURRING, 3, { due: '2026-11-16' }, 'below');
   assert.ok(result);
   const lines = result.content.split('\n');
   assert.equal(lines[2], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
-  assert.equal(lines[3], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(lines[3], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
   assert.equal(result.line, 4);
   // Everything outside the two affected lines is untouched.
   assert.deepEqual(
@@ -265,30 +266,41 @@ test('completing below ticked the old line and opens the next one right after it
 });
 
 test('completing above puts the new occurrence before the completed line', () => {
-  const result = completeRecurringTaskLine(RECURRING, 3, '2026-11-16', 'above');
+  const result = completeRecurringTaskLine(RECURRING, 3, { due: '2026-11-16' }, 'above');
   assert.ok(result);
   const lines = result.content.split('\n');
-  assert.equal(lines[2], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(lines[2], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
   assert.equal(lines[3], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
   assert.equal(result.line, 3);
 });
 
 test('the ASCII due spelling survives the advance', () => {
-  const result = completeRecurringTaskLine('- [ ] report due:2026-11-09', 1, '2026-11-10', 'below');
+  const result = completeRecurringTaskLine(
+    '- [ ] report due:2026-11-09',
+    1,
+    { due: '2026-11-10' },
+    'below',
+  );
   assert.ok(result);
   assert.equal(result.content, ['- [x] report due:2026-11-09', '- [ ] report due:2026-11-10'].join('\n'));
 });
 
-test('a completed line or a missing due refuses instead of guessing', () => {
-  assert.equal(completeRecurringTaskLine('- [x] done 📅 2026-11-09', 1, '2026-11-10', 'below'), null);
-  assert.equal(completeRecurringTaskLine('- [ ] no date 🔁 FREQ=DAILY', 1, '2026-11-10', 'below'), null);
-  assert.equal(completeRecurringTaskLine('plain text', 1, '2026-11-10', 'below'), null);
-  assert.equal(completeRecurringTaskLine('- [ ] ok 📅 2026-11-09', 0, '2026-11-10', 'below'), null);
+test('a completed line or a missing date refuses instead of guessing', () => {
+  assert.equal(
+    completeRecurringTaskLine('- [x] done 📅 2026-11-09', 1, { due: '2026-11-10' }, 'below'),
+    null,
+  );
+  assert.equal(
+    completeRecurringTaskLine('- [ ] no date 🔁 FREQ=DAILY', 1, { due: '2026-11-10' }, 'below'),
+    null,
+  );
+  assert.equal(completeRecurringTaskLine('plain text', 1, { due: '2026-11-10' }, 'below'), null);
+  assert.equal(completeRecurringTaskLine('- [ ] ok 📅 2026-11-09', 0, { due: '2026-11-10' }, 'below'), null);
 });
 
 test('CRLF notes keep their line endings on both affected lines', () => {
   const doc = ['- [ ] a 📅 2026-11-09', '- [ ] b 📅 2026-12-01'].join('\r\n');
-  const result = completeRecurringTaskLine(doc, 1, '2026-11-10', 'below');
+  const result = completeRecurringTaskLine(doc, 1, { due: '2026-11-10' }, 'below');
   assert.ok(result);
   assert.equal(
     result.content,
@@ -297,13 +309,54 @@ test('CRLF notes keep their line endings on both affected lines', () => {
 });
 
 test('the new occurrence is parseable as the next task', () => {
-  const result = completeRecurringTaskLine(RECURRING, 3, '2026-11-16', 'below');
+  const result = completeRecurringTaskLine(RECURRING, 3, { due: '2026-11-16' }, 'below');
   assert.ok(result);
   const meta = parseTaskMeta(result.content.split('\n')[3].replace(/^- \[ \] /, ''));
   assert.equal(meta.due, '2026-11-16');
   assert.deepEqual(meta.reminders, ['09:00']);
   assert.equal(meta.rrule, 'FREQ=WEEKLY;BYDAY=MO');
   assert.equal(meta.uid, undefined);
+});
+
+test('scheduled and start dates move with the due date, keeping their spacing', () => {
+  const doc = '- [ ] prep 🛫 2026-11-07 ⏳ 2026-11-08 📅 2026-11-09 🔁 every week';
+  const result = completeRecurringTaskLine(
+    doc,
+    1,
+    { due: '2026-11-16', scheduled: '2026-11-15', start: '2026-11-14' },
+    'below',
+  );
+  assert.ok(result);
+  const lines = result.content.split('\n');
+  assert.equal(lines[0], doc.replace('[ ]', '[x]'));
+  assert.equal(lines[1], '- [ ] prep 🔁 every week 🛫 2026-11-14 ⏳ 2026-11-15 📅 2026-11-16');
+});
+
+test('a natural-language rule is copied verbatim and never becomes FREQ=', () => {
+  const result = completeRecurringTaskLine(
+    '- [ ] water 🔁 every 2 weeks on monday 📅 2026-11-09',
+    1,
+    { due: '2026-11-23' },
+    'above',
+  );
+  assert.ok(result);
+  const lines = result.content.split('\n');
+  assert.equal(lines[0], '- [ ] water 🔁 every 2 weeks on monday 📅 2026-11-23');
+  assert.equal(lines[1], '- [x] water 🔁 every 2 weeks on monday 📅 2026-11-09');
+  assert.equal(result.content.includes('FREQ='), false);
+});
+
+test('🏁 delete replaces the completed line instead of keeping it', () => {
+  const result = completeRecurringTaskLine(
+    '- [ ] water 📅 2026-11-09 🔁 every week 🏁 delete',
+    1,
+    { due: '2026-11-16' },
+    'above',
+    'delete',
+  );
+  assert.ok(result);
+  assert.equal(result.content, '- [ ] water 🔁 every week 📅 2026-11-16 🏁 delete');
+  assert.equal(result.line, 1);
 });
 
 // ---------------------------------------------------------------------------
@@ -374,15 +427,109 @@ test('an in-progress recurring task advances and is completed as x', () => {
   const result = completeRecurringTaskLine(
     '- [/] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO',
     1,
-    '2026-11-16',
+    { due: '2026-11-16' },
     'above',
   );
   assert.ok(result);
   assert.equal(
     result.content,
-    ['- [ ] water 📅 2026-11-16 🔁 FREQ=WEEKLY;BYDAY=MO', '- [x] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO'].join(
+    ['- [ ] water 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16', '- [x] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO'].join(
       '\n',
     ),
   );
+});
+
+// ---------------------------------------------------------------------------
+// Natural-language recurrence: read both spellings, write only the natural one
+// ---------------------------------------------------------------------------
+
+test('the natural-language subset compiles to the in-memory RRULE', () => {
+  assert.deepEqual(compileNaturalRecurrence('every day'), {
+    rrule: 'FREQ=DAILY',
+    whenDone: false,
+  });
+  assert.deepEqual(compileNaturalRecurrence('every 3 days'), {
+    rrule: 'FREQ=DAILY;INTERVAL=3',
+    whenDone: false,
+  });
+  assert.equal(compileNaturalRecurrence('every weekday')?.rrule, 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR');
+  assert.equal(compileNaturalRecurrence('every week')?.rrule, 'FREQ=WEEKLY');
+  assert.equal(compileNaturalRecurrence('every monday')?.rrule, 'FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(
+    compileNaturalRecurrence('every 2 weeks on Monday and Friday')?.rrule,
+    'FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,FR',
+  );
+  assert.equal(compileNaturalRecurrence('every month')?.rrule, 'FREQ=MONTHLY');
+  assert.equal(compileNaturalRecurrence('every month on the 15th')?.rrule, 'FREQ=MONTHLY;BYMONTHDAY=15');
+  assert.equal(
+    compileNaturalRecurrence('every month on the last day')?.rrule,
+    'FREQ=MONTHLY;BYMONTHDAY=-1',
+  );
+  assert.equal(
+    compileNaturalRecurrence('every month on the 2nd tuesday')?.rrule,
+    'FREQ=MONTHLY;BYDAY=2TU',
+  );
+  assert.equal(compileNaturalRecurrence('every year')?.rrule, 'FREQ=YEARLY');
+  assert.equal(
+    compileNaturalRecurrence('every january 5th')?.rrule,
+    'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=5',
+  );
+});
+
+test('when done is a suffix, not part of the interval', () => {
+  assert.deepEqual(compileNaturalRecurrence('every 2 weeks when done'), {
+    rrule: 'FREQ=WEEKLY;INTERVAL=2',
+    whenDone: true,
+  });
+});
+
+test('text Tasks cannot express is refused instead of guessed at', () => {
+  assert.equal(compileNaturalRecurrence('every fortnight'), null);
+  assert.equal(compileNaturalRecurrence('every 3 days for 10 times'), null);
+  assert.equal(compileNaturalRecurrence('every day until 2026-12-01'), null);
+  assert.equal(compileNaturalRecurrence('weekly'), null);
+});
+
+test('a natural rule is read as recurrence, not left in the title', () => {
+  const m = parseTaskMeta('water 🔁 every week 📅 2026-11-09');
+  assert.equal(m.title, 'water');
+  assert.equal(m.due, '2026-11-09');
+  assert.equal(m.rrule, 'FREQ=WEEKLY');
+  assert.deepEqual(m.recurrence, { text: 'every week', kind: 'natural', whenDone: false });
+});
+
+test('the rule may follow the dates, as Tasks also writes it', () => {
+  const m = parseTaskMeta('water 📅 2026-11-09 🔁 every day when done');
+  assert.equal(m.title, 'water');
+  assert.equal(m.recurrence?.kind, 'natural');
+  assert.equal(m.recurrence?.whenDone, true);
+});
+
+test('a legacy FREQ token is read but flagged as legacy', () => {
+  const m = parseTaskMeta('review 🔁 FREQ=WEEKLY;BYDAY=MO');
+  assert.equal(m.title, 'review');
+  assert.equal(m.rrule, 'FREQ=WEEKLY;BYDAY=MO');
+  assert.deepEqual(m.recurrence, {
+    text: 'FREQ=WEEKLY;BYDAY=MO',
+    kind: 'legacy',
+    whenDone: false,
+  });
+});
+
+test('unreadable recurrence text stays visible and is flagged', () => {
+  const m = parseTaskMeta('review 🔁 every blursday');
+  assert.equal(m.title, 'review 🔁 every blursday');
+  assert.equal(m.rrule, undefined);
+  assert.equal(m.recurrence?.kind, 'unsupported');
+  assert.equal(m.recurrence?.text, 'every blursday');
+});
+
+test('🏁 keep/delete is parsed off the title', () => {
+  const del = parseTaskMeta('water 📅 2026-11-09 🔁 every week 🏁 delete');
+  assert.equal(del.title, 'water');
+  assert.equal(del.recurrenceAction, 'delete');
+  const keep = parseTaskMeta('water 🔁 every week 🏁 keep');
+  assert.equal(keep.title, 'water');
+  assert.equal(keep.recurrenceAction, 'keep');
 });
 

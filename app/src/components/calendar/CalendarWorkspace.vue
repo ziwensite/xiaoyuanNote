@@ -1108,6 +1108,15 @@ onBeforeUnmount(() => {
               />
               <span class="cal-task-row__title">{{ task.title }}</span>
               <span
+                v-if="task.recurrenceKind && task.recurrenceKind !== 'natural'"
+                class="cal-task-row__recur"
+                :title="
+                  task.recurrenceKind === 'legacy'
+                    ? t('tasks.recurrenceLegacy')
+                    : t('tasks.recurrenceUnsupported')
+                "
+              >🔁</span>
+              <span
                 class="cal-task-row__bell"
                 :class="{ 'is-on': task.reminders.length > 0 }"
                 role="button"
@@ -1641,6 +1650,16 @@ onBeforeUnmount(() => {
   flex: none;
   color: var(--text-3);
   font-size: 11px;
+}
+
+/* Read-only recurrence (`FREQ=…` or text this app cannot compile): muted,
+   explanation in the tooltip, no click affordance. */
+.cal-task-row__recur {
+  flex: none;
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.5;
+  cursor: help;
 }
 
 .cal-task-row__bell {

@@ -2124,6 +2124,9 @@ export const pl: I18n = {
     empty: 'Brak zadań — napisz wiersz `- [ ]` w dowolnej notatce.',
     openFolder: 'Otwórz folder, aby zebrać jego zadania.',
     priorityOnly: 'Tylko zadania z priorytetem',
+    recurrenceLegacy:
+      'Stara reguła FREQ — Obsidian Tasks nie potrafi jej rozwinąć. Pozostaje bez zmian i nie przechodzi dalej.',
+    recurrenceUnsupported: 'Tego powtórzenia nie można odczytać. Pozostaje bez zmian.',
     filter: {
       open: 'Otwarte',
       today: 'Termin',

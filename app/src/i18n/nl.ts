@@ -2124,6 +2124,9 @@ export const nl: I18n = {
     empty: 'Nog geen taken — schrijf een `- [ ]`-regel in een notitie.',
     openFolder: 'Open een map om de taken te verzamelen.',
     priorityOnly: 'Alleen taken met prioriteit',
+    recurrenceLegacy:
+      'Oude FREQ-regel — Obsidian Tasks kan die niet uitvouwen. Blijft ongewijzigd en wordt niet doorgeschoven.',
+    recurrenceUnsupported: 'Deze herhaling is niet leesbaar. Blijft ongewijzigd.',
     filter: {
       open: 'Open',
       today: 'Vervalt',

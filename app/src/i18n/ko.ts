@@ -2106,6 +2106,8 @@ export const ko: I18n = {
     empty: '아직 작업이 없습니다 — 아무 노트에나 `- [ ]` 줄을 쓰세요.',
     openFolder: '폴더를 열면 작업을 모읍니다.',
     priorityOnly: '우선순위 있는 항목만',
+    recurrenceLegacy: '이전 FREQ 규칙 — Obsidian Tasks에서 펼칠 수 없습니다. 원문 그대로 두며 다음 회차로 넘어가지 않습니다.',
+    recurrenceUnsupported: '이 반복 문구를 읽을 수 없습니다. 원문 그대로 둡니다.',
     filter: {
       open: '미완료',
       today: '기한',

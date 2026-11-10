@@ -2107,6 +2107,9 @@ export const de: I18n = {
     empty: 'Noch keine Aufgaben — schreiben Sie in einer Notiz eine `- [ ]`-Zeile.',
     openFolder: 'Öffnen Sie einen Ordner, um dessen Aufgaben zu sammeln.',
     priorityOnly: 'Nur Aufgaben mit Priorität',
+    recurrenceLegacy:
+      'Alte FREQ-Regel – Obsidian Tasks kann sie nicht auswerten. Bleibt unverändert und wird nicht fortgeschrieben.',
+    recurrenceUnsupported: 'Diese Wiederholung ist nicht lesbar. Bleibt unverändert.',
     filter: {
       open: 'Offen',
       today: 'Fällig',

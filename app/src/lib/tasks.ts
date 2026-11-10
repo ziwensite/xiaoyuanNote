@@ -50,6 +50,32 @@ export function taskStatusRule(symbol: string): TaskStatusRule {
   return DEFAULT_STATUS_RULES[symbol] ?? { type: 'todo', next: 'x' };
 }
 
+export type TaskRecurrenceKind = 'natural' | 'legacy' | 'unsupported';
+
+/**
+ * How a task repeats, as written on the line.
+ *
+ * Obsidian Tasks spells recurrence in English ("every week"); this project used
+ * to write a raw iCal `FREQ=…` there. Both are read, but only the natural form
+ * is ever written — see `completeRecurringTaskLine`, which copies the existing
+ * `🔁` text verbatim instead of re-serialising a rule.
+ */
+export interface TaskRecurrence {
+  /** The rule as written after `🔁`, trimmed. */
+  text: string;
+  /**
+   * `natural` — compiled to a rule we can expand.
+   * `legacy` — an old `FREQ=…` rule; kept verbatim, never rewritten.
+   * `unsupported` — text we cannot compile, kept in the title and flagged.
+   */
+  kind: TaskRecurrenceKind;
+  /** `when done`: the next occurrence counts from the completion date. */
+  whenDone: boolean;
+}
+
+/** `🏁 keep` (default) or `🏁 delete`. */
+export type TaskRecurrenceAction = 'keep' | 'delete';
+
 export interface TaskMeta {
   /** Display text, with the tokens this module consumed removed. */
   title: string;
@@ -78,6 +104,10 @@ export interface TaskMeta {
   reminders?: string[];
   /** Raw iCal `RRULE` value (e.g. `FREQ=WEEKLY;BYDAY=FR`). Absent when none. */
   rrule?: string;
+  /** How the `🔁` text on the line reads; absent when the line has none. */
+  recurrence?: TaskRecurrence;
+  /** `🏁` completion action; absent when the line has none. */
+  recurrenceAction?: TaskRecurrenceAction;
 }
 
 const PRIORITY_RANK: Record<Exclude<TaskPriority, null>, number> = {
@@ -134,14 +164,259 @@ const BANG_PRIORITY = /(^|\s)(!{1,3})(?=\s|$)/u;
  *   - `🆔 <id>` — stable UID for sync; only injected when a reminder is set.
  *   - `⏰ <trigger>` — one or more VALARM triggers (`-PT15M`, `09:00`, or an
  *     absolute ISO timestamp).
- *   - `🔁 FREQ=…` — a raw iCal RRULE (no spaces inside it).
+ *   - `🔁 <rule>` — Obsidian Tasks' natural-language recurrence
+ *     (`every week`, `every 2 months on the 3rd`), or the legacy raw iCal
+ *     `FREQ=…` this project used to write. Both are read; only the natural
+ *     form is ever written.
+ *   - `🏁 keep|delete` — what completing an occurrence does to the old line.
  *
  * Malformed values are left in `title` on purpose, matching the rule that the
  * parser never eats words it does not understand.
  */
 const UID_TOKEN = /🆔\s*([A-Za-z0-9_-]{4,})/u;
 const REMINDER_TOKEN = /⏰\s*(-?P[A-Za-z0-9]+|[0-9]{1,2}:[0-9]{2}|\d{4}-\d{2}-\d{2}T[0-9:]+Z?)/u;
-const RRULE_TOKEN = /🔁\s*(FREQ=[A-Za-z0-9=;,:+-]+)/iu;
+
+/**
+ * `🔁` plus its rule text, stopping at the next token this module understands.
+ *
+ * The rule is *not* "everything to the end of the line": Tasks allows the
+ * recurrence to sit before the dates (`🔁 every week 📅 2026-11-09`), which is
+ * the order this project writes. Group 1 is the whitespace the token owns, so
+ * removing the match leaves the rest of the line's spacing intact.
+ */
+const RECURRENCE_TOKEN =
+  /(\s*)🔁\s*([\s\S]*?)(?=\s*(?:📅|⏳|🛫|➕|✅|❌|🔺|⏫|🔼|🔽|⏬|🆔|⏰|🏁|#)\s*|$)/u;
+const RECURRENCE_ACTION_TOKEN = /🏁\s*(keep|delete)\b/iu;
+const LEGACY_RRULE = /^FREQ=[A-Za-z0-9=;,:+-]+$/i;
+
+const WEEKDAY_CODES: Record<string, string> = {
+  monday: 'MO',
+  mon: 'MO',
+  tuesday: 'TU',
+  tues: 'TU',
+  tue: 'TU',
+  wednesday: 'WE',
+  weds: 'WE',
+  wed: 'WE',
+  thursday: 'TH',
+  thurs: 'TH',
+  thur: 'TH',
+  thu: 'TH',
+  friday: 'FR',
+  fri: 'FR',
+  saturday: 'SA',
+  sat: 'SA',
+  sunday: 'SU',
+  sun: 'SU',
+};
+
+const MONTH_CODES: Record<string, number> = {
+  january: 1,
+  jan: 1,
+  february: 2,
+  feb: 2,
+  march: 3,
+  mar: 3,
+  april: 4,
+  apr: 4,
+  may: 5,
+  june: 6,
+  jun: 6,
+  july: 7,
+  jul: 7,
+  august: 8,
+  aug: 8,
+  september: 9,
+  sept: 9,
+  sep: 9,
+  october: 10,
+  oct: 10,
+  november: 11,
+  nov: 11,
+  december: 12,
+  dec: 12,
+};
+
+const ORDINAL_WORDS: Record<string, number> = {
+  first: 1,
+  second: 2,
+  third: 3,
+  fourth: 4,
+  fifth: 5,
+  last: -1,
+};
+
+function ordinalValue(token: string): number | null {
+  const word = ORDINAL_WORDS[token];
+  if (word !== undefined) return word;
+  const m = /^(\d{1,2})(?:st|nd|rd|th)?$/.exec(token);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n >= 1 && n <= 31 ? n : null;
+}
+
+function weekdayCodes(text: string): string[] | null {
+  const parts = text
+    .replace(/\band\b/gu, ',')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!parts.length) return null;
+  const out: string[] = [];
+  for (const part of parts) {
+    const code = WEEKDAY_CODES[part];
+    if (!code) return null;
+    if (!out.includes(code)) out.push(code);
+  }
+  return out;
+}
+
+/** `the 1st and 15th`, `the last day`, `last`. */
+function monthDayList(text: string): number[] | null {
+  const parts = text
+    .replace(/\bthe\b/gu, ' ')
+    .replace(/\band\b/gu, ',')
+    .split(',')
+    .map((s) => s.trim().replace(/\s+/g, ' '))
+    .filter(Boolean);
+  if (!parts.length) return null;
+  const out: number[] = [];
+  for (const part of parts) {
+    if (part === 'last' || part === 'last day') {
+      out.push(-1);
+      continue;
+    }
+    const n = ordinalValue(part);
+    if (n === null) return null;
+    out.push(n);
+  }
+  return out;
+}
+
+/** `2nd tuesday` → `2TU`, `last friday` → `-1FR`, `tuesday` → `TU`. */
+function weekdaySpec(text: string): string | null {
+  const cleaned = text.replace(/\bthe\b/gu, ' ').trim().replace(/\s+/g, ' ');
+  const m = /^(?:(first|second|third|fourth|fifth|last|\d{1,2}(?:st|nd|rd|th)?)\s+)?([a-z]+)$/u.exec(
+    cleaned,
+  );
+  if (!m) return null;
+  const day = WEEKDAY_CODES[m[2]];
+  if (!day) return null;
+  if (!m[1]) return day;
+  const ordinal = ordinalValue(m[1]);
+  if (ordinal === null || ordinal < -1 || ordinal > 5) return null;
+  return `${ordinal}${day}`;
+}
+
+function buildRule(
+  freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY',
+  interval: number | null,
+  byDay: string[] | null,
+  byMonthDay: number[] | null,
+  byMonth: number[] | null,
+): string {
+  const parts = [`FREQ=${freq}`];
+  if (interval && interval > 1) parts.push(`INTERVAL=${interval}`);
+  if (byDay?.length) parts.push(`BYDAY=${byDay.join(',')}`);
+  if (byMonth?.length) parts.push(`BYMONTH=${byMonth.join(',')}`);
+  if (byMonthDay?.length) parts.push(`BYMONTHDAY=${byMonthDay.join(',')}`);
+  return parts.join(';');
+}
+
+/** `january 5th`, `june`, `the 2nd tuesday`. Month must be first. */
+function yearlySpec(text: string): { byDay: string[] | null; byMonthDay: number[] | null; byMonth: number[] } | null {
+  const tokens = text
+    .replace(/\bthe\b/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .filter(Boolean);
+  const month = MONTH_CODES[tokens[0]];
+  if (!month) return null;
+  const rest = tokens.slice(1).join(' ');
+  if (!rest) return { byDay: null, byMonthDay: null, byMonth: [month] };
+  if (rest === 'last day') return { byDay: null, byMonthDay: [-1], byMonth: [month] };
+  const day = ordinalValue(rest);
+  if (day !== null) return { byDay: null, byMonthDay: [day], byMonth: [month] };
+  const spec = weekdaySpec(rest);
+  if (spec) return { byDay: [spec], byMonthDay: null, byMonth: [month] };
+  return null;
+}
+
+/**
+ * Compile Obsidian Tasks' natural-language recurrence into an in-memory
+ * `FREQ=…` string.
+ *
+ * Only what Tasks itself can express is accepted — no `COUNT`, no `UNTIL`,
+ * because the UI never offers them. Returning null means "we did not
+ * understand this"; the caller keeps the text on the line and flags it rather
+ * than guessing at a schedule.
+ */
+export function compileNaturalRecurrence(
+  raw: string,
+): { rrule: string; whenDone: boolean } | null {
+  let text = raw.trim().replace(/[.;]+$/u, '').replace(/\s+/g, ' ').toLowerCase();
+  let whenDone = false;
+  if (/(?:^|\s)when done$/u.test(text)) {
+    whenDone = true;
+    text = text.replace(/\s*when done$/u, '').trim();
+  }
+  const every = /^every\s+(.+)$/u.exec(text);
+  if (!every) return null;
+  const body = every[1].trim();
+
+  let m = /^(?:(\d+)\s+)?days?$/u.exec(body);
+  if (m) return { rrule: buildRule('DAILY', m[1] ? Number(m[1]) : null, null, null, null), whenDone };
+
+  if (/^weekdays?$/u.test(body)) {
+    return { rrule: 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR', whenDone };
+  }
+
+  m = /^(?:(\d+)\s+)?weeks?(?:\s+on\s+(.+))?$/u.exec(body);
+  if (m) {
+    const days = m[2] ? weekdayCodes(m[2]) : null;
+    if (m[2] && !days) return null;
+    return {
+      rrule: buildRule('WEEKLY', m[1] ? Number(m[1]) : null, days, null, null),
+      whenDone,
+    };
+  }
+
+  const weekdays = weekdayCodes(body);
+  if (weekdays) return { rrule: buildRule('WEEKLY', null, weekdays, null, null), whenDone };
+
+  m = /^(?:(\d+)\s+)?months?(?:\s+on\s+(.+))?$/u.exec(body);
+  if (m) {
+    const interval = m[1] ? Number(m[1]) : null;
+    if (!m[2]) return { rrule: buildRule('MONTHLY', interval, null, null, null), whenDone };
+    const days = monthDayList(m[2]);
+    if (days) return { rrule: buildRule('MONTHLY', interval, null, days, null), whenDone };
+    const spec = weekdaySpec(m[2]);
+    if (spec) return { rrule: buildRule('MONTHLY', interval, [spec], null, null), whenDone };
+    return null;
+  }
+
+  m = /^(?:(\d+)\s+)?years?(?:\s+on\s+(.+))?$/u.exec(body);
+  if (m) {
+    const interval = m[1] ? Number(m[1]) : null;
+    if (!m[2]) return { rrule: buildRule('YEARLY', interval, null, null, null), whenDone };
+    const spec = yearlySpec(m[2]);
+    if (!spec) return null;
+    return {
+      rrule: buildRule('YEARLY', interval, spec.byDay, spec.byMonthDay, spec.byMonth),
+      whenDone,
+    };
+  }
+
+  const named = yearlySpec(body);
+  if (named) {
+    return {
+      rrule: buildRule('YEARLY', null, named.byDay, named.byMonthDay, named.byMonth),
+      whenDone,
+    };
+  }
+  return null;
+}
 
 type OptionalTaskDate = 'scheduled' | 'start' | 'created' | 'completed' | 'cancelled';
 
@@ -162,8 +437,16 @@ export function parseTaskMeta(text: string): TaskMeta {
   let due: string | null = null;
   let uid: string | undefined;
   let rrule: string | undefined;
+  let recurrence: TaskRecurrence | undefined;
+  let recurrenceAction: TaskRecurrenceAction | undefined;
   const reminders: string[] = [];
   const dates: Partial<Record<OptionalTaskDate, string>> = {};
+
+  const actionMatch = RECURRENCE_ACTION_TOKEN.exec(rest);
+  if (actionMatch) {
+    recurrenceAction = actionMatch[1].toLowerCase() as TaskRecurrenceAction;
+    rest = rest.replace(RECURRENCE_ACTION_TOKEN, ' ');
+  }
 
   for (const pattern of DUE_PATTERNS) {
     const m = pattern.exec(rest);
@@ -203,10 +486,24 @@ export function parseTaskMeta(text: string): TaskMeta {
     rest = rest.replace(UID_TOKEN, ' ');
   }
 
-  const rruleMatch = RRULE_TOKEN.exec(rest);
-  if (rruleMatch) {
-    rrule = rruleMatch[1].toUpperCase();
-    rest = rest.replace(RRULE_TOKEN, ' ');
+  const recurrenceMatch = RECURRENCE_TOKEN.exec(rest);
+  if (recurrenceMatch) {
+    const written = recurrenceMatch[2].trim().replace(/\s+/g, ' ');
+    if (LEGACY_RRULE.test(written)) {
+      rrule = written.toUpperCase();
+      recurrence = { text: written, kind: 'legacy', whenDone: false };
+      rest = rest.replace(RECURRENCE_TOKEN, ' ');
+    } else {
+      const compiled = compileNaturalRecurrence(written);
+      if (compiled) {
+        rrule = compiled.rrule;
+        recurrence = { text: written, kind: 'natural', whenDone: compiled.whenDone };
+        rest = rest.replace(RECURRENCE_TOKEN, ' ');
+      } else {
+        // Left in the line on purpose: unreadable text is shown, not eaten.
+        recurrence = { text: written, kind: 'unsupported', whenDone: false };
+      }
+    }
   }
 
   const reminderMatches = [...rest.matchAll(new RegExp(REMINDER_TOKEN.source, 'gu'))];
@@ -227,6 +524,8 @@ export function parseTaskMeta(text: string): TaskMeta {
   if (uid) meta.uid = uid;
   if (reminders.length) meta.reminders = reminders;
   if (rrule) meta.rrule = rrule;
+  if (recurrence) meta.recurrence = recurrence;
+  if (recurrenceAction) meta.recurrenceAction = recurrenceAction;
   return meta;
 }
 
@@ -381,6 +680,13 @@ export interface RecurringCompletion {
   line: number;
 }
 
+/** The date tokens a recurring task can carry — the ones that move forward. */
+export interface RecurringDates {
+  due?: string;
+  scheduled?: string;
+  start?: string;
+}
+
 /** The due token as written, so the rewrite can keep `📅` vs `due:` spelling. */
 function matchDueToken(body: string): { index: number; token: string; date: string } | null {
   for (const pattern of DUE_PATTERNS) {
@@ -391,23 +697,72 @@ function matchDueToken(body: string): { index: number; token: string; date: stri
   return null;
 }
 
+/** Rewrite one date token in place, leaving every other byte alone. */
+function rewriteDateToken(body: string, field: keyof RecurringDates, next: string): string | null {
+  if (field === 'due') {
+    const match = matchDueToken(body);
+    if (!match) return null;
+    return (
+      body.slice(0, match.index) +
+      match.token.replace(match.date, next) +
+      body.slice(match.index + match.token.length)
+    );
+  }
+  const pattern = field === 'scheduled' ? SCHEDULED_TOKEN : START_TOKEN;
+  const match = pattern.exec(body);
+  if (!match) return null;
+  return (
+    body.slice(0, match.index) +
+    match[0].replace(match[1], next) +
+    body.slice(match.index + match[0].length)
+  );
+}
+
 /**
- * Complete one occurrence of a recurring task: tick the old line and add the
+ * Put the `🔁` token in front of the first date token.
+ *
+ * Obsidian Tasks reads a recurrence best when it stands before the dates, and
+ * this project writes it that way. Moving it means removing the token together
+ * with the whitespace it owns and re-inserting it; every other character is
+ * untouched. A line without dates keeps the rule where it was.
+ */
+function moveRecurrenceBeforeDates(body: string): string {
+  const match = RECURRENCE_TOKEN.exec(body);
+  if (!match) return body;
+  const ruleText = match[2].trim();
+  const rest = body.slice(0, match.index) + body.slice(match.index + match[0].length);
+  const firstDate = /(?:📅|⏳|🛫|➕|✅|❌)/u.exec(rest);
+  if (!firstDate) return body;
+  const head = rest.slice(0, firstDate.index).replace(/\s+$/u, ' ');
+  return `${head}🔁 ${ruleText} ${rest.slice(firstDate.index)}`;
+}
+
+/**
+ * Complete one occurrence of a recurring task: close the old line and add the
  * next occurrence as a new open line.
  *
- * The old line keeps every token it had (including `🔁` and `📅`), because it
- * is the record of what was done. The new line copies the body with only the
- * due date advanced; its `🆔` is dropped so the two lines do not claim the same
- * identity — a fresh one is minted the next time a reminder needs it.
+ * `dates` holds the already-advanced `📅` / `⏳` / `🛫` values (see
+ * `nextTaskDates` in `calendar.ts`); every field present is rewritten and the
+ * others are left exactly as written. `when done` is handled there, not here —
+ * this function only knows where the dates go.
  *
- * Returns null when the line is not an open task, has no due token, or the
- * insert would be out of range — the caller must not write the file then.
+ * The old line keeps every token it had, including `🔁`, because it is the
+ * record of what was done. `🏁 delete` removes it instead; `🏁 keep` (the
+ * default) keeps it and marks it done. The new line copies the body with its
+ * `🆔` dropped so the two lines do not claim the same identity — a fresh one is
+ * minted the next time a reminder needs it. Its `🔁` text is copied verbatim:
+ * this function never serialises a rule, so a natural-language rule stays
+ * natural and a legacy `FREQ=` is never introduced.
+ *
+ * Returns null when the line is not an open task, a date token cannot be found,
+ * or the insert would be out of range — the caller must not write the file then.
  */
 export function completeRecurringTaskLine(
   content: string,
   line1Based: number,
-  nextDue: string,
+  dates: RecurringDates,
   placement: 'below' | 'above',
+  action: TaskRecurrenceAction = 'keep',
 ): RecurringCompletion | null {
   const lines = content.split('\n');
   const idx = line1Based - 1;
@@ -418,17 +773,27 @@ export function completeRecurringTaskLine(
   if (!m) return null;
   const rule = taskStatusRule(m[2]);
   if (rule.type === 'done') return null;
-  const due = matchDueToken(m[3]);
-  if (!due) return null;
 
-  const advanced =
-    m[3].slice(0, due.index) +
-    due.token.replace(due.date, nextDue) +
-    m[3].slice(due.index + due.token.length);
-  const nextBody = advanced.replace(/\s*🆔\s*[A-Za-z0-9_-]{4,}/u, '');
+  let body = m[3];
+  for (const field of ['due', 'scheduled', 'start'] as const) {
+    const next = dates[field];
+    if (!next) continue;
+    const rewritten = rewriteDateToken(body, field, next);
+    // The index said the token exists; not finding it means the file moved.
+    if (rewritten === null) return null;
+    body = rewritten;
+  }
+  body = body.replace(/\s*🆔\s*[A-Za-z0-9_-]{4,}/u, '');
+  body = moveRecurrenceBeforeDates(body);
 
-  lines[idx] = `${m[1]}[${rule.next}]${m[3]}${cr}`;
-  const at = placement === 'above' ? idx : idx + 1;
-  lines.splice(at, 0, `${m[1]}[ ]${nextBody}${cr}`);
+  let at: number;
+  if (action === 'delete') {
+    lines.splice(idx, 1, `${m[1]}[ ]${body}${cr}`);
+    at = idx;
+  } else {
+    lines[idx] = `${m[1]}[${rule.next}]${m[3]}${cr}`;
+    at = placement === 'above' ? idx : idx + 1;
+    lines.splice(at, 0, `${m[1]}[ ]${body}${cr}`);
+  }
   return { content: lines.join('\n'), line: at + 1 };
 }

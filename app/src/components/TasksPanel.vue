@@ -139,6 +139,16 @@ async function openTask(task: WorkspaceTask) {
               :title="task.meta.priority"
             ><i /><i /><i /></span>
             <span
+              v-if="task.meta.recurrence && task.meta.recurrence.kind !== 'natural'"
+              class="tasks-panel__recur"
+              :class="`tasks-panel__recur--${task.meta.recurrence.kind}`"
+              :title="
+                task.meta.recurrence.kind === 'legacy'
+                  ? t('tasks.recurrenceLegacy')
+                  : t('tasks.recurrenceUnsupported')
+              "
+            >🔁</span>
+            <span
               v-if="task.meta.due"
               class="tasks-panel__due"
               :class="{ 'tasks-panel__due--overdue': overdue(task) }"
@@ -205,6 +215,19 @@ async function openTask(task: WorkspaceTask) {
 .tasks-panel__due--overdue {
   color: var(--danger);
   font-weight: 500;
+}
+/* A recurrence this app only reads, not expands: same glyph as the line,
+   muted, with the explanation in the tooltip. */
+.tasks-panel__recur {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 11px;
+  line-height: 1.3;
+  opacity: 0.55;
+  cursor: help;
+}
+.tasks-panel__recur--unsupported {
+  opacity: 0.35;
 }
 /* Priority: three ascending bars, filled by level (no emoji). */
 .tasks-panel__bars {

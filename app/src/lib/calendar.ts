@@ -17,7 +17,7 @@
  * `node --test` and reused by the pane in M1.
  */
 import { dumpFrontmatter, patchFrontmatter, splitFrontmatter } from './frontmatter';
-import { compareTasks, parseTaskMeta, type TaskPriority } from './tasks';
+import { compareTasks, parseTaskMeta, type TaskMeta, type TaskPriority, type TaskRecurrenceKind } from './tasks';
 
 export type EventStatus = 'CONFIRMED' | 'TENTATIVE' | 'CANCELLED';
 export type CalendarSource = 'local' | 'caldav' | 'graph';
@@ -81,6 +81,12 @@ export interface CalendarTask {
   priority: TaskPriority;
   reminders: string[];
   rrule: string | null;
+  /**
+   * How the line's `🔁` reads: `natural` (editable, advances), `legacy`
+   * (`FREQ=` written by an older version, read-only) or `unsupported` (text we
+   * cannot compile). Absent when the task does not repeat.
+   */
+  recurrenceKind?: TaskRecurrenceKind;
   /** `⏳` / `🛫` / `➕` / `✅` / `❌` dates, or null when the line has none. */
   scheduled?: string | null;
   start?: string | null;
@@ -783,6 +789,7 @@ export function calendarTasksFromEntry(entry: CalendarEntry): CalendarTask[] {
       priority: meta.priority,
       reminders: meta.reminders ?? [],
       rrule: meta.rrule ?? null,
+      recurrenceKind: meta.recurrence?.kind,
       scheduled: meta.scheduled ?? null,
       start: meta.start ?? null,
       created: meta.created ?? null,
@@ -921,6 +928,43 @@ export function nextTaskDueDate(due: string, rrule: string, horizonDays = 365 * 
     if (date > due) return date;
   }
   return null;
+}
+
+export interface TaskRecurrenceAdvance {
+  due?: string;
+  scheduled?: string;
+  start?: string;
+}
+
+/**
+ * The `📅` / `⏳` / `🛫` values of a recurring task's next occurrence.
+ *
+ * Obsidian Tasks picks the reference date in the order `📅 > ⏳ > 🛫`, moves
+ * that one by the rule's interval, and shifts the other dates by the same
+ * number of days so the spacing between them survives. `when done` makes the
+ * next occurrence count from the completion date instead of the old one.
+ *
+ * Fields the line does not have stay absent — a task with only `📅` must not
+ * gain a `⏳` out of nowhere. Returns null when there is no date to move or the
+ * rule has ended.
+ */
+export function nextTaskDates(
+  meta: Pick<TaskMeta, 'due' | 'scheduled' | 'start'>,
+  rrule: string,
+  options: { whenDone?: boolean; today: string; horizonDays?: number },
+): TaskRecurrenceAdvance | null {
+  const reference = meta.due ?? meta.scheduled ?? meta.start ?? null;
+  if (!reference) return null;
+  const base = options.whenDone ? options.today : reference;
+  const next = nextTaskDueDate(base, rrule, options.horizonDays);
+  if (!next) return null;
+  const out: TaskRecurrenceAdvance = {};
+  for (const field of ['due', 'scheduled', 'start'] as const) {
+    const value = meta[field];
+    if (!value) continue;
+    out[field] = addDays(next, daysBetween(reference, value));
+  }
+  return out;
 }
 
 function occurrenceOf(

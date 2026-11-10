@@ -14,9 +14,10 @@ import { useToastsStore } from '../stores/toasts';
 import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
 import { useFiles } from './useFiles';
-import { nextTaskDueDate } from '../lib/calendar';
+import { nextTaskDates } from '../lib/calendar';
 import {
   completeRecurringTaskLine,
+  localDateKey,
   parseTaskMeta,
   compareTasks,
   setTaskReminder,
@@ -114,22 +115,33 @@ export function useTasks() {
    * occurrence as a new open line, because a recurring task is one line per
    * occurrence, not one line whose date keeps being overwritten. Unticking
    * stays a plain flip — there is no rule to advance backwards.
+   *
+   * Only natural-language rules advance. A legacy `FREQ=` line is read-only:
+   * advancing it would write a new `FREQ=` line, and this project only writes
+   * the Tasks-compatible spelling. Unsupported text does not advance either —
+   * guessing at a schedule is worse than showing the rule as unreadable.
    */
   async function toggle(task: WorkspaceTask): Promise<void> {
-    if (!task.done && task.meta.rrule && task.meta.due) {
-      const nextDue = nextTaskDueDate(task.meta.due, task.meta.rrule);
-      if (nextDue) {
-        await writeTaskLine(task, (content, line) => {
-          const done = completeRecurringTaskLine(
-            content,
-            line,
-            nextDue,
-            settings.recurringTaskPlacement,
-          );
-          return done ? done.content : null;
-        });
-        return;
-      }
+    const recurrence = task.meta.recurrence;
+    const nextDates =
+      !task.done && recurrence?.kind === 'natural' && task.meta.rrule
+        ? nextTaskDates(task.meta, task.meta.rrule, {
+            whenDone: recurrence.whenDone,
+            today: localDateKey(new Date()),
+          })
+        : null;
+    if (nextDates) {
+      await writeTaskLine(task, (content, line) => {
+        const done = completeRecurringTaskLine(
+          content,
+          line,
+          nextDates,
+          settings.recurringTaskPlacement,
+          task.meta.recurrenceAction ?? 'keep',
+        );
+        return done ? done.content : null;
+      });
+      return;
     }
     await writeTaskLine(task, (content, line) => toggleTaskLine(content, line));
   }
