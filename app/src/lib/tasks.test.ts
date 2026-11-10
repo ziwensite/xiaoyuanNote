@@ -306,3 +306,83 @@ test('the new occurrence is parseable as the next task', () => {
   assert.equal(meta.uid, undefined);
 });
 
+// ---------------------------------------------------------------------------
+// Obsidian Tasks compatibility: five date fields, five priorities, statuses
+// ---------------------------------------------------------------------------
+
+test('every Obsidian Tasks date token is parsed and removed from the title', () => {
+  const m = parseTaskMeta(
+    'ship the release ➕ 2026-09-01 ⏳ 2026-09-08 🛫 2026-09-09 📅 2026-09-10 ✅ 2026-09-11 ❌ 2026-09-12',
+  );
+  assert.equal(m.title, 'ship the release');
+  assert.equal(m.created, '2026-09-01');
+  assert.equal(m.scheduled, '2026-09-08');
+  assert.equal(m.start, '2026-09-09');
+  assert.equal(m.due, '2026-09-10');
+  assert.equal(m.completed, '2026-09-11');
+  assert.equal(m.cancelled, '2026-09-12');
+});
+
+test('absent date tokens stay absent rather than becoming null', () => {
+  const m = parseTaskMeta('plain ⏳ 2026-09-08');
+  assert.equal(m.scheduled, '2026-09-08');
+  assert.equal('start' in m, false);
+  assert.equal('completed' in m, false);
+});
+
+test('a malformed date after a token is left in the title', () => {
+  const m = parseTaskMeta('call mom ⏳ tomorrow');
+  assert.equal(m.title, 'call mom ⏳ tomorrow');
+  assert.equal(m.scheduled, undefined);
+});
+
+test('five priority levels are recognised', () => {
+  assert.equal(parseTaskMeta('a 🔺').priority, 'highest');
+  assert.equal(parseTaskMeta('a ⏫').priority, 'high');
+  assert.equal(parseTaskMeta('a 🔼').priority, 'medium');
+  assert.equal(parseTaskMeta('a 🔽').priority, 'low');
+  assert.equal(parseTaskMeta('a ⏬').priority, 'lowest');
+  assert.equal(parseTaskMeta('a 🔺 task').title, 'a task');
+});
+
+test('sorting puts highest first and lowest last, unprioritised after both', () => {
+  const list = ['none', 'b ⏬', 'c 🔺', 'd 🔽', 'e 🔼', 'f ⏫'].map((text) => ({
+    done: false,
+    meta: parseTaskMeta(text),
+  }));
+  const order = [...list].sort(compareTasks).map((x) => x.meta.title);
+  assert.deepEqual(order, ['c', 'f', 'e', 'd', 'b', 'none']);
+});
+
+test('an unknown status is a TODO that toggles to x, like Obsidian Tasks', () => {
+  assert.equal(toggleTaskLine('- [/] doing it', 1), '- [x] doing it');
+  assert.equal(toggleTaskLine('- [-] dropped', 1), '- [x] dropped');
+  assert.equal(toggleTaskLine('- [?] question', 1), '- [x] question');
+});
+
+test('toggling a done custom-status task clears it to todo', () => {
+  assert.equal(toggleTaskLine('- [X] done', 1), '- [ ] done');
+  assert.equal(toggleTaskLine('- [/] doing it', 1), '- [x] doing it');
+});
+
+test('toggling does not eat the rest of a custom-status line', () => {
+  const line = '  * [/] review ⏳ 2026-09-08 📅 2026-09-10  ';
+  assert.equal(toggleTaskLine(line, 1), '  * [x] review ⏳ 2026-09-08 📅 2026-09-10  ');
+});
+
+test('an in-progress recurring task advances and is completed as x', () => {
+  const result = completeRecurringTaskLine(
+    '- [/] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO',
+    1,
+    '2026-11-16',
+    'above',
+  );
+  assert.ok(result);
+  assert.equal(
+    result.content,
+    ['- [ ] water 📅 2026-11-16 🔁 FREQ=WEEKLY;BYDAY=MO', '- [x] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO'].join(
+      '\n',
+    ),
+  );
+});
+

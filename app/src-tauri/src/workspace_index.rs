@@ -28,7 +28,11 @@ use walkdir::WalkDir;
 // Public types (match the TS interface in `app/src/lib/workspace-index.ts`).
 // ---------------------------------------------------------------------------
 
-/// One `- [ ]` / `- [x]` item, as found in a file.
+/// One Markdown checkbox item, as found in a file.
+///
+/// The status character is any single character between the brackets, matching
+/// Obsidian Tasks, which treats `[ ]` as TODO, `[x]`/`[X]` as DONE and every
+/// other character as an unknown status that is still a TODO task.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskRef {
     /// 1-based line number **in the file**, front matter included.
@@ -41,6 +45,11 @@ pub struct TaskRef {
     /// tokens are left in — the frontend parses those (`lib/tasks.ts`) so the
     /// syntax lives in one place rather than being written twice.
     pub text: String,
+    /// The character between `[` and `]`, so the writer can pick the next
+    /// status symbol instead of hard-coding `x`. Older cache files may lack
+    /// it; `done` stays authoritative for them.
+    #[serde(default)]
+    pub status: String,
     pub done: bool,
 }
 
@@ -1151,14 +1160,19 @@ fn extract_headings(body: &str) -> Vec<String> {
     out
 }
 
+/// Obsidian Tasks' default status table: only `x`/`X` are DONE. Every other
+/// symbol is an "unknown" status, which Tasks reports as type TODO, so a
+/// `[/]` or `[-]` task must not be counted as completed.
+fn status_is_done(symbol: &str) -> bool {
+    matches!(symbol, "x" | "X")
+}
+
 /// GFM task-list items, scanned over the raw file so line numbers are the
-/// file's own.
-///
-/// Skips fenced code (a `- [ ] step one` inside a shell block is
+/// file's own. Skips fenced code (a `- [ ] step one` inside a shell block is
 /// documentation, not a task) and YAML front matter.
 fn extract_tasks(raw: &str) -> Vec<TaskRef> {
     static RE: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"^\s*[-*+]\s+\[([ xX])\]\s+(.+?)\s*$").expect("task regex")
+        Regex::new(r"^\s*[-*+]\s+\[([^\]\n])\]\s+(.+?)\s*$").expect("task regex")
     });
     let mut out = Vec::new();
     let mut in_fence = false;
@@ -1183,7 +1197,8 @@ fn extract_tasks(raw: &str) -> Vec<TaskRef> {
             continue;
         }
         if let Some(cap) = RE.captures(line) {
-            let done = cap.get(1).map(|m| m.as_str() != " ").unwrap_or(false);
+            let status = cap.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let done = status_is_done(&status);
             let text = cap.get(2).map(|m| m.as_str().trim().to_string()).unwrap_or_default();
             if text.is_empty() {
                 continue;
@@ -1191,6 +1206,7 @@ fn extract_tasks(raw: &str) -> Vec<TaskRef> {
             out.push(TaskRef {
                 line: idx as u32 + 1,
                 text,
+                status,
                 done,
             });
         }
@@ -1469,5 +1485,29 @@ mod task_scan_tests {
     fn keeps_priority_and_due_tokens_for_the_frontend_to_parse() {
         let tasks = extract_tasks("- [ ] ship it ⏫ 📅 2026-09-10\n");
         assert_eq!(tasks[0].text, "ship it ⏫ 📅 2026-09-10");
+    }
+
+    #[test]
+    fn custom_status_characters_are_tasks_and_only_x_counts_as_done() {
+        let raw = "- [ ] todo\n- [/] in progress\n- [-] cancelled\n- [?] question\n- [x] done\n- [X] also done\n";
+        let tasks = extract_tasks(raw);
+        let got: Vec<(&str, &str, bool)> =
+            tasks.iter().map(|t| (t.status.as_str(), t.text.as_str(), t.done)).collect();
+        assert_eq!(
+            got,
+            vec![
+                (" ", "todo", false),
+                ("/", "in progress", false),
+                ("-", "cancelled", false),
+                ("?", "question", false),
+                ("x", "done", true),
+                ("X", "also done", true),
+            ]
+        );
+    }
+
+    #[test]
+    fn links_and_inline_links_are_not_status_characters() {
+        assert!(extract_tasks("- [[Note]] and text\n- [a](https://example.com)\n").is_empty());
     }
 }

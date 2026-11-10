@@ -23,11 +23,15 @@ export interface WikilinkRef {
   line: number;
 }
 
-/** One `- [ ]` / `- [x]` item found by the Rust index. `line` is 1-based and
- *  counts front matter — the task panel rewrites the checkbox on that line. */
+/** One checkbox item found by the Rust index. `line` is 1-based and counts
+ *  front matter — the task panel rewrites the checkbox on that line. `status`
+ *  is the single character between the brackets (any character, as in
+ *  Obsidian Tasks); older caches may omit it. */
 export interface TaskRef {
   line: number;
   text: string;
+  /** The character between `[` and `]`; absent on entries cached before it existed. */
+  status?: string;
   done: boolean;
 }
 

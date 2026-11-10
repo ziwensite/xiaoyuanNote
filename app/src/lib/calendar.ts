@@ -71,11 +71,22 @@ export interface CalendarTask {
   uid: string | null;
   title: string;
   done: boolean;
+  /**
+   * The status character between the brackets (` `, `x`, `/`, …). Optional:
+   * entries cached before the field existed carry only `done`.
+   */
+  status?: string;
   /** `YYYY-MM-DD`, or null. */
   due: string | null;
   priority: TaskPriority;
   reminders: string[];
   rrule: string | null;
+  /** `⏳` / `🛫` / `➕` / `✅` / `❌` dates, or null when the line has none. */
+  scheduled?: string | null;
+  start?: string | null;
+  created?: string | null;
+  completed?: string | null;
+  cancelled?: string | null;
   path: string;
   line: number;
   mtime: number;
@@ -120,7 +131,8 @@ export interface CalendarEntry {
   title?: string | null;
   summary?: string;
   frontmatter: Record<string, unknown> | null;
-  tasks?: Array<{ line: number; text: string; done: boolean }>;
+  /** `status` is the character between the brackets; older caches omit it. */
+  tasks?: Array<{ line: number; text: string; status?: string; done: boolean }>;
 }
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
@@ -766,10 +778,16 @@ export function calendarTasksFromEntry(entry: CalendarEntry): CalendarTask[] {
       uid: meta.uid ?? null,
       title: meta.title,
       done: t.done,
+      status: t.status ?? (t.done ? 'x' : ' '),
       due: meta.due,
       priority: meta.priority,
       reminders: meta.reminders ?? [],
       rrule: meta.rrule ?? null,
+      scheduled: meta.scheduled ?? null,
+      start: meta.start ?? null,
+      created: meta.created ?? null,
+      completed: meta.completed ?? null,
+      cancelled: meta.cancelled ?? null,
       path: entry.path,
       line: t.line,
       mtime: entry.mtime ?? 0,

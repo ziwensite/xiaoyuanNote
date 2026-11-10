@@ -17,7 +17,38 @@
  * words it does not understand is worse than one that shows them.
  */
 
-export type TaskPriority = 'high' | 'medium' | 'low' | null;
+export type TaskPriority = 'highest' | 'high' | 'medium' | 'low' | 'lowest' | null;
+
+/** Obsidian Tasks' status types. Only "done" changes how a click is written. */
+export type TaskStatusType =
+  | 'todo'
+  | 'in_progress'
+  | 'on_hold'
+  | 'done'
+  | 'cancelled'
+  | 'non_task';
+
+export interface TaskStatusRule {
+  type: TaskStatusType;
+  /** The symbol a click writes next. */
+  next: string;
+}
+
+/**
+ * Obsidian Tasks' default status table: `[ ]` is TODO, `[x]`/`[X]` are DONE,
+ * and every other symbol is an *unknown* status that Tasks reports as type TODO
+ * and toggles to `x`. Keeping the default here is what makes `[/]` or `[-]`
+ * lines behave the same in both apps.
+ */
+const DEFAULT_STATUS_RULES: Record<string, TaskStatusRule> = {
+  ' ': { type: 'todo', next: 'x' },
+  x: { type: 'done', next: ' ' },
+  X: { type: 'done', next: ' ' },
+};
+
+export function taskStatusRule(symbol: string): TaskStatusRule {
+  return DEFAULT_STATUS_RULES[symbol] ?? { type: 'todo', next: 'x' };
+}
 
 export interface TaskMeta {
   /** Display text, with the tokens this module consumed removed. */
@@ -25,6 +56,16 @@ export interface TaskMeta {
   priority: TaskPriority;
   /** `YYYY-MM-DD`, or null. */
   due: string | null;
+  /** `⏳` scheduled date, `YYYY-MM-DD`. Absent when the line has none. */
+  scheduled?: string;
+  /** `🛫` start date, `YYYY-MM-DD`. Absent when the line has none. */
+  start?: string;
+  /** `➕` created date, `YYYY-MM-DD`. Absent when the line has none. */
+  created?: string;
+  /** `✅` done date, `YYYY-MM-DD`. Absent when the line has none. */
+  completed?: string;
+  /** `❌` cancelled date, `YYYY-MM-DD`. Absent when the line has none. */
+  cancelled?: string;
   /** `#tags` mentioned in the task (kept in `title` as well). */
   tags: string[];
   /**
@@ -40,10 +81,15 @@ export interface TaskMeta {
 }
 
 const PRIORITY_RANK: Record<Exclude<TaskPriority, null>, number> = {
-  high: 0,
-  medium: 1,
-  low: 2,
+  highest: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+  lowest: 4,
 };
+
+/** Rank for a task without a priority: after every explicit level. */
+const NO_PRIORITY_RANK = 5;
 
 /** `2026-09-10` and nothing else — no `10/09/2026` ambiguity to guess at. */
 const DATE = /(\d{4}-\d{2}-\d{2})/;
@@ -53,10 +99,19 @@ const DUE_PATTERNS: RegExp[] = [
   new RegExp(`\\bdue\\s*:\\s*${DATE.source}`, 'iu'),
 ];
 
+/** The other Obsidian Tasks date fields, each a single emoji + `YYYY-MM-DD`. */
+const SCHEDULED_TOKEN = new RegExp(`⏳\\s*${DATE.source}`, 'u');
+const START_TOKEN = new RegExp(`🛫\\s*${DATE.source}`, 'u');
+const CREATED_TOKEN = new RegExp(`➕\\s*${DATE.source}`, 'u');
+const COMPLETED_TOKEN = new RegExp(`✅\\s*${DATE.source}`, 'u');
+const CANCELLED_TOKEN = new RegExp(`❌\\s*${DATE.source}`, 'u');
+
 const EMOJI_PRIORITY: Array<[RegExp, Exclude<TaskPriority, null>]> = [
+  [/🔺/u, 'highest'],
   [/⏫/u, 'high'],
   [/🔼/u, 'medium'],
   [/🔽/u, 'low'],
+  [/⏬/u, 'lowest'],
 ];
 
 const BRACKET_PRIORITY: Array<[RegExp, Exclude<TaskPriority, null>]> = [
@@ -88,8 +143,18 @@ const UID_TOKEN = /🆔\s*([A-Za-z0-9_-]{4,})/u;
 const REMINDER_TOKEN = /⏰\s*(-?P[A-Za-z0-9]+|[0-9]{1,2}:[0-9]{2}|\d{4}-\d{2}-\d{2}T[0-9:]+Z?)/u;
 const RRULE_TOKEN = /🔁\s*(FREQ=[A-Za-z0-9=;,:+-]+)/iu;
 
-const TASK_LINE = /^(\s*[-*+]\s+\[[ xX]\])(.*)$/u;
-const TASK_PARTS = /^(\s*[-*+]\s+)\[([ xX])\]([\s\S]*)$/u;
+type OptionalTaskDate = 'scheduled' | 'start' | 'created' | 'completed' | 'cancelled';
+
+const OPTIONAL_DATE_TOKENS: Array<[OptionalTaskDate, RegExp]> = [
+  ['scheduled', SCHEDULED_TOKEN],
+  ['start', START_TOKEN],
+  ['created', CREATED_TOKEN],
+  ['completed', COMPLETED_TOKEN],
+  ['cancelled', CANCELLED_TOKEN],
+];
+
+const TASK_LINE = /^(\s*[-*+]\s+\[[^\]\n]\])(.*)$/u;
+const TASK_PARTS = /^(\s*[-*+]\s+)\[([^\]\n])\]([\s\S]*)$/u;
 
 export function parseTaskMeta(text: string): TaskMeta {
   let rest = text;
@@ -98,6 +163,7 @@ export function parseTaskMeta(text: string): TaskMeta {
   let uid: string | undefined;
   let rrule: string | undefined;
   const reminders: string[] = [];
+  const dates: Partial<Record<OptionalTaskDate, string>> = {};
 
   for (const pattern of DUE_PATTERNS) {
     const m = pattern.exec(rest);
@@ -106,6 +172,13 @@ export function parseTaskMeta(text: string): TaskMeta {
       rest = rest.replace(pattern, ' ');
       break;
     }
+  }
+
+  for (const [field, pattern] of OPTIONAL_DATE_TOKENS) {
+    const m = pattern.exec(rest);
+    if (!m) continue;
+    dates[field] = m[1];
+    rest = rest.replace(pattern, ' ');
   }
 
   for (const [pattern, level] of [...EMOJI_PRIORITY, ...BRACKET_PRIORITY]) {
@@ -149,6 +222,7 @@ export function parseTaskMeta(text: string): TaskMeta {
     priority,
     due,
     tags,
+    ...dates,
   };
   if (uid) meta.uid = uid;
   if (reminders.length) meta.reminders = reminders;
@@ -184,14 +258,19 @@ export function compareTasks(a: SortableTask, b: SortableTask): number {
   const aDue = a.meta.due ?? '￿';
   const bDue = b.meta.due ?? '￿';
   if (aDue !== bDue) return aDue < bDue ? -1 : 1;
-  const aP = a.meta.priority ? PRIORITY_RANK[a.meta.priority] : 3;
-  const bP = b.meta.priority ? PRIORITY_RANK[b.meta.priority] : 3;
+  const aP = a.meta.priority ? PRIORITY_RANK[a.meta.priority] : NO_PRIORITY_RANK;
+  const bP = b.meta.priority ? PRIORITY_RANK[b.meta.priority] : NO_PRIORITY_RANK;
   if (aP !== bP) return aP - bP;
   return a.meta.title.localeCompare(b.meta.title);
 }
 
 /**
- * Flip `[ ]` ↔ `[x]` on one line of a document.
+ * Advance the checkbox on one line to the next status symbol.
+ *
+ * The symbol comes from `taskStatusRule`, not from a hard-coded `x`, so a
+ * configured status table can be honoured later without changing callers. With
+ * the default table this is exactly `[ ]` ↔ `[x]`; an unknown symbol (e.g.
+ * `[/]`) is a TODO like in Obsidian Tasks, and toggles to `x`.
  *
  * Returns null when that line is not a task — the caller must not write the
  * file back in that case, because a mismatch means the index is stale and the
@@ -201,9 +280,9 @@ export function toggleTaskLine(content: string, line1Based: number): string | nu
   const lines = content.split('\n');
   const idx = line1Based - 1;
   if (idx < 0 || idx >= lines.length) return null;
-  const m = /^(\s*[-*+]\s+\[)([ xX])(\]\s+.*)$/.exec(lines[idx]);
+  const m = /^(\s*[-*+]\s+\[)([^\]\n])(\]\s+.*)$/u.exec(lines[idx]);
   if (!m) return null;
-  lines[idx] = `${m[1]}${m[2] === ' ' ? 'x' : ' '}${m[3]}`;
+  lines[idx] = `${m[1]}${taskStatusRule(m[2]).next}${m[3]}`;
   return lines.join('\n');
 }
 
@@ -337,7 +416,8 @@ export function completeRecurringTaskLine(
   const cr = line.endsWith('\r') ? '\r' : '';
   const m = TASK_PARTS.exec(cr ? line.slice(0, -1) : line);
   if (!m) return null;
-  if (m[2] !== ' ') return null;
+  const rule = taskStatusRule(m[2]);
+  if (rule.type === 'done') return null;
   const due = matchDueToken(m[3]);
   if (!due) return null;
 
@@ -347,7 +427,7 @@ export function completeRecurringTaskLine(
     m[3].slice(due.index + due.token.length);
   const nextBody = advanced.replace(/\s*🆔\s*[A-Za-z0-9_-]{4,}/u, '');
 
-  lines[idx] = `${m[1]}[x]${m[3]}${cr}`;
+  lines[idx] = `${m[1]}[${rule.next}]${m[3]}${cr}`;
   const at = placement === 'above' ? idx : idx + 1;
   lines.splice(at, 0, `${m[1]}[ ]${nextBody}${cr}`);
   return { content: lines.join('\n'), line: at + 1 };

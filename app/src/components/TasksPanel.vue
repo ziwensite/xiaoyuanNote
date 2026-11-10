@@ -224,9 +224,13 @@ async function openTask(task: WorkspaceTask) {
 .tasks-panel__bars i:nth-child(1) { height: 5px; }
 .tasks-panel__bars i:nth-child(2) { height: 8px; }
 .tasks-panel__bars i:nth-child(3) { height: 11px; }
+/* Five parsed levels collapse onto the three bars: highest reads like high,
+   lowest like low. The distinction still shows in sorting. */
+.tasks-panel__bars--lowest i:nth-child(1),
 .tasks-panel__bars--low i:nth-child(1),
 .tasks-panel__bars--medium i:nth-child(-n + 2),
-.tasks-panel__bars--high i {
+.tasks-panel__bars--high i,
+.tasks-panel__bars--highest i {
   background: var(--accent);
 }
 .tasks-panel__flag .tasks-panel__bars {

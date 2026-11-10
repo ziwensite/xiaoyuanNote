@@ -460,15 +460,26 @@ pub fn read_context(path: &Path, line_no: u32) -> Vec<String> {
 // ---------------------------------------------------------------------------
 
 /// One Markdown checkbox, located in the file as it sits on disk.
+///
+/// The status character is any single character between the brackets, matching
+/// Obsidian Tasks: `[ ]` is TODO, `[x]`/`[X]` are DONE, and any other symbol is
+/// an unknown status that Tasks still treats as TODO.
 #[derive(Debug, Clone, Serialize)]
 pub struct TaskRef {
     /// 1-based, counted over the raw file including front matter.
     pub line: u32,
     pub text: String,
+    /// The character between `[` and `]`.
+    pub status: String,
     pub done: bool,
 }
 
-/// Find every `- [ ]` / `- [x]` line, skipping front matter and fenced code.
+/// Obsidian Tasks' default status table: only `x`/`X` are DONE.
+fn status_is_done(symbol: &str) -> bool {
+    matches!(symbol, "x" | "X")
+}
+
+/// Find every checkbox line, skipping front matter and fenced code.
 ///
 /// Kept deliberately in step with `extract_tasks` in the app's
 /// `workspace_index.rs`: an agent asking for the task list and the Tasks panel
@@ -476,7 +487,7 @@ pub struct TaskRef {
 /// writes to a line the panel never listed.
 pub fn extract_tasks(raw: &str) -> Vec<TaskRef> {
     static RE: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"^\s*[-*+]\s+\[([ xX])\]\s+(.+?)\s*$").expect("task regex")
+        Regex::new(r"^\s*[-*+]\s+\[([^\]\n])\]\s+(.+?)\s*$").expect("task regex")
     });
     let mut out = Vec::new();
     let mut in_fence = false;
@@ -501,12 +512,13 @@ pub fn extract_tasks(raw: &str) -> Vec<TaskRef> {
             continue;
         }
         if let Some(cap) = RE.captures(line) {
-            let done = cap.get(1).map(|m| m.as_str() != " ").unwrap_or(false);
+            let status = cap.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let done = status_is_done(&status);
             let text = cap.get(2).map(|m| m.as_str().trim().to_string()).unwrap_or_default();
             if text.is_empty() {
                 continue;
             }
-            out.push(TaskRef { line: idx as u32 + 1, text, done });
+            out.push(TaskRef { line: idx as u32 + 1, text, status, done });
         }
     }
     out
@@ -591,5 +603,29 @@ mod task_tests {
         let tasks = extract_tasks("* [ ] star\n+ [x] plus\n- [ ] \n  - [ ] indented\n");
         assert_eq!(tasks.len(), 3);
         assert_eq!(tasks[2].text, "indented");
+    }
+
+    #[test]
+    fn custom_status_characters_are_tasks_and_only_x_counts_as_done() {
+        let raw = "- [ ] todo\n- [/] in progress\n- [-] cancelled\n- [?] question\n- [x] done\n- [X] also done\n";
+        let tasks = extract_tasks(raw);
+        let got: Vec<(&str, &str, bool)> =
+            tasks.iter().map(|t| (t.status.as_str(), t.text.as_str(), t.done)).collect();
+        assert_eq!(
+            got,
+            vec![
+                (" ", "todo", false),
+                ("/", "in progress", false),
+                ("-", "cancelled", false),
+                ("?", "question", false),
+                ("x", "done", true),
+                ("X", "also done", true),
+            ]
+        );
+    }
+
+    #[test]
+    fn links_and_inline_links_are_not_status_characters() {
+        assert!(extract_tasks("- [[Note]] and text\n- [a](https://example.com)\n").is_empty());
     }
 }

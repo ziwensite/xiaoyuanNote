@@ -347,6 +347,40 @@ test('task projection keeps calendar metadata', () => {
   assert.equal(task.uid, null);
 });
 
+test('task projection carries the status character and the extra dates', () => {
+  const [task] = calendarTasksFromEntry({
+    path: 'n.md',
+    frontmatter: {},
+    tasks: [
+      {
+        line: 2,
+        status: '/',
+        done: false,
+        text: 'write ➕ 2026-09-01 ⏳ 2026-09-08 🛫 2026-09-09 📅 2026-09-10 ✅ 2026-09-11 ❌ 2026-09-12 ⏬',
+      },
+    ],
+  });
+  assert.equal(task.status, '/');
+  assert.equal(task.done, false);
+  assert.equal(task.priority, 'lowest');
+  assert.equal(task.created, '2026-09-01');
+  assert.equal(task.scheduled, '2026-09-08');
+  assert.equal(task.start, '2026-09-09');
+  assert.equal(task.due, '2026-09-10');
+  assert.equal(task.completed, '2026-09-11');
+  assert.equal(task.cancelled, '2026-09-12');
+  assert.equal(task.title, 'write');
+});
+
+test('a cached entry without a status falls back to the done flag', () => {
+  const [task] = calendarTasksFromEntry({
+    path: 'n.md',
+    frontmatter: {},
+    tasks: [{ line: 1, text: 'old cache', done: true }],
+  });
+  assert.equal(task.status, 'x');
+});
+
 test('writing an event preserves body bytes and unrelated frontmatter keys', () => {
   const before = note(
     [
