@@ -146,16 +146,23 @@ export function useDailyNotes() {
     return applyPeriodicTemplate(template, kind, date, config, settings.weekStartsOn);
   }
 
-  async function openPeriodic(kind: PeriodKind, date: Date): Promise<void> {
+  /**
+   * Resolve the note for `kind`/`date`, creating it from the template when it is
+   * missing. Returns null when there is no workspace, or when creating failed
+   * (the toast has already been shown).
+   *
+   * Split out of `openPeriodic` so auto-capture can make sure today's note
+   * exists without stealing focus or opening a tab.
+   */
+  async function ensurePeriodic(
+    kind: PeriodKind,
+    date: Date,
+  ): Promise<{ path: string; existed: boolean } | null> {
     const resolved = resolvePeriodicPath(kind, date);
-    if (!resolved) {
-      toasts.warning('Open a folder first to use periodic notes.');
-      return;
-    }
+    if (!resolved) return null;
     const ws = workspace.currentFolder;
-    if (!ws) return;
+    if (!ws) return null;
     const { config, fullPath, filename } = resolved;
-    const body = await buildBody(kind, date, config, ws);
 
     // #502 — Android SAF vault support: create the periodic subfolder (and any
     // date-formatted path segments in `filename`) via ContentResolver.
@@ -175,35 +182,41 @@ export function useDailyNotes() {
         const existing = children.find(
           (c) => !c.is_dir && c.name.toLowerCase() === baseFileName.toLowerCase(),
         );
-        if (existing) {
-          await files.openPath(existing.path, { bypassNewWindow: true });
-          return;
-        }
+        if (existing) return { path: existing.path, existed: true };
+        const body = await buildBody(kind, date, config, ws);
         const newDocId = await safCreate(treeUri, dirDocId, baseFileName);
         await safWrite(treeUri, newDocId, body);
-        await files.openPath(toSafPath(newDocId), { bypassNewWindow: true });
+        return { path: toSafPath(newDocId), existed: false };
       } catch (e) {
         toasts.error(t('toast.createFileFailed', { name: filename, error: String(e) }));
+        return null;
       }
-      return;
     }
 
-    if ((await readTextFile(fullPath)) !== null) {
-      await files.openPath(fullPath, { bypassNewWindow: true });
-      return;
-    }
+    if ((await readTextFile(fullPath)) !== null) return { path: fullPath, existed: true };
 
     try {
+      const body = await buildBody(kind, date, config, ws);
       // `write_binary_file` is used here (rather than `write_file`) because
       // it creates missing parent directories for us.
       const bytes = Array.from(new TextEncoder().encode(body));
       await invoke('write_binary_file', { path: fullPath, data: bytes });
     } catch (e) {
       toasts.error(t('toast.createFileFailed', { name: filename, error: String(e) }));
-      return;
+      return null;
     }
 
-    await files.openPath(fullPath, { bypassNewWindow: true });
+    return { path: fullPath, existed: false };
+  }
+
+  async function openPeriodic(kind: PeriodKind, date: Date): Promise<void> {
+    if (!workspace.currentFolder) {
+      toasts.warning('Open a folder first to use periodic notes.');
+      return;
+    }
+    const target = await ensurePeriodic(kind, date);
+    if (!target) return;
+    await files.openPath(target.path, { bypassNewWindow: true });
   }
 
   async function openTodayNote(): Promise<void> {
@@ -223,6 +236,7 @@ export function useDailyNotes() {
     openTodayNote,
     openYesterday,
     openTomorrow,
+    ensurePeriodic,
     resolvePeriodicPath,
     resolveDailyPath,
   };

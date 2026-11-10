@@ -23,6 +23,7 @@ import { useTilesStore } from '../../stores/tiles';
 import { useCalendarStore } from '../../stores/calendar';
 import { useTasks } from '../../composables/useTasks';
 import { useFiles } from '../../composables/useFiles';
+import { useDailyNotes } from '../../composables/useDailyNotes';
 import { useI18n, htmlLangFor } from '../../i18n';
 import Icons from '../Icons.vue';
 import {
@@ -65,6 +66,8 @@ import {
   type EventTimes,
 } from '../../lib/calendar-edit';
 import { noteOwnWrite } from '../../lib/external-change';
+import { createEntryWriter } from '../../lib/entry-writer';
+import { writeTaskLine } from '../../lib/task-line';
 import { samePath } from '../../lib/path-key';
 import { joinInFolder } from '../../lib/import-plan';
 import { parentDirOf } from '../../lib/new-file-target';
@@ -81,7 +84,41 @@ const tiles = useTilesStore();
 const calendar = useCalendarStore();
 const files = useFiles();
 const taskList = useTasks();
+const daily = useDailyNotes();
 const { t, lang } = useI18n();
+
+/**
+ * Auto-capture (P3 / D6): a new entry's line goes into **today's** daily note,
+ * whatever date the entry itself has. Reads and writes follow `useTasks`: an
+ * open tab is authoritative (writing the file under a dirty buffer would lose
+ * the user's edits), otherwise read the file, write it, and announce the save.
+ */
+const writeEntryTo = createEntryWriter({
+  async read(path) {
+    const tab = tabs.tabs.find((x) => samePath(x.filePath, path));
+    if (tab) return tab.content;
+    try {
+      const result = await invoke<FileReadResult>('read_file', { path });
+      return result.content;
+    } catch {
+      return null;
+    }
+  },
+  async write(path, text) {
+    const tab = tabs.tabs.find((x) => samePath(x.filePath, path));
+    if (tab) {
+      tabs.setContent(tab.id, text);
+      await files.saveTab(tab, { silent: true });
+      return;
+    }
+    noteOwnWrite(path, text);
+    await invoke('write_binary_file', {
+      path,
+      data: Array.from(new TextEncoder().encode(text)),
+    });
+    window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+  },
+});
 
 const root = ref<HTMLElement | null>(null);
 const dayGrid = ref<HTMLElement | null>(null);
@@ -530,10 +567,50 @@ async function saveEditor() {
   }
 }
 
+/** The `🆔` value shared by the line and (later) the event note pointer. */
+function shortEntryUid(uid: string): string {
+  return uid.replace(/-/g, '').slice(0, 8);
+}
+
+/**
+ * D2: a light entry is all-day and carries no event-only field — no time, no
+ * location, no note. It needs nothing but the line, so it has no event note.
+ */
+function isLightEntry(event: CalendarEvent): boolean {
+  return event.allDay && !event.location && !event.notes;
+}
+
+/**
+ * Write a new light entry as a task line in **today's** daily note (D6), then
+ * let the index pick it up: the existing `buildCalendarIndex` buckets any task
+ * with a `📅` by that date, so the entry appears on its own day for free.
+ */
+async function createLightEntry(event: CalendarEvent) {
+  const target = await daily.ensurePeriodic('daily', new Date());
+  if (!target) {
+    editorError.value = t('calendar.openFolder');
+    return;
+  }
+  const uid = shortEntryUid(event.uid);
+  const parts = [`- [ ] ${event.summary}`, `📅 ${event.dtstart.slice(0, 10)}`];
+  for (const alarm of event.alarms) parts.push(`⏰ ${alarm.trigger}`);
+  parts.push(`🆔 ${uid}`);
+  const line = writeTaskLine(parts.join(' '), today.value);
+  // Unreachable in practice: the prefix is a task line by construction.
+  if (!line) return;
+  await writeEntryTo(target.path, line, { uid, heading: settings.captureHeading });
+  editor.value = null;
+  toasts.success(t('calendar.toastCreated'));
+}
+
 async function createNewEvent(event: CalendarEvent) {
   const folder = workspace.currentFolder;
   if (!folder) {
     editorError.value = t('calendar.openFolder');
+    return;
+  }
+  if (isLightEntry(event)) {
+    await createLightEntry(event);
     return;
   }
   const dir = joinInFolder(folder, 'Calendar');

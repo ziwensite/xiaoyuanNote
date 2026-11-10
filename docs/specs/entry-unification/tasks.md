@@ -81,23 +81,26 @@
 
 ## P3. 轻量条目落盘（自动捕获第一层）
 
-## - [ ] T3.1 新增 `app/src/lib/entry-writer.ts`
+## - [x] T3.1 新增 `app/src/lib/entry-writer.ts`
 
 - `resolveEntryHome(entry) → { kind: 'periodic', path }`：D1=B 之后行**始终**落到周期笔记，重量条目另建事件笔记。
 - `writeEntry(home, line)`：读 → 定位（`🆔 uid` 命中则替换，否则 `captureHeading` 下插入）→ 哈希 CAS → 一次写。
 - 进程内按 path 串行；冲突重试一次后报错。
 - 验证：连续 3 次写入行数不变；模拟并发写只成功一次。
+- **实施说明**：`EntryHome = { kind: 'periodic', path }`；路径解析（`today` 的 `daily`）放在调用方的 composable，库里只保留类型，避免 lib 依赖 settings/workspace。文本变换拆成纯函数 `upsertEntryLine(text, line, {uid, heading})`，I/O 用注入的 `read`/`write`，因此不需要真实仓库就能测。冲突处理为"写前重读，变了就基于新文本重算一次"，不做阻塞式锁；标题缺失或为空 → 追加到最后一行非空行之后。返回值 `created | written | unchanged`。
 
-## - [ ] T3.2 日历新建条目接 `writeEntry`
+## - [x] T3.2 日历新建条目接 `writeEntry`
 
 - 目标固定为 `today` 的 `daily`（D6：不读配置、不做其他类型）。
 - 行由表单字段构造 → `writeTaskLine` → `writeEntry`；重量条目另建事件笔记（只写 extras + `entry_uid`）。
 - 验证：新建 `📅 2026-11-20` 的条目，行出现在**今天**的日记里；日历在 20 日显示。
+- **实施说明**：按 spec §8 的 P3 范围，本阶段只接**轻量条目**（全日、无地点、无备注）——这类条目没有事件笔记，行写入 `ensurePeriodic('daily', today)` 返回的日记后由现有 `buildCalendarIndex` 按 `📅` 入桶。重量条目的 extras-only 事件笔记与跨文件 join 同在 P4（T4.1/T4.2）落地，否则本阶段会写出"日历看不见"的事件笔记。行内容 = 描述 + `📅` + `⏰`（来自 alarms，保序）+ `🆔`；`🆔` 与将来事件笔记的 `entry_uid` 同为 uid8。`useDailyNotes` 拆出 `ensurePeriodic`（建而不打开），`openPeriodic` 复用它。写盘沿用 `useTasks` 的约定：有打开的 tab 就改 tab 并静默保存，否则写文件 + `solomd:saved`。
 
-## - [ ] T3.3 `entry-writer.test.ts`
+## - [x] T3.3 `entry-writer.test.ts`
 
 - 落点是创建日而非事件日；重复运行不重复；用户手写无 uid 行不被覆盖；`captureHeading` 缺失时的兜底行为。
 - 验证：`pnpm test`。
+- **实施说明**：13 条用例——标题下插入、标题缺失/为空时追加、同 uid 原位替换、重复写为零改动、CRLF 保持、无 uid 行永不合并、手写行逐字节不动、`created/written/unchanged` 三态、三次写只落一次盘、并发同 uid 只成功一次、不同条目并发都落盘、"写前被他人改动"时重算且保留对方内容。888 测试通过。
 
 ## P4. 重量条目 join
 
