@@ -2165,6 +2165,18 @@ export const sv: I18n = {
       today: 'Förfaller',
       all: 'Alla',
     },
+    period: {
+      toggle: 'Periodfönster',
+      daily: 'Dag',
+      weekly: 'Vecka',
+      monthly: 'Månad',
+      quarterly: 'Kvartal',
+      yearly: 'År',
+      prev: 'Föregående period',
+      next: 'Nästa period',
+      note: 'Endast läsning: oavslutade rader med datum i denna period. Periodanteckningen ändras inte.',
+      empty: 'Inga oavslutade uppgifter med datum i denna period.',
+    },
   },
   calendar: {
     openFolder: 'Öppna en mapp för att se kalendern.',

@@ -2150,6 +2150,18 @@ export const pt: I18n = {
       today: 'Prazo',
       all: 'Todas',
     },
+    period: {
+      toggle: 'Janela do período',
+      daily: 'Dia',
+      weekly: 'Semana',
+      monthly: 'Mês',
+      quarterly: 'Trimestre',
+      yearly: 'Ano',
+      prev: 'Período anterior',
+      next: 'Próximo período',
+      note: 'Somente leitura: linhas não concluídas com data neste período. A nota do período não é alterada.',
+      empty: 'Nenhuma tarefa não concluída com data neste período.',
+    },
   },
   calendar: {
     openFolder: 'Abra uma pasta para ver o calendário.',

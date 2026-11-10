@@ -2165,6 +2165,18 @@ export const pl: I18n = {
       today: 'Termin',
       all: 'Wszystkie',
     },
+    period: {
+      toggle: 'Okno okresu',
+      daily: 'Dzień',
+      weekly: 'Tydzień',
+      monthly: 'Miesiąc',
+      quarterly: 'Kwartał',
+      yearly: 'Rok',
+      prev: 'Poprzedni okres',
+      next: 'Następny okres',
+      note: 'Tylko do odczytu: niezakończone wiersze z datą w tym okresie. Notatka okresu nie jest zmieniana.',
+      empty: 'Brak niezakończonych zadań z datą w tym okresie.',
+    },
   },
   calendar: {
     openFolder: 'Otwórz folder, aby zobaczyć kalendarz.',

@@ -2149,6 +2149,18 @@ export const zh: I18n = {
       today: '到期',
       all: '全部',
     },
+    period: {
+      toggle: '周期窗口',
+      daily: '日',
+      weekly: '周',
+      monthly: '月',
+      quarterly: '季',
+      yearly: '年',
+      prev: '上一期',
+      next: '下一期',
+      note: '只读：列出本期内的未完成任务行，不改动周期笔记正文。',
+      empty: '本期没有未完成的任务。',
+    },
   },
   calendar: {
     openFolder: '打开一个文件夹后才能查看日历。',

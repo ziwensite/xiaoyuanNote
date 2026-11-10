@@ -2148,6 +2148,18 @@ export const de: I18n = {
       today: 'Fällig',
       all: 'Alle',
     },
+    period: {
+      toggle: 'Zeitraumfenster',
+      daily: 'Tag',
+      weekly: 'Woche',
+      monthly: 'Monat',
+      quarterly: 'Quartal',
+      yearly: 'Jahr',
+      prev: 'Vorheriger Zeitraum',
+      next: 'Nächster Zeitraum',
+      note: 'Nur Lesen: unerledigte Zeilen mit Datum in diesem Zeitraum. Die Notiz des Zeitraums wird nicht verändert.',
+      empty: 'Keine unerledigten Aufgaben mit Datum in diesem Zeitraum.',
+    },
   },
   calendar: {
     openFolder: 'Ordnen Sie einen Ordner zu, um den Kalender zu sehen.',

@@ -2177,6 +2177,18 @@
       today: 'Due',
       all: 'All',
     },
+    period: {
+      toggle: 'Period window',
+      daily: 'Day',
+      weekly: 'Week',
+      monthly: 'Month',
+      quarterly: 'Quarter',
+      yearly: 'Year',
+      prev: 'Previous period',
+      next: 'Next period',
+      note: 'Read-only: unfinished lines dated inside this period. The period note is not modified.',
+      empty: 'No unfinished tasks dated in this period.',
+    },
   },
   calendar: {
     openFolder: 'Open a folder to see the calendar.',

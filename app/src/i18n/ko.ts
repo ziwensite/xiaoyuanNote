@@ -2146,6 +2146,18 @@ export const ko: I18n = {
       today: '기한',
       all: '전체',
     },
+    period: {
+      toggle: '기간 창',
+      daily: '일',
+      weekly: '주',
+      monthly: '월',
+      quarterly: '분기',
+      yearly: '년',
+      prev: '이전 기간',
+      next: '다음 기간',
+      note: '읽기 전용: 이 기간에 날짜가 있는 미완료 항목을 보여 줍니다. 기간 노트는 수정되지 않습니다.',
+      empty: '이 기간에 미완료 작업이 없습니다.',
+    },
   },
   calendar: {
     openFolder: '폴더를 열어야 달력을 볼 수 있습니다.',

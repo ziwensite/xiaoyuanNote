@@ -2165,6 +2165,18 @@ export const tr: I18n = {
       today: 'Süre',
       all: 'Tümü',
     },
+    period: {
+      toggle: 'Dönem penceresi',
+      daily: 'Gün',
+      weekly: 'Hafta',
+      monthly: 'Ay',
+      quarterly: 'Çeyrek',
+      yearly: 'Yıl',
+      prev: 'Önceki dönem',
+      next: 'Sonraki dönem',
+      note: 'Salt okunur: bu dönemde tarihli tamamlanmamış satırlar. Dönem notu değiştirilmez.',
+      empty: 'Bu dönemde tarihli tamamlanmamış görev yok.',
+    },
   },
   calendar: {
     openFolder: 'Takvimi görmek için bir klasör açın.',

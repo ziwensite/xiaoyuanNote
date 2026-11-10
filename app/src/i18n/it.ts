@@ -2148,6 +2148,18 @@ export const it: I18n = {
       today: 'Scadenza',
       all: 'Tutte',
     },
+    period: {
+      toggle: 'Finestra del periodo',
+      daily: 'Giorno',
+      weekly: 'Settimana',
+      monthly: 'Mese',
+      quarterly: 'Trimestre',
+      yearly: 'Anno',
+      prev: 'Periodo precedente',
+      next: 'Periodo successivo',
+      note: 'Solo lettura: righe non completate con data in questo periodo. La nota del periodo non viene modificata.',
+      empty: 'Nessuna attività non completata con data in questo periodo.',
+    },
   },
   calendar: {
     openFolder: 'Apri una cartella per vedere il calendario.',

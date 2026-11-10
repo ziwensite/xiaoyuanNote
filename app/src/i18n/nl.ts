@@ -2165,6 +2165,18 @@ export const nl: I18n = {
       today: 'Vervalt',
       all: 'Alle',
     },
+    period: {
+      toggle: 'Periodevenster',
+      daily: 'Dag',
+      weekly: 'Week',
+      monthly: 'Maand',
+      quarterly: 'Kwartaal',
+      yearly: 'Jaar',
+      prev: 'Vorige periode',
+      next: 'Volgende periode',
+      note: 'Alleen lezen: onvoltooide regels met een datum in deze periode. De periodenotitie wordt niet gewijzigd.',
+      empty: 'Geen onvoltooide taken met een datum in deze periode.',
+    },
   },
   calendar: {
     openFolder: 'Open een map om de agenda te bekijken.',

@@ -2148,6 +2148,18 @@ export const es: I18n = {
       today: 'Vencen',
       all: 'Todas',
     },
+    period: {
+      toggle: 'Ventana del periodo',
+      daily: 'Día',
+      weekly: 'Semana',
+      monthly: 'Mes',
+      quarterly: 'Trimestre',
+      yearly: 'Año',
+      prev: 'Periodo anterior',
+      next: 'Periodo siguiente',
+      note: 'Solo lectura: líneas sin terminar con fecha dentro de este periodo. La nota del periodo no se modifica.',
+      empty: 'No hay tareas sin terminar con fecha en este periodo.',
+    },
   },
   calendar: {
     openFolder: 'Abre una carpeta para ver el calendario.',

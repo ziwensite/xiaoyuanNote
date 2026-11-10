@@ -2148,6 +2148,18 @@ export const fr: I18n = {
       today: 'Échéance',
       all: 'Toutes',
     },
+    period: {
+      toggle: 'Fenêtre de période',
+      daily: 'Jour',
+      weekly: 'Semaine',
+      monthly: 'Mois',
+      quarterly: 'Trimestre',
+      yearly: 'Année',
+      prev: 'Période précédente',
+      next: 'Période suivante',
+      note: 'Lecture seule : lignes non terminées datées dans cette période. La note de période n’est pas modifiée.',
+      empty: 'Aucune tâche non terminée datée dans cette période.',
+    },
   },
   calendar: {
     openFolder: 'Ouvrez un dossier pour afficher le calendrier.',

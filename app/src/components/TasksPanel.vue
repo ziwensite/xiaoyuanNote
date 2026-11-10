@@ -17,16 +17,20 @@ import { useTasks, type WorkspaceTask } from '../composables/useTasks';
 import { useFiles } from '../composables/useFiles';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useTilesStore } from '../stores/tiles';
+import { useSettingsStore } from '../stores/settings';
 import { useI18n } from '../i18n';
 import Icons from './Icons.vue';
 import PanelHeader from './panel/PanelHeader.vue';
 import SegControl from './panel/SegControl.vue';
 import { isOverdue, localDateKey } from '../lib/tasks';
+import { PERIOD_KINDS, shiftPeriod, type PeriodKind } from '../lib/periodic-notes';
+import { periodWindow, tasksInWindow } from '../lib/period-window';
 
 const { tasks, toggle } = useTasks();
 const files = useFiles();
 const idx = useWorkspaceIndexStore();
 const tiles = useTilesStore();
+const settings = useSettingsStore();
 const { t } = useI18n();
 
 const emit = defineEmits<{ (e: 'close'): void }>();
@@ -35,11 +39,36 @@ type Filter = 'open' | 'today' | 'all';
 const filter = ref<Filter>('open');
 const priorityOnly = ref(false);
 
+/**
+ * P6 — the period window (spec §5.5) is a filter, not a roll-up: it lists the
+ * unfinished lines dated inside one periodic note's range and writes nothing
+ * into that note. `windowDate` is any day in the period; the window itself is
+ * always recomputed from the anchor, so paging from mid-week stays on weeks.
+ */
+const windowOn = ref(false);
+const windowKind = ref<PeriodKind>('weekly');
+const windowDate = ref(new Date());
+const activeWindow = computed(() => periodWindow(windowKind.value, windowDate.value, settings.weekStartsOn));
+const windowRange = computed(() =>
+  activeWindow.value.start === activeWindow.value.end
+    ? activeWindow.value.start
+    : `${activeWindow.value.start} – ${activeWindow.value.end}`,
+);
+
+function stepWindow(delta: number) {
+  windowDate.value = shiftPeriod(windowKind.value, activeWindow.value.anchor, delta);
+}
+
+function setWindowKind(event: Event) {
+  windowKind.value = (event.target as HTMLSelectElement).value as PeriodKind;
+}
+
 /** Recomputed per render rather than cached: the panel can be open across
  *  midnight, and a stale "today" is how a task silently stops being overdue. */
 const today = computed(() => localDateKey(new Date()));
 
 const visible = computed<WorkspaceTask[]>(() => {
+  if (windowOn.value) return tasksInWindow(tasks.value, activeWindow.value);
   let list = tasks.value;
   if (filter.value === 'open') list = list.filter((x) => !x.done);
   else if (filter.value === 'today') {
@@ -64,6 +93,8 @@ const groups = computed(() => {
 });
 
 const openCount = computed(() => tasks.value.filter((x) => !x.done).length);
+/** A window IS an "unfinished only" list, so its own length is the count. */
+const shownCount = computed(() => (windowOn.value ? visible.value.length : openCount.value));
 const hasFolder = computed(() => idx.folder !== null);
 
 function overdue(task: WorkspaceTask): boolean {
@@ -86,15 +117,47 @@ async function openTask(task: WorkspaceTask) {
 
 <template>
   <div class="tasks-panel rp">
-    <PanelHeader :count="openCount || null" @close="emit('close')" />
+    <PanelHeader :count="shownCount || null" @close="emit('close')" />
 
     <div class="tasks-panel__filters">
       <SegControl
+        v-if="!windowOn"
         v-model="filter"
         class="tasks-panel__seg"
         :options="(['open', 'today', 'all'] as Filter[]).map((f) => ({ value: f, label: t(`tasks.filter.${f}`) }))"
       />
+      <div v-else class="tasks-panel__window">
+        <button
+          class="tasks-panel__step"
+          type="button"
+          :title="t('tasks.period.prev')"
+          :aria-label="t('tasks.period.prev')"
+          @click="stepWindow(-1)"
+        >
+          <Icons name="chevron-left" :size="14" />
+        </button>
+        <select
+          class="tasks-panel__kind"
+          :value="windowKind"
+          :aria-label="t('tasks.period.toggle')"
+          @change="setWindowKind"
+        >
+          <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
+            {{ t(`tasks.period.${kind}`) }}
+          </option>
+        </select>
+        <button
+          class="tasks-panel__step"
+          type="button"
+          :title="t('tasks.period.next')"
+          :aria-label="t('tasks.period.next')"
+          @click="stepWindow(1)"
+        >
+          <Icons name="chevron-right" :size="14" />
+        </button>
+      </div>
       <button
+        v-if="!windowOn"
         class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': priorityOnly }"
         type="button"
@@ -105,10 +168,26 @@ async function openTask(task: WorkspaceTask) {
       >
         <span class="tasks-panel__bars tasks-panel__bars--high" aria-hidden="true"><i /><i /><i /></span>
       </button>
+      <button
+        class="rp-icon-btn tasks-panel__flag"
+        :class="{ 'is-on': windowOn }"
+        type="button"
+        :title="t('tasks.period.toggle')"
+        :aria-label="t('tasks.period.toggle')"
+        :aria-pressed="windowOn"
+        @click="windowOn = !windowOn"
+      >
+        <Icons name="calendar" :size="14" />
+      </button>
+    </div>
+    <div v-if="windowOn" class="tasks-panel__range" :title="t('tasks.period.note')">
+      {{ windowRange }}
     </div>
 
     <div v-if="!hasFolder" class="rp-empty">{{ t('tasks.openFolder') }}</div>
-    <div v-else-if="groups.length === 0" class="rp-empty">{{ t('tasks.empty') }}</div>
+    <div v-else-if="groups.length === 0" class="rp-empty">
+      {{ windowOn ? t('tasks.period.empty') : t('tasks.empty') }}
+    </div>
 
     <div v-else class="rp-body tasks-panel__list">
       <section v-for="group in groups" :key="group.path" class="tasks-panel__group">
@@ -125,12 +204,14 @@ async function openTask(task: WorkspaceTask) {
             @click="openTask(task)"
           >
             <input
+              v-if="!windowOn"
               type="checkbox"
               class="rp-check tasks-panel__check"
               :checked="task.done"
               :aria-label="task.meta.title"
               @click.stop="toggle(task)"
             />
+            <span v-else class="tasks-panel__mark" aria-hidden="true">•</span>
             <span class="tasks-panel__text">{{ task.meta.title }}</span>
             <span
               v-if="task.meta.priority"
@@ -171,6 +252,63 @@ async function openTask(task: WorkspaceTask) {
 .tasks-panel__seg {
   flex: 1 1 auto;
   min-width: 0;
+}
+/* P6: paging a period. The select is a native one on purpose — five kinds in a
+   segmented control would be unreadable at sidebar width. */
+.tasks-panel__window {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.tasks-panel__step {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.tasks-panel__step:hover {
+  background: var(--fill-1);
+  color: var(--text-1);
+}
+.tasks-panel__kind {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 24px;
+  padding: 0 4px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-size: 12px;
+}
+.tasks-panel__range {
+  flex: 0 0 auto;
+  padding: 0 12px 8px;
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+/* Stands in for the checkbox in window mode: the window is read-only, rows
+   are links into the note where the line actually lives. */
+.tasks-panel__mark {
+  flex: 0 0 auto;
+  width: 13px;
+  margin-right: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
 }
 .tasks-panel__flag {
   width: 28px;

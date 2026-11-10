@@ -2146,6 +2146,18 @@ export const ja: I18n = {
       today: '期限',
       all: 'すべて',
     },
+    period: {
+      toggle: '期間ウィンドウ',
+      daily: '日',
+      weekly: '週',
+      monthly: '月',
+      quarterly: '四半期',
+      yearly: '年',
+      prev: '前の期間',
+      next: '次の期間',
+      note: '読み取り専用：この期間内の未完了行を表示します。期間ノートは変更されません。',
+      empty: 'この期間に未完了のタスクはありません。',
+    },
   },
   calendar: {
     openFolder: 'カレンダーを表示するにはフォルダを開いてください。',
