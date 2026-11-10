@@ -119,6 +119,16 @@ function removeAlarm(index: number) {
       >
     </label>
 
+    <label class="cal-editor__field">
+      <span>{{ t('calendar.editor.tags') }}</span>
+      <input
+        v-model="draft.tags"
+        type="text"
+        class="cal-editor__input"
+        :placeholder="t('calendar.editor.tagsPlaceholder')"
+      >
+    </label>
+
     <div
       v-if="draft.recurring"
       class="cal-editor__scope"

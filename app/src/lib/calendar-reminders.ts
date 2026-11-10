@@ -29,8 +29,7 @@
  */
 import {
   addDays,
-  calendarEventFromEntry,
-  calendarTasksFromEntry,
+  buildCalendarMaterial,
   expandOccurrences,
   localDateKey,
   isDateOnly,
@@ -227,13 +226,7 @@ export function buildReminderSchedule(
   const from = addDays(today, -1);
   const to = addDays(today, horizonDays + 2);
 
-  const events: CalendarEvent[] = [];
-  const tasks: CalendarTask[] = [];
-  for (const entry of entries) {
-    const ev = calendarEventFromEntry(entry);
-    if (ev) events.push(ev);
-    tasks.push(...calendarTasksFromEntry(entry));
-  }
+  const { events, tasks } = buildCalendarMaterial(entries);
   const overrides = events.filter((e) => e.seriesUid !== null && e.recurrenceId !== null);
 
   const items: ReminderItem[] = [];

@@ -2201,6 +2201,8 @@ export const uk: I18n = {
       newTitle: 'Нова подія',
       editTitle: 'Редагувати подію',
       title: 'Назва',
+      tags: 'Мітки',
+      tagsPlaceholder: 'робота, дім',
       untitled: 'Подія без назви',
       date: 'Дата',
       allDay: 'Увесь день',

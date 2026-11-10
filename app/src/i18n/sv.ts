@@ -2201,6 +2201,8 @@ export const sv: I18n = {
       newTitle: 'Ny händelse',
       editTitle: 'Redigera händelse',
       title: 'Titel',
+      tags: 'Taggar',
+      tagsPlaceholder: 'jobb, privat',
       untitled: 'Händelse utan titel',
       date: 'Datum',
       allDay: 'Heldag',

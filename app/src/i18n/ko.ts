@@ -2182,6 +2182,8 @@ export const ko: I18n = {
       newTitle: '새 일정',
       editTitle: '일정 편집',
       title: '제목',
+      tags: '태그',
+      tagsPlaceholder: '업무, 개인',
       untitled: '제목 없는 일정',
       date: '날짜',
       allDay: '종일',

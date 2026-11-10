@@ -9,13 +9,11 @@
  */
 import {
   addDays,
-  calendarEventFromEntry,
-  calendarTasksFromEntry,
+  buildCalendarMaterial,
   canonicalWall,
   dayOfWeek,
   expandOccurrences,
   type CalendarEntry,
-  type CalendarEvent,
   type CalendarOccurrence,
   type CalendarTask,
   type CalendarWindow,
@@ -269,13 +267,7 @@ export function buildCalendarView(
   entries: CalendarEntry[],
   window: CalendarWindow,
 ): CalendarViewData {
-  const events: CalendarEvent[] = [];
-  const tasks: CalendarTask[] = [];
-  for (const entry of entries) {
-    const event = calendarEventFromEntry(entry);
-    if (event) events.push(event);
-    tasks.push(...calendarTasksFromEntry(entry));
-  }
+  const { events, tasks } = buildCalendarMaterial(entries);
 
   const overrides = events.filter(
     (event) => event.seriesUid !== null && event.recurrenceId !== null,

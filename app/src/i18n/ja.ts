@@ -2182,6 +2182,8 @@ export const ja: I18n = {
       newTitle: '新しい予定',
       editTitle: '予定を編集',
       title: 'タイトル',
+      tags: 'タグ',
+      tagsPlaceholder: '仕事, 個人',
       untitled: '無題の予定',
       date: '日付',
       allDay: '終日',

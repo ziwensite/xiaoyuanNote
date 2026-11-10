@@ -2201,6 +2201,8 @@ export const nl: I18n = {
       newTitle: 'Nieuwe afspraak',
       editTitle: 'Afspraak bewerken',
       title: 'Titel',
+      tags: 'Labels',
+      tagsPlaceholder: 'werk, privé',
       untitled: 'Afspraak zonder titel',
       date: 'Datum',
       allDay: 'Hele dag',

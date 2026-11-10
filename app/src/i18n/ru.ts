@@ -2175,6 +2175,8 @@ export const ru: I18n = {
       newTitle: 'Новое событие',
       editTitle: 'Редактировать событие',
       title: 'Название',
+      tags: 'Метки',
+      tagsPlaceholder: 'работа, дом',
       untitled: 'Событие без названия',
       date: 'Дата',
       allDay: 'Весь день',

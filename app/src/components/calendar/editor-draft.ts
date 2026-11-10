@@ -12,6 +12,11 @@ export interface EditorDraft {
   start: string;
   end: string;
   title: string;
+  /**
+   * Tags, edited as free text (`work, home`) and written to the line as
+   * `#work #home`. The event note no longer keeps a `categories` copy (D1 = B).
+   */
+  tags: string;
   location: string;
   notes: string;
   status: CalendarEvent['status'];
@@ -28,6 +33,11 @@ export interface EditorDraft {
   scope: 'single' | 'series' | 'after';
   /** Master UID when `source` is one of its occurrences. */
   seriesUid: string | null;
+  /**
+   * The `🆔` of the line this note points at, or null for a legacy note. A
+   * legacy note gets one on first save (T4.4: upgrade only on an active edit).
+   */
+  entryUid: string | null;
   /** The occurrence start this exception replaces (canonical wall time). */
   recurrenceId: string | null;
   /** RRULE parts the parser could not honour; shown as a visible warning. */

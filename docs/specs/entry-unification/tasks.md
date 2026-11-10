@@ -104,25 +104,29 @@
 
 ## P4. 重量条目 join
 
-## - [ ] T4.1 日历按 `entry_uid` 跨文件 join
+## - [x] T4.1 日历按 `entry_uid` 跨文件 join
 
 - 由索引构建 `uid → (path, line1Based)` 映射；事件笔记有 `entry_uid` 时，共用字段取那一行，extras 取事件笔记。
 - 找不到对应行 → 回退事件笔记自身 frontmatter（legacy），不做改写。
 - 验证：现有 calendar 测试全绿；legacy 笔记渲染不变。
+- **实施说明**：新增 `buildEntryLineIndex`（首个命中优先）与 `joinedEvent`，共用字段（描述、`📅`、`🔁`、`#tag`、`⏰`）来自行，时间/地点/备注/系列链接来自笔记。`buildCalendarIndex`、`buildCalendarView`、`buildCalendarReminders` 统一改走 `buildCalendarMaterial`：既做 join，也把"被事件笔记指到的那一行"从任务列表里摘掉，避免重量条目在日历里出现两次。找不到行的指针回退到自身 frontmatter；extras-only 笔记没有 `dtstart`，因此行被删后事件会消失、孤儿行仍作为普通任务显示。`CalendarEvent` 新增可选 `entryUid` 供写回使用。
 
-## - [ ] T4.2 事件笔记只写 extras
+## - [x] T4.2 事件笔记只写 extras
 
 - 新建重量条目时，事件笔记写 `entry_uid` + 事件专属键；**不写** `summary`/日期/`rrule`/标签。
 - 验证：事件笔记里 grep 不到共用字段副本；连续保存两次零 diff。
+- **实施说明**：`entryEventFrontmatter` 只输出 `type/uid/entry_uid/all_day/start_time/end_time/tzid/status/description/location/exdate/series_uid/recurrence_id/related_note/同步元数据`；`createEntryEventNote` 用于新建，`writeEntryEventNote` 用于改写并**删除**六类共用键（`summary/dtstart/dtend/rrule/categories/alarms`）。它保留原 `dtstamp` 而不是刷新，所以连续两次相同保存字节一致。新建重量条目先写行（权威、失败时可单独存在）再建指针笔记；写行目标沿用 `writeEntryLine`（有行改行、无行落今天日记）。
 
-## - [ ] T4.3 `categories` 由行提供
+## - [x] T4.3 `categories` 由行提供
 
 - 事件编辑器补标签输入，写入回行内 `#tag`（不再写 `categories`）。
 - 验证：加 `#work` → 行里出现 `#work`，日历标签随之变化。
+- **实施说明**：`EditorDraft` 增加 `tags` 文本（`work, home` 或 `#work #home` 均可解析），编辑器新增输入框，15 个语言补 `calendar.editor.tags/tagsPlaceholder`。保存时 `lineFromCalendarEvent` 把标签写成行内 `#tag`；行侧只改共用字段，`⏫`/`⏳`/`🆔`/状态等任务专属 token 原样保留。`🔁` 文本仍能编译成同一规则时保留自然语言，规则真变了（如系列拆分加 `UNTIL`）才写回 iCal 文本。事件笔记不再出现 `categories`。
 
-## - [ ] T4.4 legacy 静默只读（D7：不加徽标）
+## - [x] T4.4 legacy 静默只读（D7：不加徽标）
 
 - 验证：旧笔记未被改动前字节不变；用户主动编辑时才建行 + 写指针。
+- **实施说明**：读取路径（join/回退）不写盘，未编辑的旧笔记字节不变。保存旧笔记时按"主动升级"处理：用现有 `uid` 派生 uid8 → 在今天的日记建行（`📅`/`🔁`/`⏰`/标签/`🆔`）→ 事件笔记一次改写为 extras-only 并写入 `entry_uid`，共用键同次删除。例外实例与"此后所有"拆分出的新系列仍按完整 frontmatter 创建（它们的日期/规则是派生结果，不冒充新的创建条目），首次主动编辑时同样走升级。上方注释中提到的"写行失败则终止"保证不会出现有指针无行的笔记。
 
 ## P5. 捕获预设
 

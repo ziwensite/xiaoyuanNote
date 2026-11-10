@@ -2184,6 +2184,8 @@ export const es: I18n = {
       newTitle: 'Nuevo evento',
       editTitle: 'Editar evento',
       title: 'Título',
+      tags: 'Etiquetas',
+      tagsPlaceholder: 'trabajo, casa',
       untitled: 'Evento sin título',
       date: 'Fecha',
       allDay: 'Todo el día',

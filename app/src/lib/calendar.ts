@@ -16,7 +16,9 @@
  * Everything here is pure (no Tauri calls) so it can be unit-tested with
  * `node --test` and reused by the pane in M1.
  */
+import { ENTRY_UID_KEY } from './entry';
 import { dumpFrontmatter, patchFrontmatter, splitFrontmatter } from './frontmatter';
+import { parseTaskLine, serializeTaskLine, writeTaskLine } from './task-line';
 import { compareTasks, parseTaskMeta, type TaskMeta, type TaskPriority, type TaskRecurrenceKind } from './tasks';
 
 export type EventStatus = 'CONFIRMED' | 'TENTATIVE' | 'CANCELLED';
@@ -64,6 +66,12 @@ export interface CalendarEvent {
   sequence: number;
   path: string;
   mtime: number;
+  /**
+   * D1 = B: set when the note is a pointer, not a copy. The authoritative
+   * fields (summary, date, rule, tags) then come from the line this `🆔` names,
+   * and the note only carries the event-only extras.
+   */
+  entryUid?: string | null;
 }
 
 export interface CalendarTask {
@@ -746,6 +754,7 @@ export function eventFromFrontmatter(
     sequence: num(fm.sequence),
     path: opts.path,
     mtime: opts.mtime ?? 0,
+    entryUid: entryUidOf(fm),
   };
 }
 
@@ -766,8 +775,23 @@ export function parseCalendarEvent(
   });
 }
 
-/** Project an index entry (frontmatter only — no note body available). */
-export function calendarEventFromEntry(entry: CalendarEntry): CalendarEvent | null {
+/**
+ * Project an index entry (frontmatter only — no note body available).
+ *
+ * When `lines` is given and the note carries an `entry_uid` pointer, the shared
+ * fields are taken from that line instead of the note (D1 = B). A pointer whose
+ * line is gone falls back to the note itself, which is also the whole path for
+ * legacy notes.
+ */
+export function calendarEventFromEntry(
+  entry: CalendarEntry,
+  lines?: Map<string, EntryLineRef>,
+): CalendarEvent | null {
+  const pointer = entryUidOf(entry.frontmatter);
+  if (pointer && lines) {
+    const ref = lines.get(pointer);
+    if (ref) return joinedEvent(entry, entry.frontmatter ?? {}, pointer, ref);
+  }
   return eventFromFrontmatter(entry.frontmatter, {
     path: entry.path,
     mtime: entry.mtime ?? 0,
@@ -800,6 +824,185 @@ export function calendarTasksFromEntry(entry: CalendarEntry): CalendarTask[] {
       mtime: entry.mtime ?? 0,
     };
   });
+}
+
+// -------------------------------------------------------------------------
+// D1 = B — joining a heavy entry's note to its authoritative line
+// -------------------------------------------------------------------------
+
+/** One line, located by the `🆔` it carries. */
+export interface EntryLineRef {
+  path: string;
+  /** 1-based, the same numbering the index uses. */
+  line: number;
+  text: string;
+}
+
+/** The `entry_uid` pointer on an event note, or null when it has none. */
+export function entryUidOf(frontmatter: Record<string, unknown> | null): string | null {
+  const value = str(frontmatter?.[ENTRY_UID_KEY]);
+  return value ? value : null;
+}
+
+/**
+ * `🆔 → line` over every task the index knows about.
+ *
+ * First occurrence wins: two notes cannot own the same identity, and picking the
+ * first keeps the projection deterministic instead of flickering with read order.
+ */
+export function buildEntryLineIndex(entries: CalendarEntry[]): Map<string, EntryLineRef> {
+  const map = new Map<string, EntryLineRef>();
+  for (const entry of entries) {
+    for (const task of entry.tasks ?? []) {
+      const uid = parseTaskMeta(task.text).uid?.trim();
+      if (!uid || map.has(uid)) continue;
+      map.set(uid, { path: entry.path, line: task.line, text: task.text });
+    }
+  }
+  return map;
+}
+
+/** `HH:mm` from a clock (`09:00`), a wall time (`…T09:00:00`) or a timestamp. */
+function clockOf(value: unknown): string | null {
+  const raw = str(value);
+  if (!raw) return null;
+  const m = /(?:^|T|\s)(\d{1,2}):(\d{2})/.exec(raw);
+  if (!m) return null;
+  const hour = Number(m[1]);
+  const minute = Number(m[2]);
+  if (hour > 23 || minute > 59) return null;
+  return `${pad(hour)}:${pad(minute)}`;
+}
+
+function minutesOfClock(clock: string): number {
+  const [hour, minute] = clock.split(':').map(Number);
+  return hour * 60 + minute;
+}
+
+function wallAtDate(date: string, minutes: number): string {
+  const dayOffset = Math.floor(minutes / 1440);
+  const rem = minutes - dayOffset * 1440;
+  return `${addDays(date, dayOffset)}T${pad(Math.floor(rem / 60))}:${pad(rem % 60)}:00`;
+}
+
+/**
+ * Project a pointer note onto the line it names.
+ *
+ * Shared fields (title, day, rule, tags, reminders) come from the line; extras
+ * (times, location, note, series links) come from the note. The line wins on
+ * every field it can express — that is what makes it the single authority.
+ */
+function joinedEvent(
+  entry: CalendarEntry,
+  fm: Record<string, unknown>,
+  pointer: string,
+  ref: EntryLineRef,
+): CalendarEvent | null {
+  const meta = parseTaskMeta(ref.text);
+  // `parseTaskMeta` keeps the bullet and status prefix in `title`; the task
+  // parser is the one that knows where the description starts.
+  const model = parseTaskLine(ref.text);
+  const legacyStart = normalizeWallTime(fm.dtstart);
+  const due = model?.due || meta.due;
+  const day = due ?? legacyStart?.slice(0, 10) ?? null;
+  if (!day) return null;
+
+  const clock =
+    clockOf(fm.start_time) ??
+    (legacyStart && !isDateOnly(legacyStart) ? legacyStart.slice(11, 16) : null);
+  const allDay = bool(fm.all_day) || clock === null;
+
+  let dtstart: CalendarWallTime;
+  let dtend: CalendarWallTime | null = null;
+  if (allDay) {
+    dtstart = day;
+    const end = normalizeWallTime(fm.end_time);
+    dtend = end && isDateOnly(end) && compareDate(end, day) > 0 ? end : addDays(day, 1);
+  } else {
+    const startMinutes = minutesOfClock(clock!);
+    dtstart = wallAtDate(day, startMinutes);
+    const end = normalizeWallTime(fm.end_time);
+    if (end && !isDateOnly(end)) {
+      dtend = end;
+    } else if (end) {
+      dtend = `${end}T${clock}:00`;
+    } else {
+      const endClock = clockOf(fm.end_time);
+      if (endClock) {
+        const endDay = minutesOfClock(endClock) < startMinutes ? addDays(day, 1) : day;
+        dtend = `${endDay}T${endClock}:00`;
+      }
+    }
+  }
+
+  const reminders = model?.reminders ?? meta.reminders ?? [];
+  return {
+    kind: 'event',
+    uid: str(fm.uid) ?? localUidForPath(entry.path),
+    summary: model?.description.trim() || str(fm.summary) || str(fm.title) || '',
+    description: '',
+    notes: str(fm.description),
+    dtstart,
+    dtend,
+    tzid: str(fm.tzid) ?? str(fm.timezone),
+    allDay,
+    status: statusOf(fm.status),
+    categories: model ? [...model.tags] : [...meta.tags],
+    location: str(fm.location),
+    rrule: meta.rrule ?? null,
+    exdate: wallList(fm.exdate),
+    seriesUid: str(fm.series_uid),
+    recurrenceId: normalizeWallTime(fm.recurrence_id),
+    // Reminders are a shared field (spec §3.1): the line is authoritative, so a
+    // reminder added in the note is not read. The note's own alarms only matter
+    // for a legacy note, which never reaches this branch.
+    alarms: reminders.map((trigger) => ({ trigger, action: 'DISPLAY' })),
+    relatedNote: str(fm.related_note),
+    source: sourceOf(fm.source),
+    remoteHref: str(fm.remote_href),
+    etag: str(fm.etag),
+    sequence: num(fm.sequence),
+    path: entry.path,
+    mtime: entry.mtime ?? 0,
+    entryUid: pointer,
+  };
+}
+
+/** Everything the calendar renders, with heavy entries joined to their lines. */
+export interface CalendarMaterial {
+  events: CalendarEvent[];
+  tasks: CalendarTask[];
+  /** `🆔 → line`, reused by callers that edit an entry. */
+  lines: Map<string, EntryLineRef>;
+}
+
+/**
+ * Build the two projections once so the calendar and the task pane agree.
+ *
+ * A line that an event note points at is removed from `tasks`: the entry is
+ * already on the grid as an event, and showing it twice would be a second copy
+ * of the same thing. A pointer with no matching line keeps its frontmatter
+ * fallback (legacy notes) and, if that fails, the orphan line stays a task.
+ */
+export function buildCalendarMaterial(entries: CalendarEntry[]): CalendarMaterial {
+  const lines = buildEntryLineIndex(entries);
+  const events: CalendarEvent[] = [];
+  const claimed = new Set<string>();
+  for (const entry of entries) {
+    const pointer = entryUidOf(entry.frontmatter);
+    const event = calendarEventFromEntry(entry, lines);
+    if (!event) continue;
+    events.push(event);
+    if (pointer) claimed.add(pointer);
+  }
+  const tasks: CalendarTask[] = [];
+  for (const entry of entries) {
+    for (const task of calendarTasksFromEntry(entry)) {
+      if (task.uid && claimed.has(task.uid)) continue;
+      tasks.push(task);
+    }
+  }
+  return { events, tasks, lines };
 }
 
 export interface SeriesSplit {
@@ -1312,13 +1515,7 @@ export function buildCalendarIndex(
   entries: CalendarEntry[],
   window: CalendarWindow,
 ): CalendarIndex {
-  const events: CalendarEvent[] = [];
-  const tasks: CalendarTask[] = [];
-  for (const entry of entries) {
-    const ev = calendarEventFromEntry(entry);
-    if (ev) events.push(ev);
-    tasks.push(...calendarTasksFromEntry(entry));
-  }
+  const { events, tasks } = buildCalendarMaterial(entries);
 
   const overrides = events.filter((e) => e.seriesUid !== null && e.recurrenceId !== null);
   const days: CalendarDay[] = [];
@@ -1438,6 +1635,134 @@ export function createCalendarEvent(
   return `${dumpFrontmatter(fm)}\n\n${body}`;
 }
 
+// -------------------------------------------------------------------------
+// D1 = B — a heavy entry's note holds extras only
+// -------------------------------------------------------------------------
+
+/** Keys the line owns; copying them into the note would create a second copy. */
+const ENTRY_SHARED_KEYS = ['summary', 'dtstart', 'dtend', 'rrule', 'categories', 'alarms'] as const;
+
+/** `end_time` that keeps the date only when the span needs it. */
+function endTimeFor(start: string, end: string): string {
+  if (isDateOnly(end)) return end;
+  const sameDay = end.slice(0, 10) === start.slice(0, 10);
+  const nextMidnight =
+    end.slice(0, 10) === addDays(start.slice(0, 10), 1) && end.slice(11, 16) === '00:00';
+  return sameDay || nextMidnight ? end.slice(11, 16) : end;
+}
+
+/**
+ * iCal-shaped extras for a pointer note.
+ *
+ * Deliberately absent: `summary`, `dtstart`, `dtend`, `rrule`, `categories`,
+ * `alarms`. All six are line fields (spec §3.1); writing them here as well is
+ * the duplicate this design exists to remove. The date comes back from the
+ * line's `📅` on read, the clock from `start_time`.
+ */
+export function entryEventFrontmatter(
+  event: CalendarEvent,
+  entryUid: string,
+): Record<string, unknown> {
+  const fm: Record<string, unknown> = {
+    type: 'event',
+    uid: event.uid,
+    [ENTRY_UID_KEY]: entryUid,
+  };
+  if (event.allDay) {
+    fm.all_day = true;
+    const end = event.dtend;
+    if (end && isDateOnly(end) && end !== addDays(event.dtstart.slice(0, 10), 1)) {
+      fm.end_time = end;
+    }
+  } else {
+    fm.start_time = clockOf(event.dtstart) ?? event.dtstart.slice(11, 16);
+    if (event.dtend) fm.end_time = endTimeFor(event.dtstart, event.dtend);
+  }
+  if (event.tzid) fm.tzid = event.tzid;
+  if (event.notes) fm.description = event.notes;
+  if (event.location) fm.location = event.location;
+  if (event.status !== 'CONFIRMED') fm.status = event.status;
+  if (event.exdate.length) fm.exdate = event.exdate;
+  if (event.seriesUid) fm.series_uid = event.seriesUid;
+  if (event.recurrenceId) fm.recurrence_id = event.recurrenceId;
+  if (event.relatedNote) fm.related_note = event.relatedNote;
+  if (event.source !== 'local') fm.source = event.source;
+  if (event.remoteHref) fm.remote_href = event.remoteHref;
+  if (event.etag) fm.etag = event.etag;
+  if (event.sequence) fm.sequence = event.sequence;
+  return fm;
+}
+
+/** Create a pointer note: extras + `entry_uid`, never a copy of the line. */
+export function createEntryEventNote(
+  event: CalendarEvent,
+  entryUid: string,
+  body = '',
+): string {
+  return `${dumpFrontmatter(entryEventFrontmatter(event, entryUid))}\n\n${body}`;
+}
+
+/**
+ * Rewrite a pointer note in place.
+ *
+ * The shared keys are deleted even when the note still carries them (an old
+ * note being upgraded): one save removes the stale projection, and a second
+ * identical save changes nothing because `dtstamp` is preserved, not refreshed.
+ */
+export function writeEntryEventNote(
+  text: string,
+  event: CalendarEvent,
+  entryUid: string,
+): string {
+  const patch: Record<string, unknown> = {};
+  for (const key of MANAGED_EVENT_KEYS) {
+    if (key !== 'dtstamp') patch[key] = undefined;
+  }
+  for (const key of ENTRY_SHARED_KEYS) patch[key] = undefined;
+  for (const [key, value] of Object.entries(entryEventFrontmatter(event, entryUid))) {
+    patch[key] = value;
+  }
+  return patchFrontmatter(text, patch);
+}
+
+/**
+ * The line side of an event edit: shared fields are written here, task-only
+ * tokens (status, priority, `🆔`, `⛔`, `➕`…) are preserved.
+ *
+ * The written `🔁` text is kept when it still compiles to the event's rule, so
+ * an ordinary edit does not turn `every week` into `FREQ=WEEKLY`. An operation
+ * that changes the rule itself (a series split adding `UNTIL`) writes the iCal
+ * value, which the line model already understands as a legacy rule.
+ */
+export function lineFromCalendarEvent(line: string, event: CalendarEvent): string | null {
+  const model = parseTaskLine(line);
+  if (!model) return null;
+  model.description = event.summary;
+  model.tags = event.categories
+    .map((tag) => tag.replace(/^#+/u, '').trim())
+    .filter(Boolean);
+  model.due = event.dtstart.slice(0, 10);
+  model.reminders = event.alarms.map((alarm) => alarm.trigger);
+  const written = parseTaskMeta(line).rrule ?? null;
+  if (!event.rrule) model.recurrence = '';
+  else if (written !== event.rrule) model.recurrence = event.rrule;
+  return serializeTaskLine(model);
+}
+
+/** A fresh line for an entry whose line cannot be found (new or deleted). */
+export function newEntryLine(event: CalendarEvent, uid: string): string {
+  const parts = [`- [ ] ${event.summary}`];
+  for (const tag of event.categories) {
+    const name = tag.replace(/^#+/u, '').trim();
+    if (name) parts.push(`#${name}`);
+  }
+  if (event.rrule) parts.push(`🔁 ${event.rrule}`);
+  parts.push(`📅 ${event.dtstart.slice(0, 10)}`);
+  for (const alarm of event.alarms) parts.push(`⏰ ${alarm.trigger}`);
+  parts.push(`🆔 ${uid}`);
+  return writeTaskLine(parts.join(' '), event.dtstart.slice(0, 10)) ?? parts.join(' ');
+}
+
 /** `crypto.randomUUID` with a deterministic-enough fallback for older runtimes. */
 export function newEventUid(): string {
   const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
@@ -1494,5 +1819,8 @@ export function makeExceptionEvent(
     path: '',
     mtime: 0,
     source: 'local',
+    // A detached occurrence owns its own day, so it must not inherit the
+    // master's pointer: the line it names has the master's date.
+    entryUid: null,
   };
 }

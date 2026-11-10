@@ -2213,6 +2213,8 @@
       newTitle: 'New event',
       editTitle: 'Edit event',
       title: 'Title',
+      tags: 'Tags',
+      tagsPlaceholder: 'work, home',
       untitled: 'Untitled event',
       date: 'Date',
       allDay: 'All day',

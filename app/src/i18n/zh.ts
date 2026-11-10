@@ -2185,6 +2185,8 @@ export const zh: I18n = {
       newTitle: '新建事件',
       editTitle: '编辑事件',
       title: '标题',
+      tags: '标签',
+      tagsPlaceholder: '工作, 个人',
       untitled: '未命名事件',
       date: '日期',
       allDay: '全天',

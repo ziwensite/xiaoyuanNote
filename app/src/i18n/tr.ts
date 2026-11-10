@@ -2201,6 +2201,8 @@ export const tr: I18n = {
       newTitle: 'Yeni etkinlik',
       editTitle: 'Etkinliği düzenle',
       title: 'Başlık',
+      tags: 'Etiketler',
+      tagsPlaceholder: 'iş, kişisel',
       untitled: 'Başlıksız etkinlik',
       date: 'Tarih',
       allDay: 'Tüm gün',

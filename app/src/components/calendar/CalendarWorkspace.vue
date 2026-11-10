@@ -28,15 +28,18 @@ import { useI18n, htmlLangFor } from '../../i18n';
 import Icons from '../Icons.vue';
 import {
   addDays,
-  calendarTasksFromEntry,
+  buildCalendarMaterial,
   createCalendarEvent,
+  createEntryEventNote,
   explainRRule,
+  lineFromCalendarEvent,
   localDateKey,
   makeExceptionEvent,
+  newEntryLine,
   newEventUid,
   shiftMonth,
   splitSeriesAt,
-  writeCalendarEvent,
+  writeEntryEventNote,
   type CalendarEntry,
   type CalendarEvent,
   type CalendarOccurrence,
@@ -67,7 +70,6 @@ import {
 } from '../../lib/calendar-edit';
 import { noteOwnWrite } from '../../lib/external-change';
 import { createEntryWriter } from '../../lib/entry-writer';
-import { writeTaskLine } from '../../lib/task-line';
 import { samePath } from '../../lib/path-key';
 import { joinInFolder } from '../../lib/import-plan';
 import { parentDirOf } from '../../lib/new-file-target';
@@ -154,9 +156,16 @@ const viewData = computed(() =>
   buildCalendarView(idx.entries as CalendarEntry[], range.value),
 );
 
-const allTasks = computed(() =>
-  (idx.entries as CalendarEntry[]).flatMap((entry) => calendarTasksFromEntry(entry)),
-);
+/**
+ * Events join their `entry_uid` line here, and a line an event points at is
+ * dropped from the task list — otherwise a heavy entry would appear twice.
+ */
+const material = computed(() => buildCalendarMaterial(idx.entries as CalendarEntry[]));
+
+const allTasks = computed(() => material.value.tasks);
+
+/** `🆔 → line`, for event edits that must write the line as well as the note. */
+const entryLines = computed(() => material.value.lines);
 
 const taskDoneCount = computed(() => allTasks.value.filter((task) => task.done).length);
 
@@ -407,6 +416,7 @@ function openNew(date: string, startMin = 540, allDay = false) {
     start: allDay ? '09:00' : timeOf(event.dtstart),
     end: allDay ? '10:00' : timeOf(event.dtend ?? event.dtstart),
     title: '',
+    tags: '',
     location: '',
     notes: '',
     status: 'CONFIRMED',
@@ -414,6 +424,7 @@ function openNew(date: string, startMin = 540, allDay = false) {
     recurring: false,
     scope: 'single',
     seriesUid: null,
+    entryUid: null,
     recurrenceId: null,
     ruleUnsupported: [],
     alarms: [],
@@ -438,6 +449,7 @@ async function openEdit(occ: CalendarOccurrence) {
     start: source.allDay ? '09:00' : timeOf(occ.start),
     end: source.allDay ? '10:00' : timeOf(occ.end ?? occ.start),
     title: source.summary,
+    tags: source.categories.join(' '),
     location: source.location ?? '',
     notes: source.notes ?? '',
     status: source.status,
@@ -445,6 +457,7 @@ async function openEdit(occ: CalendarOccurrence) {
     recurring,
     scope: 'series',
     seriesUid: recurring ? source.uid : source.seriesUid,
+    entryUid: source.entryUid ?? null,
     recurrenceId: recurring ? occ.start : null,
     ruleUnsupported: explainRRule(source.rrule).unsupported,
     // Copied so cancelling the editor cannot mutate the rendered event and so
@@ -462,11 +475,21 @@ async function openEdit(occ: CalendarOccurrence) {
   }
 }
 
+function parseTags(value: string): string[] {
+  const seen = new Set<string>();
+  for (const raw of value.split(/[\s,，]+/u)) {
+    const name = raw.replace(/^#+/u, '').trim();
+    if (name) seen.add(name);
+  }
+  return [...seen];
+}
+
 function buildEvent(draft: EditorDraft): CalendarEvent | null {
   const base = draft.source ?? blankEvent(draft.date, draft.allDay);
   const summary = draft.title.trim() || t('calendar.editor.untitled');
   const notes = draft.notes.trim() ? draft.notes : null;
   const location = draft.location.trim() ? draft.location : null;
+  const categories = parseTags(draft.tags);
 
   // Editing the master keeps its own DTSTART/DTEND; date inputs are disabled
   // for that scope anyway. "This occurrence" (and any non-recurring event)
@@ -500,16 +523,19 @@ function buildEvent(draft: EditorDraft): CalendarEvent | null {
     // Detached instance: new note, new UID, no RRULE. `series_uid` +
     // `recurrence_id` are what stop the master from also rendering this
     // occurrence (see `makeExceptionEvent`).
-    return makeExceptionEvent(base, draft.recurrenceId, {
-      summary,
-      notes,
-      location,
-      allDay: draft.allDay,
-      dtstart,
-      dtend,
-      status: draft.status,
-      alarms: draft.alarms,
-    });
+    return {
+      ...makeExceptionEvent(base, draft.recurrenceId, {
+        summary,
+        notes,
+        location,
+        allDay: draft.allDay,
+        dtstart,
+        dtend,
+        status: draft.status,
+        alarms: draft.alarms,
+      }),
+      categories,
+    };
   }
 
   return {
@@ -522,6 +548,7 @@ function buildEvent(draft: EditorDraft): CalendarEvent | null {
     dtend,
     status: draft.status,
     alarms: draft.alarms,
+    categories,
   };
 }
 
@@ -581,24 +608,35 @@ function isLightEntry(event: CalendarEvent): boolean {
 }
 
 /**
- * Write a new light entry as a task line in **today's** daily note (D6), then
- * let the index pick it up: the existing `buildCalendarIndex` buckets any task
- * with a `📅` by that date, so the entry appears on its own day for free.
+ * Write one entry's authoritative line.
+ *
+ * An existing line is updated in place (the writer matches on `🆔`), which is
+ * also what makes an edit idempotent. When the line is gone — a new entry, or a
+ * legacy note being upgraded — a fresh one is composed and put into **today's**
+ * daily note (D6).
  */
-async function createLightEntry(event: CalendarEvent) {
-  const target = await daily.ensurePeriodic('daily', new Date());
-  if (!target) {
-    editorError.value = t('calendar.openFolder');
+async function writeEntryLine(event: CalendarEvent, entryUid: string) {
+  const ref = entryLines.value.get(entryUid);
+  const seed = ref?.text ?? newEntryLine(event, entryUid);
+  const line = lineFromCalendarEvent(seed, event);
+  if (!line) return;
+  let path = ref?.path;
+  if (!path) {
+    const target = await daily.ensurePeriodic('daily', new Date());
+    if (!target) throw new Error(t('calendar.openFolder'));
+    path = target.path;
+  }
+  await writeEntryTo(path, line, { uid: entryUid, heading: settings.captureHeading });
+}
+
+/** A light entry is nothing but its line, so the capture write is the whole job. */
+async function createLightEntry(event: CalendarEvent, entryUid: string) {
+  try {
+    await writeEntryLine(event, entryUid);
+  } catch (e) {
+    editorError.value = t('calendar.toastFailed', { error: String(e) });
     return;
   }
-  const uid = shortEntryUid(event.uid);
-  const parts = [`- [ ] ${event.summary}`, `📅 ${event.dtstart.slice(0, 10)}`];
-  for (const alarm of event.alarms) parts.push(`⏰ ${alarm.trigger}`);
-  parts.push(`🆔 ${uid}`);
-  const line = writeTaskLine(parts.join(' '), today.value);
-  // Unreachable in practice: the prefix is a task line by construction.
-  if (!line) return;
-  await writeEntryTo(target.path, line, { uid, heading: settings.captureHeading });
   editor.value = null;
   toasts.success(t('calendar.toastCreated'));
 }
@@ -609,8 +647,17 @@ async function createNewEvent(event: CalendarEvent) {
     editorError.value = t('calendar.openFolder');
     return;
   }
+  const entryUid = shortEntryUid(event.uid);
   if (isLightEntry(event)) {
-    await createLightEntry(event);
+    await createLightEntry(event, entryUid);
+    return;
+  }
+  // Order matters: the line is the authority and already renders on its own as
+  // a task, so it lands first. The pointer note is created second.
+  try {
+    await writeEntryLine(event, entryUid);
+  } catch (e) {
+    editorError.value = t('calendar.toastFailed', { error: String(e) });
     return;
   }
   const dir = joinInFolder(folder, 'Calendar');
@@ -624,7 +671,7 @@ async function createNewEvent(event: CalendarEvent) {
   if (await invoke<boolean>('fs_file_exists', { path }).catch(() => false)) {
     path = joinInFolder(dir, eventFileName(event.dtstart.slice(0, 10), event.summary, newEventUid()));
   }
-  const text = createCalendarEvent(event, '');
+  const text = createEntryEventNote(event, entryUid, '');
   noteOwnWrite(path, text);
   await invoke('write_file', { path, content: text, encoding: 'UTF-8' });
   window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
@@ -708,7 +755,12 @@ async function splitSeriesNote(draft: EditorDraft, tail: CalendarEvent) {
 }
 
 /**
- * Rewrite one event, keeping its body byte-for-byte.
+ * Rewrite one entry.
+ *
+ * D1 = B splits the write in two: the line (shared fields) and the note
+ * (extras + pointer). A legacy note is upgraded on its first active edit —
+ * a fresh line is created and the note becomes a pointer — but *reading* it
+ * never touches bytes, so notes nobody edits stay exactly as they are (D7).
  *
  * The file is re-read first. If disk no longer matches the snapshot taken when
  * the edit/drag started, the write stops and the user decides — an outside
@@ -727,7 +779,8 @@ async function persistExisting(
     return false;
   }
   const base = tab ? tab.content : disk.content;
-  const next = writeCalendarEvent(base, event);
+  const entryUid = event.entryUid ?? shortEntryUid(event.uid);
+  const next = writeEntryEventNote(base, event, entryUid);
   const snapshot = await snapshotPromise.catch(() => '');
   if (planCalendarWrite(disk.content, snapshot, next) === 'conflict') {
     const ok = await confirmDialog(t('calendar.confirmConflict'), {
@@ -737,6 +790,14 @@ async function persistExisting(
       cancelLabel: t('calendar.cancel'),
     });
     if (!ok) return false;
+  }
+  // The line is written first: if it fails, the note still describes the old
+  // state, which is better than a pointer note with no line behind it.
+  try {
+    await writeEntryLine(event, entryUid);
+  } catch (e) {
+    editorError.value = t('calendar.toastFailed', { error: String(e) });
+    return false;
   }
   if (tab) {
     tabs.setContent(tab.id, next);
