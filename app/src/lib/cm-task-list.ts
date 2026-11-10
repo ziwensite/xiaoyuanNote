@@ -1,17 +1,18 @@
 /**
- * Task list checkbox interactivity for CodeMirror 6 + lezer-markdown GFM.
+ * Task list checkbox interactivity for CodeMirror 6.
  *
- * Walks the syntax tree looking for `TaskMarker` nodes and replaces the
- * literal `[ ]` / `[x]` text with a real <input type="checkbox"> widget.
- * Clicking the checkbox toggles the marker in the underlying doc.
+ * GFM's `TaskMarker` node only exists for `[ ]` and `[x]`, so `[/]`, `[-]`,
+ * `[?]` and any custom status Obsidian Tasks understands would stay as literal
+ * text and could not be clicked. This scans task lines with a regex instead,
+ * which keeps every status character clickable, and derives the checkbox state
+ * from the same status table the rest of the app uses (`taskStatusRule`).
  *
- * Requires the markdown language to be configured with GFM (which is the
- * default when using `markdownLanguage` as the base from
- * `@codemirror/lang-markdown`).
+ * The marker stays a real <input type="checkbox">; clicking it rewrites only
+ * the three characters between the brackets.
  */
 
 import { syntaxTree } from '@codemirror/language';
-import { RangeSetBuilder } from '@codemirror/state';
+import { RangeSetBuilder, type EditorState } from '@codemirror/state';
 import {
   Decoration,
   DecorationSet,
@@ -21,8 +22,12 @@ import {
   WidgetType,
 } from '@codemirror/view';
 import { frozenDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard';
+import { taskStatusRule } from './tasks';
 
 const TOGGLE_EVENT = 'solomd-task-toggle';
+
+/** `- [ ]` / `* [x]` / `1. [/]`, with any single status character. */
+const TASK_MARKER = /^(\s*(?:[-*+]|\d{1,9}[.)])[ \t]+)(\[[^\]\n]\])(?=[ \t]|$)/u;
 
 interface ToggleDetail {
   from: number;
@@ -78,30 +83,52 @@ class TaskWidget extends WidgetType {
   }
 }
 
-function buildTaskDecorations(view: EditorView): DecorationSet {
-  const builder = new RangeSetBuilder<Decoration>();
-  const doc = view.state.doc;
+/** Fenced and indented code must keep showing raw `[ ]` text. */
+function insideCode(state: EditorState, pos: number): boolean {
+  let node = syntaxTree(state).resolveInner(pos, 1);
+  for (; node; node = node.parent as typeof node) {
+    if (node.name === 'FencedCode' || node.name === 'CodeBlock') return true;
+  }
+  return false;
+}
 
-  for (const { from, to } of view.visibleRanges) {
-    syntaxTree(view.state).iterate({
-      from,
-      to,
-      enter: (node) => {
-        if (node.name !== 'TaskMarker') return;
-        // Text is either "[ ]" or "[x]"/"[X]".
-        const text = doc.sliceString(node.from, node.to);
-        const checked = /\[[xX]\]/.test(text);
-        builder.add(
-          node.from,
-          node.to,
-          Decoration.replace({
-            widget: new TaskWidget(checked, node.from, node.to),
-          }),
-        );
-      },
-    });
+function buildTaskDecorations(view: EditorView): DecorationSet {
+  const doc = view.state.doc;
+  const found: Array<{ from: number; to: number; checked: boolean }> = [];
+
+  for (const range of view.visibleRanges) {
+    for (let pos = range.from; pos <= range.to; ) {
+      const line = doc.lineAt(pos);
+      const m = TASK_MARKER.exec(line.text);
+      if (m && !insideCode(view.state, line.from + m[1].length)) {
+        const from = line.from + m[1].length;
+        found.push({
+          from,
+          to: from + m[2].length,
+          checked: taskStatusRule(m[2][1]).type === 'done',
+        });
+      }
+      if (line.to >= range.to) break;
+      pos = line.to + 1;
+    }
   }
 
+  // Visible ranges may start mid-line, so the scan can revisit a line; sort
+  // before building because RangeSetBuilder insists on ascending positions.
+  found.sort((a, b) => a.from - b.from);
+  const builder = new RangeSetBuilder<Decoration>();
+  let last = -1;
+  for (const item of found) {
+    if (item.from === last) continue;
+    last = item.from;
+    builder.add(
+      item.from,
+      item.to,
+      Decoration.replace({
+        widget: new TaskWidget(item.checked, item.from, item.to),
+      }),
+    );
+  }
   return builder.finish();
 }
 
@@ -121,10 +148,13 @@ export function taskListExtension() {
           if (!d) return;
           if (d.to > view.state.doc.length) return;
           const current = view.state.doc.sliceString(d.from, d.to);
-          if (!/^\[[ xX]\]$/.test(current)) return;
-          const replacement = d.checked ? '[x]' : '[ ]';
+          const m = /^\[([^\]\n])\]$/u.exec(current);
+          if (!m) return;
+          // Ticking advances the status table (unknown → `x`); unticking goes
+          // back to TODO through the same table.
+          const next = d.checked ? taskStatusRule(m[1]).next : taskStatusRule('x').next;
           view.dispatch({
-            changes: { from: d.from, to: d.to, insert: replacement },
+            changes: { from: d.from, to: d.to, insert: `[${next}]` },
           });
         };
         view.dom.addEventListener(TOGGLE_EVENT, this.onToggle);

@@ -12,8 +12,10 @@
  * click is refused (null) rather than ticking some other box.
  */
 
-/** Bullet or ordered marker (optionally inside blockquotes), then `[ ]`/`[x]` and a space. */
-const TASK_LINE_RE = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[)([ xX])(\][ \t ])/;
+import { taskStatusRule } from './tasks';
+
+/** Bullet or ordered marker (optionally inside blockquotes), then `[<status>]` and a space. */
+const TASK_LINE_RE = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[)([^\]\n])(\][ \t ])/;
 const FENCE_RE = /^[ \t]*(`{3,}|~{3,})/;
 
 /** 0-based indexes of the lines that are task items, skipping fenced code. */
@@ -51,7 +53,7 @@ export function togglePreviewTask(
   const matches = (i: number | undefined): i is number => {
     if (i === undefined || !tasks.includes(i)) return false;
     const m = TASK_LINE_RE.exec(lines[i]);
-    return !!m && (m[2] !== ' ') === wasChecked;
+    return !!m && (taskStatusRule(m[2]).type === 'done') === wasChecked;
   };
   let target: number | null = null;
   if (dataLine > 0 && matches(dataLine - 1)) target = dataLine - 1;
@@ -59,7 +61,8 @@ export function togglePreviewTask(
   if (target === null) return null;
   lines[target] = lines[target].replace(
     TASK_LINE_RE,
-    (_all, pre: string, _mark: string, post: string) => `${pre}${wasChecked ? ' ' : 'x'}${post}`,
+    (_all, pre: string, mark: string, post: string) =>
+      `${pre}${wasChecked ? taskStatusRule('x').next : taskStatusRule(mark).next}${post}`,
   );
   return lines.join('\n');
 }

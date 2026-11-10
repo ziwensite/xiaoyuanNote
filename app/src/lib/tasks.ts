@@ -784,7 +784,9 @@ export function completeRecurringTaskLine(
     body = rewritten;
   }
   body = body.replace(/\s*🆔\s*[A-Za-z0-9_-]{4,}/u, '');
-  body = moveRecurrenceBeforeDates(body);
+  // A legacy `FREQ=` rule is moved only when it is written, never when it is
+  // carried forward: the new line is the old line with its dates replaced.
+  if (!/🔁\s*FREQ=/iu.test(body)) body = moveRecurrenceBeforeDates(body);
 
   let at: number;
   if (action === 'delete') {

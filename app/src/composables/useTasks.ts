@@ -116,15 +116,16 @@ export function useTasks() {
    * occurrence, not one line whose date keeps being overwritten. Unticking
    * stays a plain flip — there is no rule to advance backwards.
    *
-   * Only natural-language rules advance. A legacy `FREQ=` line is read-only:
-   * advancing it would write a new `FREQ=` line, and this project only writes
-   * the Tasks-compatible spelling. Unsupported text does not advance either —
-   * guessing at a schedule is worse than showing the rule as unreadable.
+   * Natural-language and legacy rules both advance. A legacy line's `🔁` text
+   * is copied byte for byte into the new occurrence — never re-serialised — so
+   * completing one keeps working without this path ever inventing a new
+   * `FREQ=`. Unsupported text does not advance: guessing at a schedule is worse
+   * than showing the rule as unreadable.
    */
   async function toggle(task: WorkspaceTask): Promise<void> {
     const recurrence = task.meta.recurrence;
     const nextDates =
-      !task.done && recurrence?.kind === 'natural' && task.meta.rrule
+      !task.done && recurrence && recurrence.kind !== 'unsupported' && task.meta.rrule
         ? nextTaskDates(task.meta, task.meta.rrule, {
             whenDone: recurrence.whenDone,
             today: localDateKey(new Date()),

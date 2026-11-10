@@ -14,6 +14,7 @@ import { numberEquations } from './equations';
 import { parseImageAltSize } from './md-image-url';
 import { sanitizeRenderedHtml } from './sanitize-html';
 import { getHljs, getKatex } from './render-deps';
+import { taskStatusRule } from './tasks';
 
 // NOTE: `@hedgedoc/markdown-it-task-lists` is installed but unusable here —
 // its compiled ESM entry does `import Token from 'markdown-it/lib/token.js'`
@@ -568,7 +569,9 @@ md.core.ruler.after('inline', 'table_short_cells', (state) => {
 
 md.core.ruler.after('inline', 'task_lists', (state) => {
   const tokens = state.tokens;
-  const TASK_RE = /^\[([ xX])\][ \u00A0]/;
+  // Any single status character, like the task parser and the editor: `[/]`,
+  // `[-]`, `[?]` are Tasks statuses too, not plain text.
+  const TASK_RE = /^\[([^\]\n])\][ \u00A0]/;
 
   for (let i = 0; i < tokens.length; i++) {
     const tok = tokens[i];
@@ -595,7 +598,7 @@ md.core.ruler.after('inline', 'task_lists', (state) => {
     const m = TASK_RE.exec(firstChild.content);
     if (!m) continue;
 
-    const checked = m[1] !== ' ';
+    const checked = taskStatusRule(m[1]).type === 'done';
     // Strip the `[ ] ` / `[x] ` prefix from the text token.
     firstChild.content = firstChild.content.slice(m[0].length);
 

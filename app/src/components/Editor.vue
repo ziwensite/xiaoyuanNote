@@ -94,6 +94,7 @@ import { languagetoolCoversSpelling, ltAddWord, ltDisableRule, ltIgnore, matchWo
 import { usePandocExport } from '../composables/usePandocExport';
 import type { CitationEntry } from '../lib/citations';
 import { taskListExtension } from '../lib/cm-task-list';
+import { taskDatePhraseExtension } from '../lib/cm-task-date';
 import { imeCompositionGuard } from '../lib/cm-ime-guard';
 import {
   sessionRestoreExtension,
@@ -4432,6 +4433,8 @@ function buildExtensions() {
     imagePasteExtension(imagePasteOpts()),
     ...(!windowsImeSafeMode && props.tab.language === 'markdown' && !markdownSafeMode
       ? [
+          // Typing "明天" / "next monday" on a task line lands as `📅 …`.
+          taskDatePhraseExtension(() => localDateKey(new Date())),
           tagAutocompleteExtension(),
           citationsExtension(() => cachedCitations),
           // #297 — opens itself on the third backtick of a fence opener.

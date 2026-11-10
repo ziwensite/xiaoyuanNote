@@ -57,3 +57,26 @@ test('rendered preview li data-line points at the file line (front matter includ
   // Export HTML stays non-interactive.
   assert.ok(/task-list-item-checkbox"[^>]*disabled/.test(html));
 });
+
+// ---------------------------------------------------------------------------
+// Statuses other than `[ ]` / `[x]`
+// ---------------------------------------------------------------------------
+
+const STATUSES = ['- [/] doing', '- [-] cancelled', '- [?] question', '- [x] done'].join('\n');
+
+test('every status character is a task line, not just space and x', () => {
+  assert.deepEqual(taskLineIndexes(STATUSES.split('\n')), [0, 1, 2, 3]);
+});
+
+test('an unknown status renders as an unchecked checkbox, like Tasks does', () => {
+  const html = renderMarkdown(STATUSES);
+  assert.equal((html.match(/task-list-item-checkbox/g) ?? []).length, 4);
+  assert.equal((html.match(/checked=""/g) ?? []).length, 1);
+});
+
+test('clicking an in-progress task writes the next status character', () => {
+  assert.equal(togglePreviewTask(STATUSES, 1, 0, false), ['- [x] doing', '- [-] cancelled', '- [?] question', '- [x] done'].join('\n'));
+  assert.equal(togglePreviewTask(STATUSES, 2, 1, false)!.split('\n')[1], '- [x] cancelled');
+  assert.equal(togglePreviewTask(STATUSES, 3, 2, false)!.split('\n')[2], '- [x] question');
+  assert.equal(togglePreviewTask(STATUSES, 4, 3, true)!.split('\n')[3], '- [ ] done');
+});

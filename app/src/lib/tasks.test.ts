@@ -256,7 +256,7 @@ test('completing below ticked the old line and opens the next one right after it
   assert.ok(result);
   const lines = result.content.split('\n');
   assert.equal(lines[2], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
-  assert.equal(lines[3], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
+  assert.equal(lines[3], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
   assert.equal(result.line, 4);
   // Everything outside the two affected lines is untouched.
   assert.deepEqual(
@@ -269,7 +269,7 @@ test('completing above puts the new occurrence before the completed line', () =>
   const result = completeRecurringTaskLine(RECURRING, 3, { due: '2026-11-16' }, 'above');
   assert.ok(result);
   const lines = result.content.split('\n');
-  assert.equal(lines[2], '- [ ] water plants 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16 ⏰ 09:00');
+  assert.equal(lines[2], '- [ ] water plants 📅 2026-11-16 ⏰ 09:00 🔁 FREQ=WEEKLY;BYDAY=MO');
   assert.equal(lines[3], '- [x] water plants 📅 2026-11-09 ⏰ 09:00 🆔 abcd1234 🔁 FREQ=WEEKLY;BYDAY=MO');
   assert.equal(result.line, 3);
 });
@@ -433,7 +433,7 @@ test('an in-progress recurring task advances and is completed as x', () => {
   assert.ok(result);
   assert.equal(
     result.content,
-    ['- [ ] water 🔁 FREQ=WEEKLY;BYDAY=MO 📅 2026-11-16', '- [x] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO'].join(
+    ['- [ ] water 📅 2026-11-16 🔁 FREQ=WEEKLY;BYDAY=MO', '- [x] water 📅 2026-11-09 🔁 FREQ=WEEKLY;BYDAY=MO'].join(
       '\n',
     ),
   );

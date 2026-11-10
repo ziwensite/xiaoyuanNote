@@ -124,7 +124,7 @@ const makeLiveMarkdownPlugin = (showMarkers: boolean) => ViewPlugin.fromClass(
               const mark = view.state.doc.sliceString(node.from, node.to);
               const isBullet = mark === '-' || mark === '*' || mark === '+';
               if (!isBullet) return; // ordered list keeps its number
-              if (listItemHasTask(node.node as unknown as MdSyntaxNode)) {
+              if (listItemHasTask(node.node as unknown as MdSyntaxNode, view.state.doc)) {
                 const after = view.state.doc.sliceString(
                   node.to,
                   Math.min(node.to + 1, view.state.doc.length),

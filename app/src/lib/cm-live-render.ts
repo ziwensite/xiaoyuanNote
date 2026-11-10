@@ -190,16 +190,26 @@ class HrWidget extends WidgetType {
 export const bulletDeco = Decoration.replace({ widget: new BulletWidget() });
 export const hrDeco = Decoration.replace({ widget: new HrWidget() });
 
-// Does the `ListMark`'s ListItem hold a GFM TaskMarker (`[ ]` / `[x]`)?
+// Does the `ListMark`'s ListItem hold a GFM task marker?
 // Those are already rendered as a checkbox by cm-task-list.ts, so we hide the
 // leading dash instead of swapping in a bullet.
-export function listItemHasTask(listMark: MdSyntaxNode): boolean {
+//
+// GFM's `TaskMarker` node only covers `[ ]` / `[x]`; Tasks statuses such as
+// `[/]` parse as plain text, so when a document is available the line is
+// checked directly — otherwise those items would render a bullet *and* a
+// checkbox.
+export function listItemHasTask(
+  listMark: MdSyntaxNode,
+  doc?: { sliceString(from: number, to: number): string },
+): boolean {
   const item = listMark.parent; // ListItem
   if (!item) return false;
   for (let child = item.firstChild; child; child = child.nextSibling) {
     if (child.name === 'TaskMarker' || child.name === 'Task') return true;
   }
-  return false;
+  if (!doc) return false;
+  const head = doc.sliceString(listMark.to, Math.min(listMark.to + 8, item.to));
+  return /^[ \t]+\[[^\]\n]\](?=[ \t]|$)/u.test(head);
 }
 
 // ---------------------------------------------------------------------------
@@ -595,7 +605,7 @@ function buildDecorations(view: EditorView, showMarkers = false): DecorationSet 
           const lineObj = view.state.doc.lineAt(nFrom);
           const mark = view.state.doc.sliceString(nFrom, nTo);
           const isBullet = mark === '-' || mark === '*' || mark === '+';
-          const isTask = isBullet && listItemHasTask(node.node as unknown as MdSyntaxNode);
+          const isTask = isBullet && listItemHasTask(node.node as unknown as MdSyntaxNode, view.state.doc);
           const after = view.state.doc.sliceString(
             nTo,
             Math.min(nTo + 1, view.state.doc.length),
