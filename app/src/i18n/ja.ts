@@ -2108,6 +2108,29 @@ export const ja: I18n = {
     priorityOnly: '優先度つきのみ表示',
     recurrenceLegacy: '旧形式の FREQ ルール — Obsidian Tasks では展開できません。原文のまま保持し、次回へ進めません。',
     recurrenceUnsupported: 'この繰り返し表記は読み取れません。原文のまま保持します。',
+    migrate: {
+      title: 'Convert legacy recurrence rules',
+      intro:
+        'These lines use the old `🔁 FREQ=…` syntax. Rules with an exact Obsidian Tasks equivalent are shown as a before/after pair; nothing is written until you click Apply.',
+      empty: 'No legacy `🔁 FREQ=…` rules in this workspace.',
+      noFolder: 'Open a folder first.',
+      loading: 'Reading files…',
+      unsupported: 'Cannot be expressed',
+      line: 'Line {n}',
+      selected: '{n} of {total} lines selected',
+      apply: 'Apply ({n})',
+      close: 'Close',
+      done: 'Converted {n} recurrence rule(s).',
+      partial: '{s} line(s) changed since the preview and were left alone.',
+      failed: '{n} file(s) could not be written.',
+      reason: {
+        'unknown-key':
+          'Uses parts the natural language has no words for (COUNT, UNTIL, BYSETPOS, WKST).',
+        frequency: 'Only daily, weekly, monthly and yearly rules have a natural form.',
+        combination: 'The parts are understood, but there is no equivalent natural phrase.',
+        malformed: 'Not a valid FREQ rule.',
+      },
+    },
     filter: {
       open: '未完了',
       today: '期限',

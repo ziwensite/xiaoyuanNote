@@ -2137,8 +2137,31 @@
     openFolder: 'Open a folder to collect its tasks.',
     priorityOnly: 'Only tasks with a priority',
     recurrenceLegacy:
-      'Legacy FREQ rule — Obsidian Tasks cannot expand it. Kept as written, and it does not advance.',
+      'Legacy FREQ rule — Obsidian Tasks cannot expand it. Kept as written; completing it copies the rule unchanged.',
     recurrenceUnsupported: 'This recurrence text cannot be read. Kept as written.',
+    migrate: {
+      title: 'Convert legacy recurrence rules',
+      intro:
+        'These lines use the old `🔁 FREQ=…` syntax. Rules with an exact Obsidian Tasks equivalent are shown as a before/after pair; nothing is written until you click Apply.',
+      empty: 'No legacy `🔁 FREQ=…` rules in this workspace.',
+      noFolder: 'Open a folder first.',
+      loading: 'Reading files…',
+      unsupported: 'Cannot be expressed',
+      line: 'Line {n}',
+      selected: '{n} of {total} lines selected',
+      apply: 'Apply ({n})',
+      close: 'Close',
+      done: 'Converted {n} recurrence rule(s).',
+      partial: '{s} line(s) changed since the preview and were left alone.',
+      failed: '{n} file(s) could not be written.',
+      reason: {
+        'unknown-key':
+          'Uses parts the natural language has no words for (COUNT, UNTIL, BYSETPOS, WKST).',
+        frequency: 'Only daily, weekly, monthly and yearly rules have a natural form.',
+        combination: 'The parts are understood, but there is no equivalent natural phrase.',
+        malformed: 'Not a valid FREQ rule.',
+      },
+    },
     filter: {
       open: 'Open',
       today: 'Due',

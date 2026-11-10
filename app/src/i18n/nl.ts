@@ -2127,6 +2127,29 @@ export const nl: I18n = {
     recurrenceLegacy:
       'Oude FREQ-regel — Obsidian Tasks kan die niet uitvouwen. Blijft ongewijzigd en wordt niet doorgeschoven.',
     recurrenceUnsupported: 'Deze herhaling is niet leesbaar. Blijft ongewijzigd.',
+    migrate: {
+      title: 'Convert legacy recurrence rules',
+      intro:
+        'These lines use the old `🔁 FREQ=…` syntax. Rules with an exact Obsidian Tasks equivalent are shown as a before/after pair; nothing is written until you click Apply.',
+      empty: 'No legacy `🔁 FREQ=…` rules in this workspace.',
+      noFolder: 'Open a folder first.',
+      loading: 'Reading files…',
+      unsupported: 'Cannot be expressed',
+      line: 'Line {n}',
+      selected: '{n} of {total} lines selected',
+      apply: 'Apply ({n})',
+      close: 'Close',
+      done: 'Converted {n} recurrence rule(s).',
+      partial: '{s} line(s) changed since the preview and were left alone.',
+      failed: '{n} file(s) could not be written.',
+      reason: {
+        'unknown-key':
+          'Uses parts the natural language has no words for (COUNT, UNTIL, BYSETPOS, WKST).',
+        frequency: 'Only daily, weekly, monthly and yearly rules have a natural form.',
+        combination: 'The parts are understood, but there is no equivalent natural phrase.',
+        malformed: 'Not a valid FREQ rule.',
+      },
+    },
     filter: {
       open: 'Open',
       today: 'Vervalt',

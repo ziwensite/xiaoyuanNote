@@ -60,6 +60,7 @@ import { usePhoneStore } from './stores/phone';
 // v4.6 F5 — Saved filtered views (sidebar panel + filtered list + editor).
 import ViewNoteList from './components/ViewNoteList.vue';
 import ViewEditorDialog from './components/ViewEditorDialog.vue';
+import RecurrenceMigrationDialog from './components/RecurrenceMigrationDialog.vue';
 import { VIEW_OPEN_EVENT, VIEW_CLOSE_EVENT } from './composables/useSavedViews';
 import GlobalSearch from './components/GlobalSearch.vue';
 import ReadingView from './components/ReadingView.vue';
@@ -2574,6 +2575,8 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
     <CalendarDialog />
     <!-- v4.6 F5 — saved-view create/edit modal (self-mounts via window events). -->
     <ViewEditorDialog />
+    <!-- Legacy `🔁 FREQ=…` → Tasks natural language, with preview + confirm. -->
+    <RecurrenceMigrationDialog />
     <WhiteboardOverlay />
     <FileChangedDialog
       :open="fileChangedOpen"

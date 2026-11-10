@@ -528,6 +528,12 @@ export function useCommands(): Command[] {
       hint: 'Append - [ ] the selected text with today\'s due date',
       run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'createTaskFromSelection' } })),
     },
+    {
+      id: 'task.migrateRecurrence',
+      title: 'Task: Convert Legacy Recurrence Rules…',
+      hint: 'Rewrite `🔁 FREQ=…` as Obsidian Tasks natural language, line by line, before writing anything',
+      run: () => window.dispatchEvent(new CustomEvent('solomd:open-recurrence-migration')),
+    },
 
     {
       id: 'editor.insertImageUrl',
