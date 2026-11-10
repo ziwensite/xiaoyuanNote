@@ -11,6 +11,7 @@
  */
 
 import { naturalDateChanges } from './task-date-phrases';
+import { normalizeTaskLine } from './task-line';
 
 export type EditorCommand =
   | 'selectWord'
@@ -22,7 +23,8 @@ export type EditorCommand =
   | 'headingParagraph'
   | 'headingAutoNumber'
   | 'createTaskFromSelection'
-  | 'applyDateTokens';
+  | 'applyDateTokens'
+  | 'normalizeTaskLine';
 
 export const EDITOR_COMMANDS: EditorCommand[] = [
   'selectWord',
@@ -35,6 +37,7 @@ export const EDITOR_COMMANDS: EditorCommand[] = [
   'headingAutoNumber',
   'createTaskFromSelection',
   'applyDateTokens',
+  'normalizeTaskLine',
 ];
 
 /** Commands that change the text (the rest only move the selection). */
@@ -46,6 +49,7 @@ export const EDITING_COMMANDS = new Set<EditorCommand>([
   'headingAutoNumber',
   'createTaskFromSelection',
   'applyDateTokens',
+  'normalizeTaskLine',
 ]);
 
 /** Commands that only make sense in a Markdown document. */
@@ -56,6 +60,7 @@ export const MARKDOWN_ONLY_COMMANDS = new Set<EditorCommand>([
   'headingAutoNumber',
   'createTaskFromSelection',
   'applyDateTokens',
+  'normalizeTaskLine',
 ]);
 
 /**
@@ -122,6 +127,26 @@ export interface MultiTextEdit {
   /** Where the caret ends up, in the *new* document. */
   selFrom: number;
   selTo: number;
+}
+
+/**
+ * Rewrite the caret's line into the canonical task shape (batch 7): markers in
+ * order, one space between them, extra spaces collapsed. Returns null when the
+ * line is not a task line or is already canonical, so pressing the chord on a
+ * paragraph or on a tidy line does nothing — no stray undo step.
+ *
+ * Only the line's text is replaced: its indentation, bullet, quote prefix and
+ * terminator are untouched.
+ */
+export function normalizeLineEdit(doc: string, from: number, caret: number = from): TextEdit | null {
+  const start = doc.lastIndexOf('\n', from - 1) + 1;
+  let end = doc.indexOf('\n', from);
+  if (end < 0) end = doc.length;
+  const line = doc.slice(start, end).replace(/\r$/u, '');
+  const next = normalizeTaskLine(line);
+  if (next === null || next === line) return null;
+  const offset = Math.min(Math.max(caret - start, 0), next.length);
+  return { from: start, to: start + line.length, insert: next, selFrom: start + offset, selTo: start + offset };
 }
 
 export interface TextEdit {

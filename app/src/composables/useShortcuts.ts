@@ -149,6 +149,7 @@ export function useShortcuts(hooks: Hooks = {}) {
     'heading.paragraph': () => editorCommand('headingParagraph'),
     'heading.autoNumber': () => editorCommand('headingAutoNumber'),
     'task.applyDateTokens': () => editorCommand('applyDateTokens'),
+    'task.normalizeLine': () => editorCommand('normalizeTaskLine'),
     // #296 — one entry per kind, generated: the ids are `fmt.<kind>` on both
     // sides, so a kind added to FORMAT_KINDS cannot be bound but unhandled.
     ...Object.fromEntries(

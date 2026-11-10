@@ -536,6 +536,13 @@ export function useCommands(): Command[] {
       run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'applyDateTokens' } })),
     },
     {
+      id: 'task.normalizeLine',
+      title: 'Task: Normalize Markers on This Line',
+      hint: 'Reorder the caret line\'s task markers into the canonical order with single spaces',
+      shortcut: kb('task.normalizeLine'),
+      run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'normalizeTaskLine' } })),
+    },
+    {
       id: 'task.migrateRecurrence',
       title: 'Task: Convert Legacy Recurrence Rules…',
       hint: 'Rewrite `🔁 FREQ=…` as Obsidian Tasks natural language, line by line, before writing anything',

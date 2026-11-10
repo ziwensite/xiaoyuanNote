@@ -122,17 +122,8 @@
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
-:root:not(#_) .task-suggest__group {
-  padding: 6px 8px 2px;
-  color: var(--text-3);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-:root:not(#_) .task-suggest__group:first-child {
-  padding-top: 2px;
-}
-/* A value level is titled by its marker (`📅 截止`) instead of grouped. */
+/* A value level is titled by its marker (`📅 截止`); L0 has neither title nor
+   group headings — one icon per row is the whole point of batch 7. */
 :root:not(#_) .task-suggest__title {
   padding: 4px 8px 6px;
   margin-bottom: 2px;

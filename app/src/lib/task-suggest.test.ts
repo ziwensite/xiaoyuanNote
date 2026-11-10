@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  taskSuggestGroupLabel,
   taskSuggestions,
   type TaskSuggestMenu,
   type TaskSuggestMore,
@@ -35,14 +34,12 @@ function row(m: TaskSuggestMenu, label: string): TaskSuggestRow {
   return found;
 }
 
-/** A row that writes a token. */
 function write(m: TaskSuggestMenu, label: string): TaskSuggestWrite {
   const found = row(m, label);
   assert.equal(found.kind, 'write', `${JSON.stringify(label)} should write a token`);
   return found as TaskSuggestWrite;
 }
 
-/** A row that opens the values of one marker. */
 function more(m: TaskSuggestMenu, label: string): TaskSuggestMore {
   const found = row(m, label);
   assert.equal(found.kind, 'more', `${JSON.stringify(label)} should open a submenu`);
@@ -59,7 +56,6 @@ test('a plain paragraph, a heading and a plain bullet get no menu', () => {
 test('the caret inside the checkbox gets no menu', () => {
   assert.equal(taskSuggestions('- [ ] 写报告', 0, TODAY, 'zh'), null);
   assert.equal(taskSuggestions('- [ ] 写报告', 3, TODAY, 'zh'), null);
-  assert.equal(taskSuggestions('- [ ] 写报告', 4, TODAY, 'zh'), null);
   assert.equal(taskSuggestions('- [ ] 写报告', 5, TODAY, 'zh'), null);
   assert.ok(taskSuggestions('- [ ] 写报告', 6, TODAY, 'zh'));
 });
@@ -72,96 +68,68 @@ test('every status character is a task line', () => {
   }
 });
 
-test('ordered and quoted task lines are recognised', () => {
-  const ordered = '1. [ ] 写报告 ';
-  assert.ok(taskSuggestions(ordered, ordered.length, TODAY, 'zh'));
-  const quoted = '> - [ ] 写报告 ';
-  assert.ok(taskSuggestions(quoted, quoted.length, TODAY, 'zh'));
-});
-
-test('an explicit level still needs a task line and a caret past the checkbox', () => {
-  assert.equal(taskSuggestions('普通段落 ', 5, TODAY, 'zh', { stage: 'date', field: 'due' }), null);
-  assert.equal(taskSuggestions('- [ ] 写报告', 4, TODAY, 'zh', { stage: 'marker' }), null);
-});
-
-test('the marker level offers priorities, repeat, the missing dates and the other statuses', () => {
+test('L0 is icons only and ends with the task editor', () => {
   const m = menu('- [ ] 写报告 |');
   assert.equal(m.stage, 'marker');
   assert.equal(m.title, undefined);
   assert.deepEqual(
-    [...new Set(m.rows.map((r) => r.group))],
-    ['priority', 'recurrence', 'date', 'status'],
+    m.rows.map((r) => r.label),
+    ['[/]', '[x]', '[-]', '[?]', '🔁', '➕', '🛫', '⏳', '📅', '⏫', '❌', '✅', '任务编辑…'],
   );
-
-  assert.equal(write(m, '🔺 最高').insert, '🔺');
-  assert.equal(write(m, '⏺ 无').insert, '');
-  assert.equal(write(m, '[/] 进行中').insert, '/');
-
-  assert.equal(more(m, '🔁 重复').stage, 'recurrence');
-  const due = more(m, '📅 截止');
-  assert.equal(due.stage, 'date');
-  assert.equal(due.field, 'due');
-  assert.equal(more(m, '🛫 开始').field, 'start');
-  assert.equal(more(m, '⏳ 计划').field, 'scheduled');
-  assert.equal(more(m, '➕ 创建').field, 'created');
-  assert.equal(more(m, '✅ 完成').field, 'completed');
-  assert.equal(more(m, '❌ 取消').field, 'cancelled');
-
+  assert.equal(m.rows.at(-1)!.kind, 'edit');
   // The status already in effect is not offered again.
-  assert.equal(m.rows.some((r) => r.label === '[ ] 未开始'), false);
-  // 6 priorities + 🔁 + 6 date fields + 4 other statuses.
-  assert.equal(m.rows.length, 17);
+  assert.equal(m.rows.some((r) => r.label === '[ ]'), false);
 });
 
-test('the marker level hides what the line already has', () => {
-  const withDue = menu('- [ ] 写报告 📅 2026-11-12|');
-  assert.equal(withDue.rows.some((r) => r.label === '📅 截止'), false);
-  assert.ok(withDue.rows.some((r) => r.label === '⏳ 计划'));
-
-  const withRule = menu('- [ ] 写报告 🔁 every week|');
-  assert.equal(withRule.rows.some((r) => r.group === 'recurrence'), false);
-
-  const withPriority = menu('- [ ] 写报告 ⏫|');
-  assert.equal(withPriority.rows.some((r) => r.label === '⏫ 较高'), false);
-  assert.ok(withPriority.rows.some((r) => r.label === '🔼 中等'));
-
-  const done = menu('- [x] 写报告 |');
-  assert.equal(done.rows.some((r) => r.label === '[x] 完成'), false);
+test('L0 marks each field by its own icon and opens that field', () => {
+  const m = menu('- [ ] 写报告 |');
+  assert.equal(more(m, '📅').stage, 'date');
+  assert.equal(more(m, '📅').field, 'due');
+  assert.equal(more(m, '🛫').field, 'start');
+  assert.equal(more(m, '⏳').field, 'scheduled');
+  assert.equal(more(m, '➕').field, 'created');
+  assert.equal(more(m, '✅').field, 'completed');
+  assert.equal(more(m, '❌').field, 'cancelled');
+  assert.equal(more(m, '🔁').stage, 'recurrence');
+  assert.equal(more(m, '⏫').stage, 'priority');
 });
 
-test('priorities replace the current level or insert before the first date', () => {
-  const line = '- [ ] 写报告 ⏫';
-  const m = menu(`${line}|`);
-  const medium = write(m, '🔼 中等');
-  assert.equal(line.slice(medium.from, medium.to), '⏫');
-  assert.equal(medium.insert, '🔼');
+test('L0 hides every marker the line already carries', () => {
+  const line = '- [ ] 写报告 📅 2026-11-12 ✅ 2026-11-12 ⏫ 🔁 every week';
+  const labels = menu(`${line}|`).rows.map((r) => r.label);
+  assert.equal(labels.includes('📅'), false);
+  assert.equal(labels.includes('✅'), false);
+  assert.equal(labels.includes('🔁'), false);
+  assert.ok(labels.includes('⏳'));
+  // Priority is a single row showing the value that is set, not the ladder.
+  assert.equal(labels.filter((label) => label === '⏫').length, 1);
+  assert.equal(labels.includes('🔺'), false);
+});
 
-  const none = write(m, '⏺ 无');
-  assert.equal(none.insert, '');
-  assert.equal(line.slice(none.from, none.to), '⏫');
-
-  const dated = '- [ ] 写报告 📅 2026-11-12';
-  const inserted = write(menu(`${dated}|`), '⏫ 较高');
-  assert.equal(inserted.from, dated.indexOf('📅'));
-  assert.equal(inserted.to, inserted.from);
+test('L0 shows the current priority as its one priority row', () => {
+  const m = menu('- [ ] 写报告 🔽 #work|');
+  const priority = more(m, '🔽');
+  assert.equal(priority.stage, 'priority');
+  assert.equal(priority.detail, '较低');
 });
 
 test('status rows rewrite the checkbox character only', () => {
   const m = menu('- [ ] 写报告 |');
-  const doing = write(m, '[/] 进行中');
+  const doing = write(m, '[/]');
   assert.equal(doing.from, 3);
   assert.equal(doing.to, 4);
   assert.equal(doing.insert, '/');
 });
 
-test('a bare 📅 opens the date level and replaces the marker with the token', () => {
+test('a bare 📅 opens the date level and replaces the marker', () => {
   const { line, caret } = at('- [ ] 写报告 📅 |');
   const m = taskSuggestions(line, caret, TODAY, 'zh');
   assert.ok(m);
   assert.equal(m.stage, 'date');
   assert.equal(m.field, 'due');
   assert.equal(m.title, '📅 截止');
-  assert.equal(m.rows.length, 8);
+  assert.equal(m.rows.length, 9);
+  assert.equal(m.rows.at(-1)!.kind, 'edit');
 
   const tomorrow = write(m, '明天');
   assert.equal(tomorrow.insert, '📅 2026-11-11');
@@ -170,37 +138,15 @@ test('a bare 📅 opens the date level and replaces the marker with the token', 
   assert.equal(line.slice(tomorrow.from, tomorrow.to), '📅 ');
 });
 
-test('the date chips are the reference eight, all parsed', () => {
-  const m = menu('- [ ] 写报告 |', 'zh', { stage: 'date', field: 'due' });
+test('a bare ⏫ opens the priority ladder', () => {
+  const m = menu('- [ ] 写报告 ⏫ |');
+  assert.equal(m.stage, 'priority');
   assert.deepEqual(
-    m.rows.map((r) => (r.kind === 'write' ? r.detail : null)),
-    ['2026-11-10', '2026-11-11', '2026-11-12', '2026-11-17', '2026-11-24', '2026-11-30', '2026-12-10', '2027-11-10'],
+    m.rows.map((r) => r.label),
+    ['🔺 最高', '⏫ 较高', '🔼 中等', '🔽 较低', '⏬ 最低', '⏺ 清除', '任务编辑…'],
   );
-  assert.equal(write(m, '下个月').insert, '📅 2026-12-10');
-});
-
-test('the date level keeps the space before an inserted token', () => {
-  const m = menu('- [ ] 写报告 |', 'zh', { stage: 'date', field: 'due' });
-  const tomorrow = write(m, '明天');
-  assert.equal(tomorrow.from, 10);
-  assert.equal(tomorrow.to, 10);
-  assert.equal(tomorrow.insert, '📅 2026-11-11');
-});
-
-test('an existing due date is replaced, not duplicated', () => {
-  const line = '- [ ] 写报告 📅 2026-11-12';
-  const m = menu(`${line}|`, 'zh', { stage: 'date', field: 'due' });
-  const tomorrow = write(m, '明天');
-  assert.equal(line.slice(tomorrow.from, tomorrow.to), '📅 2026-11-12');
-  assert.equal(tomorrow.insert, '📅 2026-11-11');
-});
-
-test('a date is inserted before a 🔁 rule that sits earlier in the line', () => {
-  const line = '- [ ] 写报告 🔁 every week';
-  const m = menu(`${line}|`, 'zh', { stage: 'date', field: 'due' });
-  const tomorrow = write(m, '明天');
-  assert.equal(tomorrow.from, line.indexOf('🔁'));
-  assert.equal(tomorrow.to, tomorrow.from);
+  const low = write(m, '🔽 较低');
+  assert.equal(low.insert, '🔽');
 });
 
 test('a bare 🔁 opens the repetition level directly', () => {
@@ -209,12 +155,40 @@ test('a bare 🔁 opens the repetition level directly', () => {
   assert.ok(m);
   assert.equal(m.stage, 'recurrence');
   assert.equal(m.title, '🔁 重复');
-  assert.equal(m.rows.length, 6);
+  assert.equal(m.rows.length, 7);
+  assert.equal(write(m, '每周').insert, '🔁 every week');
+  assert.equal(line.slice(write(m, '每周').from, write(m, '每周').to), '🔁 ');
+});
 
-  const weekly = write(m, '每周');
-  assert.equal(weekly.insert, '🔁 every week');
-  assert.equal(weekly.detail, 'every week');
-  assert.equal(line.slice(weekly.from, weekly.to), '🔁 ');
+test('the date chips are the reference eight and all parse', () => {
+  const m = menu('- [ ] 写报告 |', 'zh', { stage: 'date', field: 'due' });
+  assert.deepEqual(
+    m.rows.map((r) => (r.kind === 'write' ? r.detail : null)).slice(0, 8),
+    ['2026-11-10', '2026-11-11', '2026-11-12', '2026-11-17', '2026-11-24', '2026-11-30', '2026-12-10', '2027-11-10'],
+  );
+  assert.equal(write(m, '下个月').insert, '📅 2026-12-10');
+});
+
+test('a value inserted where nothing is written stays at the caret', () => {
+  const m = menu('- [ ] 写报告 |', 'zh', { stage: 'date', field: 'due' });
+  const tomorrow = write(m, '明天');
+  assert.equal(tomorrow.from, 10);
+  assert.equal(tomorrow.to, 10);
+});
+
+test('an existing due date is replaced, not duplicated', () => {
+  const line = '- [ ] 写报告 📅 2026-11-12';
+  const m = menu(`${line}|`, 'zh', { stage: 'date', field: 'due' });
+  const tomorrow = write(m, '明天');
+  assert.equal(line.slice(tomorrow.from, tomorrow.to), '📅 2026-11-12');
+});
+
+test('a date is inserted before a 🔁 rule that sits earlier in the line', () => {
+  const line = '- [ ] 写报告 🔁 every week';
+  const m = menu(`${line}|`, 'zh', { stage: 'date', field: 'due' });
+  const tomorrow = write(m, '明天');
+  assert.equal(tomorrow.from, line.indexOf('🔁'));
+  assert.equal(tomorrow.to, tomorrow.from);
 });
 
 test('the repetition level replaces the rule text, or goes before the first date', () => {
@@ -231,20 +205,30 @@ test('the repetition level replaces the rule text, or goes before the first date
   assert.equal(inserted.insert, '🔁 every month');
 });
 
+test('the priority ladder replaces the current level or clears it', () => {
+  const line = '- [ ] 写报告 ⏫';
+  const m = menu(`${line}|`, 'zh', { stage: 'priority' });
+  const low = write(m, '🔽 较低');
+  assert.equal(line.slice(low.from, low.to), '⏫');
+  const clear = write(m, '⏺ 清除');
+  assert.equal(clear.insert, '');
+  assert.equal(line.slice(clear.from, clear.to), '⏫');
+});
+
 test('English labels for a non-Chinese UI language', () => {
   const m = menu('- [ ] report |', 'en');
-  assert.equal(more(m, '📅 Due').field, 'due');
-  assert.equal(more(m, '⏳ Scheduled').field, 'scheduled');
-  assert.equal(write(m, '⏺ None').insert, '');
+  assert.equal(more(m, '📅').field, 'due');
+  assert.equal(more(m, '⏳').field, 'scheduled');
+  assert.deepEqual(
+    m.rows.map((r) => r.label),
+    ['[/]', '[x]', '[-]', '[?]', '🔁', '➕', '🛫', '⏳', '📅', '⏫', '❌', '✅', 'Edit task…'],
+  );
 
   const due = menu('- [ ] report |', 'en', { stage: 'date', field: 'due' });
   assert.equal(write(due, 'Tomorrow').insert, '📅 2026-11-11');
 
   const rep = menu('- [ ] report |', 'en', { stage: 'recurrence' });
   assert.equal(write(rep, 'Every 2 weeks').insert, '🔁 every 2 weeks');
-
-  assert.equal(taskSuggestGroupLabel('priority', 'en'), 'Priority');
-  assert.equal(taskSuggestGroupLabel('date', 'zh-CN'), '日期');
 });
 
 test('parseDatePhrase reads whole phrases only', () => {

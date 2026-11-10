@@ -212,6 +212,9 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   // Batch 5 — the explicit way to land `明天` / `next monday` as `📅 …` when
   // the space menu was not used (pasted or imported lines).
   { id: 'task.applyDateTokens', label: 'Apply Date Tokens on This Line', category: 'paragraph', defaults: ['Mod+Alt+Shift+D'] },
+  // Batch 7 — the manual way to put a hand-written task line into the canonical
+  // marker order, for lines the menu never touched.
+  { id: 'task.normalizeLine', label: 'Normalize Task Markers on This Line', category: 'paragraph', defaults: ['Mod+Alt+Shift+F'] },
   { id: 'fmt.quote', label: 'Blockquote', category: 'paragraph', defaults: ['Mod+Alt+Q'] },
   { id: 'fmt.codeblock', label: 'Code Block', category: 'paragraph', defaults: ['Mod+Alt+K'] },
   { id: 'editor.tableEditor', label: 'Edit Current Table…', category: 'paragraph', defaults: ['Mod+Alt+T'] },

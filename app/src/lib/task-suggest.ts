@@ -1,26 +1,29 @@
 /**
- * The space-triggered suggestion menu for a task line (batch 6).
+ * The space-triggered suggestion menu for a task line (batches 5–7).
  *
- * Two levels, following the reference plugin's task suggester:
+ * Two levels:
  *
- *   L0 — the property markers a task can carry (priorities, `🔁`, the six date
- *        fields, the status characters). Markers the line already has are
- *        dropped, so the list only offers what is missing.
- *   L1 — the values of one marker: the date chips for a date field, the rule
- *        catalogue for `🔁`. Picking here writes the token.
+ *   L0 — one icon per marker the line can still carry (status characters,
+ *        `🔁`, the four date fields, priority, `❌`, `✅`), plus the task editor.
+ *        Icons only: the value of a marker belongs to L1. Markers the line
+ *        already has are dropped, and priority is a single row showing the
+ *        value already set (or `⏫`), never the whole ladder.
+ *   L1 — the values of that one marker: the date chips, the rule catalogue,
+ *        or the five priorities plus `⏺` to clear. Last row is always the task
+ *        editor, so every level can reach it.
  *
- * The other half of the reference's "smart" behaviour is the opening stage: if
- * the caret sits right after a marker (`📅 ` / `🔁 `), the value menu opens
- * directly instead of making the user walk through L0. That is what keeps the
- * common path two keystrokes long while the top level stays short.
+ * The opening stage is inferred from the line: a bare marker right before the
+ * caret (`📅 ` / `🔁 ` / `⏫ `) opens its L1 directly, anything else needs the
+ * two-space trigger to open L0 (see `cm-task-suggest.ts`).
  *
  * This module is the pure half: it reads one line plus a caret and returns the
- * rows — replacement ranges for a write, or the request for a submenu. Nothing
- * changes the document until a row is chosen.
+ * rows — replacement ranges for a write, the request for a submenu, or the edit
+ * row. Nothing changes the document until a row is chosen, and a chosen row is
+ * re-serialized through `task-line.ts`, so the line ends up in the canonical
+ * order with one space between tokens.
  *
- * Differences from the reference, by design:
- *   - no `@due()` / `due:` / `截止` aliases are ever written, and the marker
- *     suffix is never re-serialized: each write replaces exactly its own range;
+ * Differences from the reference plugin, by design:
+ *   - no `@due()` / `due:` / `截止` aliases are ever written;
  *   - no query filtering (typing closes the menu, so every keystroke is
  *     accounted for by the editor);
  *   - `✅` / `❌` do not flip the checkbox — completion has to go through the
@@ -28,15 +31,21 @@
  */
 
 import { parseDatePhrase } from './task-date-phrases';
+import {
+  TASK_CLEAR_PRIORITY,
+  TASK_DATE_FIELDS,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  TASK_LINE_RE,
+  parseTaskLine,
+  type TaskDateField,
+} from './task-line';
 
-export type TaskSuggestStage = 'marker' | 'date' | 'recurrence';
+export type TaskSuggestStage = 'marker' | 'date' | 'recurrence' | 'priority';
 
-/** The six date-carrying markers the parser understands. */
-export type TaskSuggestField = 'created' | 'start' | 'scheduled' | 'due' | 'completed' | 'cancelled';
+export type TaskSuggestField = TaskDateField;
 
-export type TaskSuggestGroup = 'priority' | 'recurrence' | 'date' | 'status';
-
-/** Which stage to show; omitted means "decide from the line" (see above). */
+/** Which level to show; omitted means "decide from the line" (see above). */
 export interface TaskSuggestRequest {
   stage: TaskSuggestStage;
   field?: TaskSuggestField;
@@ -45,7 +54,6 @@ export interface TaskSuggestRequest {
 /** A row that writes the token and closes the menu. */
 export interface TaskSuggestWrite {
   kind: 'write';
-  group: TaskSuggestGroup;
   label: string;
   detail?: string;
   /** Replacement range, offsets inside the line. */
@@ -57,89 +65,45 @@ export interface TaskSuggestWrite {
 /** A row that opens the next level; it writes nothing. */
 export interface TaskSuggestMore {
   kind: 'more';
-  group: TaskSuggestGroup;
   label: string;
-  stage: 'date' | 'recurrence';
+  detail?: string;
+  stage: 'date' | 'recurrence' | 'priority';
   field?: TaskSuggestField;
 }
 
-export type TaskSuggestRow = TaskSuggestWrite | TaskSuggestMore;
+/** The last row of every level: hand the whole line to the task editor. */
+export interface TaskSuggestEdit {
+  kind: 'edit';
+  label: string;
+}
+
+export type TaskSuggestRow = TaskSuggestWrite | TaskSuggestMore | TaskSuggestEdit;
 
 export interface TaskSuggestMenu {
   stage: TaskSuggestStage;
   field?: TaskSuggestField;
-  /** Heading for the value stages (`📅 截止`); the marker stage groups instead. */
+  /** Heading for the value stages (`📅 截止`); L0 has none. */
   title?: string;
   rows: TaskSuggestRow[];
 }
-
-/** A checkbox on a bullet, ordered or quoted line, with any status character. */
-const TASK_LINE = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[)([^\]\n])(\][ \t])/u;
-
-interface FieldSpec {
-  field: TaskSuggestField;
-  marker: string;
-  zh: string;
-  en: string;
-}
-
-/** Canonical marker order, as in the reference's `PROPERTY_EMOJI_ORDER`. */
-const FIELDS: FieldSpec[] = [
-  { field: 'created', marker: '➕', zh: '创建', en: 'Created' },
-  { field: 'start', marker: '🛫', zh: '开始', en: 'Start' },
-  { field: 'scheduled', marker: '⏳', zh: '计划', en: 'Scheduled' },
-  { field: 'due', marker: '📅', zh: '截止', en: 'Due' },
-  { field: 'completed', marker: '✅', zh: '完成', en: 'Done' },
-  { field: 'cancelled', marker: '❌', zh: '取消', en: 'Cancelled' },
-];
 
 const ISO = '\\d{4}-\\d{2}-\\d{2}';
 
 /** `📅 2026-11-11` for that one field. */
 const TOKEN: Record<TaskSuggestField, RegExp> = Object.fromEntries(
-  FIELDS.map((f) => [f.field, new RegExp(`${f.marker}\\s*${ISO}`, 'u')]),
+  TASK_DATE_FIELDS.map((f) => [f.field, new RegExp(`${f.marker}\\s*${ISO}`, 'u')]),
 ) as Record<TaskSuggestField, RegExp>;
 
-const ANY_DATE_TOKEN = new RegExp(`(?:${FIELDS.map((f) => f.marker).join('|')})\\s*${ISO}`, 'u');
-
-interface PrioritySpec {
-  emoji: string;
-  zh: string;
-  en: string;
-}
-
-/** Highest first; `⏺` clears, which the reference has no equivalent for. */
-const PRIORITIES: PrioritySpec[] = [
-  { emoji: '🔺', zh: '最高', en: 'Highest' },
-  { emoji: '⏫', zh: '较高', en: 'High' },
-  { emoji: '🔼', zh: '中等', en: 'Medium' },
-  { emoji: '🔽', zh: '较低', en: 'Low' },
-  { emoji: '⏬', zh: '最低', en: 'Lowest' },
-  { emoji: '⏺', zh: '无', en: 'None' },
-];
+const ANY_DATE_TOKEN = new RegExp(`(?:${TASK_DATE_FIELDS.map((f) => f.marker).join('|')})\\s*${ISO}`, 'u');
 
 const PRIORITY_TOKEN = /🔺|⏫|🔼|🔽|⏬|⏺/u;
-
-interface StatusSpec {
-  char: string;
-  zh: string;
-  en: string;
-}
-
-const STATUSES: StatusSpec[] = [
-  { char: ' ', zh: '未开始', en: 'To do' },
-  { char: '/', zh: '进行中', en: 'In progress' },
-  { char: 'x', zh: '完成', en: 'Done' },
-  { char: '-', zh: '已取消', en: 'Cancelled' },
-  { char: '?', zh: '待定', en: 'Question' },
-];
 
 /**
  * `🔁` plus its rule text, ending at the next token this app understands.
  * Same shape as `RECURRENCE_TOKEN` in `tasks.ts` (which is private there).
  */
 const RECURRENCE_TOKEN =
-  /🔁\s*[\s\S]*?(?=\s*(?:📅|⏳|🛫|➕|✅|❌|🔺|⏫|🔼|🔽|⏬|🆔|⏰|🏁|#)\s*|$)/u;
+  /🔁\s*[\s\S]*?(?=\s*(?:📅|⏳|🛫|➕|✅|❌|🔺|⏫|🔼|🔽|⏬|🆔|⛔|🏁|#)\s*|$)/u;
 
 interface DateChip {
   zh: string;
@@ -175,20 +139,13 @@ const REPEAT_CHIPS: RepeatChip[] = [
   { zh: '每年', en: 'Every year', rule: 'every year' },
 ];
 
-const GROUP_LABELS: Record<TaskSuggestGroup, { zh: string; en: string }> = {
-  priority: { zh: '优先级', en: 'Priority' },
-  recurrence: { zh: '重复', en: 'Repeat' },
-  date: { zh: '日期', en: 'Date' },
-  status: { zh: '状态', en: 'Status' },
-};
-
 const isZh = (lang: string) => lang.toLowerCase().startsWith('zh');
 const pick = (zh: string, en: string, lang: string) => (isZh(lang) ? zh : en);
 
-/** Heading for a group; the popup calls this instead of keeping its own table. */
-export function taskSuggestGroupLabel(group: TaskSuggestGroup, lang: string): string {
-  return pick(GROUP_LABELS[group].zh, GROUP_LABELS[group].en, lang);
-}
+const editRow = (lang: string): TaskSuggestEdit => ({
+  kind: 'edit',
+  label: pick('任务编辑…', 'Edit task…', lang),
+});
 
 /** Index of `re` inside the line at or after `from`, or -1. */
 function find(re: RegExp, line: string, from: number): number {
@@ -206,11 +163,16 @@ function bareMarker(tail: string, marker: string): { from: number; to: number } 
 
 /** Which stage a space opens when no request is given. */
 function openingRequest(tail: string): TaskSuggestRequest {
+  const priority = /(🔺|⏫|🔼|🔽|⏬|⏺)\s*$/u.exec(tail);
+  if (priority && (priority.index === 0 || /\s/u.test(tail[priority.index - 1]))) {
+    return { stage: 'priority' };
+  }
+
   const m = /(📅|⏳|🛫|➕|✅|❌|🔁)\s*$/u.exec(tail);
   if (!m) return { stage: 'marker' };
   if (m.index > 0 && !/\s/u.test(tail[m.index - 1])) return { stage: 'marker' };
   if (m[1] === '🔁') return { stage: 'recurrence' };
-  const field = FIELDS.find((f) => f.marker === m[1]);
+  const field = TASK_DATE_FIELDS.find((f) => f.marker === m[1]);
   return field ? { stage: 'date', field: field.field } : { stage: 'marker' };
 }
 
@@ -221,78 +183,67 @@ interface LineInfo {
 }
 
 function readLine(line: string, caret: number): LineInfo | null {
-  const m = TASK_LINE.exec(line);
+  const m = TASK_LINE_RE.exec(line);
   if (!m) return null;
   const bodyStart = m[0].length;
   if (caret < bodyStart || caret > line.length) return null;
   return { statusAt: m[1].length, bodyStart, status: m[2] };
 }
 
-function markerMenu(line: string, info: LineInfo, caret: number, lang: string): TaskSuggestMenu {
-  const { bodyStart, statusAt, status } = info;
-  const body = line.slice(bodyStart);
+function markerMenu(line: string, info: LineInfo, lang: string): TaskSuggestMenu {
+  const model = parseTaskLine(line)!;
+  const { statusAt, status } = info;
   const rows: TaskSuggestRow[] = [];
 
-  // Priorities: at most one per task, so the level already set is not offered.
-  const priorityAt = find(PRIORITY_TOKEN, line, bodyStart);
-  const priorityWidth =
-    priorityAt >= 0 ? (PRIORITY_TOKEN.exec(line.slice(priorityAt))?.[0].length ?? 1) : 0;
-  const currentPriority = priorityAt >= 0 ? line.slice(priorityAt, priorityAt + priorityWidth) : '';
-
-  const rule = RECURRENCE_TOKEN.exec(body);
-  const ruleAt = rule ? bodyStart + rule.index : -1;
-  const firstDateAt = find(ANY_DATE_TOKEN, line, bodyStart);
-  const anchors = [ruleAt, firstDateAt].filter((n) => n >= 0);
-  const priorityAt2 = anchors.length ? Math.min(...anchors) : caret;
-  const priorityRange =
-    priorityAt >= 0 ? { from: priorityAt, to: priorityAt + priorityWidth } : { from: priorityAt2, to: priorityAt2 };
-
-  for (const p of PRIORITIES) {
-    if (p.emoji === currentPriority) continue;
-    rows.push({
-      kind: 'write',
-      group: 'priority',
-      label: `${p.emoji} ${pick(p.zh, p.en, lang)}`,
-      ...priorityRange,
-      insert: p.emoji === '⏺' ? '' : p.emoji,
-    });
-  }
-
-  // Recurrence next, then the date fields — the reference's marker order.
-  if (!rule) {
-    rows.push({
-      kind: 'more',
-      group: 'recurrence',
-      label: `🔁 ${pick('重复', 'Repeat', lang)}`,
-      stage: 'recurrence',
-    });
-  }
-
-  for (const f of FIELDS) {
-    // A field that already carries a date is hidden: the value menu is reached
-    // again by typing its marker, which is what the reference does too.
-    if (TOKEN[f.field].test(body)) continue;
-    rows.push({
-      kind: 'more',
-      group: 'date',
-      label: `${f.marker} ${pick(f.zh, f.en, lang)}`,
-      stage: 'date',
-      field: f.field,
-    });
-  }
-
-  for (const s of STATUSES) {
+  // Status first, matching the canonical order.
+  for (const s of TASK_STATUSES) {
     if (s.char.toLowerCase() === status.toLowerCase()) continue;
     rows.push({
       kind: 'write',
-      group: 'status',
-      label: `[${s.char}] ${pick(s.zh, s.en, lang)}`,
+      label: `[${s.char}]`,
+      detail: pick(s.zh, s.en, lang),
       from: statusAt,
       to: statusAt + 1,
       insert: s.char,
     });
   }
 
+  if (!model.recurrence) {
+    rows.push({
+      kind: 'more',
+      label: '🔁',
+      detail: pick('重复', 'Repeat', lang),
+      stage: 'recurrence',
+    });
+  }
+
+  for (const f of TASK_DATE_FIELDS) {
+    // A field that already carries a date is hidden: its L1 is reached again by
+    // typing the marker, which keeps L0 to what is actually missing.
+    if (f.field === 'cancelled' || f.field === 'completed') continue;
+    if (model[f.field]) continue;
+    rows.push({ kind: 'more', label: f.marker, detail: pick(f.zh, f.en, lang), stage: 'date', field: f.field });
+  }
+
+  // Priority is one row, not five: it shows what is set (or the ⏫ default) and
+  // opens the ladder, exactly like the other markers.
+  const priority = TASK_PRIORITIES.find((p) => p.emoji === model.priority);
+  rows.push({
+    kind: 'more',
+    label: model.priority || '⏫',
+    detail: priority ? pick(priority.zh, priority.en, lang) : pick('优先级', 'Priority', lang),
+    stage: 'priority',
+  });
+
+  // ❌ before ✅, matching the canonical order (the menu table lists them the
+  // other way round because ✅ is the more common field).
+  for (const field of ['cancelled', 'completed'] as const) {
+    if (model[field]) continue;
+    const f = TASK_DATE_FIELDS.find((spec) => spec.field === field)!;
+    rows.push({ kind: 'more', label: f.marker, detail: pick(f.zh, f.en, lang), stage: 'date', field });
+  }
+
+  rows.push(editRow(lang));
   return { stage: 'marker', rows };
 }
 
@@ -304,7 +255,7 @@ function dateMenu(
   lang: string,
   field: TaskSuggestField,
 ): TaskSuggestMenu {
-  const spec = FIELDS.find((f) => f.field === field)!;
+  const spec = TASK_DATE_FIELDS.find((f) => f.field === field)!;
   const { bodyStart } = info;
   const tail = line.slice(bodyStart, caret);
 
@@ -323,20 +274,15 @@ function dateMenu(
     if (!parsed?.date) continue;
     rows.push({
       kind: 'write',
-      group: 'date',
       label: pick(chip.zh, chip.en, lang),
       detail: parsed.date,
       ...range,
       insert: `${spec.marker} ${parsed.date}`,
     });
   }
+  rows.push(editRow(lang));
 
-  return {
-    stage: 'date',
-    field,
-    title: `${spec.marker} ${pick(spec.zh, spec.en, lang)}`,
-    rows,
-  };
+  return { stage: 'date', field, title: `${spec.marker} ${pick(spec.zh, spec.en, lang)}`, rows };
 }
 
 function repeatMenu(line: string, info: LineInfo, caret: number, lang: string): TaskSuggestMenu {
@@ -355,14 +301,40 @@ function repeatMenu(line: string, info: LineInfo, caret: number, lang: string): 
 
   const rows: TaskSuggestRow[] = REPEAT_CHIPS.map((chip) => ({
     kind: 'write',
-    group: 'recurrence',
     label: pick(chip.zh, chip.en, lang),
     detail: chip.rule,
     ...range,
     insert: `🔁 ${chip.rule}`,
   }));
+  rows.push(editRow(lang));
 
   return { stage: 'recurrence', title: `🔁 ${pick('重复', 'Repeat', lang)}`, rows };
+}
+
+function priorityMenu(line: string, info: LineInfo, caret: number, lang: string): TaskSuggestMenu {
+  const model = parseTaskLine(line)!;
+  const { bodyStart } = info;
+
+  const at = find(PRIORITY_TOKEN, line, bodyStart);
+  const width = at >= 0 ? (PRIORITY_TOKEN.exec(line.slice(at))?.[0].length ?? 2) : 0;
+  const range = at >= 0 ? { from: at, to: at + width } : { from: caret, to: caret };
+
+  const rows: TaskSuggestRow[] = TASK_PRIORITIES.map((p) => ({
+    kind: 'write',
+    label: `${p.emoji} ${pick(p.zh, p.en, lang)}`,
+    detail: p.emoji === model.priority ? pick('当前', 'Current', lang) : undefined,
+    ...range,
+    insert: p.emoji,
+  }));
+  rows.push({
+    kind: 'write',
+    label: `${TASK_CLEAR_PRIORITY} ${pick('清除', 'Clear', lang)}`,
+    ...range,
+    insert: '',
+  });
+  rows.push(editRow(lang));
+
+  return { stage: 'priority', title: pick('优先级', 'Priority', lang), rows };
 }
 
 /**
@@ -386,5 +358,6 @@ export function taskSuggestions(
   const req = request ?? openingRequest(tail);
   if (req.stage === 'date' && req.field) return dateMenu(line, info, caret, today, lang, req.field);
   if (req.stage === 'recurrence') return repeatMenu(line, info, caret, lang);
-  return markerMenu(line, info, caret, lang);
+  if (req.stage === 'priority') return priorityMenu(line, info, caret, lang);
+  return markerMenu(line, info, lang);
 }

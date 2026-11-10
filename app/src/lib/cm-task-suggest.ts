@@ -1,24 +1,28 @@
 /**
- * CodeMirror half of the task-line space menu (batches 5–6).
+ * CodeMirror half of the task-line space menu (batches 5–7).
  *
- * `task-suggest.ts` decides *what* the menu offers and what each row writes;
- * this file decides *when* it is shown, owns the popup's lifetime, and walks
- * the two levels. The contract these batches were written against:
+ * `task-suggest.ts` decides *what* the menu offers; this file decides *when* it
+ * is shown, owns the popup's lifetime, and walks the two levels. The contract
+ * these batches were written against:
  *
- *   - the space itself is ordinary typing — the menu only opens after it, and
- *     is never allowed to swallow the key (IME composition included);
+ *   - the space itself is ordinary typing — the menu never swallows it (IME
+ *     composition included). Since batch 7 a *single* space no longer opens
+ *     anything: L0 needs two spaces in a row (so English typing stops popping
+ *     menus), and only a bare marker followed by one space opens its L1;
  *   - until a row is chosen, nothing writes to the document: Esc, typing
  *     another character, clicking away, scrolling or losing focus just close
  *     the popup, byte for byte;
- *   - picking a row is one transaction (`userEvent: input.complete`), so one
- *     undo takes the token away again.
+ *   - picking a row rewrites *one line* in one transaction — the write is
+ *     re-serialized through `task-line.ts`, so the tokens land in the canonical
+ *     order with single spaces, and one undo takes it all away;
+ *   - the last row of every level hands the line to the task editor.
  *
- * Levels (batch 6): the marker list is L0. A row that opens the values of one
- * marker (`📅 截止`, `🔁 重复`) is a `more` row — Enter re-opens the same popup
- * at the same caret with the value list instead, still writing nothing.
- * `ArrowLeft` / `Backspace` go back one level (value list → marker list) and
- * are consumed; at the marker list they are left alone so ordinary editing
- * resumes. Esc always closes outright.
+ * Levels: the marker list is L0. A row that opens the values of one marker
+ * (`📅`, `🔁`, `⏫`) is a `more` row — Enter re-opens the same popup at the same
+ * caret with the value list instead, still writing nothing. `ArrowLeft` /
+ * `Backspace` go back one level (value list → marker list) and are consumed; at
+ * the marker list they are left alone so ordinary editing resumes. Esc always
+ * closes outright.
  *
  * The popup lives on `document.body` with `position: fixed` coordinates from
  * `coordsAtPos`, because the editor's own scroller would clip it. Focus never
@@ -27,10 +31,9 @@
 
 import { Prec, type Extension } from '@codemirror/state';
 import { EditorView, ViewPlugin, keymap, type ViewUpdate } from '@codemirror/view';
+import { normalizeTaskLine, taskLinePrefixLength } from './task-line';
 import {
-  taskSuggestGroupLabel,
   taskSuggestions,
-  type TaskSuggestGroup,
   type TaskSuggestMenu,
   type TaskSuggestMore,
   type TaskSuggestRequest,
@@ -38,11 +41,21 @@ import {
   type TaskSuggestWrite,
 } from './task-suggest';
 
+export interface TaskEditTarget {
+  /** Document range of the whole line, terminator excluded. */
+  from: number;
+  to: number;
+  /** The line's text, as the menu saw it. */
+  line: string;
+}
+
 export interface TaskSuggestOptions {
   /** Today as `YYYY-MM-DD`; called per open so a long session rolls over. */
   today: () => string;
   /** UI language, for the row labels (`zh` gets Chinese, everything else English). */
   lang: () => string;
+  /** Opens the task editor for the line the menu is anchored on. */
+  onEditTask?: (target: TaskEditTarget) => void;
 }
 
 /** A rendered row plus the absolute (document) range it replaces. */
@@ -94,17 +107,42 @@ function setActive(view: EditorView, index: number): void {
   runtime.rows[next].node.scrollIntoView({ block: 'nearest' });
 }
 
-/** Write one row's token and close. One transaction, one undo step. */
+/**
+ * Write one row and close. The write is spliced into the line and the whole
+ * line is re-serialized, so extra spaces collapse and the tokens land in the
+ * canonical order — one transaction, one undo step.
+ */
 function accept(view: EditorView, row: Row): void {
   const item = row.item as TaskSuggestWrite;
   close(view);
+  const line = view.state.doc.lineAt(row.from);
+  const from = row.from - line.from;
+  const to = row.to - line.from;
+  const raw = line.text.slice(0, from) + item.insert + line.text.slice(to);
+  const next = normalizeTaskLine(raw) ?? raw;
+  // The token may have moved to its canonical slot, so look it up again; a
+  // one-character write (a status) or a clear ends with the caret at the end.
+  let anchor = line.from + next.length;
+  if (item.insert.length > 1) {
+    const at = next.indexOf(item.insert);
+    if (at >= 0) anchor = line.from + at + item.insert.length;
+  }
   view.dispatch({
-    changes: { from: row.from, to: row.to, insert: item.insert },
-    selection: { anchor: row.from + item.insert.length },
+    changes: { from: line.from, to: line.to, insert: next },
+    selection: { anchor },
     userEvent: 'input.complete',
     scrollIntoView: true,
   });
   view.focus();
+}
+
+/** The `任务编辑…` row: close the menu and hand the line to the caller. */
+function requestEdit(view: EditorView, runtime: Runtime): void {
+  const line = view.state.doc.lineAt(runtime.pos);
+  const target: TaskEditTarget = { from: line.from, to: line.to, line: line.text };
+  const opts = runtime.opts;
+  close(view);
+  opts.onEditTask?.(target);
 }
 
 /**
@@ -138,17 +176,7 @@ function open(
   }
 
   const rows: Row[] = [];
-  let group: TaskSuggestGroup | null = null;
   for (const item of menu.rows) {
-    // The marker level groups its rows; a value level is titled instead.
-    if (!menu.title && item.group !== group) {
-      group = item.group;
-      const heading = document.createElement('div');
-      heading.className = 'task-suggest__group';
-      heading.textContent = taskSuggestGroupLabel(group, lang);
-      el.appendChild(heading);
-    }
-
     const node = document.createElement('div');
     node.className = 'task-suggest__row';
     node.setAttribute('role', 'option');
@@ -168,7 +196,7 @@ function open(
       node.classList.add('task-suggest__row--more');
       const arrow = document.createElement('span');
       arrow.className = 'task-suggest__detail';
-      arrow.textContent = '›';
+      arrow.textContent = item.detail ? `${item.detail} ›` : '›';
       node.appendChild(arrow);
     }
 
@@ -180,7 +208,10 @@ function open(
       // Keep the caret in the editor: no blur, no selection change.
       e.preventDefault();
       e.stopPropagation();
-      if (item.kind === 'more') {
+      if (item.kind === 'edit') {
+        const runtime = runtimes.get(view);
+        if (runtime) requestEdit(view, runtime);
+      } else if (item.kind === 'more') {
         open(view, pos, opts, { stage: item.stage, field: item.field });
       } else {
         accept(view, row);
@@ -254,8 +285,19 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
         const sel = view.state.selection.main;
         if (!sel.empty) return false;
         const line = view.state.doc.lineAt(sel.from);
-        const menu = taskSuggestions(line.text, sel.from - line.from, opts.today(), opts.lang());
-        if (!menu || !menu.rows.length) return false;
+        const caret = sel.from - line.from;
+        const bodyStart = taskLinePrefixLength(line.text);
+        if (!bodyStart || caret < bodyStart) return false;
+
+        // Two spaces in a row → L0. One space after a bare marker → that
+        // marker's L1. Every other space is just a space.
+        const tail = line.text.slice(bodyStart, caret);
+        const doubleSpace = tail !== '' && /\s$/u.test(tail);
+        if (!doubleSpace) {
+          const menu = taskSuggestions(line.text, caret, opts.today(), opts.lang());
+          if (!menu || menu.stage === 'marker') return false;
+        }
+
         view.dispatch({
           changes: { from: sel.from, insert: ' ' },
           selection: { anchor: sel.from + 1 },
@@ -264,7 +306,7 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
         });
         // Opened after the transaction: the plugin's update() has already run,
         // so inserting the space cannot close the menu that the space asked for.
-        open(view, sel.from + 1, opts);
+        open(view, sel.from + 1, opts, doubleSpace ? { stage: 'marker' } : undefined);
         return true;
       },
     },
@@ -292,7 +334,8 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension {
         const runtime = runtimes.get(view);
         const row = runtime?.rows[runtime.active];
         if (!runtime || !row) return false;
-        if (row.item.kind === 'more') descend(view, runtime, row.item);
+        if (row.item.kind === 'edit') requestEdit(view, runtime);
+        else if (row.item.kind === 'more') descend(view, runtime, row.item);
         else accept(view, row);
         return true;
       },

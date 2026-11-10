@@ -46,6 +46,7 @@ import {
   dedentCodeBlockSelection,
   deleteWord as deleteWordEdit,
   indentCodeBlockPaste,
+  normalizeLineEdit,
   selectCodeBlockBody,
   selectLine as selectLineRange,
   selectWord as selectWordRange,
@@ -95,7 +96,9 @@ import { languagetoolCoversSpelling, ltAddWord, ltDisableRule, ltIgnore, matchWo
 import { usePandocExport } from '../composables/usePandocExport';
 import type { CitationEntry } from '../lib/citations';
 import { taskListExtension } from '../lib/cm-task-list';
-import { taskSuggestExtension } from '../lib/cm-task-suggest';
+import { taskSuggestExtension, type TaskEditTarget } from '../lib/cm-task-suggest';
+import { parseTaskLine, serializeTaskLine, type TaskLineModel } from '../lib/task-line';
+import TaskEditorDialog from './TaskEditorDialog.vue';
 import { imeCompositionGuard } from '../lib/cm-ime-guard';
 import {
   sessionRestoreExtension,
@@ -225,6 +228,40 @@ let cleanupRelayout: (() => void) | null = null;
 let cleanupTransformCase: (() => void) | null = null;
 let cleanupPlainSelection: (() => void) | null = null;
 let contentSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Batch 7 — the task editor dialog. The space menu's last row hands us the line
+ * it is anchored on; Save rewrites exactly that line (one transaction) if it is
+ * still byte-identical, so a concurrent edit is never overwritten.
+ */
+interface TaskEditorState {
+  from: number;
+  to: number;
+  original: string;
+  model: TaskLineModel;
+}
+const taskEditor = ref<TaskEditorState | null>(null);
+
+function openTaskEditor(target: TaskEditTarget): void {
+  const model = parseTaskLine(target.line);
+  if (!model) return;
+  taskEditor.value = { from: target.from, to: target.to, original: target.line, model };
+}
+
+function saveTaskEditor(next: TaskLineModel): void {
+  const state = taskEditor.value;
+  taskEditor.value = null;
+  if (!state || !view) return;
+  const line = view.state.doc.lineAt(state.from);
+  if (line.text !== state.original) return;
+  view.dispatch({
+    changes: { from: line.from, to: line.to, insert: serializeTaskLine(next) },
+    userEvent: 'input.format',
+    scrollIntoView: true,
+  });
+  view.focus();
+}
+
 
 const themeCompartment = new Compartment();
 const langCompartment = new Compartment();
@@ -4439,6 +4476,7 @@ function buildExtensions() {
           taskSuggestExtension({
             today: () => localDateKey(new Date()),
             lang: () => settings.language,
+            onEditTask: openTaskEditor,
           }),
           tagAutocompleteExtension(),
           citationsExtension(() => cachedCitations),
@@ -4997,6 +5035,19 @@ function onEditorCommand(e: Event) {
       v.focus();
       return;
     }
+    if (cmd === 'normalizeTaskLine') {
+      const edit = normalizeLineEdit(doc, sel.from, sel.from);
+      if (edit) {
+        v.dispatch({
+          changes: edit,
+          selection: { anchor: edit.selFrom, head: edit.selTo },
+          scrollIntoView: true,
+          userEvent: 'input.format',
+        });
+      }
+      v.focus();
+      return;
+    }
     if (cmd === 'jumpToSelection') {
       v.dispatch({ effects: EditorView.scrollIntoView(sel, { y: 'center' }) });
     } else if (cmd === 'selectWord' || cmd === 'selectLine') {
@@ -5036,6 +5087,15 @@ function onEditorCommand(e: Event) {
     for (const c of [...edit.changes].sort((a, b) => b.from - a.from)) {
       next = next.slice(0, c.from) + c.insert + next.slice(c.to);
     }
+    applyPlainContent(next, edit.selTo);
+    nextTick(() => selectPlainRange(edit.selFrom, edit.selTo, true));
+    return;
+  }
+  if (cmd === 'normalizeTaskLine') {
+    const edit = normalizeLineEdit(doc, sel.from, sel.from);
+    if (!edit) return;
+    recordPlainHistory();
+    const next = doc.slice(0, edit.from) + edit.insert + doc.slice(edit.to);
     applyPlainContent(next, edit.selTo);
     nextTick(() => selectPlainRange(edit.selFrom, edit.selTo, true));
     return;
@@ -6606,6 +6666,14 @@ const cls = computed(() => ({
       @close="editorCtx = null"
     />
   </Teleport>
+
+  <TaskEditorDialog
+    :open="!!taskEditor"
+    :model="taskEditor?.model ?? null"
+    :lang="settings.language"
+    @save="saveTaskEditor"
+    @cancel="taskEditor = null"
+  />
 </template>
 
 <style scoped>
