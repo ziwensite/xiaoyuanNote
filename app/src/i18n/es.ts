@@ -1427,6 +1427,8 @@ export const es: I18n = {
     expand: 'Expand sidebar',
   },
   panelMenu: {
+    splitRegion: 'Split into a new region',
+    mergeRegion: 'Merge with the region below',
     close: 'Cerrar panel',
     hide: 'Ocultar panel',
     open: 'Abrir panel',

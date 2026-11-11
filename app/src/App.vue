@@ -1882,6 +1882,7 @@ function dockGroupsFor(side: 'left' | 'right') {
         };
       }),
     active: group.active as ImplementedSidebarPaneId | null,
+    height: group.height,
   }));
 }
 
@@ -2190,13 +2191,20 @@ function onPaneClose(id: ImplementedSidebarPaneId) {
 // column edge. All items are existing dock commands or `dispatchMenuAction`
 // ids — see lib/context-menus.ts.
 type PanelCtx =
-  | { kind: 'pane' | 'tab'; id: ImplementedSidebarPaneId; side: SidebarSide; x: number; y: number }
+  | { kind: 'pane' | 'tab'; id: ImplementedSidebarPaneId; side: SidebarSide; x: number; y: number; group: number }
   | { kind: 'edge'; side: SidebarSide; x: number; y: number };
 const panelCtx = ref<PanelCtx | null>(null);
 
 const panelCtxState = computed<CtxState>(() => {
   const c = panelCtx.value;
   const id = c && c.kind !== 'edge' ? c.id : 'outline';
+  const side = c ? c.side : 'right';
+  const groupIndex = c && c.kind !== 'edge' ? c.group : 0;
+  const groups = settings.sidebarDock.groups[side];
+  const region = groups[groupIndex];
+  const nextRegion = groups[groupIndex + 1];
+  // The `files` region is shell chrome: no split, no merge, no resize.
+  const locked = !!region?.panes.includes('files');
   return {
     showLeft: settings.showFileTree,
     showRight: !settings.sidebarDock.collapsed.right,
@@ -2206,10 +2214,15 @@ const panelCtxState = computed<CtxState>(() => {
     lineNumbers: settings.showLineNumbers,
     toolbarHidden: settings.toolbarHidden,
     paneId: id,
-    paneSide: c ? c.side : 'right',
+    paneSide: side,
     // `files` is shell chrome: pinned first, never movable or hideable.
     panePinned: id === 'files',
-    paneColumnCollapsed: c ? settings.sidebarDock.collapsed[c.side] : false,
+    paneColumnCollapsed: c ? settings.sidebarDock.collapsed[side] : false,
+    paneGroupIndex: groupIndex,
+    canSplitRegion:
+      c?.kind === 'tab' && !locked && !!region && region.panes.length > 1 && id !== 'files',
+    canMergeRegion:
+      c?.kind === 'tab' && !locked && !!nextRegion && !nextRegion.panes.includes('files'),
   };
 });
 
@@ -2229,11 +2242,23 @@ const panelCtxItems = computed<CtxNode[]>(() => {
     : buildPanelMenu(t, panelCtxState.value);
 });
 
-function openPanelCtx(id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number) {
-  panelCtx.value = { kind: 'pane', id, side, x, y };
+function openPanelCtx(
+  id: ImplementedSidebarPaneId,
+  side: SidebarSide,
+  x: number,
+  y: number,
+  group = 0,
+) {
+  panelCtx.value = { kind: 'pane', id, side, x, y, group };
 }
-function openDockTabCtx(id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number) {
-  panelCtx.value = { kind: 'tab', id, side, x, y };
+function openDockTabCtx(
+  id: ImplementedSidebarPaneId,
+  side: SidebarSide,
+  x: number,
+  y: number,
+  group = 0,
+) {
+  panelCtx.value = { kind: 'tab', id, side, x, y, group };
 }
 function openColumnEdgeCtx(side: SidebarSide, x: number, y: number) {
   panelCtx.value = { kind: 'edge', side, x, y };
@@ -2262,6 +2287,12 @@ function onPanelCtxPick(id: CtxActionId) {
       break;
     case 'panel.moveRight':
       settings.moveDockTab(c.id, { side: 'right', group: 0, index: 9999 });
+      break;
+    case 'panel.splitRegion':
+      settings.splitDockRegion(c.side, c.group, c.id);
+      break;
+    case 'panel.mergeRegion':
+      settings.mergeDockRegions(c.side, c.group);
       break;
     case 'panel.manage':
       openSidebarCtx({ preventDefault() {}, clientX: c.x, clientY: c.y } as MouseEvent);

@@ -1,6 +1,6 @@
 # 侧栏外壳改造 · 第二段：同侧多区域（上下分区）
 
-状态：**第一批（规格 + 数据层）已交付**；UI 批次待批准（2026-11-11）。
+状态：**第一批（规格 + 数据层）与第二批（UI 代码）均已交付**；真机目视核对待执行（2026-11-11）。
 上游：`docs/specs/sidebar-shell-stage1/spec.md` §6「第二段预告」。
 命名：本目录是「外壳 stage1」的续作，与旧 Dock 序列 `docs/specs/sidebar-dock-s2/`（平铺 `panes[]` 模型）无关。
 
@@ -10,7 +10,7 @@
 
 第一段把两侧改成「一个 `<aside>` 里一条图标标签条 + 一个面板体」，并在数据模型里预留了 `groups[]`。第二段让同一侧可以有**多个上下堆叠的区域**，每个区域有自己的标签条、激活面板与高度。
 
-第一批（本轮）交付**规格 + 纯函数 + 单测**，即所有可以在无 GUI 环境下验证的契约：
+第一批交付**规格 + 纯函数 + 单测**，即所有可以在无 GUI 环境下验证的契约：
 
 - `SidebarDockGroup.height`：区域高度；
 - 拆分 / 合并 / 调高三个纯函数；
@@ -18,7 +18,7 @@
 - `files` 所在区域的锁定规则；
 - 跨区域拖拽删除空组时的高度归并。
 
-**不在第一批**：UI（多条 strip、splitter、菜单动作、i18n、App.vue 接线）。这些必须靠真机目视验证，见 §4 与 `tasks.md` 第二批。
+第二批交付 UI（多条 strip、splitter、菜单动作、15 语言 i18n、store / App 接线），见 §4 与 `tasks.md`；这部分的视觉效果只能靠真机目视确认，当前全部标注「未测」。
 
 ## 2. 关键决策
 
@@ -56,7 +56,7 @@ function setDockGroupHeight(state, side, groupIndex, height): SidebarDockState;
 
 `DockGroupView` 增加可选 `height?: number`，供第二批 `App.vue dockGroupsFor` 透传给组件；本批不改变渲染行为。
 
-## 4. UI 契约（第二批，待批准）
+## 4. UI 契约（第二批，已交付）
 
 | 项 | 要求 |
 |---|---|
@@ -71,7 +71,7 @@ function setDockGroupHeight(state, side, groupIndex, height): SidebarDockState;
 
 - `pnpm test`：新增 9 例覆盖 D2–D7（迁移幂等、clamp、拆分/合并、files 锁定、跨区域拖拽、空组权重归并）；全量全绿。
 - `pnpm build`（含 `vue-tsc --noEmit`）通过。
-- GUI：第二批完成后在 `docs/regression-checklist.md` 扩展 N 组（N9–N12）并填 PASS/FAIL；本环境无法起 Tauri GUI，所有视觉项标注「未测」。
+- GUI：`docs/regression-checklist.md` 已扩展 N9–N12 并在 P 组留签署行；本环境无法起 Tauri GUI，视觉项目前全部标注「未测」。
 
 ## 6. 明确不做
 

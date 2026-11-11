@@ -6,12 +6,15 @@ import {
   clampDockWidth,
   defaultSidebarDock,
   isPendingPane,
+  mergeDockGroups,
   migrateSidebarDock,
   mergeFilesPane,
   moveDockTab as applyMoveDockTab,
   nextActiveAfterHide,
   paneGroup,
+  setDockGroupHeight,
   sideDockPanes,
+  splitDockGroup,
   type DockTabTarget,
   type LegacySidebarBlob,
   type SidebarDockState,
@@ -1611,6 +1614,29 @@ export const useSettingsStore = defineStore('settings', {
       this.sidebarDock = applyMoveDockTab(this.sidebarDock, id, { side, group: 0 });
       this.sidebarDock.collapsed[side] = false;
       this.syncLegacySwitches();
+      this.persist();
+    },
+    /** Stage 2 — the three region actions. All pure functions reject illegal
+     *  input (files' region, single-tab regions, bad indices) by returning the
+     *  same state, which doubles as "nothing to persist". */
+    splitDockRegion(side: SidebarSide, groupIndex: number, paneId: SidebarPaneId) {
+      const next = splitDockGroup(this.sidebarDock, side, groupIndex, paneId);
+      if (next === this.sidebarDock) return;
+      this.sidebarDock = next;
+      this.syncLegacySwitches();
+      this.persist();
+    },
+    mergeDockRegions(side: SidebarSide, groupIndex: number) {
+      const next = mergeDockGroups(this.sidebarDock, side, groupIndex);
+      if (next === this.sidebarDock) return;
+      this.sidebarDock = next;
+      this.syncLegacySwitches();
+      this.persist();
+    },
+    setDockRegionHeight(side: SidebarSide, groupIndex: number, height: number) {
+      const next = setDockGroupHeight(this.sidebarDock, side, groupIndex, height);
+      if (next === this.sidebarDock) return;
+      this.sidebarDock = next;
       this.persist();
     },
     toggleLivePreview() {

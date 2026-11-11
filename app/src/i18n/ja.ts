@@ -1426,6 +1426,8 @@ export const ja: I18n = {
     expand: 'Expand sidebar',
   },
   panelMenu: {
+    splitRegion: 'Split into a new region',
+    mergeRegion: 'Merge with the region below',
     close: 'パネルを閉じる',
     hide: 'パネルを隠す',
     open: 'パネルを開く',

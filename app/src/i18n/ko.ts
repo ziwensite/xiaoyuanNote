@@ -1426,6 +1426,8 @@ export const ko: I18n = {
     expand: 'Expand sidebar',
   },
   panelMenu: {
+    splitRegion: 'Split into a new region',
+    mergeRegion: 'Merge with the region below',
     close: '패널 닫기',
     hide: '패널 숨기기',
     open: '패널 열기',

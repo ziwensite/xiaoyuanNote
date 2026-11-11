@@ -53,8 +53,8 @@ const emit = defineEmits<{
   outlineGoto: [line: number];
   openSettings: [section?: string];
   openQuickSwitcher: [];
-  paneContext: [id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number];
-  tabContext: [id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number];
+  paneContext: [id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number, group: number];
+  tabContext: [id: ImplementedSidebarPaneId, side: SidebarSide, x: number, y: number, group: number];
   edgeContext: [side: SidebarSide, x: number, y: number];
 }>();
 
@@ -159,14 +159,55 @@ function onSidebarResize(ev: MouseEvent) {
 
 /** Right-click inside a pane body. Panes that already own a menu (file tree,
  *  saved views) call stopPropagation, so this only fires on the chrome. */
+/** Stage 2 — the `files` region is shell chrome: no splitter, no resize. */
+function isLockedRegion(index: number): boolean {
+  return !!props.groups[index]?.panes.some((pane) => pane.id === 'files');
+}
+
+/** Relative weight → flex share. Absent height = one equal share. */
+function groupStyle(group: DockGroupView) {
+  return { flex: `${group.height ?? 1} 1 0%` };
+}
+
+/** Drag a region separator. The first left-side separator sits below `files`,
+ *  which cannot be resized, so in that case we resize the LOWER region. */
+function onRegionResize(ev: MouseEvent, groupIndex: number) {
+  ev.preventDefault();
+  const upperLocked = isLockedRegion(groupIndex - 1);
+  const targetIndex = upperLocked ? groupIndex : groupIndex - 1;
+  const startWeight = props.groups[targetIndex]?.height ?? 1;
+  const host = (ev.currentTarget as HTMLElement).parentElement;
+  const regionEl = host?.querySelectorAll<HTMLElement>('.dock-group')[targetIndex];
+  const startHeight = regionEl?.getBoundingClientRect().height ?? 0;
+  if (!startHeight) return;
+  const startY = ev.clientY;
+  const onMove = (m: MouseEvent) => {
+    const dy = m.clientY - startY;
+    const nextPx = Math.max(60, startHeight + (upperLocked ? -dy : dy));
+    settings.setDockRegionHeight(props.side, targetIndex, startWeight * (nextPx / startHeight));
+  };
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
+  document.body.style.cursor = 'ns-resize';
+  document.body.style.userSelect = 'none';
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
 function onPaneContext(ev: MouseEvent) {
   const el = ev.target as HTMLElement | null;
   const host = el?.closest<HTMLElement>('[data-rs-pane]');
   const id = host?.dataset.rsPane as ImplementedSidebarPaneId | undefined;
   if (!id) return;
+  const region = el?.closest<HTMLElement>('[data-dock-region]');
+  const group = Number(region?.dataset.dockGroup ?? 0);
   ev.preventDefault();
   ev.stopPropagation();
-  emit('paneContext', id, props.side, ev.clientX, ev.clientY);
+  emit('paneContext', id, props.side, ev.clientX, ev.clientY, group);
 }
 
 /** Right-click on the header's empty stretch: the pane-manager menu the `+`
@@ -216,7 +257,7 @@ function onEdgeContext(ev: MouseEvent) {
         :title="tab.title"
         :aria-label="t('sidebarDock.openPanel', { name: tab.title })"
         @click="settings.setActiveDockPane(props.side, tab.id)"
-        @contextmenu.prevent.stop="emit('tabContext', tab.id, props.side, $event.clientX, $event.clientY)"
+        @contextmenu.prevent.stop="emit('tabContext', tab.id, props.side, $event.clientX, $event.clientY, 0)"
       >
         <Icon :name="tab.icon" :size="16" />
       </button>
@@ -265,8 +306,9 @@ function onEdgeContext(ev: MouseEvent) {
         <DockTabStrip
           :side="props.side"
           :groups="props.groups"
+          :region-index="0"
           @manage="emit('manage', $event)"
-          @tab-context="(id, x, y) => emit('tabContext', id, props.side, x, y)"
+          @tab-context="(id, x, y, region) => emit('tabContext', id, props.side, x, y, region)"
         />
       </div>
       <DockTabStrip
@@ -276,29 +318,47 @@ function onEdgeContext(ev: MouseEvent) {
         :max-width="320"
         drawer
         @manage="emit('manage', $event)"
-        @tab-context="(id, x, y) => emit('tabContext', id, props.side, x, y)"
+        @tab-context="(id, x, y, region) => emit('tabContext', id, props.side, x, y, region)"
       />
 
-      <div
-        v-for="(group, groupIndex) in props.groups"
-        :key="groupIndex"
-        class="dock-group"
-        :data-dock-region="props.side"
-        :data-dock-side="props.side"
-        :data-dock-group="0"
-        @contextmenu="onPaneContext"
-      >
-        <div v-if="activeOf(group)" class="rs-pane-host" :data-rs-pane="activeOf(group)">
-          <SidebarPaneBody
-            :id="activeOf(group) as ImplementedSidebarPaneId"
-            :outline-line="props.outlineLine"
-            @filter-tag="(tag: string) => emit('filterTag', tag)"
-            @outline-goto="(line: number) => emit('outlineGoto', line)"
-            @open-settings="(section?: string) => emit('openSettings', section)"
-            @open-quick-switcher="emit('openQuickSwitcher')"
-          />
+      <template v-for="(group, groupIndex) in props.groups" :key="groupIndex">
+        <div
+          v-if="groupIndex > 0 && !props.overlay"
+          class="dock-splitter"
+          role="separator"
+          aria-orientation="horizontal"
+          :aria-label="t('rightSidebar.dragToResize')"
+          @mousedown="onRegionResize($event, groupIndex)"
+        />
+        <div
+          class="dock-group"
+          :style="groupStyle(group)"
+          :data-dock-region="props.side"
+          :data-dock-side="props.side"
+          :data-dock-group="groupIndex"
+          @contextmenu="onPaneContext"
+        >
+          <div v-if="groupIndex > 0 && !props.overlay" class="dock-group__strip">
+            <DockTabStrip
+              :side="props.side"
+              :groups="props.groups"
+              :region-index="groupIndex"
+              @manage="emit('manage', $event)"
+              @tab-context="(id, x, y, region) => emit('tabContext', id, props.side, x, y, region)"
+            />
+          </div>
+          <div v-if="activeOf(group)" class="rs-pane-host" :data-rs-pane="activeOf(group)">
+            <SidebarPaneBody
+              :id="activeOf(group) as ImplementedSidebarPaneId"
+              :outline-line="props.outlineLine"
+              @filter-tag="(tag: string) => emit('filterTag', tag)"
+              @outline-goto="(line: number) => emit('outlineGoto', line)"
+              @open-settings="(section?: string) => emit('openSettings', section)"
+              @open-quick-switcher="emit('openQuickSwitcher')"
+            />
+          </div>
         </div>
-      </div>
+      </template>
     </template>
   </aside>
 </template>
@@ -406,7 +466,9 @@ function onEdgeContext(ev: MouseEvent) {
   color: var(--fg-3);
 }
 
-/* One stacked region. Stage 1 renders exactly one; stage 2 stacks several. */
+/* One stacked region. Stage 1 renders exactly one; stage 2 stacks several.
+   The inline `flex` from groupStyle() overrides this default with the stored
+   relative weight. */
 .dock-group {
   flex: 1 1 auto;
   min-height: 0;
@@ -415,6 +477,35 @@ function onEdgeContext(ev: MouseEvent) {
 }
 .dock-group + .dock-group {
   border-top: var(--bd-hair);
+}
+/* Stage 2: 1px separator with a 9px hit area, like the column edge. */
+.dock-splitter {
+  flex: 0 0 var(--hair-w);
+  height: var(--hair-w);
+  position: relative;
+  z-index: 2;
+  background: var(--hairline);
+  cursor: ns-resize;
+}
+.dock-splitter::before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+.dock-splitter:hover::after,
+.dock-splitter:active::after {
+  content: '';
+  position: absolute;
+  inset: -1px 0;
+  background: var(--accent);
+}
+/* Regions below the first carry their own strip, aligned with the header. */
+.dock-group__strip {
+  flex: 0 0 var(--header-h);
+  height: var(--header-h);
+  min-width: 0;
+  display: flex;
+  border-bottom: var(--bd-hair);
 }
 
 .rs-pane-host {

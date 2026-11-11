@@ -25,6 +25,8 @@ export type CtxActionId =
   | 'panel.moveLeft'
   | 'panel.moveRight'
   | 'panel.manage'
+  | 'panel.splitRegion'
+  | 'panel.mergeRegion'
   | 'column.collapse'
   | 'column.expand'
   | 'view.toggleFileTree'
@@ -76,6 +78,10 @@ export interface CtxState {
   panePinned: boolean;
   /** Is that column already folded down to its icon rail? */
   paneColumnCollapsed: boolean;
+  /** Stage 2: region the tab lives in, and whether split/merge are legal. */
+  paneGroupIndex?: number;
+  canSplitRegion?: boolean;
+  canMergeRegion?: boolean;
 }
 
 const sep: CtxSep = { sep: true };
@@ -128,6 +134,9 @@ export function buildDockTabMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
   const pinned = state.panePinned;
   return [
     entry('panel.open', t('panelMenu.open')),
+    sep,
+    entry('panel.splitRegion', t('panelMenu.splitRegion'), { disabled: !state.canSplitRegion }),
+    entry('panel.mergeRegion', t('panelMenu.mergeRegion'), { disabled: !state.canMergeRegion }),
     sep,
     entry('panel.close', t('panelMenu.close'), { disabled: pinned }),
     entry('panel.moveLeft', t('panelMenu.moveToLeft'), {

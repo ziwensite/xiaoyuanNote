@@ -1424,6 +1424,8 @@ export const zh: I18n = {
     expand: '展开侧栏',
   },
   panelMenu: {
+    splitRegion: '拆分到新区域',
+    mergeRegion: '与下方区域合并',
     close: '关闭面板',
     hide: '隐藏面板',
     open: '打开面板',

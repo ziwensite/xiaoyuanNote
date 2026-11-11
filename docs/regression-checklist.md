@@ -158,6 +158,10 @@ Rows from `docs/specs/sidebar-shell-stage1/tasks.md`. All eight were code-inferr
 | N6 | zero-width collapse | collapsed column has no width and no focusable leftover; header toggle / `⌘B` / `⌥⌘B` reopen at the previous width | yes |
 | N7 | `+` at the strip end | pane-list checkbox state matches the visible tabs | yes |
 | N8 | platform regressions | mac traffic lights clear of the header buttons; tablet drawer, narrow layout (no left column), Agent auto-width 472 unchanged | no |
+| N9 | two regions on one side | splitting a tab creates a second strip + body stacked below; each strip has its own `+` and `»` | yes |
+| N10 | drag lands in the right region | dropping on a lower body / strip puts the tab in that region, not group 0; the insertion line appears on the right strip | no |
+| N11 | splitter persists | dragging the separator changes the share; relaunch keeps it; the `files` region shows no separator and never resizes | no |
+| N12 | split / merge menu | tab right-click offers both actions; disabled on `files`, single-tab regions and the last region; all 15 locales have non-empty labels | yes |
 
 ## O. Virtual editor tabs (P0–P4)
 From `docs/specs/editor-input-tabs/spec.md` §6(4). File-tab behaviour is the baseline: any difference is a regression.
@@ -183,3 +187,4 @@ One row per source, per run. `未测` is the initial state; keep FAIL rows until
 | 2 | 2026-11-11 | Windows / dev | `editor-input-tabs` §6(4) | O1–O9 | 未测 | 同上 |
 | 3 | 2026-11-11 | Windows / dev | `calendar-ui-forms/tasks.md` L59 | 弹窗开关 / 重启恢复 / 月份一致 / 任务勾选与跳转 / 窄屏 | 未测 | 同上 |
 | 4 | 2026-11-11 | Windows / dev | `v1-file-tree-merge/tasks.md` L83 | spec §6 人工核对 | 未测 | 同上 |
+| 5 | 2026-11-11 | Windows / dev | `sidebar-shell-stage2` 第二批 | N9–N12 | 未测 | UI 代码已落地，需真机目视 |

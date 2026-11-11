@@ -41,6 +41,9 @@ import Icon from '../Icons.vue';
 const props = defineProps<{
   side: SidebarSide;
   groups: readonly DockGroupView[];
+  /** Stage 2: render only this region's tabs. One strip instance per region,
+   *  so each keeps its own overflow menu, `+` and drop insertion line. */
+  regionIndex?: number;
   /** Drawer only: the floating panel's width cap (320). Column mode fills. */
   maxWidth?: number;
   /** Drawer placement: a 32px band inside the panel instead of a column header. */
@@ -49,7 +52,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   manage: [ev: MouseEvent];
-  tabContext: [id: ImplementedSidebarPaneId, x: number, y: number];
+  tabContext: [id: ImplementedSidebarPaneId, x: number, y: number, group: number];
 }>();
 
 const settings = useSettingsStore();
@@ -90,6 +93,9 @@ function iconOf(id: ImplementedSidebarPaneId): string {
 const tabs = computed<RenderedTab[]>(() => {
   const out: RenderedTab[] = [];
   props.groups.forEach((group, groupIndex) => {
+    // Stage 2: one strip instance owns one region, but `props.groups` stays
+    // the full array so `dropAt` can still resolve a global region index.
+    if (props.regionIndex !== undefined && groupIndex !== props.regionIndex) return;
     const active = activeOf(group);
     for (const entry of renderableOf(group)) {
       out.push({
@@ -312,6 +318,8 @@ function onTabClick(id: ImplementedSidebarPaneId) {
 const dropAt = computed<number | null>(() => {
   const over = dockDrag.over;
   if (!over || over.side !== props.side) return null;
+  // Stage 2: each strip draws the insertion line for its own region only.
+  if (props.regionIndex !== undefined && over.group !== props.regionIndex) return null;
   let insert = over.index;
   const panes = props.groups[over.group]?.panes ?? [];
   // `files` is pinned first: dropping "before files" lands after it.
@@ -339,7 +347,7 @@ const dropAt = computed<number | null>(() => {
     :aria-label="props.side === 'left' ? t('header.leftPanels') : t('header.rightPanels')"
     data-dock-region
     :data-dock-side="props.side"
-    data-dock-group="0"
+    :data-dock-group="props.regionIndex ?? 0"
     :style="stripStyle"
     @keydown="onStripKeydown"
   >
@@ -361,7 +369,7 @@ const dropAt = computed<number | null>(() => {
         :data-dock-group="tab.group"
         @pointerdown="onTabPointerDown($event, tab.id)"
         @click="onTabClick(tab.id)"
-        @contextmenu.prevent.stop="emit('tabContext', tab.id, $event.clientX, $event.clientY)"
+        @contextmenu.prevent.stop="emit('tabContext', tab.id, $event.clientX, $event.clientY, tab.group)"
       >
         <Icon :name="iconOf(tab.id)" :size="16" />
       </button>
