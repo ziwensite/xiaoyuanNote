@@ -268,9 +268,9 @@ function pick(date: string) {
   calendar.setFocusDate(date);
 }
 
-/** The dialog kept its old self, it just moved behind a deliberate button. */
+/** Desktop: an editor tab; narrow windows / tablets: the dialog. */
 function openSelectedDay() {
-  calendar.openDialog();
+  calendar.openWorkspace();
 }
 
 async function toggleSelected(task: CalendarTask) {

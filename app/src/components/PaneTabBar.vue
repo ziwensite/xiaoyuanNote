@@ -11,8 +11,9 @@ import { useFiles } from '../composables/useFiles';
 import { requestRevealInTree } from '../composables/useFileTreeReveal';
 import { shortcutLabel } from '../lib/keybindings';
 import { revealLabelKey, usesCommandKey } from '../lib/platform';
-import { displayTabTitle, displayTabTooltip } from '../lib/tab-title';
+import { tabTitle, tabTooltip } from '../lib/tab-title';
 import { isFileTabSaved } from '../lib/tab-dirty';
+import { EDITOR_KINDS, isFileTab, type VirtualTabKind } from '../lib/editor-input';
 import { measureMenu, placeMenuFromPoint, placeMenuFromRect } from '../lib/menu-position';
 import { useI18n } from '../i18n';
 import Icon from './Icons.vue';
@@ -113,9 +114,12 @@ const ctxFlags = computed(() => {
     // is backed by a real on-disk path. Untitled / unsaved buffers have
     // no path, so the menu item is rendered disabled.
     hasFilePath: !!target?.filePath,
-    isMarkdown: target?.language === 'markdown',
+    isFile: !!target && isFileTab(target),
+    isMarkdown: !!target && isFileTab(target) && target.language === 'markdown',
     showOutline: !!target?.showOutline,
     pinned: !!target?.pinned,
+    // Virtual tabs declare whether they may live in a split pane.
+    splittable: !!target && (isFileTab(target) || EDITOR_KINDS[target.kind as VirtualTabKind]?.splittable),
   };
 });
 
@@ -325,7 +329,10 @@ function onPointerUp(e: PointerEvent) {
   suppressClick = true;
 
   const split = paneSplitAt(e.clientX, e.clientY);
-  if (split) {
+  const startTab = tabs.tabs.find((t) => t.id === start.tabId);
+  const canSplit =
+    !startTab || isFileTab(startTab) || EDITOR_KINDS[startTab.kind as VirtualTabKind]?.splittable;
+  if (split && canSplit) {
     tiles.splitPane(split.paneId, split.direction, start.tabId);
   } else {
     // Reorder: insert relative to the tab under the pointer. Right half of the
@@ -380,7 +387,7 @@ onBeforeUnmount(() => {
   tabsMeasureRaf = 0;
 });
 watch(
-  () => tabs.tabs.map((x) => displayTabTitle(x, settings.tabTitleFromFirstLine)).join('\u0000'),
+  () => tabs.tabs.map((x) => tabTitle(x, t, settings.tabTitleFromFirstLine)).join('\u0000'),
   () => nextTick(scheduleMeasureTabsOverflow),
 );
 
@@ -395,7 +402,7 @@ const filteredTabList = computed(() => {
   if (!q) return tabs.tabs;
   return tabs.tabs.filter(
     (tl) =>
-      displayTabTitle(tl, settings.tabTitleFromFirstLine).toLowerCase().includes(q) ||
+      tabTitle(tl, t, settings.tabTitleFromFirstLine).toLowerCase().includes(q) ||
       tl.fileName.toLowerCase().includes(q) ||
       (tl.filePath && tl.filePath.toLowerCase().includes(q)),
   );
@@ -533,10 +540,10 @@ onBeforeUnmount(() => {
         @pointerdown="onTabPointerDown($event, tab.id)"
         @mousedown.middle="onMiddlePointerDown($event, tab.id)"
         @contextmenu="onContextMenu($event, tab.id)"
-        :title="displayTabTooltip(tab, settings.tabTitleFromFirstLine)"
+        :title="tabTooltip(tab, t, settings.tabTitleFromFirstLine)"
       >
         <span v-if="tab.pinned" class="tab__pin" aria-hidden="true">📌</span>
-        <span class="tab__name">{{ displayTabTitle(tab, settings.tabTitleFromFirstLine) }}</span>
+        <span class="tab__name">{{ tabTitle(tab, t, settings.tabTitleFromFirstLine) }}</span>
         <!-- One 16px slot at the end: the unsaved dot sits in it until the
              pointer arrives, then the close button takes its place. -->
         <span class="tab__end">
@@ -628,11 +635,11 @@ onBeforeUnmount(() => {
           class="ctx-item tablist__item"
           :class="{ 'tablist__item--active': tl.id === activeTabId }"
           role="menuitem"
-          :title="displayTabTooltip(tl, settings.tabTitleFromFirstLine)"
+          :title="tabTooltip(tl, t, settings.tabTitleFromFirstLine)"
           @click="pickFromTabList(tl.id)"
         >
           <span v-if="tl.pinned" class="tablist__pin" aria-hidden="true">📌</span>
-          <span class="tablist__name">{{ displayTabTitle(tl, settings.tabTitleFromFirstLine) }}</span>
+          <span class="tablist__name">{{ tabTitle(tl, t, settings.tabTitleFromFirstLine) }}</span>
           <span v-if="tabs.isDirty(tl.id)" class="tablist__dot" aria-hidden="true"></span>
         </button>
       </div>
@@ -668,18 +675,21 @@ onBeforeUnmount(() => {
             {{ ctxFlags.showOutline ? t('tabMenu.hideOutline') : t('tabMenu.showOutline') }}
           </button>
         </template>
+        <!-- Path / filename actions only exist for file-backed tabs. -->
+        <template v-if="ctxFlags?.isFile">
+          <div class="ctx-sep" />
+          <button class="ctx-item" data-tab-copy-name @click="onTabAction('copyFileName')">{{ t('tabMenu.copyFileName') }}</button>
+          <button class="ctx-item" data-tab-copy-path :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('copyFilePath')">{{ t('tabMenu.copyFilePath') }}</button>
+          <button class="ctx-item" data-tab-copy-rel-path :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('copyRelativePath')">
+            {{ settings.language === 'zh' ? '复制相对路径' : 'Copy Relative Path' }}
+          </button>
+          <div class="ctx-sep" />
+          <button class="ctx-item" :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('revealInFolder')">{{ t(revealLabelKey('tabMenu.revealInFolder')) }}</button>
+          <button class="ctx-item" :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('revealInFileTree')">{{ t('tabMenu.revealInFileTree') }}</button>
+        </template>
         <div class="ctx-sep" />
-        <button class="ctx-item" data-tab-copy-name @click="onTabAction('copyFileName')">{{ t('tabMenu.copyFileName') }}</button>
-        <button class="ctx-item" data-tab-copy-path :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('copyFilePath')">{{ t('tabMenu.copyFilePath') }}</button>
-        <button class="ctx-item" data-tab-copy-rel-path :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('copyRelativePath')">
-          {{ settings.language === 'zh' ? '复制相对路径' : 'Copy Relative Path' }}
-        </button>
-        <div class="ctx-sep" />
-        <button class="ctx-item" :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('revealInFolder')">{{ t(revealLabelKey('tabMenu.revealInFolder')) }}</button>
-        <button class="ctx-item" :disabled="!ctxFlags?.hasFilePath" @click="onTabAction('revealInFileTree')">{{ t('tabMenu.revealInFileTree') }}</button>
-        <div class="ctx-sep" />
-        <button class="ctx-item" @click="splitPane('horizontal')">{{ t('cmd.tile.splitRight') }}</button>
-        <button class="ctx-item" @click="splitPane('vertical')">{{ t('cmd.tile.splitDown') }}</button>
+        <button class="ctx-item" :disabled="!ctxFlags?.splittable" @click="splitPane('horizontal')">{{ t('cmd.tile.splitRight') }}</button>
+        <button class="ctx-item" :disabled="!ctxFlags?.splittable" @click="splitPane('vertical')">{{ t('cmd.tile.splitDown') }}</button>
         <div class="ctx-sep" v-if="tiles.allLeaves.length > 1" />
         <button class="ctx-item" v-if="tiles.allLeaves.length > 1" @click="closePane">{{ t('cmd.tile.closePane') }}</button>
       </div>

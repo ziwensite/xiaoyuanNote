@@ -724,6 +724,9 @@ export const ko: I18n = {
     themeLight: "라이트(기본)",
     themeDark: "다크(One Dark)",
   },
+  editorTab: {
+    calendar: '캘린더 · {date}',
+  },
   tabMenu: {
     allTabs: '열린 탭 모두 보기',
     close: '닫기',

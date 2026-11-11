@@ -725,6 +725,9 @@ export const sv: I18n = {
     themeLight: "Ljust (standard)",
     themeDark: "Mörkt (One Dark)",
   },
+  editorTab: {
+    calendar: 'Kalender · {date}',
+  },
   tabMenu: {
     allTabs: 'Alla öppna flikar',
     close: 'Stäng',

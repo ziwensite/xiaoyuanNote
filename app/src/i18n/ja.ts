@@ -724,6 +724,9 @@ export const ja: I18n = {
     themeLight: "ライト（デフォルト）",
     themeDark: "ダーク（One Dark）",
   },
+  editorTab: {
+    calendar: 'カレンダー · {date}',
+  },
   tabMenu: {
     allTabs: '開いているすべてのタブ',
     close: '閉じる',

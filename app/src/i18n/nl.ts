@@ -725,6 +725,9 @@ export const nl: I18n = {
     themeLight: "Licht (standaard)",
     themeDark: "Donker (One Dark)",
   },
+  editorTab: {
+    calendar: 'Agenda · {date}',
+  },
   tabMenu: {
     allTabs: 'Alle geopende tabbladen',
     close: 'Sluiten',

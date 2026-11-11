@@ -723,6 +723,9 @@ export const ru: I18n = {
     themeLight: "Светлая (по умолчанию)",
     themeDark: "Тёмная (One Dark)",
   },
+  editorTab: {
+    calendar: 'Календарь · {date}',
+  },
   tabMenu: {
     allTabs: 'Все открытые вкладки',
     close: 'Закрыть',

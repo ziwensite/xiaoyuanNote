@@ -725,6 +725,9 @@ export const it: I18n = {
     themeLight: "Chiaro (predefinito)",
     themeDark: "Scuro (One Dark)",
   },
+  editorTab: {
+    calendar: 'Calendario · {date}',
+  },
   tabMenu: {
     allTabs: 'Tutte le schede aperte',
     close: 'Chiudi',

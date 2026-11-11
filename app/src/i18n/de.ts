@@ -725,6 +725,9 @@ export const de: I18n = {
     themeLight: "Hell (Standard)",
     themeDark: "Dunkel (One Dark)",
   },
+  editorTab: {
+    calendar: 'Kalender · {date}',
+  },
   tabMenu: {
     allTabs: 'Alle geöffneten Tabs',
     close: 'Schließen',

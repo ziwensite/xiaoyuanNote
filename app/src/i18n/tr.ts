@@ -725,6 +725,9 @@ export const tr: I18n = {
     themeLight: "Açık (Varsayılan)",
     themeDark: "Koyu (One Dark)",
   },
+  editorTab: {
+    calendar: 'Takvim · {date}',
+  },
   tabMenu: {
     allTabs: 'Tüm açık sekmeler',
     close: 'Kapat',

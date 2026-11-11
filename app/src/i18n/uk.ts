@@ -725,6 +725,9 @@ export const uk: I18n = {
     themeLight: "Світла (типово)",
     themeDark: "Темна (One Dark)",
   },
+  editorTab: {
+    calendar: 'Календар · {date}',
+  },
   tabMenu: {
     allTabs: 'Усі відкриті вкладки',
     close: 'Закрити',

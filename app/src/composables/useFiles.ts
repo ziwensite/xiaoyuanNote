@@ -24,6 +24,7 @@ import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/im
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
 import { noteOwnWrite } from '../lib/external-change';
 import { isTabDirty } from '../lib/tab-dirty';
+import type { VirtualTabKind } from '../lib/editor-input';
 
 // Save dialogs only — opening uses no filter so any file is selectable.
 // (rfd treats `'*'` literally as the extension `*`, not as wildcard, so we
@@ -102,6 +103,11 @@ export function useFiles() {
     if (!rec) {
       toasts.info(t('toast.nothingToReopen'));
       return false;
+    }
+    if (rec.kind && rec.kind !== 'file') {
+      const tab = tabs.openInput(rec.kind as VirtualTabKind, rec.input);
+      if (rec.title) tab.title = rec.title;
+      return true;
     }
     if (rec.filePath) {
       const open = tabs.tabs.find((x) => samePath(x.filePath, rec.filePath));

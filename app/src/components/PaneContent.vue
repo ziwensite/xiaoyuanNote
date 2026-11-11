@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import Editor from './Editor.vue';
 import Preview from './Preview.vue';
 import { useSettingsStore, clampSplitRatio, SPLIT_RATIO_MIN, SPLIT_RATIO_MAX } from '../stores/settings';
@@ -15,6 +15,7 @@ import {
   tabViewportAnchorMemory,
   type ViewportLineAnchor,
 } from '../lib/scroll-memory';
+import { EDITOR_KINDS, isFileTab, type VirtualTabKind } from '../lib/editor-input';
 
 const props = defineProps<{
   paneId: string;
@@ -33,6 +34,16 @@ const { t } = useI18n();
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const previewRef = ref<InstanceType<typeof Preview> | null>(null);
+
+/** Virtual tabs are rendered by their kind registry instead of Editor/Preview.
+ *  Every file-only watcher below returns early for them. */
+const isFile = computed(() => !props.tab || isFileTab(props.tab));
+const virtualComponent = computed(() => {
+  const tab = props.tab;
+  if (!tab || isFileTab(tab)) return null;
+  const loader = EDITOR_KINDS[tab.kind as VirtualTabKind]?.component;
+  return loader ? defineAsyncComponent(loader as () => Promise<never>) : null;
+});
 
 const showEditor = computed(
   () => props.tab?.language !== 'markdown' || settings.viewMode !== 'preview'
@@ -85,7 +96,7 @@ function onCursor(line: number, col: number) {
 // existing `gotoLine` lands on the right line (column 1).
 function restoreLaunchCursor() {
   const tab = props.tab;
-  if (!tab || !isFocused.value || !showEditor.value) return;
+  if (!tab || !isFileTab(tab) || !isFocused.value || !showEditor.value) return;
   const tabId = tab.id;
   setTimeout(() => {
     const ed = editorRef.value as unknown as {
@@ -240,6 +251,7 @@ function findAnchorIndex<T extends { line: number }>(list: T[], line: number): n
 }
 
 function bindScrollSync() {
+  if (!props.tab || !isFileTab(props.tab)) return;
   if (syncEditorScroll) syncEditorScroll();
   if (syncPreviewScroll) syncPreviewScroll();
   syncEditorScroll = null;
@@ -536,6 +548,7 @@ function restoreToLine(paneEl: Element, toMode: string, line: number, offsetTop 
 watch(
   () => settings.viewMode,
   async (newMode, oldMode) => {
+    if (!props.tab || !isFileTab(props.tab)) return;
     // Snapshot the logical position + visual viewport offset from the OLD view
     // synchronously BEFORE v-show hides it (#487, #516).
     const paneEl = document.querySelector(`[data-pane-id="${props.paneId}"]`);
@@ -598,6 +611,7 @@ watch(() => props.tab?.id, async () => {
 
 onMounted(() => {
   setTimeout(() => {
+    if (!props.tab || !isFileTab(props.tab)) return;
     const savedLine = props.tab?.id ? tabTopLineMemory.get(props.tab.id) : undefined;
     if (savedLine && savedLine > 1) {
       const paneEl = document.querySelector(`[data-pane-id="${props.paneId}"]`);
@@ -739,6 +753,12 @@ function onPreviewSearchEvent(e: Event) {
       'pane-content--preview-only': showPreview && !showEditor,
     }"
   >
+    <!-- Virtual tabs (calendar, settings, search, web) render their own
+         component; the file branch below is untouched. -->
+    <div v-if="tab && !isFile && virtualComponent" class="pane pane--virtual">
+      <component :is="virtualComponent" :tab="tab" :pane-id="paneId" />
+    </div>
+    <template v-else-if="isFile">
     <div class="pane pane--editor" v-if="tab" v-show="showEditor" :style="editorPaneStyle">
       <Editor
         :key="editorImplementationKey"
@@ -777,6 +797,7 @@ function onPreviewSearchEvent(e: Event) {
         @topline="onPreviewTopline"
       />
     </div>
+    </template>
   </div>
 </template>
 
@@ -794,6 +815,11 @@ function onPreviewSearchEvent(e: Event) {
   flex: 1;
   min-width: 0;
   height: 100%;
+}
+.pane--virtual {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
 }
 /* Preview-only (viewMode `preview`): the editor pane is still in the DOM, just
  * `v-show`-hidden, so `.pane--editor + .pane--preview` used to match and paint

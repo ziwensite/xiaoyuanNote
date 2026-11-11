@@ -7,6 +7,12 @@ import { useWritingSessionStore } from './writingSession';
 import { useWindowsStore } from './windows';
 import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
 import { isTabDirty } from '../lib/tab-dirty';
+import {
+  EDITOR_KINDS,
+  isFileTab,
+  singletonKeyOf,
+  type VirtualTabKind,
+} from '../lib/editor-input';
 
 // Legacy / global key (used when per-workspace tabs is OFF, and as the
 // migration source on first upgrade).
@@ -125,6 +131,29 @@ function inFolder(filePath: string | undefined, folder: string | null): boolean 
   return f === r || f.startsWith(r + '/');
 }
 
+/** Validate one persisted tab. File tabs pass through untouched; virtual tabs
+ *  are dropped when their kind is unknown, their arguments no longer parse, or
+ *  the kind is session-only (`persist: 'never'`). */
+function hydrateTab(raw: Tab): Tab | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const kind = raw.kind ?? 'file';
+  if (kind === 'file') return raw;
+  const def = EDITOR_KINDS[kind as VirtualTabKind];
+  if (!def || def.persist === 'never') return null;
+  const input = def.deserialize(raw.input as never);
+  if (!input) return null;
+  // Virtual tabs never carry a buffer; a stale `content` from an older build
+  // must not make them look dirty.
+  return { ...raw, kind, input, content: '', savedContent: '' };
+}
+
+/** Only tabs that should survive a relaunch. Session-only virtual tabs
+ *  (settings, search results) are kept in memory but never written. */
+function persistable(t: Tab): boolean {
+  if (isFileTab(t)) return true;
+  return EDITOR_KINDS[t.kind as VirtualTabKind].persist === 'workspace';
+}
+
 function readBucket(key: string): PersistedState | null {
   try {
     const raw = localStorage.getItem(key);
@@ -139,7 +168,10 @@ function readBucket(key: string): PersistedState | null {
             t.savedContent = t.savedContent.replace(/\r\n/g, '\n');
           }
         }
-        return { tabs: data.tabs, activeId: data.activeId || '' };
+        const tabs = data.tabs
+          .map(hydrateTab)
+          .filter((t): t is Tab => t !== null);
+        return { tabs, activeId: data.activeId || '' };
       }
     }
   } catch {}
@@ -186,6 +218,10 @@ export interface ClosedTabRecord {
   fileName: string;
   content: string;
   language: Language;
+  /** Virtual tabs carry their kind/args/title so ⌘⇧T can rebuild them. */
+  kind?: Tab['kind'];
+  input?: unknown;
+  title?: string;
 }
 const CLOSED_TAB_LIMIT = 20;
 const closedTabs: ClosedTabRecord[] = [];
@@ -264,6 +300,43 @@ export const useTabsStore = defineStore('tabs', {
         window.dispatchEvent(new Event('solomd:leave-center-overlay'));
       }
       return tab;
+    },
+    /** Open a virtual editor input. A singleton kind (calendar, settings,
+     *  search) reuses its tab and only swaps the parameters; kinds without a
+     *  singleton key (web) open one tab per input. */
+    openInput(kind: VirtualTabKind, args: unknown, opts?: { activate?: boolean }): Tab {
+      const key = singletonKeyOf(kind, args);
+      if (key !== null) {
+        const existing = this.tabs.find(
+          (t) => (t.kind ?? 'file') === kind && singletonKeyOf(kind, t.input) === key,
+        );
+        if (existing) {
+          existing.input = args;
+          if (opts?.activate !== false) this.activate(existing.id);
+          return existing;
+        }
+      }
+      const tab: Tab = {
+        id: newId(),
+        kind,
+        input: args,
+        fileName: '',
+        content: '',
+        savedContent: '',
+        encoding: 'UTF-8',
+        language: 'plaintext',
+        hadBom: false,
+        showOutline: false,
+      };
+      this.tabs.push(tab);
+      if (opts?.activate !== false) this.activate(tab.id);
+      return tab;
+    },
+    /** Swap a virtual tab's parameters in place (date/view changes inside the
+     *  calendar tab must not create a second tab). */
+    updateInput(id: string, args: unknown) {
+      const t = this.tabs.find((x) => x.id === id);
+      if (t) t.input = args;
     },
     openFromDisk(payload: {
       filePath: string;
@@ -439,13 +512,17 @@ export const useTabsStore = defineStore('tabs', {
       const idx = this.tabs.findIndex((t) => t.id === id);
       if (idx === -1) return;
       const closed = this.tabs[idx];
-      // A blank untitled tab has nothing worth bringing back.
-      if (closed && (closed.filePath || closed.content.trim())) {
+      // A blank untitled tab has nothing worth bringing back; every virtual tab
+      // does (its kind + arguments are the whole document).
+      if (closed && (closed.filePath || closed.content.trim() || !isFileTab(closed))) {
         closedTabs.push({
           filePath: closed.filePath,
           fileName: closed.fileName,
           content: closed.content,
           language: closed.language,
+          kind: closed.kind,
+          input: closed.input,
+          title: closed.title,
         });
         if (closedTabs.length > CLOSED_TAB_LIMIT) closedTabs.shift();
       }
@@ -613,7 +690,7 @@ export const useTabsStore = defineStore('tabs', {
       try {
         localStorage.setItem(
           bucketKey(currentWorkspaceFolder()),
-          JSON.stringify({ tabs: this.tabs, activeId: this.activeId }),
+          JSON.stringify({ tabs: this.tabs.filter(persistable), activeId: this.activeId }),
         );
       } catch {}
     },
@@ -639,7 +716,7 @@ export const useTabsStore = defineStore('tabs', {
       try {
         localStorage.setItem(
           bucketKey(folder),
-          JSON.stringify({ tabs: this.tabs, activeId: this.activeId }),
+          JSON.stringify({ tabs: this.tabs.filter(persistable), activeId: this.activeId }),
         );
       } catch {}
     },
@@ -658,7 +735,9 @@ export const useTabsStore = defineStore('tabs', {
       // any typed text makes them dirty). A blank untitled tab is disposable
       // — not carried — so entering empty workspaces doesn't accumulate
       // empty scratch tabs.
-      const carried = this.tabs.filter((t) => isDirty(t));
+      // Virtual tabs follow the user too: they describe the app, not the
+      // folder's files (a calendar tab should not vanish on a folder switch).
+      const carried = this.tabs.filter((t) => isDirty(t) || !isFileTab(t));
       // The new workspace's remembered tabs (only when session restore is on;
       // otherwise we just scope down to the carried set — a blank-ish slate).
       const restored = settings.restoreSession
@@ -666,6 +745,7 @@ export const useTabsStore = defineStore('tabs', {
         : { tabs: [], activeId: '' };
       const seenPaths = new Set<string>();
       const seenIds = new Set<string>();
+      const seenSingletons = new Set<string>();
       const merged: Tab[] = [];
       const push = (t: Tab) => {
         // Dedup by id AND by path. The id check matters for untitled tabs
@@ -674,6 +754,16 @@ export const useTabsStore = defineStore('tabs', {
         // added and untitled tabs would multiply on every workspace switch.
         if (seenIds.has(t.id)) return;
         if (t.filePath && seenPaths.has(t.filePath)) return;
+        // Singleton virtual tabs from the carried set and the new bucket are
+        // the same tab even when their ids differ.
+        if (!isFileTab(t)) {
+          const key = singletonKeyOf(t.kind as VirtualTabKind, t.input);
+          if (key !== null) {
+            const identity = `${t.kind}:${key}`;
+            if (seenSingletons.has(identity)) return;
+            seenSingletons.add(identity);
+          }
+        }
         seenIds.add(t.id);
         if (t.filePath) seenPaths.add(t.filePath);
         merged.push(t);

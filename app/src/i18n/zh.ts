@@ -725,6 +725,9 @@ export const zh: I18n = {
     themeLight: "浅色（默认）",
     themeDark: "深色（One Dark）",
   },
+  editorTab: {
+    calendar: '日历 · {date}',
+  },
   tabMenu: {
     allTabs: '所有打开的标签',
     close: '关闭',

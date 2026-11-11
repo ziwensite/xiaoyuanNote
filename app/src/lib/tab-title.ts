@@ -6,6 +6,14 @@
  * that pass temporary / UUID / hash filenames (`a8f3c91b-4d2e.md`).
  */
 
+import type { Tab } from '../types';
+import {
+  EDITOR_KINDS,
+  isFileTab,
+  type TranslateFn,
+  type VirtualTabKind,
+} from './editor-input';
+
 const MAX_TITLE_CHARS = 48;
 
 export function extractFirstLineTitle(content: string | undefined | null): string {
@@ -92,4 +100,20 @@ export function displayTabTooltip(
   const first = extractFirstLineTitle(tab.content);
   if (!first || first === tab.fileName) return base;
   return `${first} — ${base}`;
+}
+
+/** Title for any tab: file tabs keep the filename / first-line rules, virtual
+ *  tabs ask their kind registry. */
+export function tabTitle(tab: Tab | undefined | null, t: TranslateFn, useFirstLine: boolean): string {
+  if (!tab) return '';
+  if (isFileTab(tab)) return displayTabTitle(tab, useFirstLine);
+  const def = EDITOR_KINDS[tab.kind as VirtualTabKind];
+  return tab.title || def?.title(tab, t) || tab.fileName;
+}
+
+/** Tooltip mirrors `tabTitle`; virtual tabs have no path to add. */
+export function tabTooltip(tab: Tab | undefined | null, t: TranslateFn, useFirstLine: boolean): string {
+  if (!tab) return '';
+  if (isFileTab(tab)) return displayTabTooltip(tab, useFirstLine);
+  return tabTitle(tab, t, useFirstLine);
 }

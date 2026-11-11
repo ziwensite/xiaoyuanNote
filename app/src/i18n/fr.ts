@@ -725,6 +725,9 @@ export const fr: I18n = {
     themeLight: "Clair (par défaut)",
     themeDark: "Sombre (One Dark)",
   },
+  editorTab: {
+    calendar: 'Calendrier · {date}',
+  },
   tabMenu: {
     allTabs: 'Tous les onglets ouverts',
     close: 'Fermer',

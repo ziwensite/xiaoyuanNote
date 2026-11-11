@@ -2597,8 +2597,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       @cancel="imageUrlDialogOpen = false"
     />
     <SessionRestoreDialog />
-    <!-- B — detailed calendar (month + tasks; day/week secondary). -->
-    <CalendarDialog />
+    <!-- B — detailed calendar. Desktop opens it as an editor tab; phones and
+         tablets keep this dialog, so it is only mounted there. -->
+    <CalendarDialog v-if="isNarrow || isTabletOverlay" />
     <!-- v4.6 F5 — saved-view create/edit modal (self-mounts via window events). -->
     <ViewEditorDialog />
     <!-- Legacy `🔁 FREQ=…` → Tasks natural language, with preview + confirm. -->

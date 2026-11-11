@@ -114,3 +114,13 @@ export function useTabletOverlay() {
   evaluateTablet();
   return { isTabletOverlay: readonly(tabletOverlay) };
 }
+
+/** Non-reactive read, for entry points that are not components. */
+export function isTabletOverlayViewport(): boolean {
+  if (!tabletMql && typeof window !== 'undefined' && window.matchMedia) {
+    tabletMql = window.matchMedia(TABLET_OVERLAY_QUERY);
+    tabletMql.addEventListener('change', evaluateTablet);
+  }
+  evaluateTablet();
+  return tabletOverlay.value;
+}

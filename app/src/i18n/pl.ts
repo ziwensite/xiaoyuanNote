@@ -725,6 +725,9 @@ export const pl: I18n = {
     themeLight: "Jasny (domyślny)",
     themeDark: "Ciemny (One Dark)",
   },
+  editorTab: {
+    calendar: 'Kalendarz · {date}',
+  },
   tabMenu: {
     allTabs: 'Wszystkie otwarte karty',
     close: 'Zamknij',

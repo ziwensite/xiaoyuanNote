@@ -728,6 +728,9 @@
     themeLight: "Light (Default)",
     themeDark: "Dark (One Dark)",
   },
+  editorTab: {
+    calendar: 'Calendar · {date}',
+  },
   tabMenu: {
     allTabs: 'All open tabs',
     close: 'Close',

@@ -13,7 +13,7 @@
  * buffer and are never dirty (see `lib/tab-dirty.ts`).
  */
 import type { Tab, TabKind } from '../types';
-import type { CalendarViewMode } from './calendar-view';
+import type { CalendarEditorView } from './calendar-prefs';
 
 export type VirtualTabKind = Exclude<TabKind, 'file'>;
 
@@ -22,7 +22,7 @@ export type TranslateFn = (key: string, params?: Record<string, string | number>
 
 export interface CalendarTabArgs {
   date: string;
-  view: CalendarViewMode;
+  view: CalendarEditorView;
 }
 
 export interface SettingsTabArgs {
@@ -69,14 +69,14 @@ export interface EditorKindDef {
   deserialize(json: unknown): unknown | null;
 }
 
-const CALENDAR_VIEWS: readonly CalendarViewMode[] = ['agenda', 'day', 'week', 'month'];
+const CALENDAR_VIEWS: readonly CalendarEditorView[] = ['month', 'day', 'week'];
 
 export function readCalendarArgs(json: unknown): CalendarTabArgs | null {
   if (!json || typeof json !== 'object') return null;
   const { date, view } = json as Record<string, unknown>;
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-  const safeView = CALENDAR_VIEWS.includes(view as CalendarViewMode)
-    ? (view as CalendarViewMode)
+  const safeView = CALENDAR_VIEWS.includes(view as CalendarEditorView)
+    ? (view as CalendarEditorView)
     : 'month';
   return { date, view: safeView };
 }
@@ -124,8 +124,13 @@ export const EDITOR_KINDS = {
   calendar: {
     kind: 'calendar',
     icon: 'calendar',
-    title: (tab: Tab, t: TranslateFn) =>
-      t('editorTab.calendar', { date: readCalendarArgs(tab.input)?.date ?? '' }),
+    // Month/day only: the full ISO date made the tab wider than it needs to be
+    // and the label is already visible inside the tab.
+    title: (tab: Tab, t: TranslateFn) => {
+      const date = readCalendarArgs(tab.input)?.date ?? '';
+      return t('editorTab.calendar', { date: date.slice(5) });
+    },
+    component: () => import('../components/tabs/CalendarTab.vue'),
     singleton: () => 'calendar',
     splittable: true,
     persist: 'workspace',
@@ -163,7 +168,7 @@ export const EDITOR_KINDS = {
     serialize: (args: WebTabArgs) => ({ url: args.url }),
     deserialize: (json: unknown) => readWebArgs(json),
   },
-} satisfies Record<VirtualTabKind, EditorKindDef>;
+} as Record<VirtualTabKind, EditorKindDef>;
 
 /**
  * True for documents backed by the editor buffer. An unknown kind (bad
@@ -173,6 +178,14 @@ export const EDITOR_KINDS = {
 export function isFileTab(tab: Tab): boolean {
   const kind = tab.kind ?? 'file';
   return kind === 'file' || !(kind in EDITOR_KINDS);
+}
+
+/** Singleton identity for `kind`/`args`, or `null` when several tabs may
+ *  coexist. Used by `tabs.openInput` to reuse an existing tab. */
+export function singletonKeyOf(kind: VirtualTabKind, args: unknown): string | null {
+  const def = EDITOR_KINDS[kind];
+  if (!def.singleton) return null;
+  return def.singleton(args as never);
 }
 
 const fileInput = (tab: Tab): TabInput => ({ kind: 'file', tabId: tab.id });

@@ -6,6 +6,7 @@ import {
   isFileTab,
   normalizeWebUrl,
   resolveTabInput,
+  singletonKeyOf,
 } from './editor-input.ts';
 import type { Tab } from '../types.ts';
 
@@ -97,6 +98,13 @@ test('registry singleton keys match the agreed decisions', () => {
   assert.equal(EDITOR_KINDS.settings.singleton(), 'settings');
   assert.equal(EDITOR_KINDS.search.singleton(), 'search');
   assert.equal(EDITOR_KINDS.web.singleton, false);
+});
+
+test('singletonKeyOf returns one identity per kind, null for multi-instance kinds', () => {
+  assert.equal(singletonKeyOf('calendar', { date: '2026-11-11', view: 'month' }), 'calendar');
+  assert.equal(singletonKeyOf('settings', {}), 'settings');
+  assert.equal(singletonKeyOf('search', { query: 'a' }), 'search');
+  assert.equal(singletonKeyOf('web', { url: 'https://example.com/' }), null);
 });
 
 test('registry persistence and split policy match the agreed decisions', () => {
