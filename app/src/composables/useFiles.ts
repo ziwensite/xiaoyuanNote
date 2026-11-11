@@ -23,6 +23,7 @@ import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../l
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
 import { noteOwnWrite } from '../lib/external-change';
+import { isTabDirty } from '../lib/tab-dirty';
 
 // Save dialogs only — opening uses no filter so any file is selectable.
 // (rfd treats `'*'` literally as the extension `*`, not as wildcard, so we
@@ -1052,7 +1053,7 @@ export function useFiles() {
     // discarded the unsynced tail without the unsaved-changes dialog.
     window.dispatchEvent(new Event('solomd:flush-content-sync'));
     const showUnsavedDialog = getUnsavedDialog();
-    if (tab.content !== tab.savedContent && showUnsavedDialog) {
+    if (isTabDirty(tab) && showUnsavedDialog) {
       const action = await showUnsavedDialog('tab', tab.fileName, 1);
       if (action === 'save') {
         const ok = await saveTab(tab);

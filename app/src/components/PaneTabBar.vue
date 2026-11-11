@@ -12,6 +12,7 @@ import { requestRevealInTree } from '../composables/useFileTreeReveal';
 import { shortcutLabel } from '../lib/keybindings';
 import { revealLabelKey, usesCommandKey } from '../lib/platform';
 import { displayTabTitle, displayTabTooltip } from '../lib/tab-title';
+import { isFileTabSaved } from '../lib/tab-dirty';
 import { measureMenu, placeMenuFromPoint, placeMenuFromRect } from '../lib/menu-position';
 import { useI18n } from '../i18n';
 import Icon from './Icons.vue';
@@ -106,7 +107,7 @@ const ctxFlags = computed(() => {
     hasLeft: idx > 0,
     hasRight: idx < list.length - 1,
     hasOthers: list.length > 1,
-    hasSaved: list.some((x) => x.id !== ctxMenu.value!.tabId && x.content === x.savedContent && !x.pinned),
+    hasSaved: list.some((x) => x.id !== ctxMenu.value!.tabId && isFileTabSaved(x) && !x.pinned),
     hasAny: list.length > 0,
     // Issue #64 — "Open Enclosing Folder" only meaningful when the tab
     // is backed by a real on-disk path. Untitled / unsaved buffers have
@@ -232,7 +233,7 @@ async function onTabAction(action: 'close' | 'closeLeft' | 'closeRight' | 'close
       case 'closeLeft':   return list.slice(0, idx).filter((x) => !x.pinned).map((x) => x.id);
       case 'closeRight':  return list.slice(idx + 1).filter((x) => !x.pinned).map((x) => x.id);
       case 'closeOthers': return list.filter((x) => x.id !== m.tabId && !x.pinned).map((x) => x.id);
-      case 'closeSaved':  return list.filter((x) => x.content === x.savedContent && !x.pinned).map((x) => x.id);
+      case 'closeSaved':  return list.filter((x) => isFileTabSaved(x) && !x.pinned).map((x) => x.id);
       case 'closeAll':    return list.filter((x) => !x.pinned).map((x) => x.id);
     }
     return [];

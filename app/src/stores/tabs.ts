@@ -6,6 +6,7 @@ import { useTilesStore } from './tiles';
 import { useWritingSessionStore } from './writingSession';
 import { useWindowsStore } from './windows';
 import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
+import { isTabDirty } from '../lib/tab-dirty';
 
 // Legacy / global key (used when per-workspace tabs is OFF, and as the
 // migration source on first upgrade).
@@ -108,8 +109,7 @@ function bucketKey(folder: string | null): string {
 }
 
 function isDirty(t: Tab): boolean {
-  if (t.ephemeral && !t.filePath) return false;
-  return t.content !== t.savedContent;
+  return isTabDirty(t);
 }
 
 /** True when `filePath` lives inside `folder`. Separator- and (on Windows)
@@ -238,8 +238,7 @@ export const useTabsStore = defineStore('tabs', {
       return (id: string) => {
         const t = this.tabs.find((x) => x.id === id);
         if (!t) return false;
-        if (t.ephemeral && !t.filePath) return false;
-        return t.content !== t.savedContent;
+        return isTabDirty(t);
       };
     },
   },

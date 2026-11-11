@@ -18,8 +18,21 @@ export type Theme =
   | 'github-light'
   | 'dracula';
 
+/** What kind of editor input a tab holds. Missing `kind` means a plain file
+ *  tab, so sessions persisted before this field existed keep working. */
+export type TabKind = 'file' | 'calendar' | 'settings' | 'search' | 'web';
+
 export interface Tab {
   id: string;
+  /** Omitted / `'file'` = a document backed by the editor buffer. Non-file
+   *  kinds are virtual tabs rendered by their registered component; they
+   *  carry no buffer and are never dirty. */
+  kind?: TabKind;
+  /** Virtual tabs only: arguments for `kind`, owned by the kind registry. */
+  input?: unknown;
+  /** Virtual tabs only: user-visible title override (e.g. a renamed web tab).
+   *  When absent the kind registry derives the title. */
+  title?: string;
   filePath?: string;
   fileName: string;
   content: string;

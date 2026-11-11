@@ -9,6 +9,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { documentDir } from '@tauri-apps/api/path';
 import { openPath, openUrl } from '@tauri-apps/plugin-opener';
 import { recordDay, shouldPrompt, type StarPromptState } from './lib/star-prompt';
+import { isTabDirty } from './lib/tab-dirty';
 import { readText as readClipboardText } from '@tauri-apps/plugin-clipboard-manager';
 import { setMarkdownHardBreaks, setMarkdownAutoNumberHeadings, setMarkdownSmartQuotes } from './lib/markdown';
 import { openNewWindow } from './lib/new-window';
@@ -349,7 +350,7 @@ async function confirmCloseWithUnsavedTabs(isMainWindow = false): Promise<boolea
   if (closePromptOpen) return false;
   closePromptOpen = true;
   try {
-    for (const tab of tabs.tabs.filter((t) => t.content !== t.savedContent)) {
+    for (const tab of tabs.tabs.filter((t) => isTabDirty(t))) {
       tabs.activate(tab.id);
       const action = await showUnsavedDialog('window', tab.fileName, 1);
       if (action === 'cancel') return false;
