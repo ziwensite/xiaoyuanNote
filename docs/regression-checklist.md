@@ -295,3 +295,4 @@ One row per source, per run. `未测` is the initial state; keep FAIL rows until
 | 6 | 2026-11-11 | Windows / dev | `editor-input-tabs` P4 加固 | Q1–Q7 | 未测 | URL / iframe 策略已有单测，视觉与交互需真机 |
 | 7 | 2026-11-11 | Windows / dev | release consistency | R1–R6 | 未测 | 自动层（版本 / 产物三元组 / 工具清单 / 文案）已全绿，产物 URL 与 MCP 运行时待发布期核对 |
 | 8 | 2026-11-11 | Windows / dev | command parity + CSP | S1–S8 | 未测 | 源码扫描守门已全绿；CSP 保持 `null`，收紧需按平台真机矩阵验证 |
+| 9 | 2026-11-11 | Windows / dev (5.0.13) | sidebar-shell-stage2 第二批 | N9–N11 PASS; N12 进行中 | 部分 | N9–N11 目视通过；测试中发现并修复 B1 文件面板右键菜单在别处右键时不消失（双菜单）、B3 快速记录窗口 dev 下白屏（改 hash URL）；B2 左右面板 `+` 是否冗余待定 |

@@ -1845,6 +1845,14 @@ function onWindowClick() {
   if (Date.now() - ctxOpenedAt < 700) return;
   closeCtx();
 }
+// A right-click elsewhere must dismiss this menu too. A plain `click` never
+// fires for a right-click, so without this a second menu (e.g. from another
+// panel) could appear on top of a stale one.
+function onWindowCtx(e: MouseEvent) {
+  if (!ctx.value || !ctxEl.value) return;
+  if (Date.now() - ctxOpenedAt < 700) return;
+  if (!ctxEl.value.contains(e.target as Node)) closeCtx();
+}
 function onWindowKey(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     closeCtx();
@@ -1856,11 +1864,13 @@ function onWindowKey(e: KeyboardEvent) {
 }
 onMounted(() => {
   window.addEventListener('click', onWindowClick);
+  window.addEventListener('contextmenu', onWindowCtx, true);
   window.addEventListener('keydown', onWindowKey);
 });
 onBeforeUnmount(() => {
   cancelLongPress();
   window.removeEventListener('click', onWindowClick);
+  window.removeEventListener('contextmenu', onWindowCtx, true);
   window.removeEventListener('keydown', onWindowKey);
   // A tree unmounted mid-drag (workspace switch, sidebar hidden) must not
   // leave the ghost, the cursor override or the window listeners behind.

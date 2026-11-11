@@ -1071,7 +1071,7 @@ mod nav_guard_tests {
     fn app_pages_stay_in_the_webview() {
         assert!(ok("http://tauri.localhost/index.html"));
         assert!(ok("https://tauri.localhost/#heading"));
-        assert!(ok("http://localhost:1420/?quickCapture=1"));
+        assert!(ok("http://localhost:1420/#quickCapture=1"));
         assert!(ok("tauri://localhost/"));
         assert!(ok("about:blank"));
     }

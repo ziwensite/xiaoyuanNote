@@ -68,7 +68,7 @@ pub fn quick_capture_open(app: AppHandle) -> Result<(), String> {
         let win = WebviewWindowBuilder::new(
             &app,
             CAPTURE_LABEL,
-            WebviewUrl::App("index.html?quickCapture=1".into()),
+            WebviewUrl::App("index.html#quickCapture=1".into()),
         )
         .title("SoloMD — Quick Capture")
         .inner_size(560.0, 180.0)

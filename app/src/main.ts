@@ -17,7 +17,12 @@ const isSlideshow = params.get('slideshow') === '1';
 // separate entry point: it needs the settings and workspace stores (theme,
 // language, current folder) and gets them from the shared localStorage for
 // free this way.
-const isQuickCapture = params.get('quickCapture') === '1';
+// Detected via the hash (not a query string): a query on an `App("index.html")`
+// URL is dropped by Tauri's dev asset resolver, which left the capture box a
+// blank window in `tauri dev`. The hash survives both dev and the bundled
+// `tauri://localhost` protocol.
+const isQuickCapture =
+  params.get('quickCapture') === '1' || window.location.hash.includes('quickCapture=1');
 
 // Both alternate roots are chosen by a URL param that the main window never
 // carries, so they are loaded on demand — keeping reveal.js and the capture
