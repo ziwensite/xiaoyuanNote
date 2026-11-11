@@ -446,6 +446,12 @@ function fetchImageBytes(absPath) {
 function normalizePath(p) {
   if (!p) return p;
   let s = p.replace(/\\/g, '/');
+  // On Windows, Rust's `canonicalize()` hands us a verbatim path (`\\?\C:\…`,
+  // i.e. `//?/C:/…` after the replacement above). Windows does not normalise
+  // `/` inside `\\?\` paths, so strip the prefix before the segment walk:
+  // otherwise it becomes `/?/C:/…`, no image is found and docx exports lose
+  // every relative image. Ordinary drive / UNC paths are unaffected.
+  if (s.startsWith('//?/')) s = s.slice(4).replace(/^UNC\//, '//');
   const drive = s.match(/^([a-zA-Z]):\/(.*)$/);
   let prefix = '', body = s;
   if (drive) { prefix = drive[1].toUpperCase() + ':/'; body = drive[2]; }

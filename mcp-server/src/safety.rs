@@ -99,6 +99,14 @@ pub fn resolve_new(workspace: &Path, input: &str) -> Result<(PathBuf, bool), Str
     let workspace_canon = workspace
         .canonicalize()
         .map_err(|e| format!("workspace not accessible: {e}"))?;
+    // `components()` catches `..` for ordinary paths, but a Windows verbatim
+    // path (`\\?\C:\...` — exactly what `canonicalize()` returns there) keeps
+    // `..` as a literal Normal component. Check the raw segments too, for
+    // both separator styles, so a caller cannot smuggle a traversal past the
+    // guard by handing us a canonicalized workspace root.
+    if input.split(|c| c == '/' || c == '\\').any(|part| part == "..") {
+        return Err("path traversal (..) is not allowed".into());
+    }
     let raw = PathBuf::from(input);
     if raw.components().any(|c| matches!(c, Component::ParentDir)) {
         return Err("path traversal (..) is not allowed".into());
@@ -163,8 +171,20 @@ mod tests {
     fn resolve_new_refuses_parent_dir_components() {
         let ws = fresh_dir("dotdot");
         assert!(resolve_new(&ws, "../x.md").is_err());
-        let abs = format!("{}/sub/../../x.md", ws.display());
-        assert!(resolve_new(&ws, &abs).is_err());
+        // Build the string explicitly: `PathBuf::join("..")` normalises the
+        // segments away, and hard-coding "/" produced a mixed-separator path
+        // on Windows (where `canonicalize()` returns a `\\?\` verbatim path).
+        // Both separator styles must still be refused.
+        let sep = std::path::MAIN_SEPARATOR;
+        let abs = format!("{}{sep}sub{sep}..{sep}..{sep}x.md", ws.display());
+        assert!(
+            resolve_new(&ws, &abs).is_err(),
+            "expected to refuse {abs:?}"
+        );
+        // A file name that merely contains two dots is not a `..` segment.
+        let (p, inside) = resolve_new(&ws, "a..b.md").unwrap();
+        assert!(inside);
+        assert_eq!(p, ws.join("a..b.md"));
     }
 
     #[test]

@@ -210,6 +210,28 @@ allowed to lag behind the code on purpose — see `mcp-server/README.md`.
 | R5 | website downloads | installer filenames and `softwareVersion` match the new release; 15 locale badges show the new version | no |
 | R6 | listing copy | Smithery / marketplace / llms descriptions say 16 tools (15 listed by default) | yes |
 
+### Pre-existing Windows failures found by the full MCP baseline (2026-11-11)
+
+`cargo test --manifest-path mcp-server/Cargo.toml -j 1` is now green. Two
+failures were unrelated to the release work but were fixed rather than left
+red — both came from Rust's Windows `canonicalize()` returning `\\?\C:\…`:
+
+- `mcp-server/src/safety.rs`: `resolve_new` now rejects a literal `..`
+  segment in the raw input as well as via `Path::components()`. In a
+  verbatim path `..` stays a `Normal` component, so a caller could previously
+  smuggle a traversal past the guard. The test now builds the path with
+  `MAIN_SEPARATOR` (using `PathBuf::join("..")` normalises it away) and also
+  asserts `a..b.md` is still a legal file name.
+- `app/scripts/solomd-export.mjs`: `normalizePath` strips the `//?/`
+  verbatim prefix before its segment walk. Without that, relative images
+  resolved to `/?/C:/…` and docx exports silently lost every image
+  (`export_test.rs` caught it).
+
+CI's `mcp` job deliberately runs only `--test version_sync --test
+release_consistency`: the full MCP suite needs Node plus the app's npm
+dependencies for the export script, so it stays a local / release-time check
+(row R4).
+
 ## S. Architecture debt: command tables and CSP (P6)
 
 ### Command registration
