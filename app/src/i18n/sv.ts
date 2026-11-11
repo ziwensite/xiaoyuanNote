@@ -2179,6 +2179,24 @@ export const sv: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Visa helgdagar',
+      holidaysHint: 'Hörnmarkering och helgdagsnamn för lagstadgade helgdagar.',
+      lunar: 'Visa månkalenderdatum',
+      lunarHint: 'Måndag under datumet, med traditionella högtider.',
+      isoWeeks: 'Visa ISO-veckor',
+      isoWeeksHint: 'Kolumn med ISO 8601-veckonummer till vänster.',
+      autoUpdateHolidays: 'Uppdatera helgdagar online',
+      autoUpdateHolidaysHint:
+        'Kontrollerar det årliga tillkännagivandet i bakgrunden. Av = endast cache och inbyggda data.',
+      checkNow: 'Kontrollera nu',
+      checkCurrent: 'Redan uppdaterad',
+      checkUpdated: 'Helgdagsdata uppdaterade för {years}',
+      checkFailed: 'Kontrollen misslyckades – cachen används',
+    },
+    week: { header: 'W', tooltip: 'ISO-vecka {week}' },
+    day: { off: 'Helgdag · {name}', work: 'Arbetsdag (ersättning)' },
+    lunar: { tooltip: 'Månkalender: {value}' },
     selectedDay: {
       open: 'Öppna dagens detaljer för {date}',
       empty: 'Inga uppgifter förfaller denna dag.',

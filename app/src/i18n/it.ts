@@ -2162,6 +2162,24 @@ export const it: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Mostra giorni festivi',
+      holidaysHint: 'Contrassegno e nome del giorno festivo.',
+      lunar: 'Mostra date lunari',
+      lunarHint: 'Giorno lunare sotto la data, con le feste tradizionali.',
+      isoWeeks: 'Mostra settimane ISO',
+      isoWeeksHint: 'Colonna del numero di settimana ISO 8601 a sinistra.',
+      autoUpdateHolidays: 'Aggiorna festivi online',
+      autoUpdateHolidaysHint:
+        'Controlla in background l’avviso annuale. Disattivato = solo cache e dati integrati.',
+      checkNow: 'Controlla ora',
+      checkCurrent: 'Già aggiornato',
+      checkUpdated: 'Dati festivi aggiornati per {years}',
+      checkFailed: 'Controllo non riuscito: uso la cache',
+    },
+    week: { header: 'W', tooltip: 'Settimana ISO {week}' },
+    day: { off: 'Giorno festivo · {name}', work: 'Giorno lavorativo (recupero)' },
+    lunar: { tooltip: 'Calendario lunare: {value}' },
     selectedDay: {
       open: 'Apri i dettagli del {date}',
       empty: 'Nessuna attività in scadenza questo giorno.',

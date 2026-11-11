@@ -138,6 +138,15 @@ interface Settings {
    *  Lists persistent filtered note lists from `.solomd/views/*.yml`. Default
    *  off so the panel only appears once the user opts in / creates a view. */
   showViewsPanel: boolean;
+  /** Calendar overlays — holidays (corner mark + festival text), the lunar
+   *  line, and the ISO week gutter. Default on; the calendar degrades to the
+   *  original bare grid when they are off. */
+  calendarShowHolidays: boolean;
+  calendarShowLunar: boolean;
+  calendarShowIsoWeeks: boolean;
+  /** Fetch holiday JSON in the background (startup / calendar open). Off means
+   *  only the on-disk cache and the built-in table are used. */
+  calendarAutoUpdateHolidays: boolean;
   /** Master toggle that hides the right side sidebar (Outline / Backlinks /
    *  Tags / History / Agent Panel) without forgetting which individual panes
    *  the user had on. Default false (= sidebar visible whenever any pane is
@@ -733,6 +742,10 @@ function defaults(): Settings {
     v4810PreviewFontSynced: true,
     v491MobileLayoutMigrated: true,
     showViewsPanel: false,
+    calendarShowHolidays: true,
+    calendarShowLunar: true,
+    calendarShowIsoWeeks: true,
+    calendarAutoUpdateHolidays: true,
     // #148 (mobile) — on a phone the left tree + editor + right panels can't
     // share the narrow width (the doc becomes an unreadable sliver), so the
     // right sidebar starts hidden. The editor + file tree behave as mutually
@@ -1021,6 +1034,12 @@ function load(): Settings {
       if (!Number.isInteger(merged.weekStartsOn) || merged.weekStartsOn < 0 || merged.weekStartsOn > 6) {
         merged.weekStartsOn = 1;
       }
+      // Calendar overlays default on. Only an explicit `false` disables them,
+      // so blobs written before this release keep the new layers visible.
+      merged.calendarShowHolidays = parsed.calendarShowHolidays !== false;
+      merged.calendarShowLunar = parsed.calendarShowLunar !== false;
+      merged.calendarShowIsoWeeks = parsed.calendarShowIsoWeeks !== false;
+      merged.calendarAutoUpdateHolidays = parsed.calendarAutoUpdateHolidays !== false;
       // #180 — keybindings is a free-form map, so a tampered or older blob
       // could put anything here; keep only string/null values.
       // 'codemirror' was always a choice; 'native' only counts as one when the
@@ -1419,6 +1438,22 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleViewsPanel() {
       this.showViewsPanel = !this.showViewsPanel;
+      this.persist();
+    },
+    toggleCalendarHolidays() {
+      this.calendarShowHolidays = !this.calendarShowHolidays;
+      this.persist();
+    },
+    toggleCalendarLunar() {
+      this.calendarShowLunar = !this.calendarShowLunar;
+      this.persist();
+    },
+    toggleCalendarIsoWeeks() {
+      this.calendarShowIsoWeeks = !this.calendarShowIsoWeeks;
+      this.persist();
+    },
+    toggleCalendarAutoUpdateHolidays() {
+      this.calendarAutoUpdateHolidays = !this.calendarAutoUpdateHolidays;
       this.persist();
     },
     toggleRightSidebar() {

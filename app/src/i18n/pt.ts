@@ -2164,6 +2164,24 @@ export const pt: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Mostrar feriados',
+      holidaysHint: 'Marca de canto e nome do feriado.',
+      lunar: 'Mostrar datas lunares',
+      lunarHint: 'Dia lunar sob a data, com festas tradicionais.',
+      isoWeeks: 'Mostrar semanas ISO',
+      isoWeeksHint: 'Coluna do número da semana ISO 8601 à esquerda.',
+      autoUpdateHolidays: 'Atualizar feriados online',
+      autoUpdateHolidaysHint:
+        'Verifica em segundo plano o aviso anual. Desligado = apenas cache e dados integrados.',
+      checkNow: 'Verificar agora',
+      checkCurrent: 'Já está atualizado',
+      checkUpdated: 'Dados de feriados atualizados para {years}',
+      checkFailed: 'Falha na verificação — usando o cache',
+    },
+    week: { header: 'W', tooltip: 'Semana ISO {week}' },
+    day: { off: 'Feriado · {name}', work: 'Dia de trabalho compensatório' },
+    lunar: { tooltip: 'Calendário lunar: {value}' },
     selectedDay: {
       open: 'Abrir detalhes de {date}',
       empty: 'Nenhuma tarefa com prazo neste dia.',

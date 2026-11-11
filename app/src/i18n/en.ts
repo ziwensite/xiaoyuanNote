@@ -2191,6 +2191,24 @@
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Show holidays',
+      holidaysHint: 'Corner mark and festival name for statutory holidays.',
+      lunar: 'Show lunar dates',
+      lunarHint: 'Lunar day under the date, with traditional festivals.',
+      isoWeeks: 'Show ISO week numbers',
+      isoWeeksHint: 'Week-number column on the left of the grid (ISO 8601).',
+      autoUpdateHolidays: 'Update holidays online',
+      autoUpdateHolidaysHint:
+        'Check for the annual State Council notice in the background. Off = cached and built-in data only.',
+      checkNow: 'Check now',
+      checkCurrent: 'Already up to date',
+      checkUpdated: 'Updated holiday data for {years}',
+      checkFailed: 'Check failed — using cached data',
+    },
+    week: { header: 'W', tooltip: 'ISO week {week}' },
+    day: { off: 'Day off · {name}', work: 'Make-up workday' },
+    lunar: { tooltip: 'Lunar calendar: {value}' },
     selectedDay: {
       open: 'Open day details for {date}',
       empty: 'No tasks due this day.',

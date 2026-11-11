@@ -2179,6 +2179,24 @@ export const nl: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Feestdagen tonen',
+      holidaysHint: 'Hoekmarkering en feestdagnaam voor wettelijke feestdagen.',
+      lunar: 'Maan data tonen',
+      lunarHint: 'Maandag onder de datum, met traditionele feesten.',
+      isoWeeks: 'ISO-weeknummers tonen',
+      isoWeeksHint: 'Kolom met het ISO 8601-weeknummer links.',
+      autoUpdateHolidays: 'Feestdagen online bijwerken',
+      autoUpdateHolidaysHint:
+        'Controleert op de achtergrond de jaarlijkse bekendmaking. Uit = alleen cache en ingebouwde data.',
+      checkNow: 'Nu controleren',
+      checkCurrent: 'Al up-to-date',
+      checkUpdated: 'Feestdaggegevens bijgewerkt voor {years}',
+      checkFailed: 'Controle mislukt — cache wordt gebruikt',
+    },
+    week: { header: 'W', tooltip: 'ISO-week {week}' },
+    day: { off: 'Feestdag · {name}', work: 'Inhaaldag (werken)' },
+    lunar: { tooltip: 'Maanagenda: {value}' },
     selectedDay: {
       open: 'Details van {date} openen',
       empty: 'Geen taken die op deze dag vervallen.',

@@ -2163,6 +2163,23 @@ export const zh: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: '显示法定节假日',
+      holidaysHint: '日格显示节假日角标与节日名。',
+      lunar: '显示农历',
+      lunarHint: '日号下方显示农历日期与传统节日。',
+      isoWeeks: '显示 ISO 周数',
+      isoWeeksHint: '网格左侧显示 ISO 8601 周数。',
+      autoUpdateHolidays: '联网更新节假日',
+      autoUpdateHolidaysHint: '后台检查国务院年度通知。关闭后仅使用缓存与内置数据。',
+      checkNow: '检查更新',
+      checkCurrent: '已是最新',
+      checkUpdated: '已更新到 {years} 年',
+      checkFailed: '检查失败，继续使用缓存',
+    },
+    week: { header: 'W', tooltip: 'ISO 第 {week} 周' },
+    day: { off: '放假 · {name}', work: '调休补班' },
+    lunar: { tooltip: '农历：{value}' },
     selectedDay: {
       open: '打开 {date} 的日详情',
       empty: '这一天没有到期任务。',

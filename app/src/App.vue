@@ -96,6 +96,7 @@ import { openWelcomeTour } from './lib/welcome-tour';
 import { useWorkspaceStore } from './stores/workspace';
 import { useWorkspaceIndexStore } from './stores/workspaceIndex';
 import { useSavedViewsStore } from './stores/savedViews';
+import { useHolidaysStore } from './stores/holidays';
 import { usePropertiesStore } from './stores/properties';
 import { useRagStore } from './stores/rag';
 import { IS_APP_STORE_BUILD } from './lib/app-build';
@@ -112,6 +113,7 @@ const showUiKit = new URLSearchParams(location.search).has('uikit');
 
 const tabs = useTabsStore();
 const settings = useSettingsStore();
+const holidays = useHolidaysStore();
 const windowsStore = useWindowsStore();
 const tiles = useTilesStore();
 const files = useFiles();
@@ -1246,6 +1248,9 @@ function scheduleStarPrompt() {
 
 onMounted(async () => {
   scheduleStarPrompt();
+  // Calendar holidays: load the on-disk cache immediately; refresh only when
+  // the cache is missing or the year rolled over. Event-driven, never a timer.
+  void holidays.maybeRefresh('startup');
   // V1 — one-time upgrade notice: the old standalone file-tree column is gone
   // and the Outline now lives in the secondary sidebar. Persist the flag
   // before showing it so a failed toast never repeats on every launch.

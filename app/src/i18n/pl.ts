@@ -2179,6 +2179,24 @@ export const pl: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Pokaż dni wolne',
+      holidaysHint: 'Znacznik w rogu i nazwa święta dla dni ustawowo wolnych.',
+      lunar: 'Pokaż daty księżycowe',
+      lunarHint: 'Dzień księżycowy pod datą, z tradycyjnymi świętami.',
+      isoWeeks: 'Pokaż tygodnie ISO',
+      isoWeeksHint: 'Kolumna numeru tygodnia ISO 8601 po lewej.',
+      autoUpdateHolidays: 'Aktualizuj dni wolne online',
+      autoUpdateHolidaysHint:
+        'Sprawdza w tle coroczne obwieszczenie. Wyłączone = tylko pamięć podręczna i dane wbudowane.',
+      checkNow: 'Sprawdź teraz',
+      checkCurrent: 'Już aktualne',
+      checkUpdated: 'Zaktualizowano dni wolne dla {years}',
+      checkFailed: 'Sprawdzenie nie powiodło się — używam pamięci podręcznej',
+    },
+    week: { header: 'W', tooltip: 'Tydzień ISO {week}' },
+    day: { off: 'Dzień wolny · {name}', work: 'Dzień pracy (odpracowanie)' },
+    lunar: { tooltip: 'Kalendarz księżycowy: {value}' },
     selectedDay: {
       open: 'Otwórz szczegóły dnia {date}',
       empty: 'Brak zadań z terminem w tym dniu.',

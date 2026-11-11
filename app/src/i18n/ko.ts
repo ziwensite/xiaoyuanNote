@@ -2160,6 +2160,24 @@ export const ko: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: '공휴일 표시',
+      holidaysHint: '법정 공휴일의 모서리 표시와 이름.',
+      lunar: '음력 표시',
+      lunarHint: '날짜 아래에 음력 날짜와 전통 명절을 표시합니다.',
+      isoWeeks: 'ISO 주 번호 표시',
+      isoWeeksHint: '그리드 왼쪽에 ISO 8601 주 번호 열.',
+      autoUpdateHolidays: '공휴일 온라인 업데이트',
+      autoUpdateHolidaysHint:
+        '연례 공고를 백그라운드에서 확인합니다. 끄면 캐시와 내장 데이터만 사용합니다.',
+      checkNow: '지금 확인',
+      checkCurrent: '이미 최신입니다',
+      checkUpdated: '{years}년 공휴일 데이터를 업데이트했습니다',
+      checkFailed: '확인 실패 — 캐시 사용',
+    },
+    week: { header: 'W', tooltip: 'ISO {week}주' },
+    day: { off: '휴일 · {name}', work: '대체 근무일' },
+    lunar: { tooltip: '음력: {value}' },
     selectedDay: {
       open: '{date} 일 상세 열기',
       empty: '이 날짜에 마감인 작업이 없습니다.',

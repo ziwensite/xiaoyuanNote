@@ -2160,6 +2160,24 @@ export const ja: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: '祝日を表示',
+      holidaysHint: '法定祝日のコーナーマークと祝日名。',
+      lunar: '旧暦を表示',
+      lunarHint: '日付の下に旧暦の日と伝統的な節句を表示。',
+      isoWeeks: 'ISO週番号を表示',
+      isoWeeksHint: 'グリッド左側に ISO 8601 の週番号列。',
+      autoUpdateHolidays: '祝日をオンラインで更新',
+      autoUpdateHolidaysHint:
+        '年次の告示をバックグラウンドで確認します。オフ = キャッシュと内蔵データのみ。',
+      checkNow: '今すぐ確認',
+      checkCurrent: '最新です',
+      checkUpdated: '{years} 年の祝日データを更新しました',
+      checkFailed: '確認に失敗しました — キャッシュを使用',
+    },
+    week: { header: 'W', tooltip: 'ISO 第 {week} 週' },
+    day: { off: '休日 · {name}', work: '振替出勤日' },
+    lunar: { tooltip: '旧暦：{value}' },
     selectedDay: {
       open: '{date} の日詳細を開く',
       empty: 'この日に期限のタスクはありません。',

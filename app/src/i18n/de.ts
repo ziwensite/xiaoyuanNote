@@ -2162,6 +2162,24 @@ export const de: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Feiertage anzeigen',
+      holidaysHint: 'Eckmarkierung und Festtagsname für gesetzliche Feiertage.',
+      lunar: 'Mondkalender anzeigen',
+      lunarHint: 'Mondtag unter dem Datum, mit traditionellen Festen.',
+      isoWeeks: 'ISO-Kalenderwochen anzeigen',
+      isoWeeksHint: 'Spalte mit der Kalenderwoche links im Raster (ISO 8601).',
+      autoUpdateHolidays: 'Feiertage online aktualisieren',
+      autoUpdateHolidaysHint:
+        'Prüft im Hintergrund die jährliche Bekanntmachung. Aus = nur Cache und integrierte Daten.',
+      checkNow: 'Jetzt prüfen',
+      checkCurrent: 'Bereits aktuell',
+      checkUpdated: 'Feiertagsdaten für {years} aktualisiert',
+      checkFailed: 'Prüfung fehlgeschlagen – Cache wird verwendet',
+    },
+    week: { header: 'W', tooltip: 'ISO-Kalenderwoche {week}' },
+    day: { off: 'Feiertag · {name}', work: 'Arbeitstag (Ersatz)' },
+    lunar: { tooltip: 'Mondkalender: {value}' },
     selectedDay: {
       open: 'Tagesdetails für {date} öffnen',
       empty: 'An diesem Tag sind keine Aufgaben fällig.',

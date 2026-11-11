@@ -12,11 +12,12 @@
  * Month and selected day come from `stores/calendar`, the same state the
  * dialog uses, so the two can never show different months.
  */
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
 import { useCalendarStore } from '../stores/calendar';
+import { useHolidaysStore } from '../stores/holidays';
 import { useTilesStore } from '../stores/tiles';
 import { useToastsStore } from '../stores/toasts';
 import { useTasks } from '../composables/useTasks';
@@ -32,11 +33,20 @@ import {
   dayDensity,
   type CalendarDayDensity,
 } from '../lib/calendar-density';
+import { isoWeek } from '../lib/iso-week';
+import {
+  festivalOf,
+  lunarDateLabel,
+  lunarDayName,
+  lunarMonthName,
+  solarToLunar,
+} from '../lib/lunar';
 
 const idx = useWorkspaceIndexStore();
 const workspace = useWorkspaceStore();
 const settings = useSettingsStore();
 const calendar = useCalendarStore();
+const holidays = useHolidaysStore();
 const tiles = useTilesStore();
 const toasts = useToastsStore();
 const files = useFiles();
@@ -51,6 +61,31 @@ const today = computed(() => localDateKey(new Date()));
 const hasFolder = computed(() => idx.folder !== null);
 
 const grid = computed(() => monthGridRange(calendar.focusDate));
+
+/** Six Monday-start rows; the left gutter carries each row's ISO week. */
+const weeks = computed(() => {
+  const rows: { week: number; days: string[] }[] = [];
+  for (let i = 0; i < grid.value.length; i += 7) {
+    const days = grid.value.slice(i, i + 7);
+    rows.push({ week: isoWeek(days[0]).week, days });
+  }
+  return rows;
+});
+
+const showHolidays = computed(() => settings.calendarShowHolidays);
+const showLunar = computed(() => settings.calendarShowLunar);
+const showWeeks = computed(() => settings.calendarShowIsoWeeks);
+const gridColumns = computed(() =>
+  showWeeks.value ? '18px repeat(7, minmax(0, 1fr))' : 'repeat(7, minmax(0, 1fr))',
+);
+const holidayMap = computed(() => holidays.index);
+
+onMounted(() => {
+  // Opening the pane is one of the three refresh events. It honours the TTL,
+  // runs in the background and stays silent on failure.
+  void holidays.maybeRefresh('open');
+});
+
 const range = computed(() => {
   const days = grid.value;
   return { from: days[0], to: addOne(days[days.length - 1]) };
@@ -143,9 +178,51 @@ function dayNumber(date: string): string {
   return String(Number(date.slice(8, 10)));
 }
 
+function holidayOf(date: string) {
+  return showHolidays.value ? holidayMap.value.get(date) ?? null : null;
+}
+
+function cornerOf(date: string): 'off' | 'work' | null {
+  const hit = holidayOf(date);
+  return hit ? hit.kind : null;
+}
+
+/**
+ * The 9 px second line. A statutory holiday's name wins over the lunar day
+ * (they would otherwise duplicate, e.g. 春节 / 初一); 补班 days get no extra
+ * text — the hollow corner already says it. Keep it to one short string so the
+ * cell never grows past the grid's rhythm.
+ */
+function subLabel(date: string): string {
+  const hit = holidayOf(date);
+  if (hit?.kind === 'off' && hit.name) return hit.name;
+  if (!showLunar.value) return '';
+  const festival = festivalOf(date);
+  if (festival) return festival.name;
+  const lunar = solarToLunar(date);
+  if (!lunar) return '';
+  const prefix = lunar.leap ? '闰' : '';
+  if (lunar.day === 1) return `${prefix}${lunarMonthName(lunar.month)}`;
+  return `${prefix}${lunarDayName(lunar.day)}`;
+}
+
 function tooltipFor(date: string): string {
   const d = densityOf(date);
   const parts = [date];
+  const holiday = holidayOf(date);
+  if (holiday) {
+    parts.push(
+      holiday.kind === 'off'
+        ? t('calendar.day.off', { name: holiday.name })
+        : holiday.name
+          ? `${t('calendar.day.work')} · ${holiday.name}`
+          : t('calendar.day.work'),
+    );
+  }
+  if (showLunar.value) {
+    const lunar = lunarDateLabel(date);
+    if (lunar) parts.push(t('calendar.lunar.tooltip', { value: lunar }));
+  }
   if (d.total > 0) {
     parts.push(
       t('calendar.tooltip.tasks', { total: d.total, done: d.done, todo: d.todo }),
@@ -265,7 +342,14 @@ async function openSelectedTask(task: CalendarTask) {
     <template v-else>
       <div class="calendar-mini">
         <div class="calendar-mini__title">{{ monthTitle }}</div>
-        <div class="calendar-mini__weekdays" aria-hidden="true">
+        <div
+          class="calendar-mini__weekdays"
+          :style="{ gridTemplateColumns: gridColumns }"
+          aria-hidden="true"
+        >
+          <span v-if="showWeeks" class="calendar-mini__weeknum">
+            {{ t('calendar.week.header') }}
+          </span>
           <span v-for="(label, i) in weekdayLabels" :key="i">{{ label }}</span>
         </div>
         <div
@@ -273,32 +357,50 @@ async function openSelectedTask(task: CalendarTask) {
           class="calendar-mini__grid"
           role="grid"
           :aria-label="monthTitle"
+          :style="{ gridTemplateColumns: gridColumns }"
           @keydown="onGridKeydown"
         >
-          <button
-            v-for="date in grid"
-            :key="date"
-            type="button"
-            class="calendar-mini__cell"
-            :data-date="date"
-            :class="{
-              'is-outside': !inMonth(date),
-              'is-today': isToday(date),
-              'is-selected': isFocus(date),
-            }"
-            :tabindex="isFocus(date) ? 0 : -1"
-            :title="tooltipFor(date)"
-            :aria-label="tooltipFor(date)"
-            :aria-pressed="isFocus(date)"
-            @click="pick(date)"
-          >
-            <span class="calendar-mini__day">{{ dayNumber(date) }}</span>
+          <template v-for="row in weeks" :key="row.week">
             <span
-              class="calendar-mini__mark"
-              :class="`is-${densityOf(date).state}`"
+              v-if="showWeeks"
+              class="calendar-mini__weeknum"
+              :title="t('calendar.week.tooltip', { week: row.week })"
               aria-hidden="true"
-            />
-          </button>
+            >
+              {{ row.week }}
+            </span>
+            <button
+              v-for="date in row.days"
+              :key="date"
+              type="button"
+              class="calendar-mini__cell"
+              :data-date="date"
+              :class="{
+                'is-outside': !inMonth(date),
+                'is-today': isToday(date),
+                'is-selected': isFocus(date),
+              }"
+              :tabindex="isFocus(date) ? 0 : -1"
+              :title="tooltipFor(date)"
+              :aria-label="tooltipFor(date)"
+              :aria-pressed="isFocus(date)"
+              @click="pick(date)"
+            >
+              <span
+                v-if="cornerOf(date)"
+                class="calendar-mini__corner"
+                :class="`is-${cornerOf(date)}`"
+                aria-hidden="true"
+              />
+              <span class="calendar-mini__day">{{ dayNumber(date) }}</span>
+              <span v-if="subLabel(date)" class="calendar-mini__sub">{{ subLabel(date) }}</span>
+              <span
+                class="calendar-mini__mark"
+                :class="`is-${densityOf(date).state}`"
+                aria-hidden="true"
+              />
+            </button>
+          </template>
         </div>
       </div>
 
@@ -371,15 +473,26 @@ async function openSelectedTask(task: CalendarTask) {
   padding-bottom: 2px;
 }
 
+/* Week-number gutter. 18 px keeps the seven day columns the same width as the
+   bare grid; the header "W" uses the same box so the rows line up. */
+.calendar-mini__weeknum {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--text-3, #8a9199);
+  font-variant-numeric: tabular-nums;
+}
+
 .calendar-mini__cell {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  min-height: 28px;
-  padding: 3px 0 5px;
+  gap: 1px;
+  min-height: 38px;
+  padding: 3px 0 4px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
@@ -454,7 +567,43 @@ async function openSelectedTask(task: CalendarTask) {
   text-decoration-thickness: 1px;
 }
 
+/* Second line: lunar day / festival. Deliberately one short string, 9 px, so
+   the extra layer never changes the cell's height or pushes the density dot. */
+.calendar-mini__sub {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-3, #8a9199);
+  letter-spacing: -0.01em;
+}
+
+/* Corner mark: filled = day off, hollow = make-up workday. */
+.calendar-mini__corner {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  box-sizing: border-box;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.calendar-mini__corner.is-off {
+  background: var(--accent, #3b82f6);
+}
+
+.calendar-mini__corner.is-work {
+  border: 1px solid var(--text-3, #8a9199);
+}
+
+/* Density dot moved out of the flow (top-right) so the lunar line owns the
+   bottom of the cell. */
 .calendar-mini__mark {
+  position: absolute;
+  top: 4px;
+  right: 4px;
   box-sizing: border-box;
   width: 6px;
   height: 6px;
@@ -479,7 +628,9 @@ async function openSelectedTask(task: CalendarTask) {
   border: 1.5px solid var(--accent, #3b82f6);
 }
 
-.calendar-mini__cell.is-outside .calendar-mini__mark {
+.calendar-mini__cell.is-outside .calendar-mini__mark,
+.calendar-mini__cell.is-outside .calendar-mini__sub,
+.calendar-mini__cell.is-outside .calendar-mini__corner {
   opacity: 0.55;
 }
 </style>

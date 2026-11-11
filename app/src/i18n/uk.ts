@@ -2179,6 +2179,24 @@ export const uk: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Показувати свята',
+      holidaysHint: 'Кутова позначка й назва державного свята.',
+      lunar: 'Показувати місячні дати',
+      lunarHint: 'Місячний день під датою з традиційними святами.',
+      isoWeeks: 'Показувати тижні ISO',
+      isoWeeksHint: 'Стовпець номера тижня ISO 8601 ліворуч.',
+      autoUpdateHolidays: 'Оновлювати свята онлайн',
+      autoUpdateHolidaysHint:
+        'Фоново перевіряє щорічну постанову. Вимк. — лише кеш і вбудовані дані.',
+      checkNow: 'Перевірити зараз',
+      checkCurrent: 'Уже актуально',
+      checkUpdated: 'Дані про свята оновлено для {years}',
+      checkFailed: 'Перевірка не вдалася — використовується кеш',
+    },
+    week: { header: 'W', tooltip: 'Тиждень ISO {week}' },
+    day: { off: 'Вихідний · {name}', work: 'Робочий день (відпрацювання)' },
+    lunar: { tooltip: 'Місячний календар: {value}' },
     selectedDay: {
       open: 'Відкрити деталі дня {date}',
       empty: 'На цей день немає завдань із терміном.',

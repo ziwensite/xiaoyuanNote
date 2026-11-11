@@ -2162,6 +2162,24 @@ export const fr: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Afficher les jours fériés',
+      holidaysHint: 'Marque d’angle et nom du jour férié.',
+      lunar: 'Afficher les dates lunaires',
+      lunarHint: 'Jour lunaire sous la date, avec les fêtes traditionnelles.',
+      isoWeeks: 'Afficher les semaines ISO',
+      isoWeeksHint: 'Colonne du numéro de semaine ISO 8601 à gauche.',
+      autoUpdateHolidays: 'Mettre à jour les jours fériés en ligne',
+      autoUpdateHolidaysHint:
+        'Vérifie en arrière-plan l’avis annuel. Désactivé = cache et données intégrées uniquement.',
+      checkNow: 'Vérifier maintenant',
+      checkCurrent: 'Déjà à jour',
+      checkUpdated: 'Jours fériés mis à jour pour {years}',
+      checkFailed: 'Échec de la vérification — cache utilisé',
+    },
+    week: { header: 'W', tooltip: 'Semaine ISO {week}' },
+    day: { off: 'Jour férié · {name}', work: 'Jour travaillé (compensation)' },
+    lunar: { tooltip: 'Calendrier lunaire : {value}' },
     selectedDay: {
       open: 'Ouvrir le détail du {date}',
       empty: 'Aucune tâche due ce jour.',

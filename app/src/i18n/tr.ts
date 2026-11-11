@@ -2179,6 +2179,24 @@ export const tr: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Resmî tatilleri göster',
+      holidaysHint: 'Resmî tatiller için köşe işareti ve tatil adı.',
+      lunar: 'Ay takvimi tarihlerini göster',
+      lunarHint: 'Tarihin altında geleneksel bayramlarla ay günü.',
+      isoWeeks: 'ISO haftalarını göster',
+      isoWeeksHint: 'Solda ISO 8601 hafta numarası sütunu.',
+      autoUpdateHolidays: 'Tatilleri çevrimiçi güncelle',
+      autoUpdateHolidaysHint:
+        'Yıllık duyuruyu arka planda denetler. Kapalı = yalnızca önbellek ve yerleşik veriler.',
+      checkNow: 'Şimdi denetle',
+      checkCurrent: 'Zaten güncel',
+      checkUpdated: '{years} için tatil verileri güncellendi',
+      checkFailed: 'Denetim başarısız — önbellek kullanılıyor',
+    },
+    week: { header: 'W', tooltip: 'ISO haftası {week}' },
+    day: { off: 'Tatil · {name}', work: 'Telafi çalışma günü' },
+    lunar: { tooltip: 'Ay takvimi: {value}' },
     selectedDay: {
       open: '{date} gün ayrıntılarını aç',
       empty: 'Bu günde vadeli görev yok.',

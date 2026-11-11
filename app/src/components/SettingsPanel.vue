@@ -4,6 +4,7 @@ import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
 import { shortcutLabel } from '../lib/keybindings';
 import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '../stores/settings';
+import { useHolidaysStore } from '../stores/holidays';
 import { useTabsStore } from '../stores/tabs';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
@@ -312,6 +313,23 @@ watch(
 );
 
 const settings = useSettingsStore();
+const holidays = useHolidaysStore();
+
+/** One line of feedback for the manual check — never a toast. */
+const holidayCheckText = computed(() => {
+  switch (holidays.lastOutcome) {
+    case 'updated':
+      return t('calendar.settings.checkUpdated', {
+        years: [...holidays.lastUpdatedYears].sort().join(', '),
+      });
+    case 'failed':
+      return t('calendar.settings.checkFailed');
+    case 'current':
+      return t('calendar.settings.checkCurrent');
+    default:
+      return '';
+  }
+});
 // #328/#344 — the editor-engine choice only exists where there are two
 // editors, i.e. Windows (and the ?forcePlain dev hook).
 const windowsEditorRuntime = isWindowsEditorRuntime();
@@ -1172,6 +1190,57 @@ function onSelectPdfFont(v: string) {
             {{ t('settings.wheelZoom') }}
           </label>
           <p class="setting-hint">{{ t('settings.wheelZoomHint') }}</p>
+        </section>
+
+        <section data-cat="basics">
+          <label>
+            <input
+              type="checkbox"
+              :checked="settings.calendarShowHolidays"
+              @change="settings.toggleCalendarHolidays()"
+            />
+            {{ t('calendar.settings.holidays') }}
+          </label>
+          <p class="setting-hint">{{ t('calendar.settings.holidaysHint') }}</p>
+          <label>
+            <input
+              type="checkbox"
+              :checked="settings.calendarShowLunar"
+              @change="settings.toggleCalendarLunar()"
+            />
+            {{ t('calendar.settings.lunar') }}
+          </label>
+          <p class="setting-hint">{{ t('calendar.settings.lunarHint') }}</p>
+          <label>
+            <input
+              type="checkbox"
+              :checked="settings.calendarShowIsoWeeks"
+              @change="settings.toggleCalendarIsoWeeks()"
+            />
+            {{ t('calendar.settings.isoWeeks') }}
+          </label>
+          <p class="setting-hint">{{ t('calendar.settings.isoWeeksHint') }}</p>
+          <label>
+            <input
+              type="checkbox"
+              :checked="settings.calendarAutoUpdateHolidays"
+              @change="settings.toggleCalendarAutoUpdateHolidays()"
+            />
+            {{ t('calendar.settings.autoUpdateHolidays') }}
+          </label>
+          <p class="setting-hint">
+            {{ t('calendar.settings.autoUpdateHolidaysHint') }}
+            <button
+              type="button"
+              class="link-button"
+              style="margin-left: 8px;"
+              :disabled="holidays.checking"
+              @click="holidays.checkNow()"
+            >
+              {{ holidays.checking ? '…' : t('calendar.settings.checkNow') }}
+            </button>
+          </p>
+          <p v-if="holidayCheckText" class="setting-hint">{{ holidayCheckText }}</p>
         </section>
 
         <section data-cat="basics">

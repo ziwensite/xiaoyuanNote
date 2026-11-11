@@ -2162,6 +2162,24 @@ export const es: I18n = {
     },
   },
   calendar: {
+    settings: {
+      holidays: 'Mostrar días festivos',
+      holidaysHint: 'Marca de esquina y nombre del festivo para los días festivos oficiales.',
+      lunar: 'Mostrar fechas lunares',
+      lunarHint: 'Día lunar bajo la fecha, con festivos tradicionales.',
+      isoWeeks: 'Mostrar semanas ISO',
+      isoWeeksHint: 'Columna con el número de semana ISO 8601 a la izquierda.',
+      autoUpdateHolidays: 'Actualizar festivos en línea',
+      autoUpdateHolidaysHint:
+        'Comprueba en segundo plano el aviso anual. Desactivado = solo caché y datos integrados.',
+      checkNow: 'Comprobar ahora',
+      checkCurrent: 'Ya está actualizado',
+      checkUpdated: 'Datos de festivos actualizados para {years}',
+      checkFailed: 'Error al comprobar: se usa la caché',
+    },
+    week: { header: 'W', tooltip: 'Semana ISO {week}' },
+    day: { off: 'Día festivo · {name}', work: 'Día de trabajo compensatorio' },
+    lunar: { tooltip: 'Calendario lunar: {value}' },
     selectedDay: {
       open: 'Abrir el detalle del {date}',
       empty: 'No hay tareas con vencimiento este día.',

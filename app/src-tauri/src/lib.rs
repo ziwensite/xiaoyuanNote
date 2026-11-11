@@ -110,6 +110,9 @@ pub mod cookbook;
 // expansion); sends a system notification through tauri-plugin-notification,
 // never calls a model, and persists fired ids so a restart cannot replay.
 pub mod reminders;
+// Calendar holidays: on-disk cache of the public holiday JSON plus conditional,
+// event-driven refreshes. No polling thread (see the module docs).
+pub mod holidays;
 
 // v2.3 dev WebDriver bridge — debug builds only.
 #[cfg(debug_assertions)]
@@ -203,6 +206,12 @@ pub fn run() {
                 use tauri::Manager;
                 app.manage(reminders::RemindersState::load(app.handle()));
                 reminders::spawn_reminder_loop(app.handle().clone());
+            }
+            // Calendar holidays: cache only. Refreshes are driven by the
+            // frontend (startup / calendar open / manual), never by a timer.
+            {
+                use tauri::Manager;
+                app.manage(holidays::HolidaysState::load(app.handle()));
             }
             // v4.0 Pillar 2 — start the cron-trigger loop. Sleeps until
             // a `schedule` recipe is due; harmless when no recipes are
@@ -468,6 +477,8 @@ pub fn run() {
             cookbook::cookbook_install,
             reminders::reminders_sync,
             reminders::reminders_status,
+            holidays::holidays_cached,
+            holidays::holidays_refresh,
             workspace_index::workspace_index_referenced_by,
             commands::update_frontmatter_property,
             commands::delete_frontmatter_property,
