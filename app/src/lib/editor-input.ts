@@ -14,6 +14,7 @@
  */
 import type { Tab, TabKind } from '../types';
 import type { CalendarEditorView } from './calendar-prefs';
+import { hostOf, normalizeUrl } from './web-tab';
 
 export type VirtualTabKind = Exclude<TabKind, 'file'>;
 
@@ -60,6 +61,8 @@ export interface EditorKindDef {
   component?: () => Promise<unknown>;
   /** Singleton key, or `false` when several tabs may coexist. */
   singleton: false | ((args: never) => string);
+  /** Optional dedupe key for non-singleton kinds (same URL = same web tab). */
+  identity?: (args: never) => string | null;
   /** Whether the tab may be dragged into a split pane. */
   splittable: boolean;
   /** `never` = not restored after relaunch; `workspace` = stored with the
@@ -95,19 +98,9 @@ export function readSearchArgs(json: unknown): SearchTabArgs | null {
   return typeof query === 'string' && query.trim() ? { query } : null;
 }
 
-/** Only https is accepted: the app runs in a secure context, so an http
- *  subframe would be blocked as mixed content. */
+/** Only https is accepted (see `lib/web-tab.ts`). */
 export function normalizeWebUrl(raw: string): string | null {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  let url: URL;
-  try {
-    url = new URL(trimmed);
-  } catch {
-    return null;
-  }
-  if (url.protocol !== 'https:') return null;
-  return url.toString();
+  return normalizeUrl(raw);
 }
 
 export function readWebArgs(json: unknown): WebTabArgs | null {
@@ -166,8 +159,10 @@ export const EDITOR_KINDS = {
   web: {
     kind: 'web',
     icon: 'globe',
-    title: (tab: Tab, t: TranslateFn) => tab.title || t('editorTab.web'),
+    title: (tab: Tab, t: TranslateFn) => tab.title || hostOf(readWebArgs(tab.input)?.url ?? '') || t('editorTab.web'),
+    component: () => import('../components/tabs/WebTab.vue'),
     singleton: false,
+    identity: (args: WebTabArgs) => args.url,
     splittable: true,
     persist: 'workspace',
     serialize: (args: WebTabArgs) => ({ url: args.url }),
@@ -191,6 +186,14 @@ export function singletonKeyOf(kind: VirtualTabKind, args: unknown): string | nu
   const def = EDITOR_KINDS[kind];
   if (!def.singleton) return null;
   return def.singleton(args as never);
+}
+
+/** Identity used to avoid duplicate tabs: singleton kinds use one key for the
+ *  whole kind, multi-instance kinds may still dedupe on their arguments. */
+export function dedupeKeyOf(kind: VirtualTabKind, args: unknown): string | null {
+  const def = EDITOR_KINDS[kind];
+  if (def.singleton) return def.singleton(args as never);
+  return def.identity ? def.identity(args as never) : null;
 }
 
 const fileInput = (tab: Tab): TabInput => ({ kind: 'file', tabId: tab.id });

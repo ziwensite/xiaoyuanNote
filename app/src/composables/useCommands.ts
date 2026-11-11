@@ -37,6 +37,7 @@ import { useGithubSyncStore } from '../stores/githubSync';
 import { useGithubSync } from './useGithubSync';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { hasGitBackend } from '../lib/platform';
+import { normalizeUrl } from '../lib/web-tab';
 
 export interface Command {
   id: string;
@@ -236,6 +237,21 @@ export function useCommands(): Command[] {
     { id: 'view.toggleNeighborhood', title: 'View: Toggle Neighborhood Pane', hint: 'Per-note relationship explorer — frontmatter wikilink groups, inverse relationships, and backlinks; click to open, ⌘/Ctrl-click to pivot', run: () => settings.toggleNeighborhood() },
     { id: 'view.toggleTypesPanel', title: 'View: Toggle Types Pane', hint: 'Type-driven sidebar — notes with `type:<Name>` grouped into collapsible first-class sections (types-as-lenses)', run: () => settings.toggleTypesPanel() },
     { id: 'view.openCalendar', title: 'View: Open Calendar', hint: 'Month view with a due-date task list; day and week are secondary views', run: () => { const cal = useCalendarStore(); if (!ws.currentFolder) { toasts.info('Open a folder to see the calendar'); return; } cal.openWorkspace(); } },
+    {
+      id: 'view.openWeb',
+      title: 'View: Open Web Page…',
+      hint: 'Embed an https:// page in an editor tab; sites that refuse framing open in the system browser',
+      run: () => {
+        const raw = window.prompt('Enter an https:// URL', 'https://');
+        if (raw == null) return;
+        const url = normalizeUrl(raw);
+        if (!url) {
+          toasts.info('Only https:// URLs can be opened in a tab');
+          return;
+        }
+        tabs.openInput('web', { url });
+      },
+    },
     { id: 'type.create', title: 'Types: New Type…', hint: 'Create a type-definition note (`type: Type`) so its members get a first-class sidebar section', run: () => { settings.showDockPane('types'); createTypeRequested.value = true; } },
     { id: 'view.toggleHistoryPanel', title: 'View: Toggle History Pane', hint: 'Show / hide the per-note version history pane (does not disable Auto-Git)', run: () => settings.toggleHistoryPanel() },
     { id: 'view.toggleInspector', title: 'View: Toggle Properties Inspector', shortcut: kb('view.toggleInspector'), hint: 'Edit the active note’s YAML frontmatter as typed properties (text / number / date / status / tags / relation)', run: () => settings.toggleInspector() },

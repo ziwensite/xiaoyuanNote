@@ -9,8 +9,8 @@ import { stampGoalSetAtIfMissing } from '../composables/useWritingGoals';
 import { isTabDirty } from '../lib/tab-dirty';
 import {
   EDITOR_KINDS,
+  dedupeKeyOf,
   isFileTab,
-  singletonKeyOf,
   type VirtualTabKind,
 } from '../lib/editor-input';
 
@@ -305,10 +305,10 @@ export const useTabsStore = defineStore('tabs', {
      *  search) reuses its tab and only swaps the parameters; kinds without a
      *  singleton key (web) open one tab per input. */
     openInput(kind: VirtualTabKind, args: unknown, opts?: { activate?: boolean }): Tab {
-      const key = singletonKeyOf(kind, args);
+      const key = dedupeKeyOf(kind, args);
       if (key !== null) {
         const existing = this.tabs.find(
-          (t) => (t.kind ?? 'file') === kind && singletonKeyOf(kind, t.input) === key,
+          (t) => (t.kind ?? 'file') === kind && dedupeKeyOf(kind, t.input) === key,
         );
         if (existing) {
           existing.input = args;
@@ -757,7 +757,7 @@ export const useTabsStore = defineStore('tabs', {
         // Singleton virtual tabs from the carried set and the new bucket are
         // the same tab even when their ids differ.
         if (!isFileTab(t)) {
-          const key = singletonKeyOf(t.kind as VirtualTabKind, t.input);
+          const key = dedupeKeyOf(t.kind as VirtualTabKind, t.input);
           if (key !== null) {
             const identity = `${t.kind}:${key}`;
             if (seenSingletons.has(identity)) return;

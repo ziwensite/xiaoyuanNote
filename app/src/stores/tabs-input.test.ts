@@ -47,13 +47,15 @@ test('openInput reuses the calendar tab and swaps its parameters in place', () =
   assert.equal(tabs.isDirty(again.id), false);
 });
 
-test('web tabs are not singletons and open one tab per input', () => {
+test('web tabs dedupe on the URL but different URLs open separate tabs', () => {
   reset();
   const tabs = useTabsStore();
   const a = tabs.openInput('web', { url: 'https://a.example/' });
   const b = tabs.openInput('web', { url: 'https://b.example/' });
+  const again = tabs.openInput('web', { url: 'https://a.example/' });
 
   assert.notEqual(a.id, b.id);
+  assert.equal(again.id, a.id);
   assert.equal(tabs.tabs.length, 2);
 });
 

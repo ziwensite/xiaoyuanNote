@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   EDITOR_KINDS,
+  dedupeKeyOf,
   isFileTab,
   normalizeWebUrl,
   resolveTabInput,
@@ -105,6 +106,15 @@ test('singletonKeyOf returns one identity per kind, null for multi-instance kind
   assert.equal(singletonKeyOf('settings', {}), 'settings');
   assert.equal(singletonKeyOf('search', { query: 'a' }), 'search');
   assert.equal(singletonKeyOf('web', { url: 'https://example.com/' }), null);
+});
+
+test('dedupeKeyOf falls back to the kind identity for multi-instance kinds', () => {
+  assert.equal(dedupeKeyOf('calendar', {}), 'calendar');
+  assert.equal(
+    dedupeKeyOf('web', { url: 'https://example.com/a' }),
+    'https://example.com/a',
+  );
+  assert.equal(dedupeKeyOf('web', { url: 'https://example.com/b' }), 'https://example.com/b');
 });
 
 test('registry persistence and split policy match the agreed decisions', () => {
