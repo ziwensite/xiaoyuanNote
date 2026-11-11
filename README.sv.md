@@ -33,7 +33,7 @@ Byggd på Tauri 2 + Vue 3 + CodeMirror 6. Universell macOS-dmg ~32 MB. Gratis, M
 
 **Editorn.** WYSIWYG live-redigering (Typora-stil), flikar + delade rutor, KaTeX + Mermaid, klistra in bilder i `_assets/`, bildspelsläge (`⌘⌥P`), Vim-läge, Hunspell + CJK-stavningskontroll, semantisk sökning (`⌘⇧F`), wikilänkar + bakåtlänkar, Pandoc-export. CJK-kodningar (GBK / Big5 / Shift-JIS) detekteras automatiskt.
 
-**Slutpunkten.** En medföljande `solomd-mcp`-binär exponerar samma valv för vilken MCP-klient som helst — 13 verktyg som standard, inklusive 5 SoloMD-egna (`autogit_log`, `autogit_diff`, `autogit_rollback`, `sync_status`, `share_url`) som ingen annan Markdown-server har. v4.0 lägger till `--workspace path1 --workspace path2`-federation — en MCP-session, många valv. Plus en `solomd agent <prompt>`-CLI som lämnar över till Claude Code / Codex CLI med förkopplad MCP.
+**Slutpunkten.** En medföljande `solomd-mcp`-binär exponerar samma valv för vilken MCP-klient som helst — 16 verktyg (15 listas som standard), inklusive SoloMD-egna AutoGit-/sync-/share-verktyg (`autogit_log`, `autogit_diff`, `autogit_rollback`, `sync_status`, `share_url`) som ingen annan Markdown-server har. v4.0 lägger till `--workspace path1 --workspace path2`-federation — en MCP-session, många valv. Plus en `solomd agent <prompt>`-CLI som lämnar över till Claude Code / Codex CLI med förkopplad MCP.
 
 **Agent-ytan (v4.0).** Agentpanel till höger: streamad chat-with-vault, `[[wikilink]]`-citat, verktygsanropskort inline, **Infoga** / **Kopiera**-knappar låter svaret falla in i den aktiva anteckningen. Plus deklarativa **recipes** som YAML i `<workspace>/.solomd/agents/*.yml` — `cron` / `on-save` / `on-commit` / `on-tag-add` / manuella triggers. **Varje agentskrivning landar på sin egen AutoGit-gren som du accepterar eller avvisar** innan den rör `main`; standard write-cap 5; vägrar starta om arbetsträdet är dirty; återspelbar `trace.jsonl` per körning med `read_agent_trace`-MCP-verktyg.
 
@@ -47,7 +47,7 @@ Byggd på Tauri 2 + Vue 3 + CodeMirror 6. Universell macOS-dmg ~32 MB. Gratis, M
 | **AI-omskrivning, BYOK** | 14 leverantörer — OpenAI · Claude · Gemini · DeepSeek · Qwen · GLM · Kimi · Doubao · SiliconFlow · OpenRouter · Mistral · Groq · xAI · Ollama. Direkta leverantörsanrop. Nycklar i OS-keychain. |
 | **GitHub-backad sync** | Pusha ditt valv till ett privat GitHub-repo vid varje sparning. Valfri E2EE (Argon2id + XChaCha20-Poly1305). GitLab / Gitea / vilken HTTPS-git-URL som helst fungerar också. |
 | **AutoGit per anteckning** | Varje `⌘S` är en commit i en lokal `.git` i workspacen. libgit2 medföljer, ingen system-git behövs. Pushas aldrig automatiskt. |
-| **MCP-server medföljer** | `solomd-mcp` ingår i installationen. 13 verktyg (8 generiska + 5 SoloMD-egna). Endast stdio, ingen nätverksport. Skrivskyddad som standard; `--allow-write` opt-in. |
+| **MCP-server medföljer** | `solomd-mcp` ingår i installationen. 16 verktyg (12 läs + 4 skriv; 15 listas som standard). Endast stdio, ingen nätverksport. Skrivskyddad som standard; `--allow-write` opt-in. |
 | **REST API** *(v4.0)* | Endast localhost, token-auth. Samma yta som MCP för klienter som ännu inte talar MCP — Alfred / Raycast / n8n / egna skript. |
 | **BYOK-kostnadsmätare** *(v4.0)* | Löpande tokenanvändningsräknare per leverantör, opt-in. Inställningar → Integrationer. |
 | **Molnmappläge** | Om ditt valv ligger i `~/Library/Mobile Documents/...` eller `~/Dropbox/...` upptäcker SoloMD det och lägger till sessionsåterställning mellan enheter — OS:et sköter redan filsynkningen. |

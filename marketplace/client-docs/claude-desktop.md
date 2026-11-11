@@ -72,7 +72,7 @@ Need writes (Claude can create / overwrite notes)? Add `--allow-write`:
 ```
 
 Restart Claude Desktop. The 🔌 icon in the bottom of the message box should
-show "solomd" with all 13 tools.
+show "solomd" with all 16 tools (15 by default).
 
 ## Try it
 

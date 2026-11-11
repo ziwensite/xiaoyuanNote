@@ -32,7 +32,7 @@ curl -L https://raw.githubusercontent.com/zhitongblog/solomd/main/marketplace/cl
 After install, start a new Claude Code session in your notes folder and
 type `/skills`. `solomd` should appear in the list. Activate with
 `/skills solomd` and Claude Code will load the SKILL.md instructions and
-have the 13 MCP tools available.
+have the 16 MCP tools available.
 
 ## Submitting to the official marketplace (when it opens)
 
@@ -49,4 +49,4 @@ When SoloMD's MCP gains/loses a tool, update:
 
 - `solomd/SKILL.md` — the "Tools available" section.
 - `solomd/recipes/` — copy from `app/src-tauri/cookbook/`.
-- This README's tool count if it ever moves off 13.
+- This README's tool count if it ever moves off 16.

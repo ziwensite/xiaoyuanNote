@@ -33,7 +33,7 @@ curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mc
 }
 ```
 
-Restart Cursor. **Settings → MCP** should list `solomd` with 13 tools.
+Restart Cursor. **Settings → MCP** should list `solomd` with 16 tools (15 by default).
 
 ## Try it
 

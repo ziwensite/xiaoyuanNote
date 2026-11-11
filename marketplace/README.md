@@ -26,8 +26,8 @@ in OS keychain, 14 language UI).
 Single-source-of-truth blocks the per-market READMEs copy from, so the tool
 list and the SoloMD pitch don't drift:
 
-- [`_shared/tools.md`](_shared/tools.md) — the 13 MCP tools (8 generic + 5
-  SoloMD-only). Copy into any listing.
+- [`_shared/tools.md`](_shared/tools.md) — the 16 MCP tools (12 read + 4
+  gated write). Copy into any listing.
 - [`_shared/about-solomd.md`](_shared/about-solomd.md) — the "What is
   SoloMD?" block + download CTA. Goes at the top of every listing.
 - [`_shared/badges.md`](_shared/badges.md) — shields.io badges (download

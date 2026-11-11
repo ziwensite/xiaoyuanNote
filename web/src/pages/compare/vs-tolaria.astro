@@ -94,7 +94,7 @@ const featureGroups: { title: string; rows: [string, string, string][] }[] = [
       ['Vault-Safe / Power-User permission modes', '✅', '🟡 read-only default + write toggle'],
       ['Direct model providers (BYOK)', '✅ OpenAI · Anthropic · Gemini · OpenRouter · Ollama · LM Studio · custom', '✅ <strong>14</strong> incl. DeepSeek · Qwen · GLM · Kimi · 火山方舟'],
       ['Inline AI prompt from editor', '✅ <code>⌘K</code> space', '✅ <code>⌘J</code> rewrite + streaming diff'],
-      ['MCP server (vault as a tool)', '✅ 15 tools + UI bridge', '✅ 15 tools (8 read + 2 write + 5 SoloMD-only)'],
+      ['MCP server (vault as a tool)', '✅ 15 tools + UI bridge', '✅ 16 tools (12 read + 4 gated write)'],
       ['Scheduled agent recipes (cron / on-save / on-commit)', '❌', '✅ 11-recipe cookbook'],
       ['AutoGit branch sandbox + accept/reject for agent writes', '❌ writes commit directly', '✅ per-run branch + write-cap'],
       ['Replayable agent trace (jsonl, replay-from-step)', '❌', '✅'],
@@ -219,7 +219,7 @@ const settingsRows: [string, string][] = [
           <tr><th>WYSIWYG / block editing</th><td>✅ <strong>v2.3</strong> · live-edit 4th view</td><td>✅ native block editor</td></tr>
           <tr><th>Markdown whiteboards (tldraw)</th><td>✅ <strong>v4.6</strong> · <code>```tldraw</code> fence → durable <code>.md</code>, cross-compatible with Tolaria's on-disk format</td><td>✅ tldraw boards saved as durable <code>.md</code></td></tr>
           <tr><th>Editable math source panel</th><td>✅ v4.5.3 · double-click a preview formula → edit LaTeX</td><td>✅ double-click formula → edit LaTeX source</td></tr>
-          <tr><th>MCP server (vault as tool)</th><td>✅ <strong>v2.2</strong> · 1.5 MB binary · 8 read + 2 gated write tools</td><td>✅ built in</td></tr>
+          <tr><th>MCP server (vault as tool)</th><td>✅ <strong>v2.2</strong> · 1.5 MB binary · 12 read + 4 gated write tools</td><td>✅ built in</td></tr>
           <tr><th>AutoGit per-note history</th><td>✅ <strong>v2.2</strong> · libgit2, never auto-pushed</td><td>✅ built in (every vault is a git repo)</td></tr>
           <tr><th>Multi-encoding (GBK / Big5 / Shift-JIS)</th><td>✅ auto-detect</td><td>❌ UTF-8 only</td></tr>
           <tr><th>File import (DOCX / PDF / XLSX / PPTX)</th><td>✅ drag-in → Markdown</td><td>❌</td></tr>
@@ -367,7 +367,7 @@ const settingsRows: [string, string][] = [
       <h3>Is SoloMD's MCP server real?</h3>
       <p>Yes — shipped in v2.2. A 1.5 MB Tauri sidecar binary
         (<code>solomd-mcp</code>) speaks MCP over stdio (no network port). Out
-        of the box it exposes 8 read tools — <code>list_notes</code>,
+        of the box it exposes 12 read tools — <code>list_notes</code>,
         <code>read_note</code>, <code>search</code>,
         <code>get_backlinks</code>, <code>list_tags</code>,
         <code>get_outline</code>, etc. — plus <code>write_note</code> and

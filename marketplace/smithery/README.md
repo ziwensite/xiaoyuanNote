@@ -49,14 +49,14 @@ distribution exactly the same way Smithery wants it.
    solomd-mcp is the MCP server bundled with [SoloMD](https://solomd.app),
    a free MIT-licensed Markdown editor with a built-in agent surface.
 
-   13 tools over stdio (JSON-RPC):
-   - 8 generic Markdown-vault tools (list_notes, read_note, search,
-     get_backlinks, list_tags, get_outline, write_note, append_to_note)
-   - 5 SoloMD-only tools that leverage SoloMD's per-note AutoGit history
-     (autogit_log, autogit_diff, autogit_rollback, sync_status, share_url)
-   - 1 trace replayer (read_agent_trace)
+   16 tools over stdio (JSON-RPC, 15 listed by default):
+   - 12 read tools (list_notes, read_note, search, get_backlinks,
+     list_tags, list_tasks, get_outline, autogit_log, autogit_diff,
+     sync_status, share_url, read_agent_trace)
+   - 4 gated write tools (write_note, append_to_note,
+     autogit_rollback, export_note)
 
-   Read-only by default; --allow-write opt-in for the 3 write tools.
+   Read-only by default; --allow-write opt-in for the 4 write tools.
 
    ## Distribution
 
@@ -70,7 +70,7 @@ distribution exactly the same way Smithery wants it.
 
    - Works against any folder of `.md` files — no SoloMD account or
      server required.
-   - The 5 SoloMD-only tools (AutoGit + share URLs) are not available in
+   - The AutoGit, sync-status and share-URL tools are not available in
      any other MCP server we know of.
    - Bundled with a desktop GUI (Agent panel, accept/reject pending writes,
      trace replay) that drives the same server — gives Smithery users a

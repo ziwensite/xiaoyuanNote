@@ -195,6 +195,21 @@ required shape, so `vue-tsc` forces every locale to declare the key.
 | Q6 | engine pinned to iframe | a settings blob with `webTabEngine: "webview"` still renders an iframe after relaunch | yes |
 | Q7 | 15 locales | `editorTab.webInvalid` is translated in en / zh and non-empty (English fallback) in the other 13; no layout overflow | yes |
 
+## R. Release consistency (P5)
+Automated by `mcp-server/tests/release_consistency.rs` in CI and in
+`scripts/release.sh`; the rows below are the artifact / runtime checks that
+text parsing cannot do. `server.json` and `distribution/manifests/*` are
+allowed to lag behind the code on purpose — see `mcp-server/README.md`.
+
+| id | check | pass when | auto |
+|---|---|---|---|
+| R1 | version bump dry run | every version source named in the test moves together; the consistency test passes after a bump | yes |
+| R2 | `server.json` refresh | after publishing, version / identifier / `fileSha256` all point at the new .mcpb; sha matches the uploaded bytes | no |
+| R3 | distribution manifests | winget / scoop / homebrew installer URLs return 200 and their checksums match the published artifacts | no |
+| R4 | MCP runtime | `solomd-mcp --version` equals the app version; `tools/list` is 15 without the Node backend and 16 with it; all 4 write tools reject calls without `--allow-write` | no |
+| R5 | website downloads | installer filenames and `softwareVersion` match the new release; 15 locale badges show the new version | no |
+| R6 | listing copy | Smithery / marketplace / llms descriptions say 16 tools (15 listed by default) | yes |
+
 ## P. Manual sign-off record
 One row per source, per run. `未测` is the initial state; keep FAIL rows until a fix is re-verified. This environment cannot launch a Tauri GUI, so these rows need a real machine.
 
@@ -206,3 +221,4 @@ One row per source, per run. `未测` is the initial state; keep FAIL rows until
 | 4 | 2026-11-11 | Windows / dev | `v1-file-tree-merge/tasks.md` L83 | spec §6 人工核对 | 未测 | 同上 |
 | 5 | 2026-11-11 | Windows / dev | `sidebar-shell-stage2` 第二批 | N9–N12 | 未测 | UI 代码已落地，需真机目视 |
 | 6 | 2026-11-11 | Windows / dev | `editor-input-tabs` P4 加固 | Q1–Q7 | 未测 | URL / iframe 策略已有单测，视觉与交互需真机 |
+| 7 | 2026-11-11 | Windows / dev | release consistency | R1–R6 | 未测 | 自动层（版本 / 产物三元组 / 工具清单 / 文案）已全绿，产物 URL 与 MCP 运行时待发布期核对 |

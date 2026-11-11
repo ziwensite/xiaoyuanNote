@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 #
 # Cut a new release: bumps version in tauri.conf.json + package.json +
-# both Cargo.toml files (app and solomd-mcp) + the CLI's fallback version,
-# commits, tags, and pushes. GitHub Actions takes over from there.
+# both Cargo.toml files (app and solomd-mcp) + the mcpb manifest + the CLI's
+# fallback version + the website's structured data and locale badges, then
+# runs mcp-server/tests/release_consistency.rs before committing, tagging and
+# pushing. GitHub Actions takes over from there.
+#
+# NOT bumped here on purpose: server.json and distribution/manifests/* point
+# at *published* artifacts (a .mcpb URL + sha256, installer URLs). Those are
+# refreshed after the release artifacts exist; the consistency test allows
+# them to lag but fails if they are half-edited or ahead of the app.
 #
 # Usage: ./scripts/release.sh 0.2.0
 
@@ -59,8 +66,21 @@ fi
 sed -i.bak -E "s/^SOLOMD_VERSION=\"[^\"]+\"/SOLOMD_VERSION=\"$VERSION\"/" scripts/solomd
 rm scripts/solomd.bak
 
+# Website structured data + installer filenames + the 15 locale badges.
+# release_consistency.rs asserts softwareVersion and the badges, so a missing
+# bump here stops the release instead of shipping a stale download page.
+sed -i.bak -E "s/\"softwareVersion\": \"[^\"]+\"/\"softwareVersion\": \"$VERSION\"/" web/src/layouts/Layout.astro
+sed -i.bak -E "s/(SoloMD_)[0-9]+\.[0-9]+\.[0-9]+_/\1${VERSION}_/g" web/src/layouts/Layout.astro
+rm web/src/layouts/Layout.astro.bak
+sed -i.bak -E "s/v[0-9]+\.[0-9]+\.[0-9]+ ·/v${VERSION} ·/g" web/src/i18n/translations.ts
+rm web/src/i18n/translations.ts.bak
+
+echo "==> Checking release-facing version / tool inventory consistency"
+(cd mcp-server && cargo test --test version_sync --test release_consistency)
+
 git add app/src-tauri/tauri.conf.json app/package.json app/src-tauri/Cargo.toml app/src-tauri/Cargo.lock \
-  mcp-server/Cargo.toml mcp-server/Cargo.lock mcp-server/mcpb/manifest.json scripts/solomd
+  mcp-server/Cargo.toml mcp-server/Cargo.lock mcp-server/mcpb/manifest.json scripts/solomd \
+  web/src/layouts/Layout.astro web/src/i18n/translations.ts
 git commit -m "chore: bump version to $VERSION"
 git tag "v$VERSION"
 

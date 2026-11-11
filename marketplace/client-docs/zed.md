@@ -38,7 +38,7 @@ it there.)
 ```
 
 Cmd+Shift+P → "zed: reload context servers" (or restart Zed). The agent
-panel should list `@solomd` with the 13 tools.
+panel should list `@solomd` with 16 tools (15 by default).
 
 ## Try it
 

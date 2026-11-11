@@ -72,7 +72,7 @@ Add `--allow-write` to the `args` array to enable `write_note`,
 
 ```
 > /mcp
-# Should list "solomd" with 13 tools.
+# Should list "solomd" with 16 tools (15 by default).
 
 > Read my notes about the LRU cache design and summarise the open questions
   into a new note at design/lru-open-questions.md.

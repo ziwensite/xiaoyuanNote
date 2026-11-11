@@ -10,21 +10,21 @@ a free MIT-licensed Markdown editor with a built-in agent surface. The
 server also runs standalone against any plain folder of `.md` files — no
 SoloMD account, no SoloMD-hosted servers.
 
-13 tools over stdio (JSON-RPC):
+16 tools over stdio (JSON-RPC, 15 listed by default):
 
-- **8 generic Markdown-vault tools** — `list_notes`, `read_note`, `search`
+- **12 read tools** — `list_notes`, `read_note`, `search`
   (literal + regex), `get_backlinks` (wikilink graph),
-  `list_tags` (`#tag` aggregation with counts), `get_outline`,
-  `write_note`, `append_to_note`.
-- **5 SoloMD-specific tools** — `autogit_log`, `autogit_diff`,
-  `autogit_rollback`, `sync_status`, `share_url`. These exist because
-  SoloMD's vault carries per-note AutoGit history (every save is a commit
-  in a `.git` inside the workspace). Most other Markdown MCP servers
-  don't have these.
-- **1 trace replayer** — `read_agent_trace` for replaying past agent
-  recipe runs.
+  `list_tags` (`#tag` aggregation with counts), `list_tasks`, `get_outline`,
+  `autogit_log`, `autogit_diff`, `sync_status`, `share_url` and
+  `read_agent_trace` (agent recipe trace replay).
+- **4 gated write tools** — `write_note`, `append_to_note`,
+  `autogit_rollback` and `export_note`. AutoGit history is per note: every
+  save is a commit in a `.git` inside the workspace, which most other
+  Markdown MCP servers don't have.
 
-Read-only by default; `--allow-write` opt-in for the 3 write tools.
+`export_note` is listed only when its Node backend is available, so a
+default install lists 15. Read-only by default; `--allow-write` opt-in for
+the 4 write tools.
 
 ### Multi-vault federation
 

@@ -28,7 +28,7 @@ git checkout -b add-solomd
 git add README.md
 git commit -m "Add SoloMD MCP server"
 git push -u origin add-solomd
-gh pr create --title "Add SoloMD MCP server (Markdown vault with 13 tools)" \
+gh pr create --title "Add SoloMD MCP server (Markdown vault with 16 tools)" \
              --body-file ../marketplace/awesome-mcp/pr-body.md
 ```
 

@@ -36,7 +36,7 @@ curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mc
 ```
 
 Reload Continue. The MCP block in the sidebar should show `solomd` with
-13 tools.
+16 tools (15 by default).
 
 ## Try it
 

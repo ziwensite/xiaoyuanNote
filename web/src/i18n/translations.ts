@@ -65,7 +65,7 @@ export const t = {
         { icon: '✍️', title: 'WYSIWYG live edit (v2.3)', desc: 'Fourth view mode (edit / split / live edit / preview). Headings render larger, **bold** shows bold without the asterisks, lists indent visually. Markup reveals when the caret enters the line.' },
         { icon: '📜', title: 'AutoGit version history (v2.2)', desc: 'Every ⌘S becomes a snapshot in a local .git inside your workspace. Sidebar history panel shows every commit; one click to restore. libgit2 vendored, no system git needed. Never auto-pushed.' },
         { icon: '🤖', title: 'AI rewrite, 14 BYOK providers (v2.2)', desc: '⌘J on a selection. OpenAI · Claude · Gemini · xAI · Mistral · Groq · DeepSeek · Qwen · GLM · Kimi · Doubao · SiliconFlow · OpenRouter · Ollama. Keys live in the OS keychain. Direct vendor calls, no relay.' },
-        { icon: '🔌', title: 'MCP server bundled (v2.2)', desc: '1.5 MB binary. Plug your vault into Claude Desktop / Cursor / Codex CLI. 8 read-only tools out of the box; write tools gated behind --allow-write. stdio only, no network port.' },
+        { icon: '🔌', title: 'MCP server bundled (v2.2)', desc: '1.5 MB binary. Plug your vault into Claude Desktop / Cursor / Codex CLI. 16 tools (12 read + 4 gated write), 15 listed when the Node export backend is unavailable. stdio only, no network port.' },
         { icon: '✨', title: 'Live Preview', desc: 'Markdown markers fade away when you leave a line. Headings get bigger, bold gets bold — no toolbars in the way. Synced split-pane scroll keeps editor and preview line-aligned.' },
         { icon: '🖼', title: 'Image paste & drag-drop', desc: 'Screenshot then ⌘V — image saves to _assets/ and inserts a markdown link. Click any image or Mermaid diagram in preview to pop a full-screen overlay; pinch or scroll to zoom.' },
         { icon: '🌳', title: 'File tree + ripgrep search', desc: 'Open a folder, browse files, ripgrep-style global search across every .md and .txt. ⌘P jumps to any file by fuzzy name.' },
@@ -196,7 +196,7 @@ export const t = {
         },
         {
           q: 'How does the MCP server work?',
-          a: 'SoloMD ships solomd-mcp, a 1.5 MB sidecar binary that speaks the Model Context Protocol over stdio — no network port. Point Claude Desktop, Cursor, Codex CLI, or any MCP client at your workspace and it gets 8 read tools (list_notes, read_note, search, get_backlinks, list_tags, get_outline, export_note, etc.) plus 2 write tools gated behind --allow-write. Path-traversal guarded with workspace-canonical containment.',
+          a: 'SoloMD ships solomd-mcp, a 1.5 MB sidecar binary that speaks the Model Context Protocol over stdio — no network port. Point Claude Desktop, Cursor, Codex CLI, or any MCP client at your workspace and it gets 16 tools — 12 read tools (list_notes, read_note, search, get_backlinks, list_tags, list_tasks, get_outline, etc.) and 4 write tools gated behind --allow-write; 15 are listed when the Node export backend is unavailable. Path-traversal guarded with workspace-canonical containment.',
         },
         {
           q: 'Can I sync my notes to other devices?',
@@ -278,7 +278,7 @@ export const t = {
           eyebrow: 'For developers',
           icon: '🔌',
           headline: 'Your notes are already an MCP server',
-          desc: 'A 1.5 MB MCP sidecar exposes 8 read-only tools to Claude Desktop, Cursor, or any MCP client. Every save snapshots into a real local .git you own. WYSIWYG live edit and a `solomd` CLI keep you out of the GUI when you want.',
+          desc: 'A 1.5 MB MCP sidecar exposes 16 tools (15 listed by default) to Claude Desktop, Cursor, or any MCP client. Every save snapshots into a real local .git you own. WYSIWYG live edit and a `solomd` CLI keep you out of the GUI when you want.',
           bullets: [
             'MCP server bundled — stdio only, no network port',
             'AutoGit version history (libgit2 vendored, never auto-pushed)',
@@ -2891,7 +2891,7 @@ export const t = {
         { icon: '✍️', title: 'Live WYSIWYG-bewerken (v2.3)', desc: 'Vierde weergavemodus (bewerken / split / live edit / preview). Koppen renderen groter, **vetgedrukt** verschijnt vet zonder de asterisken, lijsten worden visueel ingesprongen. De markup wordt zichtbaar wanneer de cursor de regel binnengaat.' },
         { icon: '📜', title: 'AutoGit-versiegeschiedenis (v2.2)', desc: 'Elke ⌘S wordt een snapshot in een lokale .git in je workspace. Geschiedenis-paneel in de zijbalk toont elke commit; één klik om te herstellen. libgit2 inbegrepen, geen system-git nodig. Nooit auto-gepusht.' },
         { icon: '🤖', title: 'AI-rewrite, 14 BYOK-providers (v2.2)', desc: '⌘J op een selectie. OpenAI · Claude · Gemini · xAI · Mistral · Groq · DeepSeek · Qwen · GLM · Kimi · Doubao · SiliconFlow · OpenRouter · Ollama. Sleutels staan in de OS-keychain. Directe aanroepen naar de provider, geen relay.' },
-        { icon: '🔌', title: 'Gebundelde MCP-server (v2.2)', desc: '1,5 MB binary. Verbind je vault met Claude Desktop / Cursor / Codex CLI. 8 read-only tools direct beschikbaar; schrijftools achter --allow-write. Alleen stdio, geen netwerkpoort.' },
+        { icon: '🔌', title: 'Gebundelde MCP-server (v2.2)', desc: '1,5 MB binary. Verbind je vault met Claude Desktop / Cursor / Codex CLI. 16 tools (12 lees- + 4 schrijftools), 15 standaard gelijst; schrijftools achter --allow-write. Alleen stdio, geen netwerkpoort.' },
         { icon: '✨', title: 'Live preview', desc: 'Markdown-markers verdwijnen wanneer je een regel verlaat. Koppen worden groter, vet wordt vet — geen toolbar in de weg. Gesynchroniseerd scrollen in split-pane houdt editor en preview regel-voor-regel uitgelijnd.' },
         { icon: '🖼', title: 'Plak afbeelding & sleep', desc: 'Maak een screenshot en doe ⌘V — de afbeelding wordt opgeslagen in _assets/ en een markdown-link wordt ingevoegd. Klik op een afbeelding of Mermaid-diagram in de preview om een fullscreen overlay te openen; knijp of scroll om te zoomen.' },
         { icon: '🌳', title: 'Bestandenboom + ripgrep-zoeken', desc: 'Open een map, blader door bestanden, voer ripgrep-stijl globaal zoeken uit over alle .md- en .txt-bestanden. ⌘P springt naar elk bestand op fuzzy naam.' },
@@ -3026,7 +3026,7 @@ export const t = {
       items: [
         { eyebrow: 'Voor schrijvers', icon: '✍️', headline: 'Lange prozavorm zonder de toolbar-tax', desc: 'Open een map, schakel focus-modus in, schrijf. Markdown-markup verdwijnt zodra de cursor de regel verlaat. Wanneer het concept klaar is, zet Pandoc het om in een PDF, DOCX of EPUB zonder de app te verlaten.', bullets: ['Focus + typemachinemodus (andere paragrafen dimmen, cursor gecentreerd houden)', 'Presentatiemodus — render dezelfde .md als fullscreen slides', 'Dagboeknotities, woordtelling, CJK-bewuste karaktertelling', 'Pandoc-export naar PDF / DOCX / EPUB / ODT / LaTeX'] },
         { eyebrow: 'Voor onderzoekers', icon: '🔍', headline: 'Vind de paragraaf, niet alleen het trefwoord', desc: 'Semantisch zoeken rangschikt paragrafen op betekenis door je hele vault. Wikilinks en backlinks verbinden notities, @citekey-citations gaan door tot in Pandoc, en 14 AI-providers vertalen of vatten samen op aanvraag — sleutels blijven in je OS-keychain.', bullets: ['Lokaal semantisch zoeken, geen modelbestanden, geen netwerkaanroepen', 'Wikilinks- + backlinks-paneel, geen graph-view bloat', '@citekey-citations end-to-end behouden via Pandoc', '14 BYOK AI-providers om te vertalen / samenvatten / uitleggen'] },
-        { eyebrow: 'Voor developers', icon: '🔌', headline: 'Je notities zijn al een MCP-server', desc: 'Een 1,5 MB MCP-sidecar exposeert 8 read-only tools aan Claude Desktop, Cursor of elke MCP-client. Elke save snapshot naar een echte lokale .git die jij bezit. Live WYSIWYG-bewerken en een `solomd` CLI houden je uit de GUI wanneer je dat wilt.', bullets: ['Gebundelde MCP-server — alleen stdio, geen netwerkpoort', 'AutoGit-versiegeschiedenis (libgit2 inbegrepen, nooit auto-gepusht)', 'Live WYSIWYG-bewerkmodus + 4-weg view-switcher', 'CLI `solomd open / new / list / search`, installer in één regel'] },
+        { eyebrow: 'Voor developers', icon: '🔌', headline: 'Je notities zijn al een MCP-server', desc: 'Een 1,5 MB MCP-sidecar exposeert 16 tools (15 standaard gelijst) aan Claude Desktop, Cursor of elke MCP-client. Elke save snapshot naar een echte lokale .git die jij bezit. Live WYSIWYG-bewerken en een `solomd` CLI houden je uit de GUI wanneer je dat wilt.', bullets: ['Gebundelde MCP-server — alleen stdio, geen netwerkpoort', 'AutoGit-versiegeschiedenis (libgit2 inbegrepen, nooit auto-gepusht)', 'Live WYSIWYG-bewerkmodus + 4-weg view-switcher', 'CLI `solomd open / new / list / search`, installer in één regel'] },
       ],
     },
     builtByClaude: {

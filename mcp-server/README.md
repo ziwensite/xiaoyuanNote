@@ -77,6 +77,37 @@ wikilinks, `list_tasks`, `search`) is a 1-based line in the file as it sits
 on disk, front matter included, so the tools agree with each other and with
 an editor. `search` columns count characters, not bytes.
 
+## Release consistency
+
+`tests/release_consistency.rs` (run by CI and by `scripts/release.sh`) is the
+gate that keeps the release-facing copy honest. It reads repository text
+only — no server, no network, no new dependency.
+
+1. **Versions.** `app/src-tauri/tauri.conf.json` is the source of truth. The
+   test also checks `app/package.json`, both `Cargo.toml` files, the mcpb
+   manifest, `scripts/solomd`, the website's `softwareVersion` and its locale
+   badges. `scripts/release.sh` bumps all of them.
+2. **Published artifacts.** `server.json` (a .mcpb URL + `fileSha256`) and
+   `distribution/manifests/*` (winget / scoop / homebrew installer URLs)
+   describe artifacts that must already exist on GitHub Releases. They are
+   therefore **allowed to lag** behind the in-tree version, but the test
+   fails if they are half-edited, internally inconsistent, or point at a
+   release newer than the code. They are refreshed after a release's
+   artifacts are built; never hand-edit the sha or an installer URL here.
+3. **Tool inventory.** The test parses `#[tool(name = "...")]` from
+   `src/tools.rs` (16 tools: 12 read + 4 gated write). The mcpb manifest and
+   both `smithery.yaml` files must list the same 15 names — `export_note` is
+   removed from `tools/list` when the Node export backend is unavailable
+   (see `tests/write_safety.rs`). Marketing copy in the READMEs,
+   `marketplace/`, `web/public/llms*.txt` and the website is checked against
+   a blacklist of superseded counts.
+
+Historically accurate pages are deliberately outside that blacklist: the
+`vs-typora` comparison quotes the v3.1 server, and `docs/roadmap.md` records
+the v4.0 plan. `marketplace/_shared/tools.md` is the shared block to paste
+into new listings; `scripts/build-mcpb.sh` regenerates the mcpb `tools`
+array from the live `tools/list`.
+
 **`export_note` needs Node.js and a SoloMD source checkout.** It runs
 `app/scripts/solomd-export.mjs` (the same engine as `solomd export`) with
 the app's `node_modules`. The installed app ships neither, so the tool is

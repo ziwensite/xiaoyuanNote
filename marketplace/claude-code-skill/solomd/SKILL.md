@@ -1,6 +1,6 @@
 ---
 name: solomd
-description: Read, search, edit, and version-control any folder of Markdown notes via the SoloMD MCP server. 13 tools including AutoGit per-note history, semantic search, and write-with-sandbox via an accept/reject branch. Includes 11 starter agent recipes (weekly review, todo extract, link suggester, …).
+description: Read, search, edit, and version-control any folder of Markdown notes via the SoloMD MCP server. 16 tools (15 listed by default) including AutoGit per-note history, semantic search, and write-with-sandbox via an accept/reject branch. Includes 11 starter agent recipes (weekly review, todo extract, link suggester, …).
 allowed-tools: ["solomd:*"]
 ---
 
@@ -41,7 +41,7 @@ and registers a `solomd` server pointing at your notes folder via
 `claude mcp add --scope user` (falling back to patching `~/.claude.json`
 directly when the `claude` CLI isn't on PATH).
 
-Default mode is **read-only**. To enable the 3 write tools, re-register with
+Default mode is **read-only**. To enable the 4 write tools, re-register with
 `--allow-write`:
 
 ```bash
@@ -169,8 +169,8 @@ tools yourself. Example — `01-weekly-review.yml` becomes:
 - The user is editing a single file they've already opened — direct
   `Edit` is more efficient than going through `read_note` / `write_note`.
 - The vault isn't actually a SoloMD vault and the user doesn't care about
-  wikilinks / tags / AutoGit — the 5 SoloMD-only tools become no-ops
-  (still useful for the other 8).
+  wikilinks / tags / AutoGit — the SoloMD-specific tools become no-ops
+  (the generic read tools still work).
 
 ## About SoloMD
 

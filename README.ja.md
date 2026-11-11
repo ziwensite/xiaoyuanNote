@@ -33,7 +33,7 @@ Tauri 2 + Vue 3 + CodeMirror 6 で構築。Mac universal dmg は約 32 MB。無�
 
 **エディタ。** WYSIWYG ライブ編集（Typora 風）、タブ + 分割ペイン、KaTeX + Mermaid、画像を `_assets/` に貼り付け、スライドショーモード（`⌘⌥P`）、Vim モード、Hunspell + CJK 校正、セマンティック検索（`⌘⇧F`）、wikilinks + backlinks、Pandoc エクスポート。CJK エンコーディング（GBK / Big5 / Shift-JIS）の自動判別。
 
-**エンドポイント。** 同梱の `solomd-mcp` バイナリが同じ vault を任意の MCP クライアントに公開 — 標準で 13 ツール、うち 5 個は SoloMD 独自（`autogit_log`、`autogit_diff`、`autogit_rollback`、`sync_status`、`share_url`）で他の markdown サーバーにはない。v4.0 では `--workspace path1 --workspace path2` の federation を追加 — 1 つの MCP セッションで複数 vault。さらに `solomd agent <prompt>` CLI で Claude Code / Codex CLI に MCP 接続済みでハンドオフ。
+**エンドポイント。** 同梱の `solomd-mcp` バイナリが同じ vault を任意の MCP クライアントに公開 — 16 ツール（既定では 15 を公開）、うち SoloMD 独自の AutoGit / sync / share（`autogit_log`、`autogit_diff`、`autogit_rollback`、`sync_status`、`share_url`）で他の markdown サーバーにはない。v4.0 では `--workspace path1 --workspace path2` の federation を追加 — 1 つの MCP セッションで複数 vault。さらに `solomd agent <prompt>` CLI で Claude Code / Codex CLI に MCP 接続済みでハンドオフ。
 
 **Agent サーフェス（v4.0）。** 右サイド Agent パネル: ストリーミング chat-with-vault、`[[wikilink]]` 引用、ツール呼び出しカードがインラインで展開、**挿入** / **コピー** ボタンで返信を現在のノートに反映。さらに `<workspace>/.solomd/agents/*.yml` の YAML として宣言的 **Recipe** — `cron` / `on-save` / `on-commit` / `on-tag-add` / 手動トリガー。**各 agent 書き込みは専用 AutoGit ブランチに着地**、accept / reject してから `main` に触れます; write-cap デフォルト 5; ワーキングツリーが汚れている時は実行拒否; 各実行で `trace.jsonl` リプレイ可能、`read_agent_trace` MCP ツール付き。
 
@@ -47,7 +47,7 @@ Tauri 2 + Vue 3 + CodeMirror 6 で構築。Mac universal dmg は約 32 MB。無�
 | **AI 書き換え、BYOK** | 14 Provider — OpenAI · Claude · Gemini · DeepSeek · Qwen · GLM · Kimi · Doubao · SiliconFlow · OpenRouter · Mistral · Groq · xAI · Ollama。ベンダー直接コール。キーは OS キーチェーンに。 |
 | **GitHub バックの同期** | vault を保存ごとにプライベート GitHub リポジトリに push。任意の E2EE（Argon2id + XChaCha20-Poly1305）。GitLab / Gitea / 任意 HTTPS git URL も動作。 |
 | **AutoGit per ノート** | 各 `⌘S` がワークスペース内ローカル `.git` のコミット。libgit2 同梱、システム git 不要。自動 push なし。 |
-| **MCP サーバー同梱** | `solomd-mcp` がインストールに同梱。13 ツール（汎用 8 + SoloMD 独自 5）。stdio のみ、ネットワークポートなし。デフォルト読み取り専用; `--allow-write` でオプトイン。 |
+| **MCP サーバー同梱** | `solomd-mcp` がインストールに同梱。16 ツール（読み取り 12 + 書き込み 4、既定では 15 を公開）。stdio のみ、ネットワークポートなし。デフォルト読み取り専用; `--allow-write` でオプトイン。 |
 | **REST API** *(v4.0)* | localhost のみ、トークン認証。MCP と同じサーフェス、まだ MCP を話さないクライアント向け — Alfred / Raycast / n8n / 自作スクリプト。 |
 | **BYOK コストメーター** *(v4.0)* | Provider ごとの累積トークン使用量カウンター、オプトイン。設定 → 統合。 |
 | **クラウドフォルダモード** | vault が `~/Library/Mobile Documents/...` や `~/Dropbox/...` 配下なら、SoloMD が検出してクロスデバイスのセッション復元を追加 — ファイル同期は OS が既に行います。 |

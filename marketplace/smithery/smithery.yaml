@@ -9,11 +9,12 @@
 name: solomd-mcp
 displayName: SoloMD
 description: >
-  MCP server for one or more Markdown notes folders. 13 tools: list_notes,
-  read_note, search, get_backlinks, list_tags, get_outline, autogit_log,
-  autogit_diff, sync_status, share_url, plus write tools behind --allow-write.
-  Pairs with the SoloMD desktop editor (solomd.app) but works against any
-  plain folder of .md files.
+  MCP server for one or more Markdown notes folders. 16 tools (15 listed by
+  default): read / search / backlinks / tags / tasks / outlines, per-note
+  AutoGit history, sync status, share URLs and agent trace replay, plus four
+  gated write tools behind --allow-write. `export_note` is listed only when
+  its Node backend is available. Pairs with the SoloMD desktop editor
+  (solomd.app) but works against any plain folder of .md files.
 homepage: https://solomd.app
 repository: https://github.com/zhitongblog/solomd
 license: MIT
@@ -89,8 +90,9 @@ config:
       title: Allow write
       default: false
       description: >
-        Enable write_note, append_to_note, and autogit_rollback. Off by
-        default — turn on only if you trust the client.
+        Enable the four write tools: write_note, append_to_note,
+        autogit_rollback and export_note. Off by default — turn on only if
+        you trust the client.
   if:
     properties:
       allowWrite:
@@ -102,7 +104,9 @@ config:
   argsTransform: |
     return args.concat(config.allowWrite ? ['--allow-write'] : []);
 
-# Smithery's structured tool inventory — surfaces in the listing UI.
+# Smithery's structured tool inventory — surfaces in the listing UI. Matches
+# the live tools/list minus export_note (needs a Node backend); checked
+# against src/tools.rs by mcp-server/tests/release_consistency.rs.
 tools:
   - name: list_notes
     description: List .md files in a workspace.
@@ -114,6 +118,8 @@ tools:
     description: Find every note containing [[wikilink]] to a given note.
   - name: list_tags
     description: Aggregate #tags with occurrence counts.
+  - name: list_tasks
+    description: Every Markdown checkbox in a workspace, with file and line.
   - name: get_outline
     description: Heading structure of a note.
   - name: write_note

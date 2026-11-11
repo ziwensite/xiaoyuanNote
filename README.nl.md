@@ -34,7 +34,7 @@ Gebouwd op Tauri 2 + Vue 3 + CodeMirror 6. Universele macOS dmg ~32 MB. Gratis, 
 
 **De editor.** WYSIWYG live-bewerken (Typora-stijl), tabs + gesplitste panelen, KaTeX + Mermaid, afbeeldingen plakken in `_assets/`, slideshow-modus (`⌘⌥P`), Vim-modus, Hunspell + CJK-spellingscontrole, semantisch zoeken (`⌘⇧F`), wikilinks + backlinks, Pandoc-export. CJK-coderingen (GBK / Big5 / Shift-JIS) automatisch gedetecteerd.
 
-**Het eindpunt.** Een meegeleverde `solomd-mcp`-binary stelt dezelfde vault beschikbaar aan elke MCP-client — 13 tools standaard, waaronder 5 SoloMD-eigen (`autogit_log`, `autogit_diff`, `autogit_rollback`, `sync_status`, `share_url`) die geen enkele andere Markdown-server heeft. v4.0 voegt `--workspace path1 --workspace path2`-federatie toe — één MCP-sessie, meerdere vaults. Plus een `solomd agent <prompt>`-CLI die doorgeeft aan Claude Code / Codex CLI met vooraf bedrade MCP.
+**Het eindpunt.** Een meegeleverde `solomd-mcp`-binary stelt dezelfde vault beschikbaar aan elke MCP-client — 16 tools (12 lees- + 4 schrijftools, 15 standaard gelijst), waaronder de SoloMD-eigen AutoGit-, sync- en share-URL-tools die geen enkele andere Markdown-server heeft. v4.0 voegt `--workspace path1 --workspace path2`-federatie toe — één MCP-sessie, meerdere vaults. Plus een `solomd agent <prompt>`-CLI die doorgeeft aan Claude Code / Codex CLI met vooraf bedrade MCP.
 
 **Het agent-oppervlak (v4.0).** Agentpaneel aan de rechterkant: gestreamde chat-with-vault, `[[wikilink]]`-citaties, tool-call-kaarten inline, **Invoegen** / **Kopiëren**-knoppen laten het antwoord in de actieve notitie vallen. Plus declaratieve **recipes** als YAML in `<workspace>/.solomd/agents/*.yml` — `cron` / `on-save` / `on-commit` / `on-tag-add` / handmatige triggers. **Elke schrijfactie van een agent landt op zijn eigen AutoGit-branch die je accepteert of afwijst** voordat hij `main` raakt; standaard write-cap 5; weigert te starten als de werkboom dirty is; herhaalbare `trace.jsonl` per run met `read_agent_trace` MCP-tool.
 
@@ -48,7 +48,7 @@ Gebouwd op Tauri 2 + Vue 3 + CodeMirror 6. Universele macOS dmg ~32 MB. Gratis, 
 | **AI-herschrijven, BYOK** | 14 providers — OpenAI · Claude · Gemini · DeepSeek · Qwen · GLM · Kimi · Doubao · SiliconFlow · OpenRouter · Mistral · Groq · xAI · Ollama. Directe vendor-aanroepen. Sleutels in OS-keychain. |
 | **GitHub-backed sync** | Push je vault bij elke save naar een privé GitHub-repo. Optionele E2EE (Argon2id + XChaCha20-Poly1305). GitLab / Gitea / elke HTTPS-git-URL werkt ook. |
 | **AutoGit per notitie** | Elke `⌘S` is een commit in een lokale `.git` in de workspace. libgit2 meegeleverd, geen systeem-git nodig. Wordt nooit automatisch gepusht. |
-| **MCP-server gebundeld** | `solomd-mcp` zit in de installatie. 13 tools (8 generiek + 5 SoloMD-eigen). Stdio-only, geen netwerkpoort. Standaard read-only; `--allow-write` opt-in. |
+| **MCP-server gebundeld** | `solomd-mcp` zit in de installatie. 16 tools (12 lees- + 4 schrijftools, 15 standaard gelijst). Stdio-only, geen netwerkpoort. Standaard read-only; `--allow-write` opt-in. |
 | **REST API** *(v4.0)* | Localhost only, token-auth. Hetzelfde oppervlak als MCP voor clients die nog geen MCP spreken — Alfred / Raycast / n8n / eigen scripts. |
 | **BYOK-kostenmeter** *(v4.0)* | Lopende token-verbruiksteller per provider, opt-in. Instellingen → Integraties. |
 | **Cloud-mapmodus** | Als je vault in `~/Library/Mobile Documents/...` of `~/Dropbox/...` staat, detecteert SoloMD dat en voegt sessieherstel over apparaten heen toe — het OS doet de bestandssync al. |

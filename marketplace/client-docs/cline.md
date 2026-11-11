@@ -45,7 +45,7 @@ curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mc
 tools while keeping the write tools manual. Recommended.
 
 Restart Cline. The MCP Servers tab should show `solomd` with a green dot
-and 13 tools listed.
+and 16 tools listed (15 by default).
 
 ## Try it
 

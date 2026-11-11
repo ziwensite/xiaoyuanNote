@@ -148,7 +148,7 @@ fi
 cat <<EOF
 
 Done. Start a new Claude Code session in any folder and run \`/mcp\`. You
-should see "solomd" with 13 tools.
+should see "solomd" with 16 tools (15 by default).
 
 To enable writes (write_note / append_to_note / autogit_rollback), re-register
 with --allow-write:
