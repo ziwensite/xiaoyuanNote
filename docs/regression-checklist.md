@@ -210,6 +210,56 @@ allowed to lag behind the code on purpose — see `mcp-server/README.md`.
 | R5 | website downloads | installer filenames and `softwareVersion` match the new release; 15 locale badges show the new version | no |
 | R6 | listing copy | Smithery / marketplace / llms descriptions say 16 tools (15 listed by default) | yes |
 
+## S. Architecture debt: command tables and CSP (P6)
+
+### Command registration
+
+`app/src-tauri/tests/handler_drift_test.rs` parses both `generate_handler!`
+bodies with `include_str!` and asserts that they differ only by the reviewed
+platform whitelists. It runs in CI (`cargo test --test handler_drift_test`).
+A **single-source macro was evaluated and rejected for now**: 44 arguments in
+`lib.rs` carry in-macro `#[cfg(not(target_os = "android"))]`, 7 desktop
+commands are defined inside `runner.rs` (which the lib crate never compiles),
+and `holidays::*` needs a `HolidaysState` that only `lib.rs` installs. The
+rationale is recorded in the test's module docs.
+
+| id | check | pass when | auto |
+|---|---|---|---|
+| S1 | dual registration | adding a command to one table fails the parity test; the reviewed whitelists are still exact | yes |
+| S2 | third table | `src/*.rs` contains exactly two `tauri::generate_handler![` calls, in `lib.rs` and `runner.rs` | yes |
+| S3 | `holidays_*` on desktop | known one-sided registration: confirm the desktop calendar still renders holidays; if desktop registers them, remove the two whitelist entries | no |
+
+### CSP: evaluated, deliberately not tightened
+
+`app/src-tauri/tauri.conf.json` keeps `"csp": null` and
+`assetProtocol.scope: ["**"]`. Setting a naive `default-src 'self'` would
+silently break features that are otherwise covered by this checklist. Any
+future tightening must first land every directive below and then pass the
+real-GUI rows on all platforms (dev and production CSP differ because Tauri
+injects HMR in dev).
+
+| directive (candidate) | what breaks without it |
+|---|---|
+| `frame-src https:` | P4 web tabs, embedded Markdown/export preview frames |
+| `img-src 'self' data: blob: asset: http://asset.localhost https:` | pasted images, `data:` images/fonts in exports, Tauri asset images, remote illustrations |
+| `font-src 'self' data:` | custom font picker, embedded theme fonts |
+| `style-src 'self' 'unsafe-inline'` | CodeMirror, theme CSS variables, custom CSS injection, format bubble |
+| `connect-src 'self' https: http://127.0.0.1:* ws://localhost:1420` | update check, local REST / MCP calls, BYOK provider calls, Vite HMR |
+| `worker-src 'self' blob:` | library workers (pdf / mermaid / html2pdf chunks) |
+| `media-src 'self' data: blob:` | audio/video notes, export previews |
+| `object-src 'none'` | stays closed; no current feature needs plugins |
+
+`assetProtocol.scope: ["**"]` is a separate widening that should be narrowed
+in the same change, not as a drive-by edit.
+
+| id | check | pass when | auto |
+|---|---|---|---|
+| S4 | frames | web tab loads an https site; Markdown/export preview frames render; no CSP console errors | no |
+| S5 | images and fonts | paste, `data:` URL, `asset:` image and remote image all render; custom font applies | no |
+| S6 | styles | theme switch, CodeMirror, custom CSS and selection bubble keep their styling | no |
+| S7 | network | update check, local REST/MCP, BYOK call and `pnpm dev` HMR all work | no |
+| S8 | platform matrix | M / W / L / I / A production builds launch without a blank window or blocked-resource spam | no |
+
 ## P. Manual sign-off record
 One row per source, per run. `未测` is the initial state; keep FAIL rows until a fix is re-verified. This environment cannot launch a Tauri GUI, so these rows need a real machine.
 
@@ -222,3 +272,4 @@ One row per source, per run. `未测` is the initial state; keep FAIL rows until
 | 5 | 2026-11-11 | Windows / dev | `sidebar-shell-stage2` 第二批 | N9–N12 | 未测 | UI 代码已落地，需真机目视 |
 | 6 | 2026-11-11 | Windows / dev | `editor-input-tabs` P4 加固 | Q1–Q7 | 未测 | URL / iframe 策略已有单测，视觉与交互需真机 |
 | 7 | 2026-11-11 | Windows / dev | release consistency | R1–R6 | 未测 | 自动层（版本 / 产物三元组 / 工具清单 / 文案）已全绿，产物 URL 与 MCP 运行时待发布期核对 |
+| 8 | 2026-11-11 | Windows / dev | command parity + CSP | S1–S8 | 未测 | 源码扫描守门已全绿；CSP 保持 `null`，收紧需按平台真机矩阵验证 |
