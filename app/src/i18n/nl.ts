@@ -739,6 +739,7 @@ export const nl: I18n = {
     webCopied: 'Link gekopieerd',
     webReload: 'Herladen',
     webCopyLink: 'Link kopiëren',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'Alle geopende tabbladen',

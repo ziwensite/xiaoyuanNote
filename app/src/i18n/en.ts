@@ -742,6 +742,7 @@
     webCopied: 'Link copied',
     webReload: 'Reload',
     webCopyLink: 'Copy link',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'All open tabs',

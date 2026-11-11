@@ -738,6 +738,7 @@ export const ja: I18n = {
     webCopied: 'リンクをコピーしました',
     webReload: '再読み込み',
     webCopyLink: 'リンクをコピー',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: '開いているすべてのタブ',

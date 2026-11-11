@@ -738,6 +738,7 @@ export const ko: I18n = {
     webCopied: '링크 복사됨',
     webReload: '새로고침',
     webCopyLink: '링크 복사',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: '열린 탭 모두 보기',

@@ -43,6 +43,14 @@ import {
 
 const LS_KEY = 'solomd.settings.v1';
 
+/**
+ * How a web tab is rendered. The DOM iframe is the only shipped engine.
+ * `'webview'` is reserved for the optional Tauri child-webview experiment
+ * (spec §4.4); it is deliberately not accepted by `load()` until that
+ * experiment passes its real-GUI acceptance checks.
+ */
+export type WebTabEngine = 'iframe' | 'webview';
+
 // CJK + generic fallback appended after the user's chosen face. This way
 // Latin glyphs come from the user's pick while CJK still falls back to
 // a real CJK font instead of whatever the generic `monospace` happens to be.
@@ -201,6 +209,8 @@ interface Settings {
    *  existed every install stored 'native' (the old default), so a stored
    *  'native' without this flag is not a choice and becomes 'auto'. */
   windowsEditorEngineExplicit: boolean;
+  /** Web tabs: pinned to `iframe`; see the `WebTabEngine` note above. */
+  webTabEngine: WebTabEngine;
   uiFontSize: number;
   language: 'en' | 'zh' | 'ja' | 'ko' | 'de' | 'fr' | 'es' | 'pt' | 'it' | 'pl' | 'nl' | 'tr' | 'sv' | 'uk' | 'ru';
   autoCheckUpdate: boolean;
@@ -767,6 +777,7 @@ function defaults(): Settings {
     vimMode: false,
     windowsEditorEngine: 'auto',
     windowsEditorEngineExplicit: false,
+    webTabEngine: 'iframe',
     uiFontSize: 13,
     autoCheckUpdate: true,
     language: (() => {
@@ -1053,6 +1064,10 @@ function load(): Settings {
         merged.windowsEditorEngine = 'auto';
         merged.windowsEditorEngineExplicit = false;
       }
+      // P5 child webviews were evaluated and not shipped. A blob from an
+      // experimental build (or a tampered one) must not switch the engine to
+      // a path that has no implementation.
+      merged.webTabEngine = 'iframe';
       merged.explorerSortByFolder = {};
       if (parsed.explorerSortByFolder && typeof parsed.explorerSortByFolder === 'object') {
         for (const [k, v] of Object.entries(parsed.explorerSortByFolder)) {

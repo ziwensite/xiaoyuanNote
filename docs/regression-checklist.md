@@ -178,6 +178,23 @@ From `docs/specs/editor-input-tabs/spec.md` §6(4). File-tab behaviour is the ba
 | O8 | phone layout | phone shell shows no virtual tab chrome | no |
 | O9 | 15 locales | virtual tab titles and empty states are translated | yes |
 
+## Q. Web tab hardening (P4)
+From `docs/specs/editor-input-tabs/tasks.md` → "P4 安全加固". The URL and
+iframe policy rows are covered by `app/src/lib/web-tab.test.ts`; the visual
+rows still need a real GUI. 13 of the 15 locales ship the English fallback
+string for `editorTab.webInvalid` by design — the `en` dictionary defines the
+required shape, so `vue-tsc` forces every locale to declare the key.
+
+| id | check | pass when | auto |
+|---|---|---|---|
+| Q1 | https-only entry | `http:` / `javascript:` / `file:` / `data:` / `blob:` / `https://user:pass@host` are all rejected; the toast follows the UI language | yes |
+| Q2 | persisted URL re-validation | tamper the workspace tab bucket with a `javascript:` URL → relaunch shows the `webInvalid` card, no iframe src, copy / external / reload disabled | no |
+| Q3 | iframe policy | DevTools shows the sandbox exactly as `WEB_TAB_SANDBOX` and `allow="clipboard-read; clipboard-write"`; no `allow-top-navigation*`, no `allow-modals` | yes |
+| Q4 | known frame blockers | google.com / github.com show the fallback card without loading a frame; "Open in browser" remembers the host | no |
+| Q5 | slow hint + reload | an unknown host that never finishes shows the 6s hint; reload clears it; links copy the normalized URL | no |
+| Q6 | engine pinned to iframe | a settings blob with `webTabEngine: "webview"` still renders an iframe after relaunch | yes |
+| Q7 | 15 locales | `editorTab.webInvalid` is translated in en / zh and non-empty (English fallback) in the other 13; no layout overflow | yes |
+
 ## P. Manual sign-off record
 One row per source, per run. `未测` is the initial state; keep FAIL rows until a fix is re-verified. This environment cannot launch a Tauri GUI, so these rows need a real machine.
 
@@ -188,3 +205,4 @@ One row per source, per run. `未测` is the initial state; keep FAIL rows until
 | 3 | 2026-11-11 | Windows / dev | `calendar-ui-forms/tasks.md` L59 | 弹窗开关 / 重启恢复 / 月份一致 / 任务勾选与跳转 / 窄屏 | 未测 | 同上 |
 | 4 | 2026-11-11 | Windows / dev | `v1-file-tree-merge/tasks.md` L83 | spec §6 人工核对 | 未测 | 同上 |
 | 5 | 2026-11-11 | Windows / dev | `sidebar-shell-stage2` 第二批 | N9–N12 | 未测 | UI 代码已落地，需真机目视 |
+| 6 | 2026-11-11 | Windows / dev | `editor-input-tabs` P4 加固 | Q1–Q7 | 未测 | URL / iframe 策略已有单测，视觉与交互需真机 |

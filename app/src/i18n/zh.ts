@@ -739,6 +739,7 @@ export const zh: I18n = {
     webCopied: '链接已复制',
     webReload: '刷新',
     webCopyLink: '复制链接',
+    webInvalid: '标签页只能打开 https:// 网页。',
   },
   tabMenu: {
     allTabs: '所有打开的标签',

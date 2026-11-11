@@ -10,6 +10,20 @@
 
 export type WebTabMode = 'frame' | 'external';
 
+/**
+ * Sandbox tokens for the remote iframe. `allow-same-origin` is safe here: the
+ * frame always has a remote https origin, never the app's own origin, so it
+ * cannot reach the parent document. Never add `allow-top-navigation*` or
+ * `allow-modals` — those would let the embedded page take over the Tauri
+ * window (see `docs/specs/editor-input-tabs/spec.md` §4.1).
+ */
+export const WEB_TAB_SANDBOX =
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads';
+
+/** Explicit permissions policy: clipboard only. Leaving `allow` unset would
+ *  inherit the parent's policy instead of pinning the embedded page's. */
+export const WEB_TAB_PERMISSIONS = 'clipboard-read; clipboard-write';
+
 const PREFS_KEY = 'solomd.webTabs.v1';
 
 /** Hosts known to refuse embedding. Matched against the host and its
@@ -54,6 +68,10 @@ export function normalizeUrl(raw: string): string | null {
     return null;
   }
   if (url.protocol !== 'https:') return null;
+  // Credentials would be shown in the read-only address bar, copied by
+  // "Copy link" and sent to the host as basic auth. `https://a@b` is the
+  // classic phishing shape: `a` is the username, not the host.
+  if (!url.hostname || url.username || url.password) return null;
   return url.toString();
 }
 

@@ -1,6 +1,6 @@
 # 编辑区 IEditorInput 化：多类型标签方案
 
-状态：**P0–P4 已交付**（2026-11-11 六个提交，虚拟标签基座 + 日历/设置/搜索结果/网页标签）；P5 子 webview 实验与人工回归待做。逐项状态见 `tasks.md`。
+状态：**P0–P4 已交付 + P4 安全加固**（2026-11-11，虚拟标签基座 + 日历/设置/搜索结果/网页标签）；**P5 子 webview 实验已评估并否决，网页标签引擎固定为 iframe**；人工回归待做。逐项状态见 `tasks.md`。
 目标：让日历、设置、搜索结果、网页像普通文件一样成为编辑区标签，而不是弹窗/覆盖层。
 参照 VS Code 的 `IEditorInput` + `EditorResolverService` + `IEditorSerializer` 三件套，但按本项目现有结构落地，不照抄命名。
 
@@ -506,6 +506,22 @@ function toPersisted(t: Tab) {
 
 **明确不做**：用系统浏览器作为**唯一**打开方式（会失去「编辑区里的网页标签」这一目标），以及任何绕过反嵌的 hack。
 
+### 4.5 P5 实验结论（2026-11-11）：不实施，保持 iframe
+
+按 §4.4 的达标条件逐条核对后，本轮**不实现**子 webview：
+
+| 项 | 结论 |
+| --- | --- |
+| `tauri` `unstable` feature | 不启用。把不稳定的平台 API 面引入发布构建，收益仅是「能打开反嵌站点」，而现有三级降级已覆盖该场景。 |
+| `useChildWebviewBounds` | 不新增。窗口缩放、列宽、分隔条拖动、标签切换、缩放、DPR 六类时机都要逐帧换算窗口逻辑像素；任一漏算即表现为原生视图盖住侧栏或尺寸错位。 |
+| popover 期间隐藏子视图 | 不做。原生子视图永远盖在 HTML 上，菜单 / toast / `DsModal` / 命令面板必须全部接入隐藏生命周期，改动面远超本方案。 |
+| 限制远程页面 IPC 与导航 | 不做。远程内容与主窗口同进程，任何遗漏的 capability 都等价于把 IPC 暴露给任意网页；iframe 的 `sandbox` 已提供进程外隔离边界。 |
+| `settings.webTabEngine` | **已落地**：默认 `iframe`，`load()` 对任何非 `iframe` 的持久化值收敛回 `iframe`（`stores/settings-web-tab.test.ts` 锁死）。`'webview'` 仅为预留枚举值，无 UI 暴露、无实现分支。 |
+| 仅桌面 / 移动端强制 iframe | 由于没有实现分支，全平台一律 iframe（等价于移动端强制 iframe）。 |
+| 达标条件：无遮挡、无错位、拖拽可用、焦点可预期 | **无法在本环境验证**：本环境不能启动 Tauri GUI，这四项都是真机目视 / 交互项。按 §4.4「验证层级与坐标后再决定是否默认」的前置条件，实验不满足放行条件。 |
+
+因此 `WebTab.vue` 的 iframe 路线是本方案的最终形态，不是临时占位。P4 同时把安全策略收敛到 `lib/web-tab.ts` 的 `WEB_TAB_SANDBOX` / `WEB_TAB_PERMISSIONS` 两个常量，并在渲染前对持久化的 URL 做二次 `normalizeUrl` 校验。真机若将来要重启实验，先补 `docs/regression-checklist.md` 的层级 / 坐标 / 焦点用例并全部 PASS，再放开 `load()` 的收敛。
+
 ---
 
 ## 5. 兼容与风险
@@ -582,7 +598,7 @@ function toPersisted(t: Tab) {
 | **P2 设置** | `SettingsPanel` 拆壳 + 单例 + 四处入口 | `tabs/SettingsTab.vue` | §3.2 验收 |
 | **P3 搜索结果** | 结果标签 + 桌面搜索入口 + 分组纯函数 | `tabs/SearchResultsTab.vue`、`lib/search-results.ts` | §3.3 验收 |
 | **P4 网页** | iframe 网页标签 + 黑名单 + 外部打开 | `tabs/WebTab.vue`、`lib/web-tab.ts` | §3.4、§4.4 验收 |
-| **P5（可选）** | 子 webview 实验，feature flag 默认关 | `useChildWebviewBounds` | 仅桌面；层级/坐标/焦点三项达标才考虑默认 |
+| **P5（可选）** | ~~子 webview 实验~~ → 已评估并否决，见 §4.5 | 评估结论 + `settings.webTabEngine` 默认 `iframe` 与收敛测试 | 引擎恒为 iframe；重启实验须先通过真机层级/坐标/焦点用例 |
 
 **每个阶段的统一验证**
 

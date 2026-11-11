@@ -739,6 +739,7 @@ export const pl: I18n = {
     webCopied: 'Skopiowano link',
     webReload: 'Odśwież',
     webCopyLink: 'Kopiuj link',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'Wszystkie otwarte karty',

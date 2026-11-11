@@ -741,6 +741,7 @@ export const pt: I18n = {
     webCopied: 'Link copiado',
     webReload: 'Recarregar',
     webCopyLink: 'Copiar link',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'Todas as abas abertas',

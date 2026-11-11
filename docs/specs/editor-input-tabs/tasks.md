@@ -3,7 +3,7 @@
 前置：`docs/specs/editor-input-tabs/spec.md` 获批后执行。
 本文件只列实施任务，不包含业务代码。所有阶段均**不 push、不改版本号、不新增依赖**。
 
-> 交付状态（2026-11-11）：P0–P4 已由 `1e2a2a14` → `47d25765` 六个提交实现（虚拟标签基座、日历 / 设置 / 搜索结果 / 网页标签）。下列细项按提交范围批量标记，逐项复核列入 P2；规格 §6 的真机回归尚未执行。P5 子 webview 为可选实验，保持未勾。
+> 交付状态（2026-11-11）：P0–P4 已由 `1e2a2a14` → `47d25765` 六个提交实现（虚拟标签基座、日历 / 设置 / 搜索结果 / 网页标签）。下列细项按提交范围批量标记，逐项复核列入 P2；同批追加 P4 安全加固与 P5 实验结论，见文末两节。规格 §6 的真机回归尚未执行。
 
 ---
 
@@ -170,15 +170,25 @@
 
 ---
 
-## P5（可选，不阻塞前四期）子 webview 实验
+## P5（可选）子 webview 实验 — 评估结论：不实施（2026-11-11）
 
-- [ ] `app/src-tauri/Cargo.toml`：评估 `tauri` 的 `unstable` feature（不新增 crate）
-- [ ] 新增 `useChildWebviewBounds`：窗口缩放 / 列宽 / 分隔条拖动 / 标签切换 / 缩放 / DPR 变化下重算 bounds
-- [ ] 所有 popover / 菜单 / 弹窗打开时隐藏子视图
-- [ ] 限制远程页面的 IPC 能力与导航
-- [ ] `settings.webTabEngine` 默认 `iframe`
-- [ ] 仅桌面；移动端强制 iframe
-- [ ] 达标条件：无遮挡、无错位、拖拽可用、焦点可预期；否则保持默认 iframe
+逐项评估与理由见 `spec.md` §4.5。本环境不能启动 Tauri GUI，达标条件「无遮挡 / 无错位 / 拖拽可用 / 焦点可预期」无法验证，按 §4.4「验证层级与坐标后再决定是否默认」的前置条件不放行。`iframe` 是本方案的最终形态，不是临时占位。
+
+- [x] 评估 `tauri` 的 `unstable` feature → 不启用（不新增 crate，不引入不稳定平台 API 面）
+- [x] 评估 `useChildWebviewBounds` → 不实现（窗口缩放 / 列宽 / 分隔条 / 标签切换 / 缩放 / DPR 六类时机需逐帧换算）
+- [x] 评估 popover 隐藏生命周期 → 不实现（原生子视图永远盖在 HTML 上）
+- [x] 评估远程页面 IPC 与导航限制 → 不实现（iframe `sandbox` 已是隔离边界）
+- [x] `settings.webTabEngine` 默认 `iframe`；`load()` 收敛任何非 `iframe` 的持久化值；`stores/settings-web-tab.test.ts` 锁死
+- [x] 全平台一律 iframe（等价于移动端强制 iframe），无实现分支
+- [ ] 达标条件真机验证：无遮挡 / 无错位 / 拖拽可用 / 焦点可预期 —— 仅当未来重启实验时执行，见 `docs/regression-checklist.md`
+
+### P4 安全加固（同批交付，2026-11-11）
+
+- [x] `lib/web-tab.ts`：新增 `WEB_TAB_SANDBOX` / `WEB_TAB_PERMISSIONS` 单一真源；显式拒绝 `data:` / `blob:` / 带凭据 URL
+- [x] `components/tabs/WebTab.vue`：渲染前二次 `normalizeUrl`；非法 URL 显示 `editorTab.webInvalid` 并禁用复制 / 外部打开 / 刷新；补 `allow` 与 `title`
+- [x] `lib/web-tab.test.ts`：协议 / 凭据拒绝、sandbox token 白名单与「绝不授予 top-navigation」断言
+- [x] `composables/useCommands.ts`：URL 失败提示改走 i18n；15 语言均补齐 `editorTab.webInvalid`（en / zh 真源，其余 13 语言按项目惯例显式填英文兜底——`en` 是字典形状真源，`vue-tsc` 要求每语言都声明该 key）
+- [ ] 真机回归 Q1–Q7（见 `docs/regression-checklist.md`），待 GUI 执行后勾选
 
 ---
 

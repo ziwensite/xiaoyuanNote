@@ -739,6 +739,7 @@ export const sv: I18n = {
     webCopied: 'Länk kopierad',
     webReload: 'Läs om',
     webCopyLink: 'Kopiera länk',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'Alla öppna flikar',

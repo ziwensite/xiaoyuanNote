@@ -737,6 +737,7 @@ export const ru: I18n = {
     webCopied: 'Ссылка скопирована',
     webReload: 'Обновить',
     webCopyLink: 'Копировать ссылку',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'Все открытые вкладки',

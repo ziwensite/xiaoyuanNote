@@ -739,6 +739,7 @@ export const tr: I18n = {
     webCopied: 'Bağlantı kopyalandı',
     webReload: 'Yenile',
     webCopyLink: 'Bağlantıyı kopyala',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'Tüm açık sekmeler',

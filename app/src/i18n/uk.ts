@@ -739,6 +739,7 @@ export const uk: I18n = {
     webCopied: 'Посилання скопійовано',
     webReload: 'Оновити',
     webCopyLink: 'Копіювати посилання',
+    webInvalid: 'Only https:// pages can be opened in a tab.',
   },
   tabMenu: {
     allTabs: 'Усі відкриті вкладки',

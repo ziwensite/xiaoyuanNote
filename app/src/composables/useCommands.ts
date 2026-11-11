@@ -38,6 +38,7 @@ import { useGithubSync } from './useGithubSync';
 import { IS_APP_STORE_BUILD } from '../lib/app-build';
 import { hasGitBackend } from '../lib/platform';
 import { normalizeUrl } from '../lib/web-tab';
+import { useI18n } from '../i18n';
 
 export interface Command {
   id: string;
@@ -71,6 +72,7 @@ export function useCommands(): Command[] {
   const ws = useWorkspaceStore();
   const ghSync = useGithubSyncStore();
   const ghSyncOps = useGithubSync();
+  const { t } = useI18n();
 
   /** Heading folding runs inside the editor component; the focused pane picks
    *  the event up (same routing as find). */
@@ -246,7 +248,7 @@ export function useCommands(): Command[] {
         if (raw == null) return;
         const url = normalizeUrl(raw);
         if (!url) {
-          toasts.info('Only https:// URLs can be opened in a tab');
+          toasts.info(t('editorTab.webInvalid'));
           return;
         }
         tabs.openInput('web', { url });

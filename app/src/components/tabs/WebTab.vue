@@ -4,9 +4,11 @@
  *
  * The iframe is the default because it keeps the app's own shortcuts, splits
  * and drag-reorder working; Tauri child webviews would need manual bounds /
- * z-order sync and are a later experiment (spec §4). Sites that refuse
- * framing (X-Frame-Options / CSP) either hit the static host list or show a
- * non-blocking "open externally" hint after six seconds.
+ * z-order sync. The P5 experiment was evaluated and rejected (spec §4.4):
+ * `settings.webTabEngine` is pinned to `iframe` until child webviews can be
+ * verified on a real GUI. Sites that refuse framing (X-Frame-Options / CSP)
+ * either hit the static host list or show a non-blocking "open externally"
+ * hint after six seconds.
  */
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
@@ -19,7 +21,10 @@ import {
   hostOf,
   hostPreference,
   isKnownFrameBlocker,
+  normalizeUrl,
   setHostPreference,
+  WEB_TAB_PERMISSIONS,
+  WEB_TAB_SANDBOX,
   type WebTabMode,
 } from '../../lib/web-tab';
 import type { Tab } from '../../types';
@@ -31,14 +36,17 @@ const props = defineProps<{ tab: Tab }>();
 const { t } = useI18n();
 const toasts = useToastsStore();
 
+// The tab record is persisted and can be tampered with (or written by an
+// older build), so re-validate before the value reaches an iframe src.
 const url = computed(() => {
   const input = resolveTabInput(props.tab);
-  return input.kind === 'web' ? input.args.url : '';
+  return input.kind === 'web' ? (normalizeUrl(input.args.url) ?? '') : '';
 });
+const validUrl = computed(() => url.value !== '');
 const host = computed(() => hostOf(url.value));
 
 const mode = ref<WebTabMode>(
-  isKnownFrameBlocker(hostOf(url.value)) || hostPreference(hostOf(url.value)) === 'external'
+  !url.value || isKnownFrameBlocker(host.value) || hostPreference(host.value) === 'external'
     ? 'external'
     : 'frame',
 );
@@ -69,12 +77,14 @@ function reload() {
 }
 
 function tryFrame() {
+  if (!validUrl.value) return;
   setHostPreference(host.value, 'frame');
   mode.value = 'frame';
   startSlowTimer();
 }
 
 function rememberExternal() {
+  if (!validUrl.value) return;
   setHostPreference(host.value, 'external');
   mode.value = 'external';
   stopSlowTimer();
@@ -82,6 +92,7 @@ function rememberExternal() {
 }
 
 async function copyLink() {
+  if (!validUrl.value) return;
   try {
     await writeText(url.value);
     toasts.info(t('editorTab.webCopied'));
@@ -91,10 +102,13 @@ async function copyLink() {
 }
 
 function openInBrowser() {
+  if (!validUrl.value) return;
   void openUrl(url.value).catch((e) => console.warn('[web] openUrl failed', e));
 }
 
 function onFrameLoad() {
+  // A cross-origin error page still fires `load`, so this only clears the
+  // non-blocking hint; it is not a reliable framing check (spec §4.1).
   stopSlowTimer();
   slow.value = false;
 }
@@ -116,12 +130,14 @@ function onFrameLoad() {
         class="web-tab__btn"
         type="button"
         :title="t('editorTab.webCopyLink')"
+        :disabled="!validUrl"
         @click="copyLink"
       ><Icons name="link" :size="13" /></button>
       <button
         class="web-tab__btn"
         type="button"
         :title="t('editorTab.openInBrowser')"
+        :disabled="!validUrl"
         @click="openInBrowser"
       ><Icons name="external" :size="13" /></button>
     </div>
@@ -129,8 +145,8 @@ function onFrameLoad() {
     <div v-if="mode === 'external'" class="web-tab__fallback">
       <Icons class="web-tab__fallback-icon" name="globe" :size="28" aria-hidden="true" />
       <p class="web-tab__fallback-title">{{ host || t('editorTab.web') }}</p>
-      <p class="web-tab__fallback-text">{{ t('editorTab.webFallback') }}</p>
-      <div class="web-tab__actions">
+      <p class="web-tab__fallback-text">{{ validUrl ? t('editorTab.webFallback') : t('editorTab.webInvalid') }}</p>
+      <div v-if="validUrl" class="web-tab__actions">
         <button class="web-tab__primary" type="button" @click="rememberExternal">
           {{ t('editorTab.openInBrowser') }}
         </button>
@@ -151,7 +167,9 @@ function onFrameLoad() {
         :key="frameKey"
         class="web-tab__frame"
         :src="url"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+        :title="host || t('editorTab.web')"
+        :sandbox="WEB_TAB_SANDBOX"
+        :allow="WEB_TAB_PERMISSIONS"
         referrerpolicy="no-referrer"
         @load="onFrameLoad"
       ></iframe>
@@ -207,6 +225,14 @@ function onFrameLoad() {
 .web-tab__btn:hover {
   background: var(--fill-1);
   color: var(--text);
+}
+.web-tab__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.web-tab__btn:disabled:hover {
+  background: transparent;
+  color: var(--text-2);
 }
 .web-tab__frame {
   flex: 1 1 auto;
