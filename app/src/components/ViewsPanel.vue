@@ -12,13 +12,14 @@
  * context menu follows the spec §6 menu style (tokens only). Re-evaluates badges on
  * `solomd://index-updated` so counts stay live as notes change on disk.
  */
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useI18n } from '../i18n';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useSavedViewsStore } from '../stores/savedViews';
 import { useSavedViews } from '../composables/useSavedViews';
 import { uniqueSlug, type ViewFile } from '../lib/viewFile';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 import Icons from './Icons.vue';
 import '../styles/panels.css';
 
@@ -54,11 +55,21 @@ function onRowClick(view: ViewFile) {
 
 interface Ctx { x: number; y: number; slug: string }
 const ctx = ref<Ctx | null>(null);
+const ctxEl = ref<HTMLElement | null>(null);
+const ctxMaxH = ref<number | null>(null);
 
 function openCtx(e: MouseEvent, view: ViewFile) {
   e.preventDefault();
   e.stopPropagation();
   ctx.value = { x: e.clientX, y: e.clientY, slug: view.slug };
+  ctxMaxH.value = null;
+  void nextTick(() => {
+    const el = ctxEl.value;
+    if (!el || !ctx.value) return;
+    const placed = placeMenuFromPoint(ctx.value.x, ctx.value.y, measureMenu(el), { pad: 4 });
+    if (placed.maxHeight !== undefined) ctxMaxH.value = placed.maxHeight;
+    ctx.value = { ...ctx.value, x: placed.left, y: placed.top };
+  });
 }
 function closeCtx() { ctx.value = null; }
 
@@ -213,9 +224,15 @@ onBeforeUnmount(() => {
 
     <div
       v-if="ctx"
+      ref="ctxEl"
       class="vpanel__ctx"
       role="menu"
-      :style="{ left: ctx.x + 'px', top: ctx.y + 'px' }"
+      :style="{
+        left: ctx.x + 'px',
+        top: ctx.y + 'px',
+        maxHeight: ctxMaxH === null ? undefined : ctxMaxH + 'px',
+        overflowY: ctxMaxH === null ? undefined : 'auto',
+      }"
       @click.stop
     >
       <button class="vpanel__ctx-item" type="button" role="menuitem" @click="onEdit(ctx.slug)">

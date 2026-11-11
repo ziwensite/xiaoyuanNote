@@ -31,6 +31,7 @@ import { shortcutLabel } from '../lib/keybindings';
 import { isMobile, usesCommandKey } from '../lib/platform';
 import { isSafPath } from '../lib/saf-fs';
 import { parentDirOf } from '../lib/new-file-target';
+import { measureMenu, placeMenuFromRect } from '../lib/menu-position';
 import { useI18n } from '../i18n';
 
 const props = withDefaults(
@@ -109,6 +110,7 @@ function openUnsaved(id: string) {
 // 最近 — a small popover listing workspace.recentFiles (spec §6 menu style).
 const recentOpen = ref(false);
 const recentPos = ref({ x: 0, y: 0 });
+const recentMaxH = ref<number | null>(null);
 const recentList = computed(() =>
   workspace.recentFiles.slice(0, 12).map((path) => {
     const parts = path.split(/[\\/]/).filter(Boolean);
@@ -121,15 +123,18 @@ function toggleRecent(ev: MouseEvent) {
   recentOpen.value = !recentOpen.value;
   if (!recentOpen.value) return;
   const r = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+  recentMaxH.value = null;
   recentPos.value = { x: Math.round(r.left), y: Math.round(r.bottom + 4) };
   void nextTick(() => {
-    // Keep it on screen in a short window.
+    // Flip/pin instead of running off the bottom or the right edge.
     const el = recentEl.value;
     if (!el) return;
-    const h = el.getBoundingClientRect().height;
-    if (recentPos.value.y + h > window.innerHeight - 8) {
-      recentPos.value = { ...recentPos.value, y: Math.max(8, Math.round(r.top - h - 4)) };
-    }
+    const placed = placeMenuFromRect(
+      { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
+      measureMenu(el),
+    );
+    recentPos.value = { x: placed.left, y: placed.top };
+    if (placed.maxHeight !== undefined) recentMaxH.value = placed.maxHeight;
   });
 }
 const recentEl = ref<HTMLElement | null>(null);
@@ -416,7 +421,12 @@ onBeforeUnmount(() => {
       ref="recentEl"
       class="sb__menu"
       role="menu"
-      :style="{ left: recentPos.x + 'px', top: recentPos.y + 'px' }"
+      :style="{
+        left: recentPos.x + 'px',
+        top: recentPos.y + 'px',
+        maxHeight: recentMaxH === null ? undefined : recentMaxH + 'px',
+        overflowY: recentMaxH === null ? undefined : 'auto',
+      }"
       @click.stop
     >
       <div class="sb__menu-label">{{ t('sidebar.recent') }}</div>

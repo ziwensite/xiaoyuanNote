@@ -263,9 +263,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKey));
 
 <template>
   <aside class="outline rp">
-    <PanelHeader
-      @close="tabs.activeId && tabs.toggleOutline(tabs.activeId)"
-    />
+    <PanelHeader />
     <div v-if="!visibleItems.length" class="rp-empty">{{ t('outline.empty') }}</div>
     <ul ref="listRef" class="outline__list rp-body rp-list" v-else>
       <li

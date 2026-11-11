@@ -7,6 +7,7 @@ import { useFiles } from '../composables/useFiles';
 import { useI18n } from '../i18n';
 import { revealLabelKey } from '../lib/platform';
 import { displayTabTitle, displayTabTooltip } from '../lib/tab-title';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 
 const tabs = useTabsStore();
 const settings = useSettingsStore();
@@ -22,10 +23,20 @@ function isDirty(id: string) {
 // --- Right-click context menu ---------------------------------------------
 interface MenuState { tabId: string; x: number; y: number }
 const menu = ref<MenuState | null>(null);
+const menuEl = ref<HTMLElement | null>(null);
+const menuMaxH = ref<number | null>(null);
 
 function openMenu(e: MouseEvent, tabId: string) {
   e.preventDefault();
   menu.value = { tabId, x: e.clientX, y: e.clientY };
+  menuMaxH.value = null;
+  void nextTick(() => {
+    const el = menuEl.value;
+    if (!el || !menu.value) return;
+    const placed = placeMenuFromPoint(menu.value.x, menu.value.y, measureMenu(el), { pad: 4 });
+    if (placed.maxHeight !== undefined) menuMaxH.value = placed.maxHeight;
+    menu.value = { ...menu.value, x: placed.left, y: placed.top };
+  });
 }
 function closeMenu() {
   menu.value = null;
@@ -157,8 +168,15 @@ function onTabsWheel(e: WheelEvent) {
     <!-- Context menu portal -->
     <ul
       v-if="menu"
+      ref="menuEl"
       class="tab-menu"
-      :style="{ left: menu.x + 'px', top: menu.y + 'px' }"
+      role="menu"
+      :style="{
+        left: menu.x + 'px',
+        top: menu.y + 'px',
+        maxHeight: menuMaxH === null ? undefined : menuMaxH + 'px',
+        overflowY: menuMaxH === null ? undefined : 'auto',
+      }"
       @click.stop
     >
       <li><button @mousedown.prevent="onMenu('close')">{{ t('tabMenu.close') }}</button></li>

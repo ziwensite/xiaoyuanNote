@@ -38,8 +38,6 @@ const gh = useGitHistoryStore();
 const toasts = useToastsStore();
 const { t } = useI18n();
 
-const emit = defineEmits<{ close: [] }>();
-
 const activeFile = computed(() => tabs.activeTab?.filePath ?? null);
 const folder = computed(() => workspace.currentFolder);
 
@@ -155,7 +153,6 @@ function timeAgo(unix: number): string {
   <div class="history rp">
     <PanelHeader
       :count="!loading && commits.length > 0 ? commits.length : null"
-      @close="emit('close')"
     />
 
     <!-- v2.6 — GitHub sync conflict resolver. Sits above the commit list

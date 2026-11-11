@@ -27,6 +27,7 @@ import MoveToDialog from './MoveToDialog.vue';
 import Icon from './Icons.vue';
 import { DsButton, DsModal } from '../ui';
 import { parentDirOf, setTreeSelection } from '../lib/new-file-target';
+import { measureMenu, placeMenuFromPoint, placeMenuFromRect } from '../lib/menu-position';
 import {
   dragPath,
   dragIsDir,
@@ -537,13 +538,30 @@ async function refreshFilterDirs() {
 // under the button that opened them. They used to be absolute inside the
 // header, which a scrolling sidebar would clip.
 const popPos = ref<{ x: number; y: number }>({ x: 0, y: 0 });
+const popEl = ref<HTMLElement | null>(null);
+const popAnchor = ref<{ left: number; top: number; right: number; bottom: number } | null>(null);
 const POP_MIN_W = 200;
 function anchorPop(ev?: Event, alignWidth = false) {
   const el = (ev?.currentTarget as HTMLElement | null) ?? null;
   if (!el) return;
   const r = el.getBoundingClientRect();
-  const x = alignWidth ? r.left : Math.min(r.left, window.innerWidth - POP_MIN_W - 8);
-  popPos.value = { x: Math.max(8, Math.round(x)), y: Math.round(r.bottom + 4) };
+  popAnchor.value = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+  // Width is known up front (the popover is at least POP_MIN_W, or matches the
+  // trigger); re-place once the real height is measurable so a long list flips
+  // up / scrolls instead of running off the bottom.
+  const placed = placeMenuFromRect(popAnchor.value, {
+    width: alignWidth ? r.width : POP_MIN_W,
+    height: 0,
+  });
+  popPos.value = { x: Math.round(placed.left), y: Math.round(placed.top) };
+  void nextTick(() => {
+    const menu = popEl.value;
+    if (!menu || !popAnchor.value) return;
+    const p = placeMenuFromRect(popAnchor.value, measureMenu(menu));
+    popPos.value = { x: Math.round(p.left), y: Math.round(p.top) };
+    if (p.maxHeight !== undefined) menu.style.maxHeight = `${p.maxHeight}px`;
+    if (p.maxWidth !== undefined) menu.style.maxWidth = `${p.maxWidth}px`;
+  });
 }
 
 function toggleSortMenu(ev?: Event) {
@@ -778,10 +796,12 @@ function openCtxAt(x: number, y: number, node: Node | null) {
   void nextTick(() => {
     const el = ctxEl.value;
     if (!el || !ctx.value) return;
-    const r = el.getBoundingClientRect();
-    const nx = Math.max(8, Math.min(ctx.value.x, window.innerWidth - r.width - 8));
-    const ny = Math.max(8, Math.min(ctx.value.y, window.innerHeight - r.height - 8));
-    if (nx !== ctx.value.x || ny !== ctx.value.y) ctx.value = { ...ctx.value, x: nx, y: ny };
+    const placed = placeMenuFromPoint(ctx.value.x, ctx.value.y, measureMenu(el));
+    if (placed.maxHeight !== undefined) el.style.maxHeight = `${placed.maxHeight}px`;
+    if (placed.maxWidth !== undefined) el.style.maxWidth = `${placed.maxWidth}px`;
+    if (placed.left !== ctx.value.x || placed.top !== ctx.value.y) {
+      ctx.value = { ...ctx.value, x: placed.left, y: placed.top };
+    }
   });
 }
 const ctxEl = ref<HTMLElement | null>(null);
@@ -1940,6 +1960,7 @@ onBeforeUnmount(() => {
            button that opened them. -->
       <div
         v-if="switcherOpen"
+        ref="popEl"
         class="ftree__menu ftree__menu--switcher"
         role="menu"
         :style="{ left: popPos.x + 'px', top: popPos.y + 'px' }"
@@ -1991,6 +2012,7 @@ onBeforeUnmount(() => {
       </div>
       <div
         v-if="sortOpen"
+        ref="popEl"
         class="ftree__menu"
         role="menu"
         :style="{ left: popPos.x + 'px', top: popPos.y + 'px' }"
@@ -2016,6 +2038,7 @@ onBeforeUnmount(() => {
       </div>
       <div
         v-if="filterOpen"
+        ref="popEl"
         class="ftree__menu ftree__menu--scroll"
         role="menu"
         :style="{ left: popPos.x + 'px', top: popPos.y + 'px' }"

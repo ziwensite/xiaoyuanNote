@@ -8,9 +8,10 @@
  * - break: blue
  * - flashing (just-completed): green flash for 5s
  */
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { usePomodoroStore } from '../stores/pomodoro';
 import { useI18n } from '../i18n';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 import Icons from './Icons.vue';
 
 const pomodoro = usePomodoroStore();
@@ -19,6 +20,8 @@ const { t } = useI18n();
 const menuOpen = ref(false);
 const menuX = ref(0);
 const menuY = ref(0);
+const menuEl = ref<HTMLElement | null>(null);
+const menuMaxH = ref<number | null>(null);
 
 const phaseIcon = computed(() => {
   if (pomodoro.flashing) return 'check-circle';
@@ -42,7 +45,18 @@ function onContextMenu(e: MouseEvent) {
   e.preventDefault();
   menuX.value = e.clientX;
   menuY.value = e.clientY;
+  menuMaxH.value = null;
   menuOpen.value = true;
+  // Right-click sits wherever the pointer is (often the bottom-right corner of
+  // the status bar), so the menu has to flip/pin rather than run off-screen.
+  void nextTick(() => {
+    const el = menuEl.value;
+    if (!el) return;
+    const placed = placeMenuFromPoint(menuX.value, menuY.value, measureMenu(el), { pad: 4 });
+    menuX.value = placed.left;
+    menuY.value = placed.top;
+    if (placed.maxHeight !== undefined) menuMaxH.value = placed.maxHeight;
+  });
 }
 
 function closeMenu() { menuOpen.value = false; }
@@ -85,8 +99,14 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
   </button>
   <div
     v-if="menuOpen"
+    ref="menuEl"
     class="pomo-pill__menu"
-    :style="{ left: `${menuX}px`, top: `${menuY}px` }"
+    :style="{
+      left: `${menuX}px`,
+      top: `${menuY}px`,
+      maxHeight: menuMaxH === null ? undefined : `${menuMaxH}px`,
+      overflowY: menuMaxH === null ? undefined : 'auto',
+    }"
   >
     <button class="pomo-pill__menu-item" @mousedown.prevent="onStop">
       {{ t('pomodoro.stop') }}

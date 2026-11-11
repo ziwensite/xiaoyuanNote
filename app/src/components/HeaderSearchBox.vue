@@ -20,6 +20,7 @@ import { useI18n } from '../i18n';
 import { useViewport } from '../composables/useViewport';
 import { focusActiveEditorSoon } from '../lib/editor-focus';
 import { headerSearch, moveSelection, shortPath } from '../lib/header-search';
+import { placeMenuFromRect } from '../lib/menu-position';
 
 const search = useGlobalSearch();
 const files = useFiles();
@@ -106,12 +107,14 @@ function recomputePosition() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const width = Math.min(Math.max(rect.width, 360), vw - 16);
-  const left = Math.min(Math.max(rect.left, 8), vw - width - 8);
-  const top = rect.bottom + 4;
-  const maxHeight = Math.max(0, Math.min(420, vh - top - 8));
+  const placed = placeMenuFromRect(
+    { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
+    { width, height: 0 },
+  );
+  const maxHeight = Math.max(0, Math.min(420, vh - placed.top - 8));
   dropStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
+    top: `${placed.top}px`,
+    left: `${placed.left}px`,
     width: `${width}px`,
     maxHeight: `${maxHeight}px`,
   };

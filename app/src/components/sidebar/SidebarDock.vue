@@ -24,18 +24,22 @@ import {
   type DockGroupView,
   type SidebarDockState,
   type SidebarSide,
+  paneDef,
 } from '../../lib/sidebar-dock';
 import { dockDrag } from '../../lib/dock-drag';
 import { dragWindowFromChrome, toggleMaximizeFromChrome } from '../../lib/window-drag';
 import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
 import DockTabStrip from './DockTabStrip.vue';
 import SidebarPaneBody from './SidebarPaneBody.vue';
+import Icon from '../Icons.vue';
 
 const props = defineProps<{
   side: SidebarSide;
   groups: readonly DockGroupView[];
   /** Narrow-screen drawer: App's CSS owns the width/position. */
   overlay?: boolean;
+  /** Folded column: only the 32px icon rail is drawn, no header/body. */
+  collapsed?: boolean;
   /** Displayed column width (already clamped by `shellColumnWidths`). */
   width?: number;
   /** macOS traffic-light inset on the leftmost visible column's header. */
@@ -44,7 +48,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  closePane: [id: ImplementedSidebarPaneId];
   manage: [ev: MouseEvent];
   filterTag: [tag: string];
   outlineGoto: [line: number];
@@ -94,6 +97,30 @@ const headerStyle = computed(() =>
 
 const isDropHost = computed(
   () => !!dockDrag.id && dockDrag.over?.side === props.side,
+);
+
+/** Folded rail: every renderable pane across both regions, in dock order. */
+const railTabs = computed(() =>
+  props.groups.flatMap((group) => {
+    const active = activeOf(group);
+    return tabsOf(group).map(({ pane }) => {
+      const def = paneDef(pane.id);
+      return {
+        id: pane.id,
+        active: pane.id === active,
+        title: def?.titleKey ? t(def.titleKey) : pane.id,
+        icon: def?.icon ?? 'file',
+      };
+    });
+  }),
+);
+
+/** macOS traffic lights sit over the left column; when it is folded they sit
+ *  over the rail, so the icons start below them. */
+const railStyle = computed(() =>
+  props.side === 'left' && props.trafficInset
+    ? { paddingTop: `${props.trafficInset}px` }
+    : undefined,
 );
 
 const resizing = ref(false);
@@ -170,72 +197,109 @@ function onEdgeContext(ev: MouseEvent) {
     ]"
     :style="dockStyle"
   >
+    <!-- Folded: a 32px icon rail. Every reachable pane and `+` stay one click
+         away, so collapsing never strands a panel. -->
     <div
-      v-if="!props.overlay"
-      class="side-sidebar__resize"
-      :class="[
-        props.side === 'left' ? 'side-sidebar__resize--right' : 'side-sidebar__resize--left',
-        resizing ? 'side-sidebar__resize--active' : '',
-      ]"
-      role="separator"
-      aria-orientation="vertical"
-      tabindex="0"
-      :aria-label="t('rightSidebar.dragToResize')"
-      @mousedown="onSidebarResize"
-      @contextmenu="onEdgeContext"
-      @keydown.left.prevent="nudge(-8)"
-      @keydown.right.prevent="nudge(8)"
-    />
-
-    <!-- Column header: belongs to this column, same `<aside>` width as the
-         body. Drawer: no row above the floating panel, so it keeps the
-         in-panel strip. -->
-    <div
-      v-if="!props.overlay"
-      class="side-sidebar__header"
-      :style="headerStyle"
+      v-if="props.collapsed && !props.overlay"
+      class="side-rail"
+      :style="railStyle"
       @mousedown.capture="dragWindowFromChrome($event)"
       @dblclick="toggleMaximizeFromChrome($event)"
       @contextmenu="onHeaderContext"
     >
+      <button
+        v-for="tab in railTabs"
+        :key="tab.id"
+        type="button"
+        class="side-rail__btn"
+        :class="{ 'side-rail__btn--active': tab.active }"
+        :title="tab.title"
+        :aria-label="t('sidebarDock.openPanel', { name: tab.title })"
+        @click="settings.setActiveDockPane(props.side, tab.id)"
+        @contextmenu.prevent.stop="emit('tabContext', tab.id, props.side, $event.clientX, $event.clientY)"
+      >
+        <Icon :name="tab.icon" :size="16" />
+      </button>
+      <span class="side-rail__spacer" />
+      <button
+        type="button"
+        class="side-rail__btn side-rail__btn--add"
+        :title="t('sidebarDock.addPanel')"
+        :aria-label="t('sidebarDock.addPanel')"
+        @click="emit('manage', $event)"
+        @contextmenu.prevent.stop="emit('manage', $event)"
+      >
+        <Icon name="plus" :size="14" />
+      </button>
+    </div>
+
+    <template v-else>
+      <div
+        v-if="!props.overlay"
+        class="side-sidebar__resize"
+        :class="[
+          props.side === 'left' ? 'side-sidebar__resize--right' : 'side-sidebar__resize--left',
+          resizing ? 'side-sidebar__resize--active' : '',
+        ]"
+        role="separator"
+        aria-orientation="vertical"
+        tabindex="0"
+        :aria-label="t('rightSidebar.dragToResize')"
+        @mousedown="onSidebarResize"
+        @contextmenu="onEdgeContext"
+        @keydown.left.prevent="nudge(-8)"
+        @keydown.right.prevent="nudge(8)"
+      />
+
+      <!-- Column header: belongs to this column, same `<aside>` width as the
+           body. Drawer: no row above the floating panel, so it keeps the
+           in-panel strip. -->
+      <div
+        v-if="!props.overlay"
+        class="side-sidebar__header"
+        :style="headerStyle"
+        @mousedown.capture="dragWindowFromChrome($event)"
+        @dblclick="toggleMaximizeFromChrome($event)"
+        @contextmenu="onHeaderContext"
+      >
+        <DockTabStrip
+          :side="props.side"
+          :groups="props.groups"
+          @manage="emit('manage', $event)"
+          @tab-context="(id, x, y) => emit('tabContext', id, props.side, x, y)"
+        />
+      </div>
       <DockTabStrip
+        v-else
         :side="props.side"
         :groups="props.groups"
+        :max-width="320"
+        drawer
         @manage="emit('manage', $event)"
         @tab-context="(id, x, y) => emit('tabContext', id, props.side, x, y)"
       />
-    </div>
-    <DockTabStrip
-      v-else
-      :side="props.side"
-      :groups="props.groups"
-      :max-width="320"
-      drawer
-      @manage="emit('manage', $event)"
-      @tab-context="(id, x, y) => emit('tabContext', id, props.side, x, y)"
-    />
 
-    <div
-      v-for="(group, groupIndex) in props.groups"
-      :key="groupIndex"
-      class="dock-group"
-      :data-dock-region="props.side"
-      :data-dock-side="props.side"
-      :data-dock-group="0"
-      @contextmenu="onPaneContext"
-    >
-      <div v-if="activeOf(group)" class="rs-pane-host" :data-rs-pane="activeOf(group)">
-        <SidebarPaneBody
-          :id="activeOf(group) as ImplementedSidebarPaneId"
-          :outline-line="props.outlineLine"
-          @close="emit('closePane', activeOf(group) as ImplementedSidebarPaneId)"
-          @filter-tag="(tag: string) => emit('filterTag', tag)"
-          @outline-goto="(line: number) => emit('outlineGoto', line)"
-          @open-settings="(section?: string) => emit('openSettings', section)"
-          @open-quick-switcher="emit('openQuickSwitcher')"
-        />
+      <div
+        v-for="(group, groupIndex) in props.groups"
+        :key="groupIndex"
+        class="dock-group"
+        :data-dock-region="props.side"
+        :data-dock-side="props.side"
+        :data-dock-group="0"
+        @contextmenu="onPaneContext"
+      >
+        <div v-if="activeOf(group)" class="rs-pane-host" :data-rs-pane="activeOf(group)">
+          <SidebarPaneBody
+            :id="activeOf(group) as ImplementedSidebarPaneId"
+            :outline-line="props.outlineLine"
+            @filter-tag="(tag: string) => emit('filterTag', tag)"
+            @outline-goto="(line: number) => emit('outlineGoto', line)"
+            @open-settings="(section?: string) => emit('openSettings', section)"
+            @open-quick-switcher="emit('openQuickSwitcher')"
+          />
+        </div>
       </div>
-    </div>
+    </template>
   </aside>
 </template>
 
@@ -294,6 +358,52 @@ function onEdgeContext(ev: MouseEvent) {
 }
 .side-sidebar--drop-host {
   background: var(--bg-2, var(--bg-sidebar));
+}
+
+/* Folded column: a full-height 32px icon rail. Same surface as the open
+ * column, so folding reads as "the panel shrank", not "a new toolbar". */
+.side-rail {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.side-rail::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.side-rail__spacer {
+  flex: 1 1 auto;
+}
+.side-rail__btn {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--r-sm, 5px);
+  background: transparent;
+  color: var(--fg-3);
+  cursor: pointer;
+}
+.side-rail__btn:hover {
+  background: var(--bg-hover);
+  color: var(--fg-1);
+}
+.side-rail__btn--active {
+  background: var(--bg-active, var(--bg-hover));
+  color: var(--fg-1);
+}
+.side-rail__btn--add {
+  color: var(--fg-3);
 }
 
 /* One stacked region. Stage 1 renders exactly one; stage 2 stacks several. */

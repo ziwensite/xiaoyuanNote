@@ -19,6 +19,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from '../i18n';
 import { usesCommandKey } from '../lib/platform';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 
 export type EditorMenuAction = 'copyImage' | 'cut' | 'copy' | 'paste' | 'selectAll';
 
@@ -97,13 +98,10 @@ onMounted(async () => {
   await nextTick();
   const el = root.value;
   if (el) {
-    const r = el.getBoundingClientRect();
-    const pad = 4;
-    let left = props.x;
-    let top = props.y;
-    if (left + r.width > window.innerWidth - pad) left = Math.max(pad, props.x - r.width);
-    if (top + r.height > window.innerHeight - pad) top = Math.max(pad, props.y - r.height);
-    pos.value = { left, top };
+    const placed = placeMenuFromPoint(props.x, props.y, measureMenu(el), { pad: 4 });
+    pos.value = { left: placed.left, top: placed.top };
+    if (placed.maxHeight !== undefined) el.style.maxHeight = `${placed.maxHeight}px`;
+    if (placed.maxWidth !== undefined) el.style.maxWidth = `${placed.maxWidth}px`;
   }
   document.addEventListener('mousedown', onDocDown, true);
   document.addEventListener('keydown', onKey, true);

@@ -30,7 +30,6 @@ import {
 import { SIDEBAR_PANE_DEFS, type ImplementedSidebarPaneId, type SidebarPaneAvailabilityCtx } from './panes/sidebar-panes';
 import {
   dockActiveId,
-  dockPane,
   effectiveDockWidth,
   isDockPaneVisible,
   isPendingPane,
@@ -104,6 +103,7 @@ import { runWhenIdle } from './lib/idle';
 import { MERMAID_INSERT_SNIPPET } from './lib/insert-snippet';
 import { focusActiveEditorSoon } from './lib/editor-focus';
 import { requestHeaderSearch } from './lib/header-search';
+import { measureMenu, placeMenuFromPoint } from './lib/menu-position';
 const UiPreview = defineAsyncComponent(() => import('./components/UiPreview.vue'));
 
 /* v4.6 dev-only UI gallery. `?uikit` renders ONLY the design-system preview
@@ -251,9 +251,23 @@ const phoneSearchPrefill = ref<string | undefined>(undefined);
 // visible pane auto-hides the whole sidebar (snapshotting the layout for
 // restore on next open); toggling one on while hidden brings it back.
 const sidebarCtx = ref<{ x: number; y: number } | null>(null);
+const sidebarCtxEl = ref<HTMLElement | null>(null);
+const sidebarCtxMaxH = ref<number | null>(null);
 function openSidebarCtx(e: MouseEvent) {
   e.preventDefault();
   sidebarCtx.value = { x: e.clientX, y: e.clientY };
+  sidebarCtxMaxH.value = null;
+  // A right-click on the header near the window edge used to leave the menu
+  // hanging off-screen; the shared helper flips it and caps its height.
+  void nextTick(() => {
+    const el = sidebarCtxEl.value;
+    if (!el || !sidebarCtx.value) return;
+    const placed = placeMenuFromPoint(sidebarCtx.value.x, sidebarCtx.value.y, measureMenu(el), {
+      pad: 4,
+    });
+    if (placed.maxHeight !== undefined) sidebarCtxMaxH.value = placed.maxHeight;
+    sidebarCtx.value = { x: placed.left, y: placed.top };
+  });
 }
 function closeSidebarCtx() { sidebarCtx.value = null; }
 
@@ -1882,19 +1896,16 @@ const shellEl = ref<HTMLElement | null>(null);
 const shellWidth = ref(typeof window === 'undefined' ? 0 : window.innerWidth);
 let shellObserver: ResizeObserver | null = null;
 
+// A column exists while it owns a renderable pane; `collapsed` only folds its
+// body down to the 32px icon rail, it does not unmount the column.
 const leftColumnVisible = computed(
-  () =>
-    hasLeftDock.value &&
-    !isNarrow.value &&
-    !isTabletOverlay.value &&
-    !settings.sidebarDock.collapsed.left,
+  () => hasLeftDock.value && !isNarrow.value && !isTabletOverlay.value,
 );
 const rightColumnVisible = computed(
-  () =>
-    hasRightDock.value &&
-    !isNarrow.value &&
-    !settings.sidebarDock.collapsed.right,
+  () => hasRightDock.value && !isNarrow.value && !isTabletOverlay.value,
 );
+const leftColumnCollapsed = computed(() => settings.sidebarDock.collapsed.left);
+const rightColumnCollapsed = computed(() => settings.sidebarDock.collapsed.right);
 
 const leftNaturalWidth = computed(() =>
   effectiveDockWidth(
@@ -1912,18 +1923,24 @@ const rightNaturalWidth = computed(() =>
 const columns = computed(() =>
   shellColumnWidths({
     shellWidth: shellWidth.value || window.innerWidth,
-    left: leftColumnVisible.value ? leftNaturalWidth.value : null,
-    right: rightColumnVisible.value ? rightNaturalWidth.value : null,
+    // A folded column still occupies its 32px rail outside this allocation;
+    // the middle column is flex, so it simply takes the rest.
+    left: leftColumnVisible.value && !leftColumnCollapsed.value ? leftNaturalWidth.value : null,
+    right: rightColumnVisible.value && !rightColumnCollapsed.value ? rightNaturalWidth.value : null,
   }),
 );
 
 /** macOS traffic lights float over the leftmost visible column's header. The
  *  left column takes the 80px when it exists; otherwise the middle column does
- *  (right is never leftmost — the editor column always exists). */
+ *  (right is never leftmost — the editor column always exists). A folded left
+ *  column is only a 32px rail, so the lights spill onto the toolbar and the
+ *  middle column has to make room too. */
 const leftTrafficInset = computed(() =>
   macTitleBar && leftColumnVisible.value ? MAC_TRAFFIC_INSET : 0,
 );
-const middleTrafficInset = computed(() => macTitleBar && !leftColumnVisible.value);
+const middleTrafficInset = computed(
+  () => macTitleBar && (!leftColumnVisible.value || leftColumnCollapsed.value),
+);
 
 onMounted(() => {
   if (!shellEl.value || typeof ResizeObserver === 'undefined') return;
@@ -2148,20 +2165,15 @@ watch(
   { deep: true },
 );
 
-// Pane × buttons. Outline is per tab; other panes just switch their dock
-// entry off. Collapse a side once it has nothing left to draw (the top-row
-// toggle stays as the way back in).
+// Closing a pane removes it from its column; the whole-column fold is a
+// separate action (`column.collapse`). Outline is per tab, so closing it is
+// the active tab's own outline switch.
 function onPaneClose(id: ImplementedSidebarPaneId) {
   if (id === 'outline') {
     const tab = tabs.activeTab;
     if (tab) tabs.toggleOutline(tab.id);
   } else {
     settings.hideDockPane(id);
-  }
-  const side = dockPane(settings.sidebarDock, id)?.side;
-  if (side) {
-    const views = side === 'left' ? leftDockPanes.value : rightDockPanes.value;
-    if (!renderableOn(views)) settings.setDockCollapsed(side, true);
   }
 }
 // ── Context menus for the panel chrome ────────────────────────────────────
@@ -2189,6 +2201,7 @@ const panelCtxState = computed<CtxState>(() => {
     paneSide: c ? c.side : 'right',
     // `files` is shell chrome: pinned first, never movable or hideable.
     panePinned: id === 'files',
+    paneColumnCollapsed: c ? settings.sidebarDock.collapsed[c.side] : false,
   };
 });
 
@@ -2236,9 +2249,6 @@ function onPanelCtxPick(id: CtxActionId) {
     case 'panel.close':
       onPaneClose(c.id);
       break;
-    case 'panel.hide':
-      settings.hideDockPane(c.id);
-      break;
     case 'panel.moveLeft':
       settings.moveDockTab(c.id, { side: 'left', group: 0, index: 9999 });
       break;
@@ -2247,6 +2257,12 @@ function onPanelCtxPick(id: CtxActionId) {
       break;
     case 'panel.manage':
       openSidebarCtx({ preventDefault() {}, clientX: c.x, clientY: c.y } as MouseEvent);
+      break;
+    case 'column.collapse':
+      settings.setDockCollapsed(c.side, true);
+      break;
+    case 'column.expand':
+      settings.setDockCollapsed(c.side, false);
       break;
   }
 }
@@ -2355,12 +2371,12 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           v-if="leftColumnVisible"
           class="shell__column"
           side="left"
-          :width="columns.left"
+          :width="leftColumnCollapsed ? 32 : columns.left"
+          :collapsed="leftColumnCollapsed"
           :traffic-inset="leftTrafficInset"
           :groups="leftDockGroups"
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
-          @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
@@ -2386,7 +2402,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           overlay
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
-          @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
@@ -2410,7 +2425,6 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           overlay
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
-          @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
@@ -2427,11 +2441,11 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           v-if="rightColumnVisible"
           class="shell__column"
           side="right"
-          :width="columns.right"
+          :width="rightColumnCollapsed ? 32 : columns.right"
+          :collapsed="rightColumnCollapsed"
           :groups="rightDockGroups"
           :outline-line="outlineLine"
           @manage="openSidebarCtx"
-          @close-pane="onPaneClose"
           @filter-tag="onFilterTag"
           @outline-goto="onOutlineGoto"
           @open-settings="(section?: string) => openSettingsAt(section)"
@@ -2478,8 +2492,14 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       <Teleport to="body">
         <div
           v-if="sidebarCtx"
+          ref="sidebarCtxEl"
           class="sidebar-ctx"
-          :style="{ left: sidebarCtx.x + 'px', top: sidebarCtx.y + 'px' }"
+          :style="{
+            left: sidebarCtx.x + 'px',
+            top: sidebarCtx.y + 'px',
+            maxHeight: sidebarCtxMaxH === null ? undefined : sidebarCtxMaxH + 'px',
+            overflowY: sidebarCtxMaxH === null ? undefined : 'auto',
+          }"
           @click.stop
         >
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { if (tabs.activeTab) tabs.toggleOutline(tabs.activeTab.id) })">
@@ -2835,6 +2855,9 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
   border-radius: 8px;
   padding: 4px 0;
   min-width: 160px;
+  /* Fallback when the inline cap has not been measured yet (first frame). */
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   font-size: 13px;
   user-select: none;

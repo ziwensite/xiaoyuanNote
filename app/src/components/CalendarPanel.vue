@@ -53,8 +53,6 @@ const files = useFiles();
 const taskList = useTasks();
 const { t, lang } = useI18n();
 
-const emit = defineEmits<{ (e: 'close'): void }>();
-
 const gridEl = ref<HTMLElement | null>(null);
 
 const today = computed(() => localDateKey(new Date()));
@@ -304,7 +302,7 @@ async function openSelectedTask(task: CalendarTask) {
 
 <template>
   <div class="calendar-panel rp">
-    <PanelHeader @close="emit('close')">
+    <PanelHeader :title="monthTitle">
       <button
         class="rp-icon-btn"
         type="button"
@@ -333,7 +331,7 @@ async function openSelectedTask(task: CalendarTask) {
         :aria-label="t('calendar.selectedDay.open', { date: dayLabel })"
         @click="openSelectedDay"
       >
-        <Icons name="external" :size="14" />
+        <Icons name="calendar" :size="14" />
       </button>
     </PanelHeader>
 
@@ -341,7 +339,6 @@ async function openSelectedTask(task: CalendarTask) {
 
     <template v-else>
       <div class="calendar-mini">
-        <div class="calendar-mini__title">{{ monthTitle }}</div>
         <div
           class="calendar-mini__weekdays"
           :style="{ gridTemplateColumns: gridColumns }"
@@ -450,13 +447,6 @@ async function openSelectedTask(task: CalendarTask) {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.calendar-mini__title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-1, #1f2328);
-  padding: 0 2px;
 }
 
 .calendar-mini__weekdays,

@@ -28,6 +28,7 @@
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from '../i18n';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 
 interface Props {
   word: string;
@@ -47,6 +48,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const root = ref<HTMLElement | null>(null);
+const pos = ref({ left: props.x, top: props.y });
+const maxHeight = ref<number | null>(null);
 
 function onSelect(s: string) {
   emit('select', s);
@@ -83,6 +86,14 @@ onMounted(() => {
   // doesn't accidentally re-open the menu on the same gesture.
   document.addEventListener('mousedown', onDocClick, true);
   document.addEventListener('keydown', onKeydown);
+  // A misspelled word near the bottom/right edge must not push the menu out
+  // of the window; the pointer is the anchor, the panel moves.
+  const el = root.value;
+  if (el) {
+    const placed = placeMenuFromPoint(props.x, props.y, measureMenu(el), { pad: 4 });
+    pos.value = { left: placed.left, top: placed.top };
+    if (placed.maxHeight !== undefined) maxHeight.value = placed.maxHeight;
+  }
   // Move keyboard focus into the popover so Escape works without an extra
   // click first.
   root.value?.focus();
@@ -100,7 +111,12 @@ onBeforeUnmount(() => {
     class="spellcheck-menu"
     role="menu"
     tabindex="-1"
-    :style="{ left: `${props.x}px`, top: `${props.y}px` }"
+    :style="{
+      left: `${pos.left}px`,
+      top: `${pos.top}px`,
+      maxHeight: maxHeight === null ? undefined : `${maxHeight}px`,
+      overflowY: maxHeight === null ? undefined : 'auto',
+    }"
     @contextmenu.prevent
   >
     <div class="spellcheck-menu__header">

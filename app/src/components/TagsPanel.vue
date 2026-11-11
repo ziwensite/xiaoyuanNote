@@ -31,7 +31,6 @@ const { t } = useI18n();
 
 const emit = defineEmits<{
   (e: 'filter-tag', tag: string): void;
-  (e: 'close'): void;
 }>();
 
 /** Sorted tags: descending count, then alphabetical for stable display. */
@@ -58,7 +57,7 @@ function onTomorrow() {
 
 <template>
   <div class="tags-panel rp">
-    <PanelHeader @close="emit('close')">
+    <PanelHeader>
       <button
         class="rp-icon-btn"
         type="button"

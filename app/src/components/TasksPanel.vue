@@ -33,8 +33,6 @@ const tiles = useTilesStore();
 const settings = useSettingsStore();
 const { t } = useI18n();
 
-const emit = defineEmits<{ (e: 'close'): void }>();
-
 type Filter = 'open' | 'today' | 'all';
 const filter = ref<Filter>('open');
 const priorityOnly = ref(false);
@@ -117,7 +115,7 @@ async function openTask(task: WorkspaceTask) {
 
 <template>
   <div class="tasks-panel rp">
-    <PanelHeader :count="shownCount || null" @close="emit('close')" />
+    <PanelHeader :count="shownCount || null" />
 
     <div class="tasks-panel__filters">
       <SegControl

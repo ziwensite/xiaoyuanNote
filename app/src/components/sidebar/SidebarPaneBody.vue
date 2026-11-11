@@ -31,7 +31,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  close: [];
   filterTag: [tag: string];
   outlineGoto: [line: number];
   openSettings: [section?: string];
@@ -48,22 +47,20 @@ const emit = defineEmits<{
     @filter-tag="(tag: string) => emit('filterTag', tag)"
   />
   <Outline v-if="props.id === 'outline'" :cursor-line="props.outlineLine" @goto="(line: number) => emit('outlineGoto', line)" />
-  <BacklinksPanel v-if="props.id === 'backlinks'" @close="emit('close')" />
-  <RelationshipsPanel v-if="props.id === 'relationships'" @close="emit('close')" />
+  <BacklinksPanel v-if="props.id === 'backlinks'" />
+  <RelationshipsPanel v-if="props.id === 'relationships'" />
   <TagsPanel
     v-if="props.id === 'tags'"
-    @close="emit('close')"
     @filter-tag="(tag: string) => emit('filterTag', tag)"
   />
-  <TasksPanel v-if="props.id === 'tasks'" @close="emit('close')" />
-  <NeighborhoodPanel v-if="props.id === 'neighborhood'" @close="emit('close')" />
-  <TypesPanel v-if="props.id === 'types'" @close="emit('close')" />
-  <HistoryPanel v-if="props.id === 'history'" @close="emit('close')" />
-  <PropertiesInspector v-if="props.id === 'inspector'" @close="emit('close')" />
+  <TasksPanel v-if="props.id === 'tasks'" />
+  <NeighborhoodPanel v-if="props.id === 'neighborhood'" />
+  <TypesPanel v-if="props.id === 'types'" />
+  <HistoryPanel v-if="props.id === 'history'" />
+  <PropertiesInspector v-if="props.id === 'inspector'" />
   <AgentPanel
     v-if="props.id === 'agent'"
     @open-settings="(section?: string) => emit('openSettings', section ?? 'integrations')"
-    @close="emit('close')"
   />
-  <CalendarPanel v-if="props.id === 'calendar'" @close="emit('close')" />
+  <CalendarPanel v-if="props.id === 'calendar'" />
 </template>

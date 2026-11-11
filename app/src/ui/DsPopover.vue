@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, watch, onBeforeUnmount } from 'vue';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 
 const props = withDefaults(
   defineProps<{
@@ -11,17 +12,22 @@ const props = withDefaults(
 const open = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
 const popRef = ref<HTMLElement | null>(null);
-const pos = ref<{ top: number; left: number }>({ top: 0, left: 0 });
+const pos = ref<{ top: number; left: number; maxHeight?: number }>({ top: 0, left: 0 });
 
 async function position() {
   const el = triggerRef.value;
   if (!el) return;
   const r = el.getBoundingClientRect();
   await nextTick();
-  const w = popRef.value?.offsetWidth ?? r.width;
-  let left = props.align === 'end' ? r.right - w : r.left;
-  left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
-  pos.value = { top: r.bottom + 6, left };
+  const pop = popRef.value;
+  const measured = pop ? measureMenu(pop) : { width: r.width, height: 0 };
+  const startX = props.align === 'end' ? r.right - measured.width : r.left;
+  const placed = placeMenuFromPoint(startX, r.bottom, measured, { gap: 6 });
+  pos.value = {
+    top: placed.top,
+    left: placed.left,
+    ...(placed.maxHeight !== undefined ? { maxHeight: placed.maxHeight } : {}),
+  };
 }
 
 async function toggle() {
@@ -91,7 +97,7 @@ defineExpose({ close });
         class="ds-popover__panel"
         role="dialog"
         tabindex="-1"
-        :style="{ top: `${pos.top}px`, left: `${pos.left}px` }"
+        :style="{ top: `${pos.top}px`, left: `${pos.left}px`, maxHeight: pos.maxHeight === undefined ? undefined : `${pos.maxHeight}px` }"
         @keydown="onKeydown"
       >
         <slot :close="close" />

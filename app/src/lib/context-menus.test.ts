@@ -53,15 +53,15 @@ const base: CtxState = {
   paneId: 'backlinks',
   paneSide: 'right',
   panePinned: false,
+  paneColumnCollapsed: false,
 };
 
 const idsOf = (nodes: CtxNode[]) => nodes.filter((n): n is Extract<CtxNode, { id: string }> => !('sep' in n)).map((n) => n.id);
 const entryOf = (nodes: CtxNode[], id: string) => nodes.find((n) => !('sep' in n) && n.id === id) as Extract<CtxNode, { id: string }>;
 
-test('panel body menu lists dock actions only', () => {
+test('panel body menu lists close, move, manage and collapse', () => {
   assert.deepEqual(idsOf(buildPanelMenu(t, base)), [
     'panel.close',
-    'panel.hide',
     'panel.moveLeft',
     'panel.moveRight',
     'panel.manage',
@@ -69,15 +69,15 @@ test('panel body menu lists dock actions only', () => {
   ]);
 });
 
-test('outline has no dock visibility switch (it follows the active tab)', () => {
+test('outline keeps the same menu (its close switches the tab outline off)', () => {
   const nodes = buildPanelMenu(t, { ...base, paneId: 'outline' });
-  assert.equal(entryOf(nodes, 'panel.hide'), undefined);
-  assert.ok(idsOf(nodes).includes('panel.close'));
+  assert.equal(entryOf(nodes, 'panel.close')!.disabled, false);
+  assert.ok(idsOf(nodes).includes('column.collapse'));
 });
 
-test('pinned pane cannot be hidden or moved, and the current column is disabled', () => {
+test('pinned pane cannot be closed or moved, and the current column is disabled', () => {
   const files = buildPanelMenu(t, { ...base, paneId: 'files', paneSide: 'left', panePinned: true });
-  assert.equal(entryOf(files, 'panel.hide')!.disabled, true);
+  assert.equal(entryOf(files, 'panel.close')!.disabled, true);
   assert.equal(entryOf(files, 'panel.moveLeft')!.disabled, true);
   assert.equal(entryOf(files, 'panel.moveRight')!.disabled, true);
 
@@ -90,14 +90,27 @@ test('dock tab icon menu talks about the slot, not the pane content', () => {
   assert.deepEqual(idsOf(buildDockTabMenu(t, base)), [
     'panel.open',
     'panel.close',
-    'panel.hide',
     'panel.moveLeft',
     'panel.moveRight',
     'panel.manage',
+    'column.collapse',
   ]);
   const files = buildDockTabMenu(t, { ...base, paneId: 'files', paneSide: 'left', panePinned: true });
-  assert.equal(entryOf(files, 'panel.hide')!.disabled, true);
+  assert.equal(entryOf(files, 'panel.close')!.disabled, true);
   assert.equal(entryOf(files, 'panel.moveRight')!.disabled, true);
+});
+
+test('the column item flips to "expand" once the column is folded', () => {
+  // The rail only exists while the column is folded, and its right-click menu
+  // is the dock-tab menu, so that menu must offer `column.expand`, not a
+  // no-op "collapse" aimed at an already-collapsed column.
+  const folded = { ...base, paneColumnCollapsed: true };
+  assert.equal(idsOf(buildDockTabMenu(t, folded)).at(-1), 'column.expand');
+  assert.equal(entryOf(buildDockTabMenu(t, folded), 'column.expand')!.label, 'Expand sidebar');
+  assert.equal(idsOf(buildPanelMenu(t, folded)).at(-1), 'column.expand');
+
+  assert.equal(idsOf(buildDockTabMenu(t, base)).at(-1), 'column.collapse');
+  assert.equal(entryOf(buildDockTabMenu(t, base), 'column.collapse')!.label, 'Collapse sidebar');
 });
 
 test('toolbar icons each get their own menu', () => {
@@ -205,7 +218,7 @@ test('every menu item maps to a command the app already dispatches', () => {
   );
   // Dock actions are settings methods, not app-menu entries.
   const dockIds = new Set([
-    'panel.open', 'panel.close', 'panel.hide', 'panel.moveLeft', 'panel.moveRight', 'panel.manage',
+    'panel.open', 'panel.close', 'panel.moveLeft', 'panel.moveRight', 'panel.manage',
     'column.collapse', 'column.expand',
   ]);
   const all = [

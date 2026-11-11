@@ -14,6 +14,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { usesCommandKey } from '../lib/platform';
+import { viewportBox } from '../lib/menu-position';
 import { shortcutLabel } from '../lib/keybindings';
 import { useTabsStore } from '../stores/tabs';
 import { useSettingsStore } from '../stores/settings';
@@ -82,9 +83,22 @@ function onInboxClick() {
 // ---- Popover ----
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
+const popMaxH = ref<number | null>(null);
 function toggle() {
   open.value = !open.value;
+  if (!open.value) popMaxH.value = null;
 }
+// The popover grows upward out of the status bar, so the only edge it can
+// cross is the top. Cap it to the room above the pill and scroll inside;
+// `.stats-pop` keeps its CSS max-height as the fallback.
+watch(open, async (v) => {
+  if (!v) return;
+  await nextTick();
+  const r = root.value?.getBoundingClientRect();
+  if (!r) return;
+  const vp = viewportBox();
+  popMaxH.value = Math.max(120, r.top - vp.top - 8);
+});
 function onDocPointerDown(e: PointerEvent) {
   if (!open.value) return;
   const el = root.value;
@@ -159,7 +173,13 @@ watch(
     :class="{ 'stats-pill--hidden': hidden, 'stats-pill--open': open }"
     data-stats-pill
   >
-    <div v-if="open" class="stats-pop" role="dialog" :aria-label="t('statsPill.title')">
+    <div
+      v-if="open"
+      class="stats-pop"
+      role="dialog"
+      :aria-label="t('statsPill.title')"
+      :style="popMaxH === null ? undefined : { maxHeight: `${popMaxH}px`, overflowY: 'auto' }"
+    >
       <div class="stats-pop__row">
         <span class="stats-pop__label">{{ t('statsPill.position') }}</span>
         <span class="stats-pop__value">{{ t('statusbar.ln') }} {{ props.line }}, {{ t('statusbar.col') }} {{ props.col }}</span>
@@ -310,6 +330,9 @@ watch(
 /* §6 menu style: --bg-pop, 10px radius, 4px padding, 28px rows. */
 .stats-pop {
   min-width: 240px;
+  /* Right-aligned inside the pill: on a very narrow window the panel must not
+   * cross the left edge. Height is capped when it opens (popMaxH). */
+  max-width: calc(100vw - 32px);
   margin-bottom: 6px;
   padding: 4px;
   background: var(--bg-pop);

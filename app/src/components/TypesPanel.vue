@@ -41,8 +41,6 @@ const files = useFiles();
 const lens = useTypeLens();
 const { t } = useI18n();
 
-defineEmits<{ (e: 'close'): void }>();
-
 const sections = computed<TypeSection[]>(() => types.sections);
 const hasFolder = computed(() => types.hasFolder);
 
@@ -121,7 +119,7 @@ function memberPinned(
 
 <template>
   <div class="types-panel rp">
-    <PanelHeader @close="$emit('close')">
+    <PanelHeader>
       <button
         type="button"
         class="rp-icon-btn"

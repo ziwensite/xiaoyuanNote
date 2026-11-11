@@ -8,6 +8,7 @@
  */
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import type { CtxActionId, CtxNode } from '../lib/context-menus';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 
 const props = defineProps<{ x: number; y: number; items: CtxNode[]; label?: string }>();
 const emit = defineEmits<{ (e: 'pick', id: CtxActionId): void; (e: 'close'): void }>();
@@ -15,6 +16,8 @@ const emit = defineEmits<{ (e: 'pick', id: CtxActionId): void; (e: 'close'): voi
 const root = ref<HTMLElement | null>(null);
 const left = ref(props.x);
 const top = ref(props.y);
+const maxHeight = ref<number | null>(null);
+const maxWidth = ref<number | null>(null);
 
 function buttons() {
   return Array.from(root.value?.querySelectorAll<HTMLButtonElement>('.ctx-item:not(:disabled)') ?? []);
@@ -70,11 +73,12 @@ onMounted(async () => {
   await nextTick();
   const el = root.value;
   if (!el) return;
-  const r = el.getBoundingClientRect();
-  const pad = 4;
   // Flip, don't clip: the pointer stays the anchor, the panel moves.
-  left.value = Math.max(pad, Math.min(props.x, window.innerWidth - r.width - pad));
-  top.value = Math.max(pad, Math.min(props.y, window.innerHeight - r.height - pad));
+  const placed = placeMenuFromPoint(props.x, props.y, measureMenu(el), { pad: 4 });
+  left.value = placed.left;
+  top.value = placed.top;
+  if (placed.maxHeight !== undefined) maxHeight.value = placed.maxHeight;
+  if (placed.maxWidth !== undefined) maxWidth.value = placed.maxWidth;
   focusAt(0);
   document.addEventListener('mousedown', onDocMouseDown, true);
   document.addEventListener('scroll', onScroll, true);
@@ -96,7 +100,12 @@ onBeforeUnmount(() => {
     class="ctx-menu app-ctx"
     role="menu"
     :aria-label="label"
-    :style="{ left: `${left}px`, top: `${top}px` }"
+    :style="{
+      left: `${left}px`,
+      top: `${top}px`,
+      maxHeight: maxHeight === null ? undefined : `${maxHeight}px`,
+      maxWidth: maxWidth === null ? undefined : `${maxWidth}px`,
+    }"
     @contextmenu.prevent
     @keydown="onKey"
   >

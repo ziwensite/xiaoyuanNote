@@ -2,11 +2,11 @@
 /**
  * 5.0 right-sidebar panel header (docs/v5-ui-spec.md, panel anatomy):
  * 36 px, section-label title on the left, 24 px icon buttons on the right.
- * Put extra buttons in the default slot (use `.rp-icon-btn` + <Icons>); the
- * close button is appended unless `closable` is false.
+ * Put extra buttons in the default slot (use `.rp-icon-btn` + <Icons>).
+ *
+ * No close button: panes are closed from their right-click menu (关闭面板)
+ * and the whole column is folded from the same menu (收起侧栏).
  */
-import Icons from '../Icons.vue';
-import { useI18n } from '../../i18n';
 import '../../styles/panels.css';
 
 withDefaults(
@@ -16,12 +16,9 @@ withDefaults(
     title?: string | null;
     /** Optional count shown next to the title in --text-3. */
     count?: number | string | null;
-    closable?: boolean;
   }>(),
-  { title: null, count: null, closable: true },
+  { title: null, count: null },
 );
-const emit = defineEmits<{ close: [] }>();
-const { t } = useI18n();
 </script>
 
 <template>
@@ -34,15 +31,5 @@ const { t } = useI18n();
          action buttons on the right (the title used to do that job). -->
     <span v-else class="rp-title" aria-hidden="true" />
     <slot />
-    <button
-      v-if="closable"
-      class="rp-icon-btn"
-      type="button"
-      :title="t('rightSidebar.hidePane')"
-      :aria-label="t('rightSidebar.hidePane')"
-      @click="emit('close')"
-    >
-      <Icons name="close" :size="14" />
-    </button>
   </header>
 </template>

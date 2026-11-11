@@ -27,7 +27,6 @@ import Icons from './Icons.vue';
 
 const emit = defineEmits<{
   (e: 'open-settings', section?: string): void;
-  (e: 'close'): void;
 }>();
 
 const workspace = useWorkspaceStore();
@@ -490,15 +489,6 @@ watch(stateKey, (k) => {
         @click="agent.clear()"
       >
         <Icons name="trash" :size="14" />
-      </button>
-      <button
-        class="rp-icon-btn"
-        type="button"
-        :title="t('rightSidebar.hidePane')"
-        :aria-label="t('rightSidebar.hidePane')"
-        @click="emit('close')"
-      >
-        <Icons name="close" :size="14" />
       </button>
     </header>
 

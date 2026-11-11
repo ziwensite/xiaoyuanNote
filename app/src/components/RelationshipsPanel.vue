@@ -48,8 +48,6 @@ const files = useFiles();
 const rel = useRelationships();
 const { t } = useI18n();
 
-const emit = defineEmits<{ close: [] }>();
-
 /** Suggested starter relationship keys, shown as placeholder slots when the
  *  active doc doesn't already declare them. */
 const SUGGESTED_KEYS = ['belongs_to', 'related_to', 'has'];
@@ -274,7 +272,7 @@ async function commitAddRel(stem: string) {
 
 <template>
   <div class="rel rp">
-    <PanelHeader @close="emit('close')" />
+    <PanelHeader />
 
     <div v-if="!idx.ready" class="rp-empty">{{ t('relationships.openFolder') }}</div>
     <div v-else-if="!activePath || !isMarkdown" class="rp-empty">{{ t('relationships.noActive') }}</div>

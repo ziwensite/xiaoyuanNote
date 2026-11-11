@@ -21,6 +21,7 @@ import { useTypesStore } from '../stores/types';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 import { TYPE_COLORS, type TypeColorKey } from '../lib/types-registry';
+import { placeMenuFromPoint } from '../lib/menu-position';
 
 const props = defineProps<{
   open: boolean;
@@ -84,10 +85,10 @@ function togglePinned(key: string) {
 
 const popoverStyle = computed(() => {
   if (!props.anchor) return {};
-  // Clamp into the viewport with a small margin.
-  const x = Math.min(props.anchor.x, window.innerWidth - 320);
-  const y = Math.min(props.anchor.y, window.innerHeight - 360);
-  return { left: `${Math.max(8, x)}px`, top: `${Math.max(8, y)}px` };
+  // Fixed-size panel anchored at the clicked point: flip left/up near the
+  // edges instead of hanging off-screen.
+  const placed = placeMenuFromPoint(props.anchor.x, props.anchor.y, { width: 320, height: 360 }, { gap: 0 });
+  return { left: `${placed.left}px`, top: `${placed.top}px` };
 });
 
 async function save() {

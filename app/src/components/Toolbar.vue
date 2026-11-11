@@ -18,6 +18,7 @@ import {
   type CtxState,
 } from '../lib/context-menus';
 import { getPlainSelection } from '../lib/plain-selection';
+import { measureMenu, placeMenuFromPoint, placeMenuFromRect } from '../lib/menu-position';
 import { useFiles } from '../composables/useFiles';
 import { useViewport } from '../composables/useViewport';
 import { shortcutLabel } from '../lib/keybindings';
@@ -106,6 +107,7 @@ const tbCtxState = computed<CtxState>(() => ({
   paneId: 'outline',
   paneSide: 'right',
   panePinned: false,
+  paneColumnCollapsed: false,
 }));
 
 const tbCtxItems = computed<CtxNode[]>(() => {
@@ -377,6 +379,8 @@ const formatItems: Array<{ kind: string; label: string; action: string }> = [
   'bold', 'italic', 'strike', 'highlight', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'task',
 ].map((kind) => ({ kind, label: `cmd.fmt.${kind}`, action: `fmt.${kind}` }));
 const menuPos = ref<{ top: number; left?: number; right?: number } | null>(null);
+const menuAnchor = ref<{ left: number; top: number; right: number; bottom: number } | null>(null);
+const menuMaxH = ref<number | null>(null);
 const floatStyle = computed<Record<string, string | number> | undefined>(() => {
   if (!menuPos.value) return undefined;
   const s: Record<string, string | number> = {
@@ -387,7 +391,9 @@ const floatStyle = computed<Record<string, string | number> | undefined>(() => {
     // is ~19 rows and scrolled even on a 1080p screen, turning "click, move,
     // click" into "click, scroll, move, click". It still scrolls when the
     // window really is too short.
-    maxHeight: `calc(100vh - ${menuPos.value.top}px - 8px)`,
+    maxHeight: menuMaxH.value === null
+      ? `calc(100vh - ${menuPos.value.top}px - 8px)`
+      : `${menuMaxH.value}px`,
     // Never wider than the window (see keepMenuOnScreen).
     maxWidth: 'calc(100vw - 16px)',
   };
@@ -398,8 +404,10 @@ const floatStyle = computed<Record<string, string | number> | undefined>(() => {
   return s;
 });
 function positionMenuFromButton(btn: HTMLElement | null, align: 'left' | 'right' = 'left') {
-  if (!btn) { menuPos.value = null; return; }
+  if (!btn) { menuPos.value = null; menuAnchor.value = null; return; }
   const rect = btn.getBoundingClientRect();
+  menuAnchor.value = { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
+  menuMaxH.value = null;
   if (align === 'right') {
     menuPos.value = { top: rect.bottom + 6, right: Math.max(8, window.innerWidth - rect.right) };
   } else {
@@ -410,17 +418,16 @@ function positionMenuFromButton(btn: HTMLElement | null, align: 'left' | 'right'
  * The menu is anchored to its button, so a wide menu under a button near the
  * edge of a narrow window ran off the screen: on a phone with a large display
  * size the View menu's ✓ marks and icons were cut off on the left. Once it has
- * rendered, measure it and pin it to whichever edge it crossed (watcher
- * below, after the open-flag and anchor changes have reached the DOM).
+ * rendered, hand the anchor and the measured box to the shared placement
+ * helper so a flip and a height cap are decided in one place.
  */
 function keepMenuOnScreen() {
   const pos = menuPos.value;
   const el = document.querySelector<HTMLElement>('.dropdown__menu[data-tb-menu], .menubar__menu');
-  if (!pos || !el) return;
-  const r = el.getBoundingClientRect();
-  const margin = 8;
-  if (r.left < margin) menuPos.value = { top: pos.top, left: margin };
-  else if (r.right > window.innerWidth - margin) menuPos.value = { top: pos.top, right: margin };
+  if (!pos || !el || !menuAnchor.value) return;
+  const placed = placeMenuFromRect(menuAnchor.value, measureMenu(el));
+  menuPos.value = { top: placed.top, left: placed.left };
+  menuMaxH.value = placed.maxHeight ?? null;
 }
 
 // Pomodoro popover, opened from the palette. Anchored under the right end of
@@ -434,7 +441,7 @@ function openPomodoro() {
     position: 'fixed',
     top: `${top}px`,
     right: '12px',
-    width: '260px',
+    width: 'min(260px, calc(100vw - 24px))',
     height: '0',
     zIndex: 1000,
   };
@@ -555,22 +562,27 @@ const menubarItems = computed<MenuNode[]>(
 
 // The open submenu, placed beside its row. A separate fixed layer rather than
 // a child of the menu: the menu scrolls (max-height), which would clip it.
-const menubarSub = ref<{ key: string; top: number; left: number } | null>(null);
+const menubarSub = ref<{ key: string; top: number; left: number; maxHeight?: number } | null>(null);
 const SUBMENU_WIDTH = 240;
+let menubarSubAnchor: { x: number; y: number } | null = null;
 function openMenubarSub(key: string, e: MouseEvent) {
   cancelMenubarSubClose();
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-  // Open to the right; flip left when the window has no room there.
-  const left = r.right + SUBMENU_WIDTH > window.innerWidth - 8 ? r.left - SUBMENU_WIDTH : r.right - 2;
-  menubarSub.value = { key, top: r.top - 4, left: Math.max(8, left) };
-  // Like a native menu: a submenu that would run off the bottom of the window
-  // slides up until it fits (it only scrolls when taller than the window).
+  // Anchor just right of the row, top-aligned: the shared helper flips it left
+  // when there is no room and slides it up when it would run off the bottom.
+  menubarSubAnchor = { x: r.right - 2, y: r.top - 8 };
+  menubarSub.value = { key, top: r.top - 4, left: Math.max(8, Math.min(r.right - 2, window.innerWidth - SUBMENU_WIDTH - 8)) };
   void nextTick(() => {
     const el = menubarSubEl.value;
     const sub = menubarSub.value;
-    if (!el || !sub || sub.key !== key) return;
-    const fitTop = Math.max(8, window.innerHeight - 8 - el.scrollHeight);
-    if (fitTop < sub.top) menubarSub.value = { ...sub, top: fitTop };
+    if (!el || !sub || sub.key !== key || !menubarSubAnchor) return;
+    const placed = placeMenuFromPoint(menubarSubAnchor.x, menubarSubAnchor.y, measureMenu(el));
+    menubarSub.value = {
+      key,
+      top: placed.top,
+      left: placed.left,
+      ...(placed.maxHeight !== undefined ? { maxHeight: placed.maxHeight } : {}),
+    };
   });
 }
 const menubarSubEl = ref<HTMLElement | null>(null);
@@ -603,7 +615,7 @@ const menubarSubStyle = computed(() => {
     left: `${sub.left}px`,
     minWidth: `${SUBMENU_WIDTH}px`,
     zIndex: 1001,
-    maxHeight: `calc(100vh - ${sub.top}px - 8px)`,
+    maxHeight: sub.maxHeight !== undefined ? `${sub.maxHeight}px` : `calc(100vh - ${sub.top}px - 8px)`,
   };
 });
 watch(menubarOpen, () => {

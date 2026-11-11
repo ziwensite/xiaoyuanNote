@@ -179,7 +179,7 @@ async function runIdx(i: number) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: min(480px, 64vh);
+  max-height: min(480px, calc(100vh - 14vh - 24px));
   transform-origin: top center;
   animation: sm-dialog-in var(--dur) var(--ease-out);
 }

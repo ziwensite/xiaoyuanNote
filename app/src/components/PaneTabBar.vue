@@ -12,6 +12,7 @@ import { requestRevealInTree } from '../composables/useFileTreeReveal';
 import { shortcutLabel } from '../lib/keybindings';
 import { revealLabelKey, usesCommandKey } from '../lib/platform';
 import { displayTabTitle, displayTabTooltip } from '../lib/tab-title';
+import { measureMenu, placeMenuFromPoint, placeMenuFromRect } from '../lib/menu-position';
 import { useI18n } from '../i18n';
 import Icon from './Icons.vue';
 import type { SplitDirection } from '../types';
@@ -63,10 +64,21 @@ watch(
 
 // ---- Context menu ----
 const ctxMenu = ref<{ x: number; y: number; tabId: string } | null>(null);
+const ctxEl = ref<HTMLElement | null>(null);
 
 function onContextMenu(e: MouseEvent, tabId: string) {
   e.preventDefault();
   ctxMenu.value = { x: e.clientX, y: e.clientY, tabId };
+  void nextTick(() => {
+    const el = ctxEl.value;
+    if (!el || !ctxMenu.value) return;
+    const placed = placeMenuFromPoint(ctxMenu.value.x, ctxMenu.value.y, measureMenu(el));
+    if (placed.maxHeight !== undefined) el.style.maxHeight = `${placed.maxHeight}px`;
+    if (placed.maxWidth !== undefined) el.style.maxWidth = `${placed.maxWidth}px`;
+    if (placed.left !== ctxMenu.value.x || placed.top !== ctxMenu.value.y) {
+      ctxMenu.value = { ...ctxMenu.value, x: placed.left, y: placed.top };
+    }
+  });
 }
 
 function closeCtxMenu() {
@@ -371,7 +383,10 @@ watch(
   () => nextTick(scheduleMeasureTabsOverflow),
 );
 
-const tabListPos = ref<{ top: number; right: number } | null>(null);
+const tabListPos = ref<{ left: number; top: number } | null>(null);
+const tabListEl = ref<HTMLElement | null>(null);
+const tabListAnchor = ref<{ left: number; top: number; right: number; bottom: number } | null>(null);
+const tabListMaxH = ref<number | null>(null);
 const tabListFilter = ref('');
 const tabListFilterInput = ref<HTMLInputElement | null>(null);
 const filteredTabList = computed(() => {
@@ -392,8 +407,22 @@ function toggleTabList(e: MouseEvent) {
   }
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
   tabListFilter.value = '';
-  tabListPos.value = { top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right) };
-  nextTick(() => tabListFilterInput.value?.focus());
+  tabListMaxH.value = null;
+  tabListAnchor.value = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+  tabListPos.value = {
+    left: Math.max(8, Math.min(r.left, window.innerWidth - 240 - 8)),
+    top: r.bottom + 4,
+  };
+  void nextTick(() => {
+    const el = tabListEl.value;
+    const anchor = tabListAnchor.value;
+    if (el && anchor) {
+      const placed = placeMenuFromRect(anchor, measureMenu(el));
+      if (placed.maxHeight !== undefined) tabListMaxH.value = placed.maxHeight;
+      tabListPos.value = { left: placed.left, top: placed.top };
+    }
+    tabListFilterInput.value?.focus();
+  });
 }
 function pickFromTabList(tabId: string) {
   tabListPos.value = null;
@@ -571,9 +600,14 @@ onBeforeUnmount(() => {
     <Teleport to="body">
       <div
         v-if="tabListPos"
+        ref="tabListEl"
         class="ctx-menu tablist"
         role="menu"
-        :style="{ top: tabListPos.top + 'px', right: tabListPos.right + 'px' }"
+        :style="{
+          left: tabListPos.left + 'px',
+          top: tabListPos.top + 'px',
+          maxHeight: tabListMaxH === null ? undefined : tabListMaxH + 'px',
+        }"
         @click.stop
       >
         <div v-if="tabs.tabs.length > 3" class="tablist__search">
@@ -607,6 +641,7 @@ onBeforeUnmount(() => {
     <Teleport to="body">
       <div
         v-if="ctxMenu"
+        ref="ctxEl"
         class="ctx-menu"
         role="menu"
         :style="{ left: ctxMenu.x + 'px', top: ctxMenu.y + 'px' }"

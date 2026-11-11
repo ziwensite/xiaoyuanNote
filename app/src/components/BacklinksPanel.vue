@@ -14,8 +14,6 @@ const idx = useWorkspaceIndexStore();
 const files = useFiles();
 const { t } = useI18n();
 
-const emit = defineEmits<{ close: [] }>();
-
 const refs = ref<BacklinkRef[]>([]);
 const loading = ref(false);
 
@@ -73,7 +71,7 @@ onBeforeUnmount(() => {});
 
 <template>
   <div class="backlinks rp">
-    <PanelHeader :count="loading ? null : refs.length" @close="emit('close')" />
+    <PanelHeader :count="loading ? null : refs.length" />
 
     <div v-if="loading" class="rp-empty">{{ t('backlinks.loading') }}</div>
     <div v-else-if="!idx.ready" class="rp-empty">{{ t('backlinks.openFolder') }}</div>

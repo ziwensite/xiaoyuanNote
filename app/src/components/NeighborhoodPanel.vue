@@ -55,8 +55,6 @@ const idx = useWorkspaceIndexStore();
 const files = useFiles();
 const { t } = useI18n();
 
-const emit = defineEmits<{ close: [] }>();
-
 /** Active tab's file path — the default focal note when no pivot is active. */
 const activeTabPath = computed<string | null>(() => tabs.activeTab?.filePath ?? null);
 
@@ -254,7 +252,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
   <div class="nbhd rp">
     <PanelHeader
       :count="focalPath && !isEmpty ? totalCount : null"
-      @close="emit('close')"
     />
 
     <div v-if="!idx.ready" class="rp-empty">{{ t('neighborhood.openFolder') }}</div>

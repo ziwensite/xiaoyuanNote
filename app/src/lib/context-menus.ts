@@ -22,7 +22,6 @@ export type CtxTranslate = (key: string, params?: Record<string, string | number
 export type CtxActionId =
   | 'panel.open'
   | 'panel.close'
-  | 'panel.hide'
   | 'panel.moveLeft'
   | 'panel.moveRight'
   | 'panel.manage'
@@ -75,6 +74,8 @@ export interface CtxState {
   paneSide: SidebarSide;
   /** `files` is shell chrome: pinned first, never movable. */
   panePinned: boolean;
+  /** Is that column already folded down to its icon rail? */
+  paneColumnCollapsed: boolean;
 }
 
 const sep: CtxSep = { sep: true };
@@ -85,20 +86,29 @@ const entry = (id: CtxActionId, label: string, extra: Partial<CtxEntry> = {}): C
   ...extra,
 });
 
+/** Fold / unfold the column the menu was opened on. The rail's own menu runs
+ *  while the column is already folded, so the item has to flip or it lies. */
+const columnToggle = (t: CtxTranslate, state: CtxState): CtxEntry =>
+  state.paneColumnCollapsed
+    ? entry('column.expand', t('sidebarDock.expand'))
+    : entry('column.collapse', t('sidebarDock.collapse'));
+
 /**
  * Panel body. These are dock actions — close/switch/move a *slot* — not
  * content actions (the file tree, editor, tabs and saved views carry their
  * own menus and stop the event before it reaches here).
+ *
+ * "Close" and "collapse" are two different things and both live here:
+ *  - close     removes this pane from the column (`hideDockPane`), and it can
+ *              be brought back from the `+` panel list;
+ *  - collapse  folds the whole column down to its icon rail.
+ * `files` is shell chrome and cannot be removed, so its close is greyed out —
+ * the item stays visible so the menu reads the same everywhere.
  */
 export function buildPanelMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
   const pinned = state.panePinned;
-  // `outline` answers to the active tab's own switch, not to the dock's
-  // `visible` map: hiding it through the dock would be a no-op, so only
-  // "close" (which toggles the tab's outline) is offered for it.
-  const dockSwitch = state.paneId !== 'outline';
   return [
-    entry('panel.close', t('panelMenu.close')),
-    ...(dockSwitch ? [entry('panel.hide', t('panelMenu.hide'), { disabled: pinned })] : []),
+    entry('panel.close', t('panelMenu.close'), { disabled: pinned }),
     sep,
     entry('panel.moveLeft', t('panelMenu.moveToLeft'), {
       disabled: pinned || state.paneSide === 'left',
@@ -109,7 +119,7 @@ export function buildPanelMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
     sep,
     entry('panel.manage', t('panelMenu.manage')),
     sep,
-    entry('column.collapse', t('sidebarDock.collapse')),
+    columnToggle(t, state),
   ];
 }
 
@@ -119,9 +129,7 @@ export function buildDockTabMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
   return [
     entry('panel.open', t('panelMenu.open')),
     sep,
-    entry('panel.close', t('panelMenu.close')),
-    entry('panel.hide', t('panelMenu.hide'), { disabled: pinned }),
-    sep,
+    entry('panel.close', t('panelMenu.close'), { disabled: pinned }),
     entry('panel.moveLeft', t('panelMenu.moveToLeft'), {
       disabled: pinned || state.paneSide === 'left',
     }),
@@ -130,6 +138,8 @@ export function buildDockTabMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
     }),
     sep,
     entry('panel.manage', t('panelMenu.manage')),
+    sep,
+    columnToggle(t, state),
   ];
 }
 

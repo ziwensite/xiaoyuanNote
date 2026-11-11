@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, onBeforeUnmount, watch } from 'vue';
+import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 
 export interface DsDropdownItem {
   value: string;
@@ -21,7 +22,7 @@ const open = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
 const menuRef = ref<HTMLElement | null>(null);
 const activeIndex = ref(-1);
-const pos = ref<{ top: number; left: number; minWidth: number }>({
+const pos = ref<{ top: number; left: number; minWidth: number; maxHeight?: number }>({
   top: 0,
   left: 0,
   minWidth: 0,
@@ -35,10 +36,16 @@ async function position() {
   if (!el) return;
   const r = el.getBoundingClientRect();
   await nextTick();
-  const menuW = menuRef.value?.offsetWidth ?? r.width;
-  let left = props.align === 'end' ? r.right - menuW : r.left;
-  left = Math.max(8, Math.min(left, window.innerWidth - menuW - 8));
-  pos.value = { top: r.bottom + 4, left, minWidth: r.width };
+  const menu = menuRef.value;
+  const measured = menu ? measureMenu(menu) : { width: r.width, height: 0 };
+  const startX = props.align === 'end' ? r.right - measured.width : r.left;
+  const placed = placeMenuFromPoint(startX, r.bottom, measured, { gap: 4 });
+  pos.value = {
+    top: placed.top,
+    left: placed.left,
+    minWidth: r.width,
+    ...(placed.maxHeight !== undefined ? { maxHeight: placed.maxHeight } : {}),
+  };
 }
 
 async function toggle() {
@@ -151,6 +158,7 @@ onBeforeUnmount(() => {
           top: `${pos.top}px`,
           left: `${pos.left}px`,
           minWidth: `${pos.minWidth}px`,
+          maxHeight: pos.maxHeight === undefined ? undefined : `${pos.maxHeight}px`,
         }"
         @keydown="onMenuKeydown"
       >

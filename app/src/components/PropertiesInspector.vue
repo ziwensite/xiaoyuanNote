@@ -30,8 +30,6 @@ import AddPropertyForm from './properties/AddPropertyForm.vue';
 import Icons from './Icons.vue';
 import PanelHeader from './panel/PanelHeader.vue';
 
-const emit = defineEmits<{ close: [] }>();
-
 const props = useProperties();
 const store = usePropertiesStore();
 const workspace = useWorkspaceStore();
@@ -132,7 +130,6 @@ const activeName = computed(() => tabs.activeTab?.fileName ?? null);
   <div class="inspector rp">
     <PanelHeader
       :count="props.ready.value && rows.length ? rows.length : null"
-      @close="emit('close')"
     />
 
     <div v-if="!workspace.currentFolder" class="rp-empty">{{ t('inspector.openFolder') }}</div>
