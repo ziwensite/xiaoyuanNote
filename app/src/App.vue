@@ -2288,12 +2288,6 @@ function onPanelCtxPick(id: CtxActionId) {
     case 'panel.moveRight':
       settings.moveDockTab(c.id, { side: 'right', group: 0, index: 9999 });
       break;
-    case 'panel.splitRegion':
-      settings.splitDockRegion(c.side, c.group, c.id);
-      break;
-    case 'panel.mergeRegion':
-      settings.mergeDockRegions(c.side, c.group);
-      break;
     case 'panel.manage':
       openSidebarCtx({ preventDefault() {}, clientX: c.x, clientY: c.y } as MouseEvent);
       break;

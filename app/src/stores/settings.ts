@@ -1645,6 +1645,19 @@ export const useSettingsStore = defineStore('settings', {
       const next = mergeDockGroups(this.sidebarDock, side, groupIndex);
       if (next === this.sidebarDock) return;
       this.sidebarDock = next;
+      this.persist();
+    },
+    /** Drag "split": peel `paneId` out of its current region into a new region
+     *  below it. The caller only passes the side it was dropped on (which equals
+     *  the pane's own side — the drop zone only renders there), so the source
+     *  group is resolved here. Same locked / single-tab / unknown guards as
+     *  `splitDockGroup` apply; an illegal drop is a no-op. */
+    splitDockRegionFromDrag(side: SidebarSide, paneId: SidebarPaneId) {
+      const loc = paneGroup(this.sidebarDock, paneId);
+      if (!loc || loc.side !== side) return;
+      const next = splitDockGroup(this.sidebarDock, side, loc.group, paneId);
+      if (next === this.sidebarDock) return;
+      this.sidebarDock = next;
       this.syncLegacySwitches();
       this.persist();
     },

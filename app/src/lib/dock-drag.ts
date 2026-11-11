@@ -8,6 +8,10 @@ export interface DockDropTarget {
   group: number;
   /** Insertion point in the target group's `panes` array (n = append). */
   index: number;
+  /** Set when the drop should peel the dragged pane into a NEW region (the
+   *  "split" action) instead of inserting into an existing one. `group` /
+   *  `index` are ignored in that case. */
+  split?: boolean;
 }
 
 /** Shared by both dock instances: only one drag can exist at a time, and the

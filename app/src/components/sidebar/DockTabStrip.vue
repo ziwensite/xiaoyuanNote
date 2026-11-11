@@ -238,6 +238,17 @@ function select(id: ImplementedSidebarPaneId) {
 /* ------------------------------------------------------------------ drag --- */
 function updateDropTarget(x: number, y: number) {
   const el = document.elementFromPoint(x, y) as HTMLElement | null;
+  // A drop on the dock's split zone peels the dragged pane into a new region.
+  // Checked before the region hit-test because the zone sits at a column's
+  // bottom, outside any `[data-dock-region]`.
+  const splitZone = el?.closest<HTMLElement>('[data-dock-split-zone]');
+  if (splitZone) {
+    const side = splitZone.dataset.dockSplitZone;
+    if (side === 'left' || side === 'right') {
+      dockDrag.over = { side, group: 0, index: 0, split: true };
+      return;
+    }
+  }
   const region = el?.closest<HTMLElement>('[data-dock-region]');
   const side = region?.dataset.dockSide;
   const group = Number(region?.dataset.dockGroup ?? -1);
@@ -293,7 +304,11 @@ function onTabPointerDown(ev: PointerEvent, id: ImplementedSidebarPaneId) {
     cleanup();
     if (!dragging) return;
     suppressClick.value = true;
-    if (target) {
+    if (target?.split) {
+      // Split: peel the pane into a new region. The drop zone only renders on
+      // the pane's own side, so `target.side` is its source side.
+      settings.splitDockRegionFromDrag(target.side, id);
+    } else if (target) {
       settings.moveDockTab(id, { side: target.side, group: target.group, index: target.index });
     }
     setTimeout(() => {

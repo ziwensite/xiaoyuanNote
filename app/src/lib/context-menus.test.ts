@@ -89,8 +89,6 @@ test('pinned pane cannot be closed or moved, and the current column is disabled'
 test('dock tab icon menu talks about the slot, not the pane content', () => {
   assert.deepEqual(idsOf(buildDockTabMenu(t, base)), [
     'panel.open',
-    'panel.splitRegion',
-    'panel.mergeRegion',
     'panel.close',
     'panel.moveLeft',
     'panel.moveRight',
@@ -100,21 +98,6 @@ test('dock tab icon menu talks about the slot, not the pane content', () => {
   const files = buildDockTabMenu(t, { ...base, paneId: 'files', paneSide: 'left', panePinned: true });
   assert.equal(entryOf(files, 'panel.close')!.disabled, true);
   assert.equal(entryOf(files, 'panel.moveRight')!.disabled, true);
-});
-
-test('stage 2 region commands are disabled unless split / merge are legal', () => {
-  const plain = buildDockTabMenu(t, base);
-  assert.equal(entryOf(plain, 'panel.splitRegion')!.disabled, true);
-  assert.equal(entryOf(plain, 'panel.mergeRegion')!.disabled, true);
-
-  const legal = buildDockTabMenu(t, {
-    ...base,
-    paneGroupIndex: 1,
-    canSplitRegion: true,
-    canMergeRegion: true,
-  });
-  assert.equal(entryOf(legal, 'panel.splitRegion')!.disabled, false);
-  assert.equal(entryOf(legal, 'panel.mergeRegion')!.disabled, false);
 });
 
 test('the column item flips to "expand" once the column is folded', () => {
@@ -236,7 +219,7 @@ test('every menu item maps to a command the app already dispatches', () => {
   // Dock actions are settings methods, not app-menu entries.
   const dockIds = new Set([
     'panel.open', 'panel.close', 'panel.moveLeft', 'panel.moveRight', 'panel.manage',
-    'panel.splitRegion', 'panel.mergeRegion', 'column.collapse', 'column.expand',
+    'column.collapse', 'column.expand',
   ]);
   const all = [
     ...idsOf(buildPanelMenu(t, base)),

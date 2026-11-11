@@ -25,8 +25,6 @@ export type CtxActionId =
   | 'panel.moveLeft'
   | 'panel.moveRight'
   | 'panel.manage'
-  | 'panel.splitRegion'
-  | 'panel.mergeRegion'
   | 'column.collapse'
   | 'column.expand'
   | 'view.toggleFileTree'
@@ -134,9 +132,6 @@ export function buildDockTabMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
   const pinned = state.panePinned;
   return [
     entry('panel.open', t('panelMenu.open')),
-    sep,
-    entry('panel.splitRegion', t('panelMenu.splitRegion'), { disabled: !state.canSplitRegion }),
-    entry('panel.mergeRegion', t('panelMenu.mergeRegion'), { disabled: !state.canMergeRegion }),
     sep,
     entry('panel.close', t('panelMenu.close'), { disabled: pinned }),
     entry('panel.moveLeft', t('panelMenu.moveToLeft'), {
