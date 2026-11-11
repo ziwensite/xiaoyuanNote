@@ -728,6 +728,9 @@ export const zh: I18n = {
   editorTab: {
     calendar: '日历 · {date}',
     settings: '设置',
+    search: '搜索 · {query}',
+    openInEditor: '在编辑区打开全部结果',
+    searchHint: '↑↓ 选择 · ↵ 打开 · Esc 回到编辑区',
   },
   tabMenu: {
     allTabs: '所有打开的标签',

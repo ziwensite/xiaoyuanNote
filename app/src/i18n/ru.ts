@@ -726,6 +726,9 @@ export const ru: I18n = {
   editorTab: {
     calendar: 'Календарь · {date}',
     settings: 'Настройки',
+    search: 'Поиск · {query}',
+    openInEditor: 'Открыть все результаты в редакторе',
+    searchHint: '↑↓ навигация · ↵ открыть · Esc вернуться в редактор',
   },
   tabMenu: {
     allTabs: 'Все открытые вкладки',

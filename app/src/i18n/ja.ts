@@ -727,6 +727,9 @@ export const ja: I18n = {
   editorTab: {
     calendar: 'カレンダー · {date}',
     settings: '設定',
+    search: '検索 · {query}',
+    openInEditor: 'すべての結果をエディターで開く',
+    searchHint: '↑↓ 移動 · ↵ 開く · Esc エディターに戻る',
   },
   tabMenu: {
     allTabs: '開いているすべてのタブ',

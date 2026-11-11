@@ -728,6 +728,9 @@ export const it: I18n = {
   editorTab: {
     calendar: 'Calendario · {date}',
     settings: 'Impostazioni',
+    search: 'Cerca · {query}',
+    openInEditor: 'Apri tutti i risultati nell’editor',
+    searchHint: '↑↓ naviga · ↵ apri · Esc torna all’editor',
   },
   tabMenu: {
     allTabs: 'Tutte le schede aperte',

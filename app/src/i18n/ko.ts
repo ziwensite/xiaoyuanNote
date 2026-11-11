@@ -727,6 +727,9 @@ export const ko: I18n = {
   editorTab: {
     calendar: '캘린더 · {date}',
     settings: '설정',
+    search: '검색 · {query}',
+    openInEditor: '모든 결과를 편집기에서 열기',
+    searchHint: '↑↓ 이동 · ↵ 열기 · Esc 편집기로 돌아가기',
   },
   tabMenu: {
     allTabs: '열린 탭 모두 보기',

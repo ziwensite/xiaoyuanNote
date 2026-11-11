@@ -14,6 +14,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Icons from './Icons.vue';
 import { useGlobalSearch, type SearchHit } from '../composables/useGlobalSearch';
 import { useFiles } from '../composables/useFiles';
+import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
@@ -24,6 +25,7 @@ import { placeMenuFromRect } from '../lib/menu-position';
 
 const search = useGlobalSearch();
 const files = useFiles();
+const tabs = useTabsStore();
 const tiles = useTilesStore();
 const workspace = useWorkspaceStore();
 const { t } = useI18n();
@@ -205,6 +207,15 @@ async function openHit(hit: SearchHit) {
   }
 }
 
+/** D3 — ⌘⇧↵ (Ctrl+Shift+Enter) opens all results in an editor tab. Plain
+ *  Enter keeps opening the selected hit in place. */
+function openAllResults() {
+  const q = query.value.trim();
+  if (!q) return;
+  tabs.openInput('search', { query: q });
+  closeDrop();
+}
+
 function onKey(e: KeyboardEvent) {
   // IME composition owns these keys (same guard as QuickSwitcher).
   if (e.isComposing || e.keyCode === 229) return;
@@ -240,6 +251,11 @@ function onKey(e: KeyboardEvent) {
   }
 
   if (e.key === 'Enter') {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
+      e.preventDefault();
+      openAllResults();
+      return;
+    }
     const hit = hits.value[selectedIdx.value];
     if (hit) {
       e.preventDefault();
@@ -325,6 +341,14 @@ function escapeRe(s: string) {
         </div>
         <div class="hsearch__footer">
           <span>{{ t('search.hitCount', { n: hits.length }) }}</span>
+          <button
+            v-if="hasQuery"
+            class="hsearch__open-all"
+            type="button"
+            :title="t('editorTab.openInEditor')"
+            @mousedown.prevent
+            @click="openAllResults"
+          >{{ t('editorTab.openInEditor') }}</button>
           <span v-if="!isNarrow" class="key-hint">{{ t('search.keyHint') }}</span>
         </div>
       </div>
@@ -476,11 +500,24 @@ function escapeRe(s: string) {
 }
 .hsearch__footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 5px 10px;
   border-top: var(--bd-hair);
   font-size: 10px;
   color: var(--text-faint);
+}
+.hsearch__open-all {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.hsearch__open-all:hover {
+  text-decoration: underline;
 }
 </style>

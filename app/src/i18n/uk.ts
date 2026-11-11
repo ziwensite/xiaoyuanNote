@@ -728,6 +728,9 @@ export const uk: I18n = {
   editorTab: {
     calendar: 'Календар · {date}',
     settings: 'Налаштування',
+    search: 'Пошук · {query}',
+    openInEditor: 'Відкрити всі результати в редакторі',
+    searchHint: '↑↓ навігація · ↵ відкрити · Esc назад до редактора',
   },
   tabMenu: {
     allTabs: 'Усі відкриті вкладки',

@@ -728,6 +728,9 @@ export const tr: I18n = {
   editorTab: {
     calendar: 'Takvim · {date}',
     settings: 'Ayarlar',
+    search: 'Ara · {query}',
+    openInEditor: 'Tüm sonuçları düzenleyicide aç',
+    searchHint: '↑↓ gezin · ↵ aç · Esc düzenleyiciye dön',
   },
   tabMenu: {
     allTabs: 'Tüm açık sekmeler',

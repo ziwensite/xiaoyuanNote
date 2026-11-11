@@ -728,6 +728,9 @@ export const pl: I18n = {
   editorTab: {
     calendar: 'Kalendarz · {date}',
     settings: 'Ustawienia',
+    search: 'Szukaj · {query}',
+    openInEditor: 'Otwórz wszystkie wyniki w edytorze',
+    searchHint: '↑↓ nawigacja · ↵ otwórz · Esc powrót do edytora',
   },
   tabMenu: {
     allTabs: 'Wszystkie otwarte karty',

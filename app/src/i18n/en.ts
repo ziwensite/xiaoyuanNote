@@ -731,6 +731,9 @@
   editorTab: {
     calendar: 'Calendar · {date}',
     settings: 'Settings',
+    search: 'Search · {query}',
+    openInEditor: 'Open all results in editor',
+    searchHint: '↑↓ navigate · ↵ open · Esc back to editor',
   },
   tabMenu: {
     allTabs: 'All open tabs',

@@ -21,6 +21,7 @@ import { useTilesStore } from '../stores/tiles';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
 import Icons from './Icons.vue';
+import { groupHits } from '../lib/search-results';
 
 const props = defineProps<{ prefill?: string }>();
 const emit = defineEmits<{ (e: 'close'): void }>();
@@ -83,14 +84,7 @@ async function doSearch() {
   }
 }
 
-const grouped = computed(() => {
-  const map = new Map<string, SearchHit[]>();
-  for (const h of hits.value) {
-    if (!map.has(h.file)) map.set(h.file, []);
-    map.get(h.file)!.push(h);
-  }
-  return Array.from(map.entries());
-});
+const grouped = computed(() => groupHits(hits.value));
 
 function shortPath(p: string) {
   const folder = workspace.currentFolder;
@@ -184,13 +178,13 @@ function onKey(e: KeyboardEvent) {
       {{ t('search.noMatches') }}
     </div>
     <div v-else class="sp__results">
-      <div v-for="[file, fileHits] in grouped" :key="file" class="sp__group">
+      <div v-for="group in grouped" :key="group.file" class="sp__group">
         <div
           class="sp__file"
-          :class="{ 'sp__file--active': file === activeFilePath }"
-        >{{ shortPath(file) }}</div>
+          :class="{ 'sp__file--active': group.file === activeFilePath }"
+        >{{ shortPath(group.file) }}</div>
         <div
-          v-for="hit in fileHits"
+          v-for="hit in group.hits"
           :key="hit.line"
           class="sp__hit"
           :class="{ 'sp__hit--active': hits.indexOf(hit) === selectedIdx }"

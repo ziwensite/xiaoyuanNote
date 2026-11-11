@@ -151,8 +151,12 @@ export const EDITOR_KINDS = {
   search: {
     kind: 'search',
     icon: 'search',
-    title: (tab: Tab, t: TranslateFn) =>
-      t('editorTab.search', { query: readSearchArgs(tab.input)?.query ?? '' }),
+    title: (tab: Tab, t: TranslateFn) => {
+      const query = readSearchArgs(tab.input)?.query ?? '';
+      const short = query.length > 20 ? `${query.slice(0, 20)}…` : query;
+      return t('editorTab.search', { query: short });
+    },
+    component: () => import('../components/tabs/SearchResultsTab.vue'),
     singleton: () => 'search',
     splittable: false,
     persist: 'never',
