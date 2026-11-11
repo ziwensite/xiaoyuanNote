@@ -184,8 +184,8 @@
 
 ## 每阶段完成后的统一校验
 
-- [x] `pnpm test` — 2026-11-11 实测 978 / 978 pass / 0 fail
+- [x] `pnpm test` — 2026-11-11 实测 981 / 981 pass / 0 fail（P2 新增 3 例）
 - [x] `pnpm build`（含 `vue-tsc --noEmit`）— 29.94s 成功
 - [x] 涉及 Rust 时 `cargo test -j 1` — `--lib` 259、`--bin SoloMD` 267 全过
-- [ ] 手工回归清单（见 spec §6）— 待真机 GUI
+- [ ] 手工回归清单（见 spec §6）— 已落到 `docs/regression-checklist.md` O1–O9，待真机 GUI 执行后勾选
 - [x] 不 push、不改版本号、不新增依赖

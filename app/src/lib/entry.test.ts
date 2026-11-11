@@ -24,6 +24,17 @@ const LINES = [
   '  - [ ] 缩进的任务 📅 2026-11-12',
   '> - [ ] 引用块里的任务 📅 2026-11-12',
   '- [ ] 没有日期的任务 ⏬',
+  // P2 / T0.3: the remaining shapes the golden-sample list calls for.
+  '- [?] 待定的评审 📅 2026-11-12',
+  '- [ ] 周会 🏁 keep 🔁 every week 📅 2026-11-12',
+  '- [ ] 📅 2026-11-12',
+  '- [ ] 跨年任务 📅 2026-12-31 ✅ 2027-01-01',
+  '- [ ] 多个提醒 📅 2026-11-12 ⏰ -PT15M ⏰ 09:00 ⏫',
+  '- [ ] 裸提醒标记 ⏰ 📅 2026-11-12',
+  '- [ ] 依赖与身份 🆔 t002 ⛔ t001 📅 2026-11-12',
+  '- [ ] 全 token 补全 ➕ 2026-11-01 🛫 2026-11-10 ⏳ 2026-11-11 📅 2026-11-12 🔺 ❌ 2026-11-13 ✅ 2026-11-14',
+  '- [/] 引号与括号 100% 覆盖 #a #b #c',
+  '1. [ ] 有序列表任务 📅 2026-11-12',
 ];
 
 test('a canonical line survives the entry round trip byte for byte', () => {
@@ -125,4 +136,58 @@ test('the model is exposed, not copied away', () => {
   assert.equal(entry.model.priority, '⏫');
   assert.equal(entry.model.id, 't001');
   assert.equal(entry.model.blockedBy, 't000');
+});
+
+test('golden lines pin the fields the calendar joins on', () => {
+  const question = entryFromLine('- [?] 待定的评审 📅 2026-11-12')!;
+  assert.equal(question.model.status, '?');
+  assert.equal(question.model.due, '2026-11-12');
+
+  const multi = entryFromLine('- [ ] 多个提醒 📅 2026-11-12 ⏰ -PT15M ⏰ 09:00 ⏫')!;
+  assert.deepEqual(multi.model.reminders, ['-PT15M', '09:00']);
+  assert.equal(multi.model.priority, '⏫');
+
+  const year = entryFromLine('- [ ] 跨年任务 📅 2026-12-31 ✅ 2027-01-01')!;
+  assert.equal(year.model.due, '2026-12-31');
+  assert.equal(year.model.completed, '2027-01-01');
+
+  const empty = entryFromLine('- [ ] 📅 2026-11-12')!;
+  assert.equal(empty.model.description, '');
+
+  const full = entryFromLine(
+    '- [ ] 全 token 补全 ➕ 2026-11-01 🛫 2026-11-10 ⏳ 2026-11-11 📅 2026-11-12 🔺 ❌ 2026-11-13 ✅ 2026-11-14',
+  )!;
+  assert.equal(full.model.created, '2026-11-01');
+  assert.equal(full.model.start, '2026-11-10');
+  assert.equal(full.model.scheduled, '2026-11-11');
+  assert.equal(full.model.due, '2026-11-12');
+  assert.equal(full.model.priority, '🔺');
+  assert.equal(full.model.cancelled, '2026-11-13');
+  assert.equal(full.model.completed, '2026-11-14');
+
+  const tags = entryFromLine('- [/] 引号与括号 100% 覆盖 #a #b #c')!;
+  assert.equal(tags.model.status, '/');
+  assert.deepEqual(tags.model.tags, ['a', 'b', 'c']);
+});
+
+test('a bare ⏰ and 🏁 keep stay as text, never becoming token fields', () => {
+  const bare = entryFromLine('- [ ] 裸提醒标记 ⏰ 📅 2026-11-12')!;
+  assert.deepEqual(bare.model.reminders, []);
+  assert.equal(bare.model.description, '裸提醒标记 ⏰');
+
+  const keep = entryFromLine('- [ ] 周会 🏁 keep 🔁 every week 📅 2026-11-12')!;
+  assert.equal(keep.model.description, '周会 🏁 keep');
+  assert.equal(keep.model.recurrence, 'every week');
+});
+
+test('a line written without separators is repaired once and then stays put', () => {
+  const glued = '- [ ] 写周报📅2026-11-12⏫';
+  const once = lineFromEntry(entryFromLine(glued)!);
+  assert.equal(once, '- [ ] 写周报 📅 2026-11-12 ⏫');
+  assert.equal(lineFromEntry(entryFromLine(once)!), once);
+
+  const gluedId = '- [ ] 交稿🆔t003⛔t002';
+  const fixed = lineFromEntry(entryFromLine(gluedId)!);
+  assert.equal(fixed, '- [ ] 交稿 🆔 t003 ⛔ t002');
+  assert.equal(lineFromEntry(entryFromLine(fixed)!), fixed);
 });

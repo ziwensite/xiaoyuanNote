@@ -1,6 +1,6 @@
 name: Tests
-# Unit tests on every push and PR: the 978 frontend tests (node:test) and
-# the Rust library tests. Until 2026-10 nothing ran the frontend ones at all.
+# Unit tests on every push and PR: every frontend node:test file and the
+# Rust library tests. Until 2026-10 nothing ran the frontend ones at all.
 on:
   push:
     branches: [main, 'feat/**']

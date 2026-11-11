@@ -108,7 +108,7 @@ SidebarDockGroup { panes: SidebarPaneId[]; active: SidebarPaneId | null }
 
 ## 5. 验证
 
-- `pnpm test`：978 / 978 pass / 0 fail（2026-11-11 实测；规格编写时的预期值为 670）。
+- `pnpm test`：981 / 981 pass / 0 fail（2026-11-11 P2 实测；P0 基线 978，规格编写时预期 670）。
 - `pnpm build`（vue-tsc + vite）：0 错误，29.94s。
 - `cargo test --lib -j 1`：259 passed；`cargo test --bin SoloMD -j 1`：267 passed。
 - 本环境无法起 Tauri GUI：视觉效果**全部为代码推断**，需人工核对（见任务清单末尾）。

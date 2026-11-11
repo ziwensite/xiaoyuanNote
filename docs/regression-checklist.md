@@ -144,3 +144,42 @@ Automated layers that run first: `pnpm test` (frontend unit tests),
 | M1 | help.about / checkUpdate / shortcuts / markdown / welcomeTour / cli | |
 | M2 | CLI: every subcommand against a fixture vault | |
 | M3 | MCP: read tools; write tools only with --allow-write | |
+
+## N. Sidebar shell, stage 1
+Rows from `docs/specs/sidebar-shell-stage1/tasks.md`. All eight were code-inferred when the stage shipped; none has been visually confirmed. "auto" marks a row a dev-bridge check can assert without a human.
+
+| id | check | pass when | auto |
+|---|---|---|---|
+| N1 | both 32px activity rails are gone | panels start at the window edge; no rail DOM on either side | yes |
+| N2 | icon-only dock tabs | strip shows icons only, hover gives a tooltip, Tab focus reads the pane name from `aria-label` | yes |
+| N3 | same-side drag | insertion edge line appears; dropping reorders the tabs | no |
+| N4 | cross-side drag | target side highlights; dropped tab appears on that side | no |
+| N5 | `files` is pinned | cannot be a drag source; every left-side insertion index >= 1 | yes |
+| N6 | zero-width collapse | collapsed column has no width and no focusable leftover; header toggle / `⌘B` / `⌥⌘B` reopen at the previous width | yes |
+| N7 | `+` at the strip end | pane-list checkbox state matches the visible tabs | yes |
+| N8 | platform regressions | mac traffic lights clear of the header buttons; tablet drawer, narrow layout (no left column), Agent auto-width 472 unchanged | no |
+
+## O. Virtual editor tabs (P0–P4)
+From `docs/specs/editor-input-tabs/spec.md` §6(4). File-tab behaviour is the baseline: any difference is a regression.
+
+| id | check | pass when | auto |
+|---|---|---|---|
+| O1 | file tabs unchanged | open / switch / save / close / context menu / drag identical to pre-P0 | yes |
+| O2 | virtual tabs open, switch and close | calendar, settings, search results and a web page each open as an editor tab and close cleanly | yes |
+| O3 | split and restore | dragging a virtual tab into a split works; restoring the pane keeps its kind | no |
+| O4 | tab drag reorder | virtual and file tabs reorder together | no |
+| O5 | session restore | relaunch restores file tabs; virtual tabs obey their `persist` rule (`never` / `workspace`) | yes |
+| O6 | external change | a virtual tab never blocks the reload prompt for a file changed outside | no |
+| O7 | quit confirmation | dirty file tabs still prompt; virtual tabs are never dirty | yes |
+| O8 | phone layout | phone shell shows no virtual tab chrome | no |
+| O9 | 15 locales | virtual tab titles and empty states are translated | yes |
+
+## P. Manual sign-off record
+One row per source, per run. `未测` is the initial state; keep FAIL rows until a fix is re-verified. This environment cannot launch a Tauri GUI, so these rows need a real machine.
+
+| run | date | env (OS / build) | source | rows | result | notes |
+|---|---|---|---|---|---|---|
+| 1 | 2026-11-11 | Windows / dev | `sidebar-shell-stage1` | N1–N8 | 未测 | 代码推断，需真机目视 |
+| 2 | 2026-11-11 | Windows / dev | `editor-input-tabs` §6(4) | O1–O9 | 未测 | 同上 |
+| 3 | 2026-11-11 | Windows / dev | `calendar-ui-forms/tasks.md` L59 | 弹窗开关 / 重启恢复 / 月份一致 / 任务勾选与跳转 / 窄屏 | 未测 | 同上 |
+| 4 | 2026-11-11 | Windows / dev | `v1-file-tree-merge/tasks.md` L83 | spec §6 人工核对 | 未测 | 同上 |

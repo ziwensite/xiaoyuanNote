@@ -62,9 +62,9 @@
 ### 验证（实测）
 
 - `pnpm install --frozen-lockfile --node-linker=hoisted --package-import-method=copy`：成功（本机 isolated 模式的 junction 失效，见 P0）。
-- `pnpm test`：978 / 978 pass / 0 fail；`pnpm build`：29.94s 成功。
+- `pnpm test`：981 / 981 pass / 0 fail（P2 后）；`pnpm build`：29.94s 成功。
 - `cargo test --lib -j 1`：259 passed；`cargo test --bin SoloMD -j 1`：267 passed。
 
 ### 人工目视核对清单（推断，未实测）
 
-上列 8 项均为代码推断，需在真机 GUI 逐项核对；P2 转成回归脚本或可执行人工清单。
+上列 8 项均为代码推断，已在 P2 落到 `docs/regression-checklist.md` 的 N1–N8，含 PASS/FAIL 签署记录；需真机 GUI 执行后才能勾选。
