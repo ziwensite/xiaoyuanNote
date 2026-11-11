@@ -141,6 +141,7 @@ export const EDITOR_KINDS = {
     kind: 'settings',
     icon: 'settings',
     title: (_tab: Tab, t: TranslateFn) => t('editorTab.settings'),
+    component: () => import('../components/tabs/SettingsTab.vue'),
     singleton: () => 'settings',
     splittable: false,
     persist: 'never',

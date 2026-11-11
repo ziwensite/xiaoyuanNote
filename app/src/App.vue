@@ -103,6 +103,7 @@ import { IS_APP_STORE_BUILD } from './lib/app-build';
 import { runWhenIdle } from './lib/idle';
 import { MERMAID_INSERT_SNIPPET } from './lib/insert-snippet';
 import { focusActiveEditorSoon } from './lib/editor-focus';
+import { prefersOverlayEditor } from './lib/editor-layout';
 import { requestHeaderSearch } from './lib/header-search';
 import { measureMenu, placeMenuFromPoint } from './lib/menu-position';
 const UiPreview = defineAsyncComponent(() => import('./components/UiPreview.vue'));
@@ -229,6 +230,12 @@ function openSettingsAt(section: string | null = null) {
   // that first reach for AI gets the guided setup instead of a settings page.
   if (section === 'integrations' && !IS_APP_STORE_BUILD && !settings.agentWizardSeen) {
     wizardOpen.value = true;
+    return;
+  }
+  // Desktop: a singleton editor tab (D4 — not restored after relaunch).
+  // Phones / tablets / narrow panes keep the modal settings sheet.
+  if (!prefersOverlayEditor()) {
+    tabs.openInput('settings', section ? { section } : {});
     return;
   }
   settingsInitialSection.value = section;
@@ -391,7 +398,7 @@ function onFileChangedAction(action: 'reload' | 'overwrite' | 'cancel') {
 
 const shortcuts = useShortcuts({
   openPalette: () => (paletteOpen.value = true),
-  openSettings: () => (settingsOpen.value = true),
+  openSettings: () => openSettingsAt(null),
   openHelp: () => openHelpAt('syntax'),
   openGlobalSearch: () => requestHeaderSearch(),
   openQuickSwitcher: () => (quickSwitcherOpen.value = true),

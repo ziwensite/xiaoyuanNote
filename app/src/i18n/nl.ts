@@ -727,6 +727,7 @@ export const nl: I18n = {
   },
   editorTab: {
     calendar: 'Agenda · {date}',
+    settings: 'Instellingen',
   },
   tabMenu: {
     allTabs: 'Alle geopende tabbladen',

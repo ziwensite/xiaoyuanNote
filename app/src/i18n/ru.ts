@@ -725,6 +725,7 @@ export const ru: I18n = {
   },
   editorTab: {
     calendar: 'Календарь · {date}',
+    settings: 'Настройки',
   },
   tabMenu: {
     allTabs: 'Все открытые вкладки',

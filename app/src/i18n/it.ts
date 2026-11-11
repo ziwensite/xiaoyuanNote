@@ -727,6 +727,7 @@ export const it: I18n = {
   },
   editorTab: {
     calendar: 'Calendario · {date}',
+    settings: 'Impostazioni',
   },
   tabMenu: {
     allTabs: 'Tutte le schede aperte',

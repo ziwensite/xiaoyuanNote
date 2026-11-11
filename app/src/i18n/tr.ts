@@ -727,6 +727,7 @@ export const tr: I18n = {
   },
   editorTab: {
     calendar: 'Takvim · {date}',
+    settings: 'Ayarlar',
   },
   tabMenu: {
     allTabs: 'Tüm açık sekmeler',

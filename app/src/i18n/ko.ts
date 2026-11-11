@@ -726,6 +726,7 @@ export const ko: I18n = {
   },
   editorTab: {
     calendar: '캘린더 · {date}',
+    settings: '설정',
   },
   tabMenu: {
     allTabs: '열린 탭 모두 보기',

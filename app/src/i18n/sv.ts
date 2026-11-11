@@ -727,6 +727,7 @@ export const sv: I18n = {
   },
   editorTab: {
     calendar: 'Kalender · {date}',
+    settings: 'Inställningar',
   },
   tabMenu: {
     allTabs: 'Alla öppna flikar',

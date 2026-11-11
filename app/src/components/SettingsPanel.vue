@@ -288,8 +288,34 @@ async function setAsDefault() {
   }
 }
 
-const props = defineProps<{ open: boolean; initialSection?: string | null }>();
+const props = withDefaults(
+  defineProps<{
+    open?: boolean;
+    initialSection?: string | null;
+    /** `dialog` keeps the DsModal frame; `tab` renders the same content inline
+     *  inside the editor area and never owns Esc (no modal is open). */
+    variant?: 'dialog' | 'tab';
+  }>(),
+  { open: false, variant: 'dialog' },
+);
 const emit = defineEmits<{ (e: 'close'): void }>();
+
+const isOpen = computed(() => props.variant === 'tab' || props.open);
+const rootEl = ref<HTMLElement | null>(null);
+
+// One template, two frames: the modal (dialog) or a plain flex column (tab).
+const frame = computed(() => (props.variant === 'tab' ? 'div' : DsModal));
+const frameProps = computed(() =>
+  props.variant === 'tab'
+    ? { class: 'settings-modal settings-tab' }
+    : {
+        modelValue: props.open,
+        title: t('settings.title'),
+        width: '820px',
+        class: 'settings-modal',
+        'onUpdate:modelValue': () => emit('close'),
+      },
+);
 
 // Deep-link support: callers (toolbar AI button, RAG empty state, etc.)
 // pass `initial-section` to land on a specific category instead of the
@@ -302,10 +328,11 @@ const VALID_CATEGORIES = new Set<SettingsCategory>([
   'basics', 'writing', 'sync', 'integrations', 'export', 'keys', 'advanced',
 ]);
 watch(
-  () => props.open,
-  (isOpen) => {
-    if (!isOpen) return;
-    const target = props.initialSection;
+  // `initialSection` is watched too: in tab mode the panel stays open, so a
+  // second deep link (e.g. ⌘, then "sync") must still move the category.
+  () => [props.open, props.initialSection] as const,
+  ([open, target]) => {
+    if (!open && props.variant !== 'tab') return;
     if (target && VALID_CATEGORIES.has(target as SettingsCategory)) {
       activeCategory.value = target as SettingsCategory;
     }
@@ -578,14 +605,14 @@ function navVisible(id: string) {
 // Blocks appear and disappear with settings (v-if), so re-filter on changes.
 let bodyObserver: MutationObserver | null = null;
 watch(
-  [searchQuery, () => props.open, () => settings.language],
+  [searchQuery, () => isOpen.value, () => settings.language],
   async () => {
     await nextTick();
     clearCurrentHit(); // a new query (or language) starts stepping over
     applySearch();
     bodyObserver?.disconnect();
     bodyObserver = null;
-    if (props.open && searching.value && bodyEl.value) {
+    if (isOpen.value && searching.value && bodyEl.value) {
       bodyObserver = new MutationObserver(() => applySearch());
       bodyObserver.observe(bodyEl.value, { childList: true });
     }
@@ -630,13 +657,13 @@ function markGroups() {
 }
 let groupObserver: MutationObserver | null = null;
 watch(
-  [() => props.open, activeCategory, searchQuery, () => settings.language],
+  [() => isOpen.value, activeCategory, searchQuery, () => settings.language],
   async () => {
     await nextTick();
     markGroups();
     groupObserver?.disconnect();
     groupObserver = null;
-    if (props.open && bodyEl.value) {
+    if (isOpen.value && bodyEl.value) {
       groupObserver = new MutationObserver(() => markGroups());
       groupObserver.observe(bodyEl.value, { childList: true });
     }
@@ -654,7 +681,14 @@ function pickCategory(id: SettingsCategory) {
  *  the search box. Window capture runs before DsModal's document-capture
  *  Escape handler (and the app's global shortcuts). */
 function onSearchKeys(e: KeyboardEvent) {
-  if (!props.open) return;
+  if (!isOpen.value) return;
+  // As a tab the panel is not modal: only act when the key came from inside
+  // it, otherwise ⌘F / Esc in the editor would be swallowed while this tab
+  // merely exists in another split pane.
+  if (props.variant === 'tab') {
+    const host = rootEl.value;
+    if (host && e.target instanceof Node && !host.contains(e.target)) return;
+  }
   // A chord being recorded is the recorder's (onRecordKey), ⌘F and Esc too.
   // Both listen on window in the capture phase and this one was added first
   // (when the panel opened), so it used to take ⌘F before the recorder saw it.
@@ -674,7 +708,7 @@ function onSearchKeys(e: KeyboardEvent) {
   }
 }
 watch(
-  () => props.open,
+  () => isOpen.value,
   async (open) => {
     if (open) {
       window.addEventListener('keydown', onSearchKeys, true);
@@ -951,13 +985,7 @@ function onSelectPdfFont(v: string) {
 </script>
 
 <template>
-  <DsModal
-    :model-value="open"
-    :title="t('settings.title')"
-    width="820px"
-    class="settings-modal"
-    @update:model-value="emit('close')"
-  >
+  <component :is="frame" ref="rootEl" v-bind="frameProps">
       <div class="settings__search">
         <input
           ref="searchInput"
@@ -2629,7 +2657,7 @@ function onSelectPdfFont(v: string) {
       :open="supportModalOpen"
       @close="supportModalOpen = false"
     />
-  </DsModal>
+  </component>
 </template>
 
 <style scoped>
@@ -2763,6 +2791,15 @@ function onSelectPdfFont(v: string) {
 /* DsModal frame overrides live in the unscoped <style> block at the end of
    this file: the overlay is teleported, so a scoped selector cannot reach
    it. */
+/* Inline (tab) frame: same column as the modal body, no overlay. */
+.settings-tab {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
 .settings__layout {
   flex: 1;
   display: flex;
@@ -3453,7 +3490,7 @@ input[type='range']:disabled {
    the 5.0 controls: --fill-1 fields with a focus ring, 28px secondary /
    primary buttons, hairline cards. Only the look is touched, never widths
    or layout, so each panel keeps its own arrangement. */
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(
+.settings-modal .settings__body > div[data-cat] :is(
   input[type='text'],
   input[type='password'],
   input[type='number'],
@@ -3476,7 +3513,7 @@ input[type='range']:disabled {
   outline: none;
   box-shadow: none;
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] select {
+.settings-modal .settings__body > div[data-cat] select {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 26px;
@@ -3487,18 +3524,18 @@ input[type='range']:disabled {
   background-repeat: no-repeat;
   background-position: right 8px center;
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(input, select, textarea)::placeholder {
+.settings-modal .settings__body > div[data-cat] :is(input, select, textarea)::placeholder {
   color: var(--text-3);
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(input, select, textarea):focus {
+.settings-modal .settings__body > div[data-cat] :is(input, select, textarea):focus {
   background-color: var(--bg);
   box-shadow: var(--ring);
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] input[type='checkbox'],
-.ds-modal.settings-modal .settings__body > div[data-cat] input[type='radio'] {
+.settings-modal .settings__body > div[data-cat] input[type='checkbox'],
+.settings-modal .settings__body > div[data-cat] input[type='radio'] {
   accent-color: var(--accent);
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button']):not([class*='--link']):not([class*='close']) {
+.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button']):not([class*='--link']):not([class*='close']) {
   min-height: 28px;
   padding: 0 12px;
   font-family: inherit;
@@ -3510,33 +3547,33 @@ input[type='range']:disabled {
   border-radius: var(--r-md);
   cursor: default;
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button']):not([class*='--link']):not([class*='close']):hover:not(:disabled) {
+.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button']):not([class*='--link']):not([class*='close']):hover:not(:disabled) {
   background: var(--fill-2);
   border-color: transparent;
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--primary'],
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--primary']:hover:not(:disabled) {
+.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--primary'],
+.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--primary']:hover:not(:disabled) {
   background: var(--accent-strong);
   color: var(--accent-strong-fg);
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--danger'] {
+.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--danger'] {
   color: var(--danger);
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--small'] {
+.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--small'] {
   min-height: 24px;
   padding: 0 8px;
   font-size: 12px;
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--ghost'] {
+.settings-modal .settings__body > div[data-cat] :is(button[class*='btn'], button[class*='-button'])[class*='--ghost'] {
   background: transparent;
   color: var(--text-2);
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(.ghs-card, .ic-card) {
+.settings-modal .settings__body > div[data-cat] :is(.ghs-card, .ic-card) {
   background: var(--bg);
   border: var(--bd-hair);
   border-radius: var(--r-lg);
 }
-.ds-modal.settings-modal .settings__body > div[data-cat] :is(h3, h4) {
+.settings-modal .settings__body > div[data-cat] :is(h3, h4) {
   text-align: left;
 }
 </style>

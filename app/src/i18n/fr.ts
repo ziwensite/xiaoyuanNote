@@ -727,6 +727,7 @@ export const fr: I18n = {
   },
   editorTab: {
     calendar: 'Calendrier · {date}',
+    settings: 'Réglages',
   },
   tabMenu: {
     allTabs: 'Tous les onglets ouverts',

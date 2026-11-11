@@ -727,6 +727,7 @@ export const uk: I18n = {
   },
   editorTab: {
     calendar: 'Календар · {date}',
+    settings: 'Налаштування',
   },
   tabMenu: {
     allTabs: 'Усі відкриті вкладки',

@@ -726,6 +726,7 @@ export const ja: I18n = {
   },
   editorTab: {
     calendar: 'カレンダー · {date}',
+    settings: '設定',
   },
   tabMenu: {
     allTabs: '開いているすべてのタブ',

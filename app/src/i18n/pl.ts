@@ -727,6 +727,7 @@ export const pl: I18n = {
   },
   editorTab: {
     calendar: 'Kalendarz · {date}',
+    settings: 'Ustawienia',
   },
   tabMenu: {
     allTabs: 'Wszystkie otwarte karty',

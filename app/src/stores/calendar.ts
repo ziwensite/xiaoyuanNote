@@ -17,26 +17,9 @@ import {
 } from '../lib/calendar-prefs';
 import { useWorkspaceStore } from './workspace';
 import { useTabsStore } from './tabs';
-import { isNarrowViewport, isTabletOverlayViewport } from '../composables/useViewport';
+import { prefersOverlayEditor } from '../lib/editor-layout';
 
 const KEY_PREFIX = 'solomd.calendar.v1::';
-
-/** Below this the month grid can't show two columns without cramping. */
-const CALENDAR_TAB_MIN_WIDTH = 720;
-
-/** Width of the editor column, not the window: on desktop the sidebars take
- *  the space the calendar needs, and a narrow split pane must fall back to the
- *  dialog even in a wide window. */
-function editorColumnWidth(): number {
-  if (typeof document === 'undefined') return 0;
-  const column = document.querySelector<HTMLElement>('.main-col');
-  return column?.clientWidth ?? 0;
-}
-
-function prefersDialog(): boolean {
-  if (isNarrowViewport() || isTabletOverlayViewport()) return true;
-  return editorColumnWidth() < CALENDAR_TAB_MIN_WIDTH;
-}
 
 function bucketKey(folder: string | null): string {
   return `${KEY_PREFIX}${folder ?? ''}`;
@@ -108,7 +91,7 @@ export const useCalendarStore = defineStore('calendar', () => {
   function openWorkspace(date?: string, nextView?: CalendarEditorView) {
     if (date) setFocusDate(date);
     if (nextView) setView(nextView);
-    if (prefersDialog()) {
+    if (prefersOverlayEditor()) {
       dialogOpen.value = true;
       return;
     }

@@ -727,6 +727,7 @@ export const zh: I18n = {
   },
   editorTab: {
     calendar: '日历 · {date}',
+    settings: '设置',
   },
   tabMenu: {
     allTabs: '所有打开的标签',

@@ -729,6 +729,7 @@ export const pt: I18n = {
   },
   editorTab: {
     calendar: 'Calendário · {date}',
+    settings: 'Configurações',
   },
   tabMenu: {
     allTabs: 'Todas as abas abertas',

@@ -730,6 +730,7 @@
   },
   editorTab: {
     calendar: 'Calendar · {date}',
+    settings: 'Settings',
   },
   tabMenu: {
     allTabs: 'All open tabs',
