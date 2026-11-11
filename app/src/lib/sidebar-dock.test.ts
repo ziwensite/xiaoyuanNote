@@ -4,13 +4,18 @@ import { test } from 'node:test';
 import {
   AGENT_DOCK_WIDTH,
   DEFAULT_DOCK_WIDTH,
+  DOCK_GROUP_DEFAULT_HEIGHT,
+  DOCK_GROUP_MAX_HEIGHT,
+  DOCK_GROUP_MIN_HEIGHT,
   MAX_DOCK_WIDTH,
   MIN_DOCK_WIDTH,
+  clampGroupHeight,
   defaultSidebarDock,
   dockActiveId,
   dockPane,
   effectiveDockWidth,
   isDockPaneVisible,
+  mergeDockGroups,
   mergeFilesPane,
   migrateSidebarDock,
   moveAllPanesToSide,
@@ -19,7 +24,9 @@ import {
   paneGroup,
   resolveGroupActive,
   sanitizeSidebarDock,
+  setDockGroupHeight,
   sideDockPanes,
+  splitDockGroup,
   type SidebarDockState,
 } from './sidebar-dock.ts';
 import { SIDEBAR_PANE_DEFS } from '../panes/sidebar-panes.ts';
@@ -489,4 +496,140 @@ test('every locale has a title key for each shipped pane and the dock chrome', (
       `${name} missing toast.outlineMovedToSecondary`,
     );
   }
+});
+
+// ── Stage 2, batch 1: stacked regions (data layer only) ──────────────────
+
+function stagedDock(): SidebarDockState {
+  const base = defaultSidebarDock();
+  return {
+    ...base,
+    groups: {
+      left: base.groups.left,
+      right: [
+        { panes: ['outline', 'backlinks'], active: 'outline' },
+        { panes: ['agent', 'tags'], active: 'agent' },
+      ],
+    },
+  };
+}
+
+test('stage 2 height weights clamp and fall back to 1', () => {
+  assert.equal(clampGroupHeight(undefined), DOCK_GROUP_DEFAULT_HEIGHT);
+  assert.equal(clampGroupHeight(NaN), DOCK_GROUP_DEFAULT_HEIGHT);
+  assert.equal(clampGroupHeight(0), DOCK_GROUP_MIN_HEIGHT);
+  assert.equal(clampGroupHeight(99), DOCK_GROUP_MAX_HEIGHT);
+  assert.equal(clampGroupHeight(1.234), 1.23);
+});
+
+test('stage 2 sanitize keeps heights, drops the files share and is idempotent', () => {
+  const raw: SidebarDockState = {
+    ...stagedDock(),
+    groups: {
+      left: [{ panes: ['files'], active: 'files', height: 3 }],
+      right: [
+        { panes: ['outline', 'backlinks'], active: 'outline', height: 2 },
+        { panes: ['agent', 'tags'], active: 'agent', height: 99 },
+      ],
+    },
+  };
+  const once = sanitizeSidebarDock(raw);
+  assert.equal(once.groups.left[0].height, undefined);
+  assert.equal(once.groups.right[0].height, 2);
+  assert.equal(once.groups.right[1].height, DOCK_GROUP_MAX_HEIGHT);
+  assert.deepEqual(sanitizeSidebarDock(once), once);
+});
+
+test('stage 2 blobs without height keep their old shape', () => {
+  const base = defaultSidebarDock();
+  const clean = sanitizeSidebarDock(base);
+  assert.equal(clean.groups.left[0].height, undefined);
+  assert.deepEqual(clean.groups, base.groups);
+});
+
+test('stage 2 splitDockGroup moves a pane into a new region', () => {
+  const before = stagedDock();
+  const after = splitDockGroup(before, 'right', 0, 'backlinks');
+  assert.notEqual(after, before);
+  assert.equal(after.groups.right.length, 3);
+  assert.deepEqual(after.groups.right[0].panes, ['outline']);
+  assert.deepEqual(after.groups.right[1].panes, ['backlinks']);
+  assert.equal(after.groups.right[1].active, 'backlinks');
+  assert.equal(after.groups.right[0].height, 0.5);
+  assert.equal(after.groups.right[1].height, 0.5);
+  assert.equal(before.groups.right.length, 2);
+});
+
+test('stage 2 splitDockGroup refuses files, unknown panes and single-tab regions', () => {
+  const before = stagedDock();
+  assert.equal(splitDockGroup(before, 'left', 0, 'outline'), before);
+  assert.equal(splitDockGroup(before, 'right', 0, 'files'), before);
+  assert.equal(splitDockGroup(before, 'right', 0, 'calendar'), before);
+  assert.equal(splitDockGroup(before, 'right', 9, 'outline'), before);
+  const single = splitDockGroup(before, 'right', 1, 'agent');
+  assert.notEqual(single, before);
+  assert.equal(splitDockGroup(single, 'right', 2, 'agent'), single);
+});
+
+test('stage 2 mergeDockGroups folds the next region back', () => {
+  const before = stagedDock();
+  const weighted = setDockGroupHeight(
+    setDockGroupHeight(before, 'right', 0, 2),
+    'right',
+    1,
+    1.5,
+  );
+  const after = mergeDockGroups(weighted, 'right', 0);
+  assert.equal(after.groups.right.length, 1);
+  assert.deepEqual(after.groups.right[0].panes, ['outline', 'backlinks', 'agent', 'tags']);
+  assert.equal(after.groups.right[0].active, 'outline');
+  assert.equal(after.groups.right[0].height, 3.5);
+});
+
+test('stage 2 mergeDockGroups refuses files regions and bad indices', () => {
+  const before = stagedDock();
+  const withLeftRegions: SidebarDockState = {
+    ...before,
+    groups: {
+      left: [before.groups.left[0], { panes: ['tags'], active: 'tags' }],
+      right: before.groups.right,
+    },
+  };
+  assert.equal(mergeDockGroups(withLeftRegions, 'left', 0), withLeftRegions);
+  assert.equal(mergeDockGroups(before, 'right', 1), before);
+  assert.equal(mergeDockGroups(before, 'right', -1), before);
+});
+
+test('stage 2 setDockGroupHeight clamps and never touches files', () => {
+  const before = stagedDock();
+  assert.equal(
+    setDockGroupHeight(before, 'right', 1, 9).groups.right[1].height,
+    DOCK_GROUP_MAX_HEIGHT,
+  );
+  assert.equal(
+    setDockGroupHeight(before, 'right', 1, -3).groups.right[1].height,
+    DOCK_GROUP_MIN_HEIGHT,
+  );
+  assert.equal(setDockGroupHeight(before, 'left', 0, 3), before);
+  assert.equal(before.groups.right[1].height, undefined);
+});
+
+test('stage 2 drag targets a region and rehomes the share of an emptied group', () => {
+  const base = defaultSidebarDock();
+  const before: SidebarDockState = {
+    ...base,
+    groups: {
+      left: base.groups.left,
+      right: [
+        { panes: ['outline', 'backlinks'], active: 'outline', height: 1 },
+        { panes: ['tags'], active: 'tags', height: 2 },
+        { panes: ['agent'], active: 'agent', height: 1 },
+      ],
+    },
+  };
+  const after = moveDockTab(before, 'tags', { side: 'right', group: 0, index: 1 });
+  assert.equal(after.groups.right.length, 2);
+  assert.deepEqual(after.groups.right[0].panes, ['outline', 'tags', 'backlinks']);
+  assert.equal(after.groups.right[1].height, 3);
+  assert.equal(before.groups.right.length, 3);
 });

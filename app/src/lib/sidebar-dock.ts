@@ -4,6 +4,9 @@
  * Model: side → groups[] → tabs[]. Stage 1 always writes exactly ONE group per
  * side; the array exists so stage 2 (stacked regions, each with its own icon
  * strip) only adds UI + split actions — never another schema migration.
+ * Stage 2's first batch is here: `height` (a relative weight), split/merge/
+ * resize pure functions and sanitize repair. The UI still renders one region
+ * per side; see docs/specs/sidebar-shell-stage2/spec.md for the rest.
  *
  * Decisions that live here because the rest of the shell has to agree:
  *
@@ -35,6 +38,9 @@ export interface SidebarDockGroup {
   panes: SidebarPaneId[];
   /** Active tab of this region; null → first renderable pane. */
   active: SidebarPaneId | null;
+  /** Stage 2: relative height share. Absent = 1, so older blobs keep their
+   *  shape and need no migration flag. `files`' region is always 1. */
+  height?: number;
 }
 
 export interface SidebarDockState {
@@ -75,6 +81,8 @@ export interface DockGroupView {
   /** Registry order of this region — tab order. */
   panes: readonly DockPaneView[];
   active: ImplementedSidebarPaneId | null;
+  /** Stage 2: relative height share for the splitter (default 1). */
+  height?: number;
 }
 
 /** Content width. The numbers are unchanged on purpose: 292 used to be
@@ -86,6 +94,19 @@ export const MAX_DOCK_WIDTH = 560;
 /** Width the removed activity rail contributed. Migration only — never used
  *  to size a live dock (the rail no longer exists). */
 export const LEGACY_RAIL_WIDTH = 32;
+
+/** Stage 2 — relative height of one stacked region, not pixels. */
+export const DOCK_GROUP_DEFAULT_HEIGHT = 1;
+export const DOCK_GROUP_MIN_HEIGHT = 0.25;
+export const DOCK_GROUP_MAX_HEIGHT = 4;
+
+/** Non-finite / missing weights fall back to 1; two decimals keep persisted
+ *  blobs stable after repeated splitter drags. */
+export function clampGroupHeight(value: unknown): number {
+  const n = typeof value === 'number' && Number.isFinite(value) ? value : DOCK_GROUP_DEFAULT_HEIGHT;
+  const clamped = Math.min(DOCK_GROUP_MAX_HEIGHT, Math.max(DOCK_GROUP_MIN_HEIGHT, n));
+  return Math.round(clamped * 100) / 100;
+}
 
 /** V1 — the file tree container. It is the primary sidebar itself, so every
  *  move/sanitize path locks it to the left, first tab, always visible. */
@@ -156,7 +177,7 @@ function knownId(value: unknown): SidebarPaneId | null {
 }
 
 function cloneGroup(group: SidebarDockGroup): SidebarDockGroup {
-  return { panes: [...group.panes], active: group.active };
+  return { ...group, panes: [...group.panes] };
 }
 
 function cloneDock(state: SidebarDockState): SidebarDockState {
@@ -204,7 +225,15 @@ function parseStored(raw: unknown): ParsedDock | null {
           }
         }
         const active = knownId(entry.active);
-        groups[side].push({ panes, active: active && panes.includes(active) ? active : null });
+        const height =
+          typeof entry.height === 'number' && Number.isFinite(entry.height)
+            ? clampGroupHeight(entry.height)
+            : undefined;
+        groups[side].push(
+          height === undefined
+            ? { panes, active: active && panes.includes(active) ? active : null }
+            : { panes, active: active && panes.includes(active) ? active : null, height },
+        );
       }
       if (groups[side].length === 0) groups[side].push({ panes: [], active: null });
     }
@@ -277,7 +306,11 @@ export function sanitizeSidebarDock(
         seen.add(id);
         panes.push(id);
       }
-      groups[side].push({ panes, active: source.active });
+      groups[side].push(
+        source.height === undefined
+          ? { panes, active: source.active }
+          : { panes, active: source.active, height: source.height },
+      );
     }
     if (groups[side].length === 0) groups[side].push({ panes: [], active: null });
   }
@@ -300,6 +333,8 @@ export function sanitizeSidebarDock(
     }
   }
   primaryGroup.panes.unshift(PRIMARY_PANE_ID);
+  // The primary region is locked: no splitter, always the default share.
+  delete primaryGroup.height;
   // Reinstating `files` must not silently un-select it if it was the tab.
   if (filesWasActive) primaryGroup.active = PRIMARY_PANE_ID;
 
@@ -586,7 +621,17 @@ export function moveDockTab(
   source.panes.splice(from.index, 1);
   if (source.active === id) source.active = null;
   const removedGroup = source.panes.length === 0 && sourceGroups.length > 1;
-  if (removedGroup) sourceGroups.splice(from.group, 1);
+  if (removedGroup) {
+    const [gone] = sourceGroups.splice(from.group, 1);
+    // Stage 2: give the vanished region's share to its neighbour so the
+    // remaining regions do not jump when the group count changes.
+    if (gone.height !== undefined) {
+      const heir = sourceGroups[Math.min(from.group, sourceGroups.length - 1)];
+      if (heir && !heir.panes.includes(PRIMARY_PANE_ID)) {
+        heir.height = clampGroupHeight((heir.height ?? DOCK_GROUP_DEFAULT_HEIGHT) + gone.height);
+      }
+    }
+  }
 
   const destinationGroups = next.groups[target.side];
   let groupIndex = target.group ?? 0;
@@ -605,6 +650,83 @@ export function moveDockTab(
   }
   destination.panes.splice(index, 0, id);
   destination.active = id;
+  return next;
+}
+
+/** Stage 2 — the region holding `files` is shell chrome: never split, merged
+ *  away or resized. */
+function isLockedGroup(group: SidebarDockGroup | undefined): boolean {
+  return !!group && group.panes.includes(PRIMARY_PANE_ID);
+}
+
+/**
+ * Stage 2, pure: pull one pane out of `groupIndex` into a new region directly
+ * after it. Both halves share the source weight. Files' region, unknown or
+ * unmovable panes, out-of-range indices and single-tab regions are rejected.
+ */
+export function splitDockGroup(
+  state: SidebarDockState,
+  side: SidebarSide,
+  groupIndex: number,
+  paneId: SidebarPaneId,
+): SidebarDockState {
+  const source = state.groups[side][groupIndex];
+  if (!source || !isMovablePane(paneId) || isLockedGroup(source)) return state;
+  const at = source.panes.indexOf(paneId);
+  if (at < 0 || source.panes.length < 2) return state;
+
+  const next = cloneDock(state);
+  const groups = next.groups[side];
+  const from = groups[groupIndex];
+  from.panes.splice(at, 1);
+  if (from.active === paneId) from.active = from.panes[0] ?? null;
+  const half = clampGroupHeight((from.height ?? DOCK_GROUP_DEFAULT_HEIGHT) / 2);
+  from.height = half;
+  groups.splice(groupIndex + 1, 0, { panes: [paneId], active: paneId, height: half });
+  return next;
+}
+
+/** Stage 2, pure: fold `groupIndex + 1` into `groupIndex` and add its share. */
+export function mergeDockGroups(
+  state: SidebarDockState,
+  side: SidebarSide,
+  groupIndex: number,
+): SidebarDockState {
+  const groups = state.groups[side];
+  const target = groups[groupIndex];
+  const source = groups[groupIndex + 1];
+  if (!target || !source || isLockedGroup(target) || isLockedGroup(source)) return state;
+
+  const next = cloneDock(state);
+  const nextGroups = next.groups[side];
+  const to = nextGroups[groupIndex];
+  const gone = nextGroups[groupIndex + 1];
+  const panes = [...to.panes, ...gone.panes];
+  let active: SidebarPaneId | null = null;
+  if (to.active && panes.includes(to.active)) active = to.active;
+  else if (gone.active && panes.includes(gone.active)) active = gone.active;
+  else active = panes[0] ?? null;
+  nextGroups.splice(groupIndex, 2, {
+    panes,
+    active,
+    height: clampGroupHeight(
+      (to.height ?? DOCK_GROUP_DEFAULT_HEIGHT) + (gone.height ?? DOCK_GROUP_DEFAULT_HEIGHT),
+    ),
+  });
+  return next;
+}
+
+/** Stage 2, pure: store a splitter's new relative share. */
+export function setDockGroupHeight(
+  state: SidebarDockState,
+  side: SidebarSide,
+  groupIndex: number,
+  height: unknown,
+): SidebarDockState {
+  const group = state.groups[side][groupIndex];
+  if (!group || isLockedGroup(group)) return state;
+  const next = cloneDock(state);
+  next.groups[side][groupIndex].height = clampGroupHeight(height);
   return next;
 }
 
