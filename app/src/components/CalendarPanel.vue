@@ -433,7 +433,13 @@ function openSelectedDay() {
                 :class="`is-${cornerOf(date)}`"
                 aria-hidden="true"
               />
-              <span class="calendar-mini__day">{{ dayNumber(date) }}</span>
+              <span
+                class="calendar-mini__day"
+                :class="{
+                  'is-off': cornerOf(date) === 'off' && !isToday(date),
+                  'is-work': cornerOf(date) === 'work' && !isToday(date),
+                }"
+              >{{ dayNumber(date) }}</span>
               <span v-if="subLabel(date)" class="calendar-mini__sub">{{ subLabel(date) }}</span>
               <span
                 v-if="densityOf(date).hasNote || densityOf(date).total > 0"
@@ -745,6 +751,15 @@ function openSelectedDay() {
 }
 .calendar-mini__dot.is-done {
   background: var(--success, #2f9e63);
+}
+
+/* Holiday / make-up-work days tint the solar day number to match the corner
+   mark (off = accent blue, work = muted grey). Today's filled dot wins. */
+.calendar-mini__day.is-off {
+  color: var(--accent, #3b82f6);
+}
+.calendar-mini__day.is-work {
+  color: var(--text-3, #8a9199);
 }
 
 .calendar-mini__cell.is-outside .calendar-mini__mark,
