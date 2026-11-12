@@ -134,13 +134,22 @@ const groups = computed(() => {
   return [...byFile.entries()].map(([path, g]) => ({ path, ...g }));
 });
 
-/** Count reflects ONLY the priority filter. The open/today/all view and the
- *  period window merely change which rows are displayed — they must NOT change
- *  the unfinished/total tally (per request). So (未完 / 总计) changes solely
- *  when high-priority-only is toggled. */
-const statList = computed(() =>
-  priorityOnly.value ? tasks.value.filter((x) => x.meta.priority !== null) : tasks.value,
-);
+/** Count follows every *date* scope — the period window (kind + paging) and the
+ *  linked calendar day/week — plus the priority filter. The open/today/all view
+ *  is deliberately excluded: choosing a view only changes which rows are shown,
+ *  never the unfinished/total tally. */
+const statList = computed<WorkspaceTask[]>(() => {
+  let list: WorkspaceTask[] = tasks.value;
+  if (windowOn.value) list = tasksInWindow(tasks.value, activeWindow.value);
+  if (priorityOnly.value) list = list.filter((x) => x.meta.priority !== null);
+  const range = linkedRange.value;
+  if (range) {
+    list = list.filter(
+      (x) => x.meta.due !== null && x.meta.due >= range.start && x.meta.due <= range.end,
+    );
+  }
+  return list;
+});
 const openCount = computed(() => statList.value.filter((x) => !x.done).length);
 const total = computed(() => statList.value.length);
 /** Header date readout: two lines for a selected day (bold `12日周五` over the
