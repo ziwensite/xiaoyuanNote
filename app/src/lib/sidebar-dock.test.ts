@@ -224,8 +224,8 @@ test('sanitize keeps unknown/duplicate entries out and appends missing ids', () 
   // Invalid side falls back to the registry default (files left, outline right).
   assert.equal(dockPane(dock, 'outline')?.side, 'right');
   assert.equal(dockPane(dock, 'outline')?.visible, true);
-  // The primary container cannot be moved to the right by a stored blob.
-  assert.equal(dockPane(dock, 'files')?.side, 'left');
+  // `files` was missing from the blob, so it is appended at its registry
+  // default side. A blob that DOES place it elsewhere is no longer re-pinned.
   assert.equal(dockPane(dock, 'files')?.side, 'left');
   // `bogus` is not a pane, and `agent` now lives on the left, so both slots clear.
   assert.equal(dock.groups.left[0].active, null);
@@ -236,7 +236,7 @@ test('sanitize keeps unknown/duplicate entries out and appends missing ids', () 
   assert.equal(dock.width.right, MAX_DOCK_WIDTH);
 });
 
-test('files is pinned first on the left and always visible', () => {
+test('files is a peer: sanitize keeps its stored side, order and off switch', () => {
   const dock = sanitizeSidebarDock({
     groups: {
       left: [{ panes: ['outline', 'files'], active: 'outline' }],
@@ -246,9 +246,9 @@ test('files is pinned first on the left and always visible', () => {
     collapsed: { left: false, right: false },
     width: { left: 292, right: 292 },
   });
-  assert.deepEqual(dock.groups.left[0].panes.slice(0, 2), ['files', 'outline']);
-  assert.equal(isDockPaneVisible(dock, 'files'), true);
-  // `files` was the stored active tab of the left group; it is reinstated.
+  // Not re-pinned to index 0, not forced visible, not re-activated.
+  assert.deepEqual(dock.groups.left[0].panes, ['outline', 'files']);
+  assert.equal(isDockPaneVisible(dock, 'files'), false);
   assert.equal(dock.groups.left[0].active, 'outline');
 });
 
@@ -374,30 +374,31 @@ test('moveDockTab reorders within a region', () => {
   assert.equal(second.groups.right[0].active, 'outline');
 });
 
-test('moveDockTab crosses sides and keeps files pinned first', () => {
+test('moveDockTab crosses sides, and files itself is movable', () => {
   const dock = defaultSidebarDock();
   const moved = moveDockTab(dock, 'outline', { side: 'left', group: 0, index: 0 });
-  // files pins index 0, so the drop lands right after it.
-  assert.deepEqual(moved.groups.left[0].panes.slice(0, 2), ['files', 'outline']);
+  // No files-first clamp: index 0 really is index 0.
+  assert.deepEqual(moved.groups.left[0].panes.slice(0, 2), ['outline', 'files']);
   assert.equal(paneGroup(moved, 'outline')?.side, 'left');
-  assert.equal(paneGroup(moved, 'outline')?.index, 1);
+  assert.equal(paneGroup(moved, 'outline')?.index, 0);
   assert.equal(moved.groups.left[0].active, 'outline');
   assert.equal(moved.groups.right[0].panes.includes('outline'), false);
 
-  // `files` itself never moves.
-  assert.equal(moveDockTab(dock, 'files', { side: 'right', group: 0, index: 0 }), dock);
+  // `files` travels like any other pane now.
+  const filesMoved = moveDockTab(dock, 'files', { side: 'right', group: 0, index: 0 });
+  assert.notEqual(filesMoved, dock);
+  assert.equal(paneGroup(filesMoved, 'files')?.side, 'right');
 
   // Out-of-range indices clamp instead of throwing.
   const clamped = moveDockTab(dock, 'agent', { side: 'left', group: 0, index: 99 });
   assert.deepEqual(clamped.groups.left[0].panes.slice(0, 2), ['files', 'agent']);
 });
 
-test('moving every pane to a side keeps files on the left', () => {
+test('moving every pane to a side moves files too', () => {
   const dock = moveAllPanesToSide(defaultSidebarDock(), 'right');
-  assert.deepEqual(dock.groups.left[0].panes, ['files']);
-  assert.equal(idsOn(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 1);
-  assert.equal(dock.groups.right[0].active, 'outline');
-  assert.equal(dock.groups.left[0].active, 'files');
+  assert.deepEqual(dock.groups.left[0].panes, []);
+  assert.equal(idsOn(dock, 'right').length, SIDEBAR_PANE_DEFS.length);
+  assert.equal(dock.groups.right[0].panes.includes('files'), true);
 });
 
 test('V1 merge moves every non-files pane off the left and keeps files there', () => {
@@ -447,7 +448,7 @@ test('V1 merge is idempotent: a second run never resets user state', () => {
   assert.deepEqual(rerun.movedToSecondary, []);
 });
 
-test('files cannot be hidden or moved to the secondary sidebar by stored state', () => {
+test('files can be hidden and can live on the secondary sidebar', () => {
   const dock = sanitizeSidebarDock({
     groups: {
       left: [{ panes: ['outline'], active: 'outline' }],
@@ -457,10 +458,13 @@ test('files cannot be hidden or moved to the secondary sidebar by stored state',
     collapsed: { left: false, right: true },
     width: { left: 292, right: 292 },
   });
-  assert.equal(dockPane(dock, 'files')?.side, 'left');
-  assert.equal(dockPane(dock, 'files')?.visible, true);
-  assert.deepEqual(dock.groups.left[0].panes, ['files', 'outline']);
-  assert.equal(dock.groups.right[0].active, null);
+  assert.equal(dockPane(dock, 'files')?.side, 'right');
+  assert.equal(dockPane(dock, 'files')?.visible, false);
+  assert.deepEqual(dock.groups.left[0].panes, ['outline']);
+  // sanitize appends panes missing from this blob at their registry default
+  // side; the first two are the ones the blob explicitly placed here.
+  assert.deepEqual(dock.groups.right[0].panes.slice(0, 2), ['files', 'agent']);
+  assert.equal(dock.groups.right[0].active, 'files');
 });
 
 test('every locale has a title key for each shipped pane and the dock chrome', () => {
@@ -522,7 +526,7 @@ test('stage 2 height weights clamp and fall back to 1', () => {
   assert.equal(clampGroupHeight(1.234), 1.23);
 });
 
-test('stage 2 sanitize keeps heights, drops the files share and is idempotent', () => {
+test('stage 2 sanitize keeps every height — files regions included — and is idempotent', () => {
   const raw: SidebarDockState = {
     ...stagedDock(),
     groups: {
@@ -534,7 +538,7 @@ test('stage 2 sanitize keeps heights, drops the files share and is idempotent', 
     },
   };
   const once = sanitizeSidebarDock(raw);
-  assert.equal(once.groups.left[0].height, undefined);
+  assert.equal(once.groups.left[0].height, 3);
   assert.equal(once.groups.right[0].height, 2);
   assert.equal(once.groups.right[1].height, DOCK_GROUP_MAX_HEIGHT);
   assert.deepEqual(sanitizeSidebarDock(once), once);
@@ -560,8 +564,7 @@ test('stage 2 appendToNewRegion peels a pane into a new trailing region', () => 
 
 test('stage 2 appendToNewRegion splits a pane off the files region', () => {
   // Left holds files + outline; peeling outline must leave files in place and
-  // open a new region below it. This is the drag case that used to be blocked by
-  // the files lock (left could never be split).
+  // open a new region below it. Every region can be split now.
   const before: SidebarDockState = {
     ...stagedDock(),
     groups: {
@@ -589,9 +592,13 @@ test('stage 2 appendToNewRegion moves a pane cross-side into a new region', () =
   assert.equal(after.groups.right[0].panes.includes('backlinks'), false);
 });
 
-test('stage 2 appendToNewRegion refuses files and unknown panes', () => {
+test('stage 2 appendToNewRegion moves files too, but refuses unknown / pending panes', () => {
   const before = stagedDock();
-  assert.equal(appendToNewRegion(before, 'right', 'files'), before);
+  const after = appendToNewRegion(before, 'right', 'files');
+  assert.notEqual(after, before);
+  assert.equal(paneGroup(after, 'files')?.side, 'right');
+  assert.equal(after.groups.right.length, 3);
+  assert.deepEqual(after.groups.right[2].panes, ['files']);
   assert.equal(appendToNewRegion(before, 'right', 'calendar'), before);
   assert.equal(appendToNewRegion(before, 'right', 'ghost'), before);
 });
@@ -611,7 +618,7 @@ test('stage 2 mergeDockGroups folds the next region back', () => {
   assert.equal(after.groups.right[0].height, 3.5);
 });
 
-test('stage 2 mergeDockGroups refuses files regions and bad indices', () => {
+test('stage 2 mergeDockGroups folds a region holding files, but refuses bad indices', () => {
   const before = stagedDock();
   const withLeftRegions: SidebarDockState = {
     ...before,
@@ -620,12 +627,15 @@ test('stage 2 mergeDockGroups refuses files regions and bad indices', () => {
       right: before.groups.right,
     },
   };
-  assert.equal(mergeDockGroups(withLeftRegions, 'left', 0), withLeftRegions);
+  const merged = mergeDockGroups(withLeftRegions, 'left', 0);
+  assert.notEqual(merged, withLeftRegions);
+  assert.equal(merged.groups.left.length, 1);
+  assert.deepEqual(merged.groups.left[0].panes, ['files', 'tags']);
   assert.equal(mergeDockGroups(before, 'right', 1), before);
   assert.equal(mergeDockGroups(before, 'right', -1), before);
 });
 
-test('stage 2 setDockGroupHeight clamps and never touches files', () => {
+test('stage 2 setDockGroupHeight clamps and works on a files region', () => {
   const before = stagedDock();
   assert.equal(
     setDockGroupHeight(before, 'right', 1, 9).groups.right[1].height,
@@ -635,7 +645,7 @@ test('stage 2 setDockGroupHeight clamps and never touches files', () => {
     setDockGroupHeight(before, 'right', 1, -3).groups.right[1].height,
     DOCK_GROUP_MIN_HEIGHT,
   );
-  assert.equal(setDockGroupHeight(before, 'left', 0, 3), before);
+  assert.equal(setDockGroupHeight(before, 'left', 0, 3).groups.left[0].height, 3);
   assert.equal(before.groups.right[1].height, undefined);
 });
 

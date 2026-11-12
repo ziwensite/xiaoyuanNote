@@ -27,7 +27,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
 import { useI18n } from '../../i18n';
 import {
-  PRIMARY_PANE_ID,
   isMovablePane,
   paneDef,
   type DockGroupView,
@@ -336,10 +335,7 @@ const dropAt = computed<number | null>(() => {
   if (!over || over.split || over.side !== props.side) return null;
   // Stage 2: each strip draws the insertion line for its own region only.
   if (props.regionIndex !== undefined && over.group !== props.regionIndex) return null;
-  let insert = over.index;
-  const panes = props.groups[over.group]?.panes ?? [];
-  // `files` is pinned first: dropping "before files" lands after it.
-  if (props.side === 'left' && panes[0]?.id === PRIMARY_PANE_ID) insert = Math.max(insert, 1);
+  const insert = over.index;
   for (let i = 0; i < visibleTabs.value.length; i += 1) {
     const tab = visibleTabs.value[i];
     if (tab.group !== over.group) continue;

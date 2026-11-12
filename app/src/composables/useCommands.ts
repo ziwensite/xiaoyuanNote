@@ -225,6 +225,7 @@ export function useCommands(): Command[] {
     { id: 'view.toggleLiveEdit', title: 'View: Toggle Live Edit / Edit Only', shortcut: kb('view.toggleLiveEdit'), run: () => settings.toggleLiveEditSource() },
     { id: 'view.toggleOutline', title: 'View: Toggle Outline', shortcut: kb('view.toggleOutline'), run: () => { const tabs = useTabsStore(); if (tabs.activeId) tabs.toggleOutline(tabs.activeId); } },
     { id: 'view.toggleFileTree', title: 'View: Toggle File Tree', shortcut: kb('view.toggleFileTree'), run: () => settings.toggleFileTree() },
+    { id: 'view.toggleFilesPane', title: 'View: Toggle File Tree Pane', run: () => settings.toggleDockPane('files') },
     { id: 'view.toggleRightSidebar', title: 'View: Toggle Right Sidebar', hint: 'Hide / show the Outline / Backlinks / Tags / History / Agent strip without losing per-pane preferences', shortcut: kb('view.toggleRightSidebar'), run: () => settings.toggleRightSidebar() },
     { id: 'view.toggleAgentPanel', title: 'View: Toggle Agent Panel', hint: 'Right-side chat-with-vault panel — streamed multi-turn AI with tool-call cards, persisted run history, and trace replay', run: () => settings.toggleAgentPanel() },
     { id: 'view.toggleBacklinks', title: 'View: Toggle Backlinks Pane', run: () => settings.toggleBacklinks() },

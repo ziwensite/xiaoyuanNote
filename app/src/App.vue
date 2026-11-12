@@ -1840,9 +1840,10 @@ const paneAvailabilityCtx = computed<SidebarPaneAvailabilityCtx>(() => ({
   appStoreBuild: IS_APP_STORE_BUILD,
 }));
 
-/** User-facing on/off. `outline` is per tab; every other pane is a dock switch. */
+/** User-facing on/off. `outline` is per tab; every other pane — `files`
+ *  included — is a dock switch that can be turned off and re-added from `+`. */
 const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() => ({
-  files: true,
+  files: isDockPaneVisible(settings.sidebarDock, 'files'),
   outline: !!tabs.activeTab?.showOutline,
   backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),
   relationships: isDockPaneVisible(settings.sidebarDock, 'relationships'),
@@ -2200,11 +2201,6 @@ const panelCtxState = computed<CtxState>(() => {
   const id = c && c.kind !== 'edge' ? c.id : 'outline';
   const side = c ? c.side : 'right';
   const groupIndex = c && c.kind !== 'edge' ? c.group : 0;
-  const groups = settings.sidebarDock.groups[side];
-  const region = groups[groupIndex];
-  const nextRegion = groups[groupIndex + 1];
-  // The `files` region is shell chrome: no split, no merge, no resize.
-  const locked = !!region?.panes.includes('files');
   return {
     showLeft: settings.showFileTree,
     showRight: !settings.sidebarDock.collapsed.right,
@@ -2215,14 +2211,8 @@ const panelCtxState = computed<CtxState>(() => {
     toolbarHidden: settings.toolbarHidden,
     paneId: id,
     paneSide: side,
-    // `files` is shell chrome: pinned first, never movable or hideable.
-    panePinned: id === 'files',
     paneColumnCollapsed: c ? settings.sidebarDock.collapsed[side] : false,
     paneGroupIndex: groupIndex,
-    canSplitRegion:
-      c?.kind === 'tab' && !locked && !!region && region.panes.length > 1 && id !== 'files',
-    canMergeRegion:
-      c?.kind === 'tab' && !locked && !!nextRegion && !nextRegion.panes.includes('files'),
   };
 });
 
@@ -2535,6 +2525,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           }"
           @click.stop
         >
+          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleDockPane('files') })">
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.files ? '✓' : '' }}</span>
+            {{ t('rsPane.files') }}
+          </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { if (tabs.activeTab) tabs.toggleOutline(tabs.activeTab.id) })">
             <span class="sidebar-ctx__check">{{ dockPaneVisible.outline ? '✓' : '' }}</span>
             {{ t('rsPane.outline') }}

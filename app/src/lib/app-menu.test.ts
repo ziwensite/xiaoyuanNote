@@ -47,7 +47,7 @@ function ctx(over: Partial<MenuContext> = {}): MenuContext {
       livePreview: true, fitWidth: false, dark: false, theme: 'light',
       wordWrap: true, lineNumbers: false, autoGit: false,
       panes: {
-        outline: true, inspector: false, backlinks: true, relationships: false, neighborhood: false,
+        files: true, outline: true, inspector: false, backlinks: true, relationships: false, neighborhood: false,
         tags: false, tasks: true, types: false, history: false, savedViews: false, agent: false,
       },
     },
@@ -85,6 +85,7 @@ const PALETTE_MENU_IDS = [
   // Navigate
   'tile.closePane', 'bases.open', 'views.create', 'type.create', 'tags.refresh',
   // View
+  'view.toggleFilesPane',
   'view.toggleBacklinks', 'view.relationships', 'view.toggleNeighborhood', 'view.toggleTagsPanel',
   'view.toggleTasksPanel', 'view.toggleTypesPanel', 'view.toggleHistoryPanel', 'views.toggle',
   'view.toggleAgentPanel', 'view.resetSidebarPanes', 'view.toggleWrap', 'view.toggleLineNumbers',
@@ -312,14 +313,16 @@ test('S2: panes menu mirrors the dock registry; calendar has no menu entry yet',
   );
   const labels = items.map((item) => item.label);
 
-  // 10 dock panes + saved views (file-tree column) + agent + reset.
-  assert.equal(items.length, 12);
+  // All dock panes (files included) + saved views + agent + reset.
+  assert.equal(items.length, 13);
   const calendar = SIDEBAR_PANE_DEFS.find((def) => def.id === 'calendar');
   // M1 makes calendar renderable; the View › Panels entry lands with the shell
   // polish, so the menu must still not contain it.
   assert.ok(!calendar?.pending, 'calendar is implemented, so it is no longer pending');
   assert.ok(!labels.includes(strictT(en, 'en')(calendar!.titleKey)));
-  // The menu labels come from `menubar.*`, not the dock's `rsPane.*` title keys.
+  // Most labels come from `menubar.*`, not the dock's `rsPane.*` title keys.
+  // `files` has no `menubar.pane*` entry, so it deliberately uses
+  // `rsPane.files` and is skipped by the loop below (`!def.menuKey`).
   const MENU_LABEL_KEYS: Record<string, string> = {
     outline: 'menubar.paneOutline',
     inspector: 'menubar.paneInspector',

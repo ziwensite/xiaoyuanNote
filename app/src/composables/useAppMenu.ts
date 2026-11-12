@@ -47,7 +47,8 @@ export function useAppMenu() {
         lineNumbers: settings.showLineNumbers,
         autoGit: settings.autoGitEnabled,
         panes: {
-          // The outline is per tab; the rest live in the S2 sidebar dock.
+          // The outline is per tab; every other pane lives in the S2 dock.
+          files: isDockPaneVisible(settings.sidebarDock, 'files'),
           outline: !!tabs.activeTab?.showOutline,
           inspector: isDockPaneVisible(settings.sidebarDock, 'inspector'),
           backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),

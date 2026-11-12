@@ -30,5 +30,17 @@
 1. 同侧两个区域上下堆叠，标签条各自独立、`+` 各自可用。
 2. 拖动 splitter 改变高度，重启后保持。
 3. 跨区域拖标签落到正确区域，源区域空后自动消失且高度不跳变。
-4. `files` 所在区域无拆分/合并/调高入口。
+4. ~~`files` 所在区域无拆分/合并/调高入口~~ → 2026-11-12 修订后改为「`files` 区域与其它区域一样可拆分/合并/调高」，见下方第三批与 `spec.md` §7、回归清单 N5/N11/N13。
 5. 窄屏 / 平板抽屉 / Mac 交通灯 / Agent 自动加宽 472 无回归。
+
+## 第三批 · 修订：`files` 面板平等化（2026-11-12）
+
+用户确认「所有面板都平等」（两侧都有标签条 / `+` / toggle，入口不再依赖把文件树钉在左列）。详见 `spec.md` §7。
+
+- [x] V1 数据层：`isMovablePane` 放开 `files`；`sanitizeSidebarDock` 去掉 pin / `height` 删除 / `visible.files = true` 强制；`moveDockTab` 去掉左列 clamp 与权重继承特判；删除 `isLockedGroup`，`mergeDockGroups` / `setDockGroupHeight` 不再拒绝 `files` 区域；`moveAllPanesToSide` 真正移动全部面板。
+- [x] V2 `appendToNewRegion` 取代 `splitDockGroup`；新增 `primaryPaneSide()`。
+- [x] V3 store：`toggleFileTree` / `syncLegacySwitches` / `load()` 让 `showFileTree` 成为派生镜像并跟随 `files` 所在侧；`toggleDockPane` / `hideDockPane` / `movePaneToSide` 放开 `files`；`splitDockRegionFromDrag` 展开目标列。
+- [x] V4 UI：`App.vue dockPaneVisible.files` 读实际开关；菜单取消 `panePinned`；`+` 与 View › Panels / 命令面板新增文件树开关；`SidebarDock` 所有区域可 splitter / 调高；`DockTabStrip` 去掉插入位置 clamp；跨侧拆分时目标列也高亮。
+- [x] V5 15 语言：菜单项 / tooltip / 命令面板文案改为「文件树」中性表述；`toast.outlineMovedToSecondary` 作为 V1 历史迁移提示保留原措辞。
+- [x] V6 单测：`sidebar-dock.test.ts` / `context-menus.test.ts` 把「files 被 pin」断言改写为平等行为断言；`app-menu.test.ts` / `context-menus.test.ts` 补 `panes.files` 与命令白名单。
+- [ ] V7 真机验证：`pnpm test` / `pnpm build` / GUI 按回归清单 N5、N11、N12、N13 逐项填 PASS/FAIL（本机 `node_modules` 损坏，需在正常环境执行）。

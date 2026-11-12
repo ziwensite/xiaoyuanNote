@@ -154,14 +154,15 @@ Rows from `docs/specs/sidebar-shell-stage1/tasks.md`. All eight were code-inferr
 | N2 | icon-only dock tabs | strip shows icons only, hover gives a tooltip, Tab focus reads the pane name from `aria-label` | yes |
 | N3 | same-side drag | insertion edge line appears; dropping reorders the tabs | no |
 | N4 | cross-side drag | target side highlights; dropped tab appears on that side | no |
-| N5 | `files` is pinned | cannot be a drag source; every left-side insertion index >= 1 | yes |
-| N6 | zero-width collapse | collapsed column has no width and no focusable leftover; header toggle / `⌘B` / `⌥⌘B` reopen at the previous width | yes |
-| N7 | `+` at the strip end | pane-list checkbox state matches the visible tabs | yes |
+| N5 | `files` is a peer pane | draggable to either side and any region, can be split into its own region, hidden, closed and re-added from `+` or View › Panels; **not** re-pinned to `left[0]` after relaunch; insertion index 0 is honoured | yes |
+| N6 | zero-width collapse | collapsed column has no width and no focusable leftover; header toggle / `⌘B` / `⌥⌘B` reopen the column that holds the file tree at the previous width | yes |
+| N7 | `+` at the strip end | pane-list checkbox state matches the visible tabs, `files` included | yes |
 | N8 | platform regressions | mac traffic lights clear of the header buttons; tablet drawer, narrow layout (no left column), Agent auto-width 472 unchanged | no |
 | N9 | two regions on one side | splitting a tab creates a second strip + body stacked below; each strip has its own `+` and `»` | yes |
 | N10 | drag lands in the right region | dropping on a lower body / strip puts the tab in that region, not group 0; the insertion line appears on the right strip | no |
-| N11 | splitter persists | dragging the separator changes the share; relaunch keeps it; the `files` region shows no separator and never resizes | no |
-| N12 | split / merge via drag | drag a tab anywhere in a column (the whole column highlights) → peel it into a new region at that column's foot (split); works on **either** side, incl. peeling a non-`files` pane off the `files` region; drag a tab onto a tab strip → merge/insert into that region (and an emptied region auto-collapses); `files` is never draggable; the illegal-drop guards are enforced by `appendToNewRegion` / `moveDockTab` (unit-tested in `sidebar-dock.test.ts`) — replaces the old right-click menu | yes (guards unit-tested) |
+| N11 | splitter persists | dragging the separator changes the share; relaunch keeps it; **every** region — including one holding `files` — has a splitter and can be resized | no |
+| N12 | split / merge via drag | drag a tab anywhere in a column (the whole column highlights) → peel it into a new region at that column's foot (split); works on **either** side, incl. dragging `files` itself; drag a tab onto a tab strip → merge/insert into that region (and an emptied region auto-collapses); illegal-drop guards are enforced by `appendToNewRegion` / `moveDockTab` (unit-tested in `sidebar-dock.test.ts`) — replaces the old right-click menu | yes (guards unit-tested) |
+| N13 | ⌘B follows the file tree | after dragging `files` to the right column, ⌘B / View › Toggle File Tree / the Settings switch hide and reopen the column that holds it, not always the left one; "Show File Tree" mirrors the pane's own on/off switch; hiding `files` then pressing ⌘B re-adds it | no |
 
 ## O. Virtual editor tabs (P0–P4)
 From `docs/specs/editor-input-tabs/spec.md` §6(4). File-tab behaviour is the baseline: any difference is a regression.
@@ -296,3 +297,4 @@ One row per source, per run. `未测` is the initial state; keep FAIL rows until
 | 7 | 2026-11-11 | Windows / dev | release consistency | R1–R6 | 未测 | 自动层（版本 / 产物三元组 / 工具清单 / 文案）已全绿，产物 URL 与 MCP 运行时待发布期核对 |
 | 8 | 2026-11-11 | Windows / dev | command parity + CSP | S1–S8 | 未测 | 源码扫描守门已全绿；CSP 保持 `null`，收紧需按平台真机矩阵验证 |
 | 9 | 2026-11-11 | Windows / dev (5.0.13) | sidebar-shell-stage2 第二批 | N9–N11 PASS; N12 进行中 | 部分 | N9–N11 目视通过；测试中发现并修复 B1 文件面板右键菜单在别处右键时不消失（双菜单）、B3 快速记录窗口 dev 下白屏（改 hash URL）；B2 左右面板 `+` 是否冗余待定 |
+| 10 | 2026-11-12 | Windows / dev | `files` 面板平等化 | N5 / N11 / N12 / N13 | 未测 | 用户确认「全部面板平等」：去掉 pane/区域锁定、sanitize 回弹、左列 clamp、pinned 菜单禁用；⌘B 与「显示文件树」改为跟随 `files` 所在侧；`+` / View › Panels 增加文件树开关；15 语言文案中性化。本机 `node_modules` 损坏，单测与 vue-tsc 需在你那边跑 |

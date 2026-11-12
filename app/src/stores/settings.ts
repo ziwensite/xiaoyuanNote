@@ -12,6 +12,7 @@ import {
   moveDockTab as applyMoveDockTab,
   nextActiveAfterHide,
   paneGroup,
+  primaryPaneSide,
   setDockGroupHeight,
   sideDockPanes,
   appendToNewRegion,
@@ -1215,6 +1216,12 @@ function load(): Settings {
       if ((parsed.theme as string) === 'system') merged.followSystemTheme = true;
       if (!isTheme(merged.theme)) merged.theme = systemTheme();
       if (merged.followSystemTheme) merged.theme = systemTheme();
+      // `showFileTree` is a derived mirror now, not an input. Re-derive it after
+      // the V1 migration has consumed the old flag so ⌘B and the Settings
+      // switch follow whichever side the file-tree pane actually lives on.
+      merged.showFileTree =
+        merged.sidebarDock.visible[PRIMARY_PANE_ID] === true &&
+        !merged.sidebarDock.collapsed[primaryPaneSide(merged.sidebarDock)];
       return merged;
     }
   } catch {}
@@ -1423,14 +1430,13 @@ export const useSettingsStore = defineStore('settings', {
       this.showOutline = !this.showOutline;
       this.persist();
     },
-    /** V1 — only moves the Outline pane. `files` is the primary sidebar
-     *  container and must never travel with it; moving Outline to the left
-     *  simply makes it a second tab next to the file tree. */
+    /** V1 — moves only the Outline pane. The file tree is a normal pane now and
+     *  stays wherever the user put it. */
     setOutlineSide(side: 'left' | 'right') {
       this.outlineSide = side;
       this.movePaneToSide('outline', side);
       this.sidebarDock.collapsed[side] = false;
-      if (side === 'left') this.showFileTree = true;
+      this.syncLegacySwitches();
       this.persist();
     },
     setOutlineMarker(marker: 'jump' | 'number' | 'none') {
@@ -1449,9 +1455,26 @@ export const useSettingsStore = defineStore('settings', {
       this.keybindings = {};
       this.persist();
     },
+    /** ⌘B / View menu / Settings / toolbar: show or hide the *file tree pane*.
+     *  The pane can live on either side, so the toggle follows it instead of
+     *  always folding the left column. If it was switched off, re-add it and
+     *  make it the active tab of its region. */
     toggleFileTree() {
-      this.showFileTree = !this.showFileTree;
-      this.sidebarDock.collapsed.left = !this.showFileTree;
+      const side = primaryPaneSide(this.sidebarDock);
+      const onScreen =
+        this.sidebarDock.visible[PRIMARY_PANE_ID] === true &&
+        !this.sidebarDock.collapsed[side];
+      if (onScreen) {
+        this.sidebarDock.collapsed[side] = true;
+      } else {
+        this.sidebarDock.visible[PRIMARY_PANE_ID] = true;
+        const location = paneGroup(this.sidebarDock, PRIMARY_PANE_ID);
+        if (location) {
+          this.sidebarDock.groups[location.side][location.group].active = PRIMARY_PANE_ID;
+          this.sidebarDock.collapsed[location.side] = false;
+        }
+      }
+      this.syncLegacySwitches();
       this.persist();
     },
     toggleViewsPanel() {
@@ -1530,14 +1553,17 @@ export const useSettingsStore = defineStore('settings', {
     /** Keep the frozen legacy switches honest for their remaining readers:
      *  `showFileTree` (phone home / tablet scrim / Settings) and
      *  `outlineSide` (the Settings picker). Both are derived from the live
-     *  dock; no layout code reads them as input any more. */
+     *  dock; no layout code reads them as input any more. `showFileTree` now
+     *  means "the file-tree pane is on AND the side holding it is open". */
     syncLegacySwitches() {
-      this.showFileTree = !this.sidebarDock.collapsed.left;
+      this.showFileTree =
+        this.sidebarDock.visible[PRIMARY_PANE_ID] === true &&
+        !this.sidebarDock.collapsed[primaryPaneSide(this.sidebarDock)];
       const outline = paneGroup(this.sidebarDock, 'outline');
       if (outline) this.outlineSide = outline.side;
     },
     toggleDockPane(id: SidebarPaneId) {
-      if (id === PRIMARY_PANE_ID || isPendingPane(id)) return;
+      if (isPendingPane(id)) return;
       const location = paneGroup(this.sidebarDock, id);
       if (!location) return;
       const group = this.sidebarDock.groups[location.side][location.group];
@@ -1563,7 +1589,7 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     hideDockPane(id: SidebarPaneId) {
-      if (id === PRIMARY_PANE_ID || isPendingPane(id)) return;
+      if (isPendingPane(id)) return;
       const location = paneGroup(this.sidebarDock, id);
       if (!location) return;
       const group = this.sidebarDock.groups[location.side][location.group];
@@ -1612,8 +1638,8 @@ export const useSettingsStore = defineStore('settings', {
       this.sidebarDock.width[side] = clampDockWidth(width);
       this.persist();
     },
-    /** Pure reorder / cross-side move from the icon-strip drag. `files` and
-     *  pending panes are rejected inside `moveDockTab`. */
+    /** Pure reorder / cross-side move from the icon-strip drag. Only pending
+     *  panes (no component yet) are rejected inside `moveDockTab`. */
     moveDockTab(id: SidebarPaneId, target: DockTabTarget) {
       const next = applyMoveDockTab(this.sidebarDock, id, target);
       if (next === this.sidebarDock) return;
@@ -1623,7 +1649,6 @@ export const useSettingsStore = defineStore('settings', {
       this.persist();
     },
     movePaneToSide(id: SidebarPaneId, side: SidebarSide) {
-      if (id === PRIMARY_PANE_ID) return;
       const location = paneGroup(this.sidebarDock, id);
       if (!location || location.side === side) return;
       this.sidebarDock = applyMoveDockTab(this.sidebarDock, id, { side, group: 0 });
@@ -1643,12 +1668,13 @@ export const useSettingsStore = defineStore('settings', {
     /** Drag "split": move `paneId` to `side` as a brand-new trailing region. The
      *  caller passes the side the tab was dropped on (any side — dropping on a
      *  column creates a new region there, same-side peel or cross-side move).
-     *  `appendToNewRegion` rejects files / unknown panes and collapses an emptied
-     *  source region; an illegal drop is a no-op. */
+     *  `appendToNewRegion` rejects unknown / pending panes and collapses an
+     *  emptied source region; an illegal drop is a no-op. */
     splitDockRegionFromDrag(side: SidebarSide, paneId: SidebarPaneId) {
       const next = appendToNewRegion(this.sidebarDock, side, paneId);
       if (next === this.sidebarDock) return;
       this.sidebarDock = next;
+      this.sidebarDock.collapsed[side] = false;
       this.syncLegacySwitches();
       this.persist();
     },
@@ -1917,11 +1943,10 @@ export const useSettingsStore = defineStore('settings', {
       this.rightSidebarPaneHeights = {};
       this.rsPaneOrder = [...d.rsPaneOrder];
       this.sideSidebarWidth = d.sideSidebarWidth;
-      // S2 — reset order + width but keep the user's on/off choices, matching
-      // the old "heights, order and width" semantics. Stage 1 sorts within
-      // each region; `files` stays pinned first on the left.
-      const rank = (id: SidebarPaneId) =>
-        id === PRIMARY_PANE_ID ? -1 : (order.get(id) ?? 0);
+      // Reset order + width but keep the user's on/off choices, matching the
+      // old "heights, order and width" semantics. Sorting follows the registry
+      // order for every pane — `files` is no longer pinned to the front.
+      const rank = (id: SidebarPaneId) => order.get(id) ?? 0;
       for (const side of ['left', 'right'] as const) {
         this.sidebarDock.groups[side] = this.sidebarDock.groups[side].map((group) => ({
           ...group,

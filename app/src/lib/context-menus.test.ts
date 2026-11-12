@@ -52,7 +52,6 @@ const base: CtxState = {
   toolbarHidden: false,
   paneId: 'backlinks',
   paneSide: 'right',
-  panePinned: false,
   paneColumnCollapsed: false,
 };
 
@@ -75,15 +74,15 @@ test('outline keeps the same menu (its close switches the tab outline off)', () 
   assert.ok(idsOf(nodes).includes('column.collapse'));
 });
 
-test('pinned pane cannot be closed or moved, and the current column is disabled', () => {
-  const files = buildPanelMenu(t, { ...base, paneId: 'files', paneSide: 'left', panePinned: true });
-  assert.equal(entryOf(files, 'panel.close')!.disabled, true);
+test('files is a peer pane: close and cross-side move are available', () => {
+  const files = buildPanelMenu(t, { ...base, paneId: 'files', paneSide: 'left' });
+  assert.equal(entryOf(files, 'panel.close')!.disabled, false);
   assert.equal(entryOf(files, 'panel.moveLeft')!.disabled, true);
-  assert.equal(entryOf(files, 'panel.moveRight')!.disabled, true);
+  assert.equal(entryOf(files, 'panel.moveRight')!.disabled, false);
 
-  const rightOutline = buildPanelMenu(t, base);
-  assert.equal(entryOf(rightOutline, 'panel.moveRight')!.disabled, true);
-  assert.equal(entryOf(rightOutline, 'panel.moveLeft')!.disabled, false);
+  const rightPane = buildPanelMenu(t, base);
+  assert.equal(entryOf(rightPane, 'panel.moveRight')!.disabled, true);
+  assert.equal(entryOf(rightPane, 'panel.moveLeft')!.disabled, false);
 });
 
 test('dock tab icon menu talks about the slot, not the pane content', () => {
@@ -95,9 +94,9 @@ test('dock tab icon menu talks about the slot, not the pane content', () => {
     'panel.manage',
     'column.collapse',
   ]);
-  const files = buildDockTabMenu(t, { ...base, paneId: 'files', paneSide: 'left', panePinned: true });
-  assert.equal(entryOf(files, 'panel.close')!.disabled, true);
-  assert.equal(entryOf(files, 'panel.moveRight')!.disabled, true);
+  const files = buildDockTabMenu(t, { ...base, paneId: 'files', paneSide: 'left' });
+  assert.equal(entryOf(files, 'panel.close')!.disabled, false);
+  assert.equal(entryOf(files, 'panel.moveRight')!.disabled, false);
 });
 
 test('the column item flips to "expand" once the column is folded', () => {
@@ -195,7 +194,7 @@ test('every menu item maps to a command the app already dispatches', () => {
       livePreview: true, fitWidth: false, dark: false, theme: 'light',
       wordWrap: true, lineNumbers: false, autoGit: false,
       panes: {
-        outline: true, inspector: false, backlinks: false, relationships: false, neighborhood: false,
+        files: true, outline: true, inspector: false, backlinks: false, relationships: false, neighborhood: false,
         tags: false, tasks: false, types: false, history: false, savedViews: false, agent: false,
       },
     },

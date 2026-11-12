@@ -106,7 +106,6 @@ const tbCtxState = computed<CtxState>(() => ({
   // Not a panel menu; the dock fields are inert here.
   paneId: 'outline',
   paneSide: 'right',
-  panePinned: false,
   paneColumnCollapsed: false,
 }));
 

@@ -61,6 +61,8 @@ export type CtxToolbarKind = 'left' | 'right' | 'export' | 'more';
 
 /** State the check marks and the disabled flags read. */
 export interface CtxState {
+  /** Legacy name: now mirrors whether the file-tree pane is on screen. The
+   *  pane can live on either side, so this is NOT "the left column is open". */
   showLeft: boolean;
   showRight: boolean;
   focusMode: boolean;
@@ -72,14 +74,10 @@ export interface CtxState {
   paneId: SidebarPaneId;
   /** Which column that pane currently sits in. */
   paneSide: SidebarSide;
-  /** `files` is shell chrome: pinned first, never movable. */
-  panePinned: boolean;
   /** Is that column already folded down to its icon rail? */
   paneColumnCollapsed: boolean;
-  /** Stage 2: region the tab lives in, and whether split/merge are legal. */
+  /** Stage 2: region the tab lives in. */
   paneGroupIndex?: number;
-  canSplitRegion?: boolean;
-  canMergeRegion?: boolean;
 }
 
 const sep: CtxSep = { sep: true };
@@ -87,6 +85,9 @@ const sep: CtxSep = { sep: true };
 const entry = (id: CtxActionId, label: string, extra: Partial<CtxEntry> = {}): CtxEntry => ({
   id,
   label,
+  // Always an explicit boolean: callers and tests read `disabled === false`,
+  // and an absent field would read as `undefined` instead.
+  disabled: false,
   ...extra,
 });
 
@@ -104,21 +105,20 @@ const columnToggle = (t: CtxTranslate, state: CtxState): CtxEntry =>
  *
  * "Close" and "collapse" are two different things and both live here:
  *  - close     removes this pane from the column (`hideDockPane`), and it can
- *              be brought back from the `+` panel list;
+ *              be brought back from the `+` panel list — `files` included;
  *  - collapse  folds the whole column down to its icon rail.
- * `files` is shell chrome and cannot be removed, so its close is greyed out —
- * the item stays visible so the menu reads the same everywhere.
+ * Every pane is a peer, so close / move are enabled everywhere; only moving to
+ * the pane's current column is a no-op and stays disabled.
  */
 export function buildPanelMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
-  const pinned = state.panePinned;
   return [
-    entry('panel.close', t('panelMenu.close'), { disabled: pinned }),
+    entry('panel.close', t('panelMenu.close')),
     sep,
     entry('panel.moveLeft', t('panelMenu.moveToLeft'), {
-      disabled: pinned || state.paneSide === 'left',
+      disabled: state.paneSide === 'left',
     }),
     entry('panel.moveRight', t('panelMenu.moveToRight'), {
-      disabled: pinned || state.paneSide === 'right',
+      disabled: state.paneSide === 'right',
     }),
     sep,
     entry('panel.manage', t('panelMenu.manage')),
@@ -129,16 +129,15 @@ export function buildPanelMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
 
 /** Dock tab icon: the icon is a slot, so the menu talks about the slot. */
 export function buildDockTabMenu(t: CtxTranslate, state: CtxState): CtxNode[] {
-  const pinned = state.panePinned;
   return [
     entry('panel.open', t('panelMenu.open')),
     sep,
-    entry('panel.close', t('panelMenu.close'), { disabled: pinned }),
+    entry('panel.close', t('panelMenu.close')),
     entry('panel.moveLeft', t('panelMenu.moveToLeft'), {
-      disabled: pinned || state.paneSide === 'left',
+      disabled: state.paneSide === 'left',
     }),
     entry('panel.moveRight', t('panelMenu.moveToRight'), {
-      disabled: pinned || state.paneSide === 'right',
+      disabled: state.paneSide === 'right',
     }),
     sep,
     entry('panel.manage', t('panelMenu.manage')),
@@ -170,9 +169,10 @@ export function buildToolbarActionsMenu(kind: CtxToolbarKind, t: CtxTranslate, s
       entry('view.toggleToolbar', t('menubar.toggleToolbar'), { checked: !state.toolbarHidden }),
     ];
   }
-  // left / right column toggles: both answer "which columns are on", but the
-  // icon's own column comes first so the two menus are not byte-identical.
-  const left = entry('view.toggleFileTree', t('header.leftPanels'), { checked: state.showLeft });
+  // The first switch is the file tree (⌘B) — it follows the pane to either
+  // side, so it must not be labelled "left panels" any more. The second folds
+  // the right column. The icon's own column still comes first.
+  const left = entry('view.toggleFileTree', t('menubar.toggleFileTree'), { checked: state.showLeft });
   const right = entry('view.toggleRightSidebar', t('header.rightPanels'), { checked: state.showRight });
   return [
     ...(kind === 'right' ? [right, left] : [left, right]),
@@ -199,8 +199,11 @@ export function buildColumnEdgeMenu(
   collapsed: boolean,
   state: CtxState,
 ): CtxNode[] {
+  // The first item acts on THIS column. The second is the file-tree switch
+  // (⌘B) on the left edge and the right-column switch on the right edge; the
+  // file-tree label is neutral because the pane is no longer tied to the left.
   const toggleId: CtxActionId = side === 'left' ? 'view.toggleFileTree' : 'view.toggleRightSidebar';
-  const toggleLabel = side === 'left' ? t('header.leftPanels') : t('header.rightPanels');
+  const toggleLabel = side === 'left' ? t('menubar.toggleFileTree') : t('header.rightPanels');
   return [
     collapsed
       ? entry('column.expand', t('sidebarDock.expand'))

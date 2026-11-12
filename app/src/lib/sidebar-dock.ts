@@ -16,8 +16,10 @@
  *    One state (`collapsed`), one toggle action — no second source of truth.
  *  - `+` (the pane list) sits at the end of the icon strip. It replaced the
  *    dock-level right-click menu; there is exactly one entry point left.
- *  - `files` is shell chrome, not a user choice: it is pinned to
- *    `groups.left[0].panes[0]`, always visible, and never a drag source.
+ *  - Every pane is a peer — `files` included. It can be dragged to either side,
+ *    split into its own region, hidden, closed and re-added from `+`. The only
+ *    thing that is still special is that its registry default side is left, so
+ *    a fresh install opens with the file tree there; nothing re-pins it.
  *  - `visible` is a separate map now (a pane can be switched off without
  *    leaving its tab group). `outline` still answers from its own runtime
  *    source in App.vue.
@@ -39,15 +41,15 @@ export interface SidebarDockGroup {
   /** Active tab of this region; null → first renderable pane. */
   active: SidebarPaneId | null;
   /** Stage 2: relative height share. Absent = 1, so older blobs keep their
-   *  shape and need no migration flag. `files`' region is always 1. */
+   *  shape and need no migration flag. Every region is resizable. */
   height?: number;
 }
 
 export interface SidebarDockState {
   groups: Record<SidebarSide, SidebarDockGroup[]>;
   /**
-   * Per-pane user switch. `visibility === 'always'` (files) is forced true;
-   * tab/session panes are overridden at runtime by App.vue.
+   * Per-pane user switch — `files` included. Tab/session panes are overridden
+   * at runtime by App.vue; a stored `false` is never forced back on.
    */
   visible: Record<SidebarPaneId, boolean>;
   /** User-collapsed dock (distinct from "no renderable pane"). */
@@ -108,8 +110,10 @@ export function clampGroupHeight(value: unknown): number {
   return Math.round(clamped * 100) / 100;
 }
 
-/** V1 — the file tree container. It is the primary sidebar itself, so every
- *  move/sanitize path locks it to the left, first tab, always visible. */
+/** V1 — the file-tree pane id. Kept as a named constant because the legacy
+ *  migration and the ⌘B / "Show File Tree" affordance still refer to it, but it
+ *  is NO LONGER a lock: `files` is a normal movable, hideable pane now.
+ *  `PRIMARY_SIDE` is only the registry default side for a fresh install. */
 export const PRIMARY_PANE_ID: SidebarPaneId = 'files';
 export const PRIMARY_SIDE: SidebarSide = 'left';
 
@@ -127,9 +131,10 @@ export function isPendingPane(id: SidebarPaneId): boolean {
   return !!DEF_BY_ID.get(id)?.pending;
 }
 
-/** `files` never travels: it is the shell's primary container. */
+/** All implemented panes travel; only placeholders that have no component yet
+ *  are excluded. `files` is a peer now — it can move, split and hide. */
 export function isMovablePane(id: SidebarPaneId): boolean {
-  return id !== PRIMARY_PANE_ID && !isPendingPane(id);
+  return !isPendingPane(id);
 }
 
 export function clampDockWidth(value: unknown): number {
@@ -322,21 +327,11 @@ export function sanitizeSidebarDock(
     groups[def.defaultSide][0].panes.push(def.id);
   }
 
-  // The primary container is shell chrome: it cannot live on the right, sit
-  // second, or be hidden — even if the stored blob says otherwise.
-  const primaryGroup = groups[PRIMARY_SIDE][0];
-  const filesWasActive = primaryGroup.active === PRIMARY_PANE_ID;
-  for (const side of SIDES) {
-    for (const group of groups[side]) {
-      group.panes = group.panes.filter((id) => id !== PRIMARY_PANE_ID);
-      if (group.active === PRIMARY_PANE_ID) group.active = null;
-    }
-  }
-  primaryGroup.panes.unshift(PRIMARY_PANE_ID);
-  // The primary region is locked: no splitter, always the default share.
-  delete primaryGroup.height;
-  // Reinstating `files` must not silently un-select it if it was the tab.
-  if (filesWasActive) primaryGroup.active = PRIMARY_PANE_ID;
+  // No pane is pinned any more. The dedupe pass above keeps `files` exactly
+  // once, wherever the blob put it (including the right dock or a second
+  // region), and the append pass above restores it at its registry default
+  // side only when it was missing entirely. Its `visible` switch is likewise a
+  // normal user choice — a stored `false` must survive a reload.
 
   for (const side of SIDES) {
     for (const group of groups[side]) {
@@ -349,7 +344,6 @@ export function sanitizeSidebarDock(
   for (const [key, value] of Object.entries(parsed.visible)) {
     if (typeof value === 'boolean') visible[key as SidebarPaneId] = value;
   }
-  visible[PRIMARY_PANE_ID] = true;
 
   return {
     groups,
@@ -487,6 +481,13 @@ export function paneGroup(state: SidebarDockState, id: SidebarPaneId): DockPaneL
   return null;
 }
 
+/** The side the file-tree pane currently lives on. Falls back to its registry
+ *  default for a blob that is missing it. ⌘B / "Show File Tree" use this so
+ *  they follow `files` after it has been dragged to the other column. */
+export function primaryPaneSide(state: SidebarDockState): SidebarSide {
+  return paneGroup(state, PRIMARY_PANE_ID)?.side ?? PRIMARY_SIDE;
+}
+
 export function dockPane(
   state: SidebarDockState,
   id: SidebarPaneId,
@@ -568,22 +569,22 @@ function pickActive(preferred: SidebarPaneId | null, panes: readonly SidebarPane
   return panes[0] ?? null;
 }
 
-/** Move every *movable* pane to `side`, preserving order. `files` stays on the
- *  left; when everything else lands on the right, the left stays active on it
- *  instead of going blank. */
+/** Move every pane to `side`, preserving order — `files` is a peer and travels
+ *  too. The other side keeps one empty region so `groups[side][0]` always
+ *  exists; App.vue hides a side that has no renderable pane. */
 export function moveAllPanesToSide(
   state: SidebarDockState,
   side: SidebarSide,
 ): SidebarDockState {
   const all = SIDES.flatMap((s) => state.groups[s].flatMap((group) => group.panes));
-  const others = all.filter((id) => id !== PRIMARY_PANE_ID);
   const previousActive = state.groups[side]
     .map((group) => group.active)
     .find((id): id is SidebarPaneId => !!id) ?? null;
+  const active = pickActive(previousActive, all);
   return {
     groups: {
-      left: [{ panes: side === 'left' ? [PRIMARY_PANE_ID, ...others] : [PRIMARY_PANE_ID], active: PRIMARY_PANE_ID }],
-      right: [{ panes: side === 'right' ? others : [], active: side === 'right' ? pickActive(previousActive, others) : null }],
+      left: side === 'left' ? [{ panes: all, active }] : [{ panes: [], active: null }],
+      right: side === 'right' ? [{ panes: all, active }] : [{ panes: [], active: null }],
     },
     visible: { ...state.visible },
     collapsed: { ...state.collapsed },
@@ -627,7 +628,7 @@ export function moveDockTab(
     // remaining regions do not jump when the group count changes.
     if (gone.height !== undefined) {
       const heir = sourceGroups[Math.min(from.group, sourceGroups.length - 1)];
-      if (heir && !heir.panes.includes(PRIMARY_PANE_ID)) {
+      if (heir) {
         heir.height = clampGroupHeight((heir.height ?? DOCK_GROUP_DEFAULT_HEIGHT) + gone.height);
       }
     }
@@ -644,19 +645,9 @@ export function moveDockTab(
   // tab; after removing it, everything to its right shifted left by one.
   if (target.side === from.side && groupIndex === from.group && from.index < index) index -= 1;
   index = Math.min(Math.max(index, 0), destination.panes.length);
-  if (target.side === PRIMARY_SIDE) {
-    const filesIndex = destination.panes.indexOf(PRIMARY_PANE_ID);
-    if (filesIndex >= 0) index = Math.max(index, filesIndex + 1);
-  }
   destination.panes.splice(index, 0, id);
   destination.active = id;
   return next;
-}
-
-/** Stage 2 — the region holding `files` is shell chrome: never split, merged
- *  away or resized. */
-function isLockedGroup(group: SidebarDockGroup | undefined): boolean {
-  return !!group && group.panes.includes(PRIMARY_PANE_ID);
 }
 
 /**
@@ -664,9 +655,9 @@ function isLockedGroup(group: SidebarDockGroup | undefined): boolean {
  * region and append it as a brand-new trailing region on `side`. Used when a tab
  * is dropped on a column (rather than on a tab strip): the new region always
  * lands at that column's foot. It works for a same-side peel and a cross-side
- * move alike. Only movable panes participate, so `files` is implicitly
- * protected; an emptied non-files source region collapses away (the files
- * region never empties, because `files` can never be the pane removed).
+ * move alike. Every implemented pane is movable, `files` included; an emptied
+ * source region collapses away (which may leave that side with no regions —
+ * App.vue treats a side with no renderable pane as hidden).
  */
 export function appendToNewRegion(
   state: SidebarDockState,
@@ -686,9 +677,10 @@ export function appendToNewRegion(
       if (i < 0) continue;
       g.panes.splice(i, 1);
       if (g.active === paneId) g.active = g.panes[0] ?? null;
-      // Drop the now-empty region. The files region can never be the one emptied
-      // here (files is not movable), so it always keeps its home.
-      if (g.panes.length === 0) groups.splice(gi, 1);
+      // Drop the now-empty region — including one that used to hold `files` —
+      // but keep the side's last group so `groups[side][0]` always exists
+      // (same guard as moveDockTab; App.vue hides a side with no renderable pane).
+      if (g.panes.length === 0 && groups.length > 1) groups.splice(gi, 1);
       removed = true;
       break;
     }
@@ -709,7 +701,7 @@ export function mergeDockGroups(
   const groups = state.groups[side];
   const target = groups[groupIndex];
   const source = groups[groupIndex + 1];
-  if (!target || !source || isLockedGroup(target) || isLockedGroup(source)) return state;
+  if (!target || !source) return state;
 
   const next = cloneDock(state);
   const nextGroups = next.groups[side];
@@ -738,16 +730,17 @@ export function setDockGroupHeight(
   height: unknown,
 ): SidebarDockState {
   const group = state.groups[side][groupIndex];
-  if (!group || isLockedGroup(group)) return state;
+  if (!group) return state;
   const next = cloneDock(state);
   next.groups[side][groupIndex].height = clampGroupHeight(height);
   return next;
 }
 
 /**
- * V1 — one-time merge of the old standalone file-tree column into the left
- * dock. Pure and idempotent: `alreadyMerged` skips the width/move work and
- * only normalizes the stored state.
+ * V1 — one-time merge of the old standalone file-tree column into the dock.
+ * Pure and idempotent: `alreadyMerged` skips the width/move work and only
+ * normalizes the stored state. The left/files layout it writes is the V1
+ * *default*, not a live constraint — `files` may later be dragged anywhere.
  */
 export function mergeFilesPane(
   state: SidebarDockState,

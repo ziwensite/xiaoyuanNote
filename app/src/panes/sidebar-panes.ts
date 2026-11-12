@@ -38,9 +38,9 @@ export type SidebarPaneId =
 /** Panes with a renderable component today. */
 export type ImplementedSidebarPaneId = SidebarPaneId;
 
-/** Where a pane's current visibility derives from. `always` is a container
- *  that is part of the shell itself (the primary sidebar's file tree) and can
- *  never be switched off. */
+/** Legacy classification of where a pane's visibility comes from. It only
+ *  drives the V1 migration; at runtime the `visible` map is authoritative for
+ *  every pane, `files` included (it can now be hidden and re-added). */
 export type SidebarPaneVisibility = 'setting' | 'tab' | 'session' | 'always';
 
 /** Context the availability gate reads. Kept structural so this module stays
@@ -78,13 +78,13 @@ const markdownInFolder = (ctx: SidebarPaneAvailabilityCtx) =>
 
 /**
  * Array order drives the fallback append order in `sanitizeSidebarDock`. The
- * first entry is the primary sidebar container; the rest keep the pre-S1
- * order so old `rsPaneOrder` blobs migrate predictably.
+ * first entry is the file tree (its registry default side is left); the rest
+ * keep the pre-S1 order so old `rsPaneOrder` blobs migrate predictably.
  */
 export const SIDEBAR_PANE_DEFS: readonly SidebarPaneDef[] = [
-  // V1 — the primary sidebar container. Not a toggleable panel: locked to the
-  // left dock, always on, and deliberately absent from View › Panels / the
-  // dock's `+` list.
+  // `files` is a normal pane now: movable, hideable and listed in View › Panels
+  // and the dock's `+` list. `visibility: 'always'` is kept only because the V1
+  // migration reads it (changing it would flip legacy blobs to hidden).
   {
     id: 'files',
     visibility: 'always',

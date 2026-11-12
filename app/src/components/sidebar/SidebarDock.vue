@@ -13,9 +13,10 @@
  * it, so it keeps the in-panel 32px strip.
  *
  * Tabs drag within a side and across the two sides via Pointer Events
- * (HTML5 DnD is unusable here: Tauri's native file-drop swallows it).
- * `files` is pinned first on the left and never a drag source; drops before
- * it are clamped to after it.
+ * (HTML5 DnD is unusable here: Tauri's native file-drop swallows it). Every
+ * pane — `files` included — is a drag source. Dropping on a tab strip inserts
+ * into that region; dropping elsewhere in a column peels the tab into a new
+ * region at that column's foot.
  */
 import { computed, ref } from 'vue';
 import { useSettingsStore } from '../../stores/settings';
@@ -161,22 +162,16 @@ function onSidebarResize(ev: MouseEvent) {
 
 /** Right-click inside a pane body. Panes that already own a menu (file tree,
  *  saved views) call stopPropagation, so this only fires on the chrome. */
-/** Stage 2 — the `files` region is shell chrome: no splitter, no resize. */
-function isLockedRegion(index: number): boolean {
-  return !!props.groups[index]?.panes.some((pane) => pane.id === 'files');
-}
-
 /** Relative weight → flex share. Absent height = one equal share. */
 function groupStyle(group: DockGroupView) {
   return { flex: `${group.height ?? 1} 1 0%` };
 }
 
-/** Drag a region separator. The first left-side separator sits below `files`,
- *  which cannot be resized, so in that case we resize the LOWER region. */
+/** Drag a region separator: resize the region ABOVE it. Every region is
+ *  resizable now, including one that happens to hold `files`. */
 function onRegionResize(ev: MouseEvent, groupIndex: number) {
   ev.preventDefault();
-  const upperLocked = isLockedRegion(groupIndex - 1);
-  const targetIndex = upperLocked ? groupIndex : groupIndex - 1;
+  const targetIndex = groupIndex - 1;
   const startWeight = props.groups[targetIndex]?.height ?? 1;
   const host = (ev.currentTarget as HTMLElement).parentElement;
   const regionEl = host?.querySelectorAll<HTMLElement>('.dock-group')[targetIndex];
@@ -185,7 +180,7 @@ function onRegionResize(ev: MouseEvent, groupIndex: number) {
   const startY = ev.clientY;
   const onMove = (m: MouseEvent) => {
     const dy = m.clientY - startY;
-    const nextPx = Math.max(60, startHeight + (upperLocked ? -dy : dy));
+    const nextPx = Math.max(60, startHeight + dy);
     settings.setDockRegionHeight(props.side, targetIndex, startWeight * (nextPx / startHeight));
   };
   const onUp = () => {
@@ -229,16 +224,17 @@ function onEdgeContext(ev: MouseEvent) {
   emit('edgeContext', props.side, ev.clientX, ev.clientY);
 }
 
-/** Whether this column should show the split drop zone right now. True only
- *  while a tab from THIS side is being dragged AND that tab's region actually
- *  has a second pane to peel off (the old `canSplitRegion` guard). So a
- *  single-pane region never advertises a dead drop. */
+/** Whether this column should highlight as a split target right now: the
+ *  dragged tab is about to create a new trailing region HERE. A same-side peel
+ *  needs a second pane in the source region to be a real change; a cross-side
+ *  drop always moves the pane, so it always counts. */
 const splitHighlight = computed<boolean>(() => {
   if (!dockDrag.over?.split || dockDrag.over.side !== props.side) return false;
   const id = dockDrag.id;
   if (!id || !isMovablePane(id)) return false;
   const loc = paneGroup(settings.sidebarDock, id);
-  if (!loc || loc.side !== props.side) return false;
+  if (!loc) return false;
+  if (loc.side !== props.side) return true;
   const group = settings.sidebarDock.groups[props.side]?.[loc.group];
   return !!group && group.panes.length > 1;
 });

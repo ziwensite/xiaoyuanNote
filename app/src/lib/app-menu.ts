@@ -81,8 +81,9 @@ export interface MenuState {
   lineNumbers: boolean;
   /** Auto-commit on save (history). */
   autoGit: boolean;
-  /** Right-sidebar / left-sidebar pane visibility, for the 面板 check marks. */
+  /** Per-pane on/off state, for the 面板 check marks (all panes are peers). */
   panes: {
+    files: boolean;
     outline: boolean;
     inspector: boolean;
     backlinks: boolean;
@@ -407,6 +408,7 @@ export function buildAppMenu(ctx: MenuContext): TopMenu[] {
       id: 'panes',
       label: t('menubar.panes'),
       items: [
+        item('view.toggleFilesPane', t('rsPane.files'), { checked: state.panes.files }),
         item('view.toggleOutline', t('menubar.paneOutline'), { checked: state.panes.outline }),
         item('view.toggleInspector', t('menubar.paneInspector'), { checked: state.panes.inspector }),
         item('view.toggleBacklinks', t('menubar.paneBacklinks'), { checked: state.panes.backlinks }),
