@@ -22,8 +22,9 @@ import { useCalendarStore } from '../stores/calendar';
 import { useI18n } from '../i18n';
 import { addDays } from '../lib/calendar';
 import Icons from './Icons.vue';
-import PanelHeader from './panel/PanelHeader.vue';
 import SegControl from './panel/SegControl.vue';
+import { lunarDateLabel } from '../lib/lunar';
+import { isoWeek } from '../lib/iso-week';
 import { isOverdue, localDateKey, type TaskPriority } from '../lib/tasks';
 import { PERIOD_KINDS, shiftPeriod, type PeriodKind } from '../lib/periodic-notes';
 import { periodWindow, tasksInWindow } from '../lib/period-window';
@@ -119,23 +120,19 @@ const groups = computed(() => {
 
 const openCount = computed(() => tasks.value.filter((x) => !x.done).length);
 const total = computed(() => tasks.value.length);
-/** A window IS an "unfinished only" list, so its own length is the count. */
-const shownCount = computed(() => {
-  if (settings.tasksLinkCalendar || windowOn.value) return visible.value.length;
-  return openCount.value;
+/** Header date readout: two lines for a selected day (bold `12日周五` over the
+ *  lunar day), or one bold line for a selected week (`第47周`). */
+const WEEKDAY_CN = ['日', '一', '二', '三', '四', '五', '六'];
+const dateInfo = computed(() => {
+  const wk = calendar.selectedWeekStart;
+  if (wk) {
+    return { kind: 'week' as const, main: t('tasks.week', { week: isoWeek(wk).week }), sub: '' };
+  }
+  const d = calendar.focusDate;
+  const [y, m, day] = d.split('-').map(Number);
+  const wd = WEEKDAY_CN[new Date(y, m - 1, day).getDay()];
+  return { kind: 'day' as const, main: `${day}日周${wd}`, sub: lunarDateLabel(d) ?? '' };
 });
-
-const rangeLabel = computed(() => {
-  const r = linkedRange.value;
-  if (!r) return '';
-  if (r.start === r.end) return t('tasks.followDay', { date: r.start });
-  return t('tasks.followWeek', { from: r.start, to: r.end });
-});
-
-/** Pager for linked mode: step the calendar's selection so the two stay bound. */
-function stepLinked(delta: number) {
-  calendar.stepLinked(delta);
-}
 
 /** Per-row expand state for the two-line title clamp. Click toggles; double
  *  click on the row opens the note (see template). */
@@ -203,42 +200,24 @@ async function openTask(task: WorkspaceTask) {
 
 <template>
   <div class="tasks-panel rp">
-    <PanelHeader :count="shownCount || null">
-      <span class="tasks-panel__head-actions">
-        <button
-          class="rp-icon-btn tasks-panel__flag"
-          :class="{ 'is-on': settings.tasksLinkCalendar }"
-          type="button"
-          :title="t('tasks.linkCalendar')"
-          :aria-label="t('tasks.linkCalendar')"
-          :aria-pressed="settings.tasksLinkCalendar"
-          @click="settings.toggleTasksLinkCalendar()"
-        >
-          <Icons name="link" :size="14" />
-        </button>
-        <template v-if="settings.tasksLinkCalendar">
-          <span class="tasks-panel__range">{{ rangeLabel }}</span>
-          <button
-            class="tasks-panel__step"
-            type="button"
-            :title="t('tasks.prev')"
-            :aria-label="t('tasks.prev')"
-            @click="stepLinked(calendar.selectedWeekStart ? -7 : -1)"
-          >
-            <Icons name="chevron-left" :size="14" />
-          </button>
-          <button
-            class="tasks-panel__step"
-            type="button"
-            :title="t('tasks.next')"
-            :aria-label="t('tasks.next')"
-            @click="stepLinked(calendar.selectedWeekStart ? 7 : 1)"
-          >
-            <Icons name="chevron-right" :size="14" />
-          </button>
-        </template>
-      </span>
-    </PanelHeader>
+    <div class="rp-head tasks-panel__head">
+      <div class="tasks-panel__date">
+        <div class="tasks-panel__date-main">{{ dateInfo.main }}</div>
+        <div v-if="dateInfo.kind === 'day'" class="tasks-panel__date-sub">{{ dateInfo.sub }}</div>
+      </div>
+      <span class="tasks-panel__count">({{ t('tasks.count', { done: openCount, total: total }) }})</span>
+      <button
+        class="rp-icon-btn tasks-panel__flag"
+        :class="{ 'is-on': settings.tasksLinkCalendar }"
+        type="button"
+        :title="t('tasks.linkCalendar')"
+        :aria-label="t('tasks.linkCalendar')"
+        :aria-pressed="settings.tasksLinkCalendar"
+        @click="settings.toggleTasksLinkCalendar()"
+      >
+        <Icons name="link" :size="14" />
+      </button>
+    </div>
 
     <div class="tasks-panel__filters">
       <SegControl
@@ -459,11 +438,32 @@ async function openTask(task: WorkspaceTask) {
 .tasks-panel__check {
   margin-top: 2px;
 }
-.tasks-panel__head-actions {
+.tasks-panel__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  min-height: 36px;
+}
+.tasks-panel__date {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.tasks-panel__date-main {
+  font-weight: 600;
+  font-size: 15px;
+}
+.tasks-panel__date-sub {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.tasks-panel__count {
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.tasks-panel__head .tasks-panel__flag {
   margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 .tasks-panel__text-wrap {
   flex: 1;

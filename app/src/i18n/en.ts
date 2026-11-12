@@ -2196,6 +2196,8 @@
       all: 'All',
     },
     linkCalendar: 'Link to calendar',
+    week: 'Week {week}',
+    count: '(To do {done} / Total {total})',
     followDay: 'Selected day {date}',
     followWeek: 'Selected week {from} – {to}',
     prev: 'Previous',
