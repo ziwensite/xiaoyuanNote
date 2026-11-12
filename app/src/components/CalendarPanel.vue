@@ -206,17 +206,28 @@ function cornerOf(date: string): 'off' | 'work' | null {
  * text — the corner already says it. Keep it to one short string so the cell
  * never grows past the grid's rhythm.
  *
- * Only the *first* day of a same-name off span shows the festival name (e.g.
- * 国庆 shows on 10-01 only, not on every day of the 10-01–10-07 break). The
- * rest of the break keep just the red off corner and fall through to the lunar
- * line, instead of repeating the name daily.
+ * The festival name shows ONLY on the actual statutory day — a fixed solar or
+ * lunar date — never on the adjacent 调休 days that merely share the off span
+ * (e.g. 国庆 on 10-01 only, not on 10-02…10-07; 春节 on 正月初一, not 除夕 or
+ * the break's tail). The extra off days keep just the red corner and fall
+ * through to the lunar line.
  */
+const STATUTORY_FESTIVAL_KEYS = new Set(['qingming', 'springFestival', 'dragonBoat', 'midAutumn']);
+
+/** True when `date` is the real day of a statutory festival (fixed solar or
+ *  lunar), independent of the surrounding 调休 off span. */
+function isFestivalDay(date: string): boolean {
+  const [, mm, dd] = date.split('-');
+  if (mm === '01' && dd === '01') return true; // 元旦
+  if (mm === '05' && dd === '01') return true; // 劳动节
+  if (mm === '10' && dd === '01') return true; // 国庆
+  const f = festivalOf(date);
+  return f !== null && STATUTORY_FESTIVAL_KEYS.has(f.key);
+}
+
 function subLabel(date: string): string {
   const hit = holidayOf(date);
-  if (hit?.kind === 'off' && hit.name) {
-    const prev = holidayOf(addDays(date, -1));
-    if (!(prev?.kind === 'off' && prev.name === hit.name)) return hit.name;
-  }
+  if (hit?.kind === 'off' && hit.name && isFestivalDay(date)) return hit.name;
   if (!showLunar.value) return '';
   const festival = festivalOf(date);
   if (festival) return festival.name;
