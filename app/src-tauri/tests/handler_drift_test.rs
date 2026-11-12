@@ -56,15 +56,13 @@ const LIB_ONLY_ANDROID: &[&str] = &[
     "saf_delete",
 ];
 
-/// Known one-sided registration: `HolidaysState` and `LunarState` are
-/// `.manage()`-ed only in lib.rs's setup, so the desktop runner cannot register
-/// these yet. `docs/calendar-pane-plan.md` asks for dual registration here —
+/// Known one-sided registration: `HolidaysState` is `.manage()`-ed only in
+/// lib.rs's setup, so the desktop runner cannot register these yet.
+/// `docs/calendar-pane-plan.md` asks for dual registration here —
 /// remove these names from the whitelist once desktop catches up.
 const LIB_ONLY_HOLIDAYS: &[&str] = &[
     "holidays_cached",
     "holidays_refresh",
-    "lunar_cached",
-    "lunar_refresh",
 ];
 
 /// Desktop-only commands. The first six are defined in `runner.rs` itself

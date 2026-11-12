@@ -113,7 +113,6 @@ pub mod reminders;
 // Calendar holidays: on-disk cache of the public holiday JSON plus conditional,
 // event-driven refreshes. No polling thread (see the module docs).
 pub mod holidays;
-pub mod lunar;
 
 // v2.3 dev WebDriver bridge — debug builds only.
 #[cfg(debug_assertions)]
@@ -213,7 +212,6 @@ pub fn run() {
             {
                 use tauri::Manager;
                 app.manage(holidays::HolidaysState::load(app.handle()));
-                app.manage(lunar::LunarState::load(app.handle()));
             }
             // v4.0 Pillar 2 — start the cron-trigger loop. Sleeps until
             // a `schedule` recipe is due; harmless when no recipes are
@@ -481,8 +479,6 @@ pub fn run() {
             reminders::reminders_status,
             holidays::holidays_cached,
             holidays::holidays_refresh,
-            lunar::lunar_cached,
-            lunar::lunar_refresh,
             workspace_index::workspace_index_referenced_by,
             commands::update_frontmatter_property,
             commands::delete_frontmatter_property,
