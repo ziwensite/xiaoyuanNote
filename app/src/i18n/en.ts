@@ -2205,7 +2205,7 @@
     next: 'Next',
     period: {
       toggle: 'Period window',
-      off: 'Off',
+      off: '📅',
       daily: 'Day',
       weekly: 'Week',
       monthly: 'Month',

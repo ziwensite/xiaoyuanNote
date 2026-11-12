@@ -2177,7 +2177,7 @@ export const zh: I18n = {
     next: '下一',
     period: {
       toggle: '周期窗口',
-      off: '关闭',
+      off: '📅',
       daily: '日',
       weekly: '周',
       monthly: '月',
