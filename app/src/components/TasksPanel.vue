@@ -78,27 +78,30 @@ const linkedRange = computed<{ start: string; end: string } | null>(() => {
   return { start: calendar.focusDate, end: calendar.focusDate };
 });
 
+/** The calendar link is an *extra* AND condition layered on top of whatever the
+ *  ordinary filters already chose — it never replaces them (per design: the
+ *  link must not disturb the filters below). So we build the base list from
+ *  open/today/all or the period window, apply priority, then narrow by the
+ *  calendar's selected day/week when the link is on. */
 const visible = computed<WorkspaceTask[]>(() => {
-  const range = linkedRange.value;
-  if (range) {
-    // Linked mode: every task due inside the range, done or not, so it mirrors
-    // what the calendar used to show underneath its grid. Priority filter still
-    // applies on top.
-    let list = tasks.value.filter(
-      (x) => x.meta.due !== null && x.meta.due >= range.start && x.meta.due <= range.end,
-    );
-    if (priorityOnly.value) list = list.filter((x) => x.meta.priority !== null);
-    return list;
-  }
-  if (windowOn.value) return tasksInWindow(tasks.value, activeWindow.value);
-  let list = tasks.value;
-  if (filter.value === 'open') list = list.filter((x) => !x.done);
-  else if (filter.value === 'today') {
-    list = list.filter(
-      (x) => !x.done && x.meta.due !== null && x.meta.due <= today.value,
-    );
+  let list: WorkspaceTask[];
+  if (windowOn.value) list = tasksInWindow(tasks.value, activeWindow.value);
+  else {
+    list = tasks.value;
+    if (filter.value === 'open') list = list.filter((x) => !x.done);
+    else if (filter.value === 'today') {
+      list = list.filter(
+        (x) => !x.done && x.meta.due !== null && x.meta.due <= today.value,
+      );
+    }
   }
   if (priorityOnly.value) list = list.filter((x) => x.meta.priority !== null);
+  const range = linkedRange.value;
+  if (range) {
+    list = list.filter(
+      (x) => x.meta.due !== null && x.meta.due >= range.start && x.meta.due <= range.end,
+    );
+  }
   return list;
 });
 
@@ -115,6 +118,7 @@ const groups = computed(() => {
 });
 
 const openCount = computed(() => tasks.value.filter((x) => !x.done).length);
+const total = computed(() => tasks.value.length);
 /** A window IS an "unfinished only" list, so its own length is the count. */
 const shownCount = computed(() => {
   if (settings.tasksLinkCalendar || windowOn.value) return visible.value.length;
@@ -133,10 +137,24 @@ function stepLinked(delta: number) {
   calendar.stepLinked(delta);
 }
 
+/** Per-row expand state for the two-line title clamp. Click toggles; double
+ *  click on the row opens the note (see template). */
+const expanded = ref<Record<string, boolean>>({});
+function isExpanded(key: string): boolean {
+  return !!expanded.value[key];
+}
+function toggleExpand(key: string) {
+  expanded.value = { ...expanded.value, [key]: !expanded.value[key] };
+}
+
 const hasFolder = computed(() => idx.folder !== null);
 
 function overdue(task: WorkspaceTask): boolean {
   return !task.done && isOverdue(task.meta.due, today.value);
+}
+
+function keyOf(task: WorkspaceTask): string {
+  return `${task.path}:${task.line}`;
 }
 
 async function openTask(task: WorkspaceTask) {
@@ -155,82 +173,80 @@ async function openTask(task: WorkspaceTask) {
 
 <template>
   <div class="tasks-panel rp">
-    <PanelHeader :count="shownCount || null" />
-
-    <div class="tasks-panel__filters">
-      <button
-        class="rp-icon-btn tasks-panel__flag"
-        :class="{ 'is-on': settings.tasksLinkCalendar }"
-        type="button"
-        :title="t('tasks.linkCalendar')"
-        :aria-label="t('tasks.linkCalendar')"
-        :aria-pressed="settings.tasksLinkCalendar"
-        @click="settings.toggleTasksLinkCalendar()"
-      >
-        <Icons name="link" :size="14" />
-      </button>
-
-      <template v-if="settings.tasksLinkCalendar">
-        <span class="tasks-panel__range">{{ rangeLabel }}</span>
+    <PanelHeader :count="shownCount || null">
+      <span class="tasks-panel__head-actions">
         <button
-          class="tasks-panel__step"
+          class="rp-icon-btn tasks-panel__flag"
+          :class="{ 'is-on': settings.tasksLinkCalendar }"
           type="button"
-          :title="t('tasks.prev')"
-          :aria-label="t('tasks.prev')"
-          @click="stepLinked(calendar.selectedWeekStart ? -7 : -1)"
+          :title="t('tasks.linkCalendar')"
+          :aria-label="t('tasks.linkCalendar')"
+          :aria-pressed="settings.tasksLinkCalendar"
+          @click="settings.toggleTasksLinkCalendar()"
         >
-          <Icons name="chevron-left" :size="14" />
+          <Icons name="link" :size="14" />
         </button>
-        <button
-          class="tasks-panel__step"
-          type="button"
-          :title="t('tasks.next')"
-          :aria-label="t('tasks.next')"
-          @click="stepLinked(calendar.selectedWeekStart ? 7 : 1)"
-        >
-          <Icons name="chevron-right" :size="14" />
-        </button>
-      </template>
-
-      <template v-else>
-        <SegControl
-          v-if="!windowOn"
-          v-model="filter"
-          class="tasks-panel__seg"
-          :options="(['open', 'today', 'all'] as Filter[]).map((f) => ({ value: f, label: t(`tasks.filter.${f}`) }))"
-        />
-        <div v-else class="tasks-panel__window">
+        <template v-if="settings.tasksLinkCalendar">
+          <span class="tasks-panel__range">{{ rangeLabel }}</span>
           <button
             class="tasks-panel__step"
             type="button"
-            :title="t('tasks.period.prev')"
-            :aria-label="t('tasks.period.prev')"
-            @click="stepWindow(-1)"
+            :title="t('tasks.prev')"
+            :aria-label="t('tasks.prev')"
+            @click="stepLinked(calendar.selectedWeekStart ? -7 : -1)"
           >
             <Icons name="chevron-left" :size="14" />
           </button>
-          <select
-            class="tasks-panel__kind"
-            :value="windowKind"
-            :aria-label="t('tasks.period.toggle')"
-            @change="setWindowKind"
-          >
-            <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
-              {{ t(`tasks.period.${kind}`) }}
-            </option>
-          </select>
           <button
             class="tasks-panel__step"
             type="button"
-            :title="t('tasks.period.next')"
-            :aria-label="t('tasks.period.next')"
-            @click="stepWindow(1)"
+            :title="t('tasks.next')"
+            :aria-label="t('tasks.next')"
+            @click="stepLinked(calendar.selectedWeekStart ? 7 : 1)"
           >
             <Icons name="chevron-right" :size="14" />
           </button>
-        </div>
-      </template>
+        </template>
+      </span>
+    </PanelHeader>
 
+    <div class="tasks-panel__filters">
+      <SegControl
+        v-if="!windowOn"
+        v-model="filter"
+        class="tasks-panel__seg"
+        :options="(['open', 'today', 'all'] as Filter[]).map((f) => ({ value: f, label: t(`tasks.filter.${f}`) }))"
+      />
+      <div v-else class="tasks-panel__window">
+        <button
+          class="tasks-panel__step"
+          type="button"
+          :title="t('tasks.period.prev')"
+          :aria-label="t('tasks.period.prev')"
+          @click="stepWindow(-1)"
+        >
+          <Icons name="chevron-left" :size="14" />
+        </button>
+        <select
+          class="tasks-panel__kind"
+          :value="windowKind"
+          :aria-label="t('tasks.period.toggle')"
+          @change="setWindowKind"
+        >
+          <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
+            {{ t(`tasks.period.${kind}`) }}
+          </option>
+        </select>
+        <button
+          class="tasks-panel__step"
+          type="button"
+          :title="t('tasks.period.next')"
+          :aria-label="t('tasks.period.next')"
+          @click="stepWindow(1)"
+        >
+          <Icons name="chevron-right" :size="14" />
+        </button>
+      </div>
       <button
         v-if="!windowOn"
         class="rp-icon-btn tasks-panel__flag"
@@ -244,7 +260,6 @@ async function openTask(task: WorkspaceTask) {
         <span class="tasks-panel__bars tasks-panel__bars--high" aria-hidden="true"><i /><i /><i /></span>
       </button>
       <button
-        v-if="!settings.tasksLinkCalendar"
         class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': windowOn }"
         type="button"
@@ -274,10 +289,11 @@ async function openTask(task: WorkspaceTask) {
         <ul class="rp-list">
           <li
             v-for="task in group.items"
-            :key="`${task.path}:${task.line}`"
+            :key="keyOf(task)"
             class="rp-row tasks-panel__item"
-            :class="{ 'tasks-panel__item--done': task.done }"
-            @click="openTask(task)"
+            :class="{ 'tasks-panel__item--done': task.done, 'is-expanded': isExpanded(keyOf(task)) }"
+            @click="toggleExpand(keyOf(task))"
+            @dblclick="openTask(task)"
           >
             <input
               v-if="!windowOn"
@@ -288,28 +304,32 @@ async function openTask(task: WorkspaceTask) {
               @click.stop="toggle(task)"
             />
             <span v-else class="tasks-panel__mark" aria-hidden="true">•</span>
-            <span class="tasks-panel__text">{{ task.meta.title }}</span>
-            <span
-              v-if="task.meta.priority"
-              class="tasks-panel__bars"
-              :class="`tasks-panel__bars--${task.meta.priority}`"
-              :title="task.meta.priority"
-            ><i /><i /><i /></span>
-            <span
-              v-if="task.meta.recurrence && task.meta.recurrence.kind !== 'natural'"
-              class="tasks-panel__recur"
-              :class="`tasks-panel__recur--${task.meta.recurrence.kind}`"
-              :title="
-                task.meta.recurrence.kind === 'legacy'
-                  ? t('tasks.recurrenceLegacy')
-                  : t('tasks.recurrenceUnsupported')
-              "
-            >🔁</span>
-            <span
-              v-if="task.meta.due"
-              class="tasks-panel__due"
-              :class="{ 'tasks-panel__due--overdue': overdue(task) }"
-            >{{ task.meta.due }}</span>
+            <div class="tasks-panel__text-wrap">
+              <span class="tasks-panel__text" :class="{ 'is-clamped': !isExpanded(keyOf(task)) }">{{ task.meta.title }}</span>
+              <div class="tasks-panel__badges">
+                <span
+                  v-if="task.meta.priority"
+                  class="tasks-panel__bars"
+                  :class="`tasks-panel__bars--${task.meta.priority}`"
+                  :title="task.meta.priority"
+                ><i /><i /><i /></span>
+                <span
+                  v-if="task.meta.recurrence && task.meta.recurrence.kind !== 'natural'"
+                  class="tasks-panel__recur"
+                  :class="`tasks-panel__recur--${task.meta.recurrence.kind}`"
+                  :title="
+                    task.meta.recurrence.kind === 'legacy'
+                      ? t('tasks.recurrenceLegacy')
+                      : t('tasks.recurrenceUnsupported')
+                  "
+                >🔁</span>
+              </div>
+              <span
+                v-if="task.meta.due"
+                class="tasks-panel__due"
+                :class="{ 'tasks-panel__due--overdue': overdue(task) }"
+              >{{ task.meta.due }}</span>
+            </div>
           </li>
         </ul>
       </section>
@@ -410,18 +430,46 @@ async function openTask(task: WorkspaceTask) {
 .tasks-panel__check {
   margin-top: 2px;
 }
-.tasks-panel__text {
+.tasks-panel__head-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tasks-panel__text-wrap {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tasks-panel__text {
+  min-width: 0;
   overflow-wrap: anywhere;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Two-line clamp by default; a row click toggles `is-expanded` to show the
+   whole title. */
+.tasks-panel__text.is-clamped {
+  -webkit-line-clamp: 2;
 }
 .tasks-panel__item--done .tasks-panel__text {
   text-decoration: line-through;
   color: var(--text-3);
 }
+.tasks-panel__badges {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Due date moves to its own bottom line so it never crowds a long title. */
 .tasks-panel__due {
-  flex-shrink: 0;
-  margin-top: 1px;
+  flex: 0 0 auto;
+  align-self: flex-start;
   font-size: 12px;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
