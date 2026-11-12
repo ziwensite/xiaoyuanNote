@@ -443,7 +443,8 @@ async function openTask(task: WorkspaceTask) {
   align-items: flex-end;
   gap: 10px;
   min-height: 36px;
-  padding-bottom: 10px;
+  padding-top: 6px;
+  padding-bottom: 8px;
 }
 .tasks-panel__date {
   display: flex;
