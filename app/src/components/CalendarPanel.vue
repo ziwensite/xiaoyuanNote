@@ -203,12 +203,20 @@ function cornerOf(date: string): 'off' | 'work' | null {
 /**
  * The 9 px second line. A statutory holiday's name wins over the lunar day
  * (they would otherwise duplicate, e.g. 春节 / 初一); 补班 days get no extra
- * text — the hollow corner already says it. Keep it to one short string so the
- * cell never grows past the grid's rhythm.
+ * text — the corner already says it. Keep it to one short string so the cell
+ * never grows past the grid's rhythm.
+ *
+ * Only the *first* day of a same-name off span shows the festival name (e.g.
+ * 国庆 shows on 10-01 only, not on every day of the 10-01–10-07 break). The
+ * rest of the break keep just the red off corner and fall through to the lunar
+ * line, instead of repeating the name daily.
  */
 function subLabel(date: string): string {
   const hit = holidayOf(date);
-  if (hit?.kind === 'off' && hit.name) return hit.name;
+  if (hit?.kind === 'off' && hit.name) {
+    const prev = holidayOf(addDays(date, -1));
+    if (!(prev?.kind === 'off' && prev.name === hit.name)) return hit.name;
+  }
   if (!showLunar.value) return '';
   const festival = festivalOf(date);
   if (festival) return festival.name;
