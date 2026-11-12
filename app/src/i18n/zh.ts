@@ -2169,7 +2169,7 @@ export const zh: I18n = {
     },
     linkCalendar: '跟随日历',
     week: '第 {week} 周',
-    count: '(未完 {done} / 总计 {total})',
+    count: '({done} / {total})',
     followDay: '已选日期 {date}',
     followWeek: '已选周 {from} – {to}',
     prev: '上一',

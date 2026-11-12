@@ -205,7 +205,7 @@ async function openTask(task: WorkspaceTask) {
         <div class="tasks-panel__date-main">{{ dateInfo.main }}</div>
         <div v-if="dateInfo.kind === 'day'" class="tasks-panel__date-sub">{{ dateInfo.sub }}</div>
       </div>
-      <span class="tasks-panel__count">({{ t('tasks.count', { done: openCount, total: total }) }})</span>
+      <span class="tasks-panel__count">{{ t('tasks.count', { done: openCount, total: total }) }}</span>
       <button
         class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': settings.tasksLinkCalendar }"
@@ -443,6 +443,7 @@ async function openTask(task: WorkspaceTask) {
   align-items: flex-end;
   gap: 10px;
   min-height: 36px;
+  padding-bottom: 10px;
 }
 .tasks-panel__date {
   display: flex;
