@@ -438,13 +438,17 @@ async function openTask(task: WorkspaceTask) {
 .tasks-panel__check {
   margin-top: 2px;
 }
+/* Override the global .rp-head's locked `height:36px; flex:0 0 36px` so the
+   top/bottom padding below actually grows the header instead of being clipped
+   by the fixed height. Left/right padding kept at 12px to match other panels. */
 .tasks-panel__head {
   display: flex;
   align-items: flex-end;
   gap: 10px;
   min-height: 36px;
-  padding-top: 6px;
-  padding-bottom: 8px;
+  height: auto;
+  flex: 0 0 auto;
+  padding: 6px 12px 8px;
 }
 .tasks-panel__date {
   display: flex;
