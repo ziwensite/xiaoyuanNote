@@ -436,10 +436,13 @@ function openSelectedDay() {
               <span class="calendar-mini__day">{{ dayNumber(date) }}</span>
               <span v-if="subLabel(date)" class="calendar-mini__sub">{{ subLabel(date) }}</span>
               <span
-                class="calendar-mini__mark"
-                :class="`is-${densityOf(date).state}`"
-                aria-hidden="true"
-              />
+                v-if="densityOf(date).hasNote || densityOf(date).total > 0"
+                class="calendar-mini__marks"
+              >
+                <span v-if="densityOf(date).hasNote" class="calendar-mini__dot is-note" :title="t('calendar.mark.note')"></span>
+                <span v-if="densityOf(date).todo > 0" class="calendar-mini__dot is-open" :title="t('calendar.mark.open')"></span>
+                <span v-else-if="densityOf(date).total > 0" class="calendar-mini__dot is-done" :title="t('calendar.mark.done')"></span>
+              </span>
             </button>
           </template>
         </div>
@@ -715,6 +718,33 @@ function openSelectedDay() {
 .calendar-mini__mark.is-open {
   background: transparent;
   border: 1.5px solid var(--accent, #3b82f6);
+}
+
+/* Third line: explicit note / open / done marks under the lunar line. Note and
+   task state can both appear (a day may have a note and unfinished tasks). */
+.calendar-mini__marks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 8px;
+  margin-top: 1px;
+}
+.calendar-mini__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.calendar-mini__dot.is-note {
+  background: var(--text-3, #8a9199);
+}
+.calendar-mini__dot.is-open {
+  background: transparent;
+  border: 1.5px solid var(--accent, #3b82f6);
+}
+.calendar-mini__dot.is-done {
+  background: var(--success, #2f9e63);
 }
 
 .calendar-mini__cell.is-outside .calendar-mini__mark,

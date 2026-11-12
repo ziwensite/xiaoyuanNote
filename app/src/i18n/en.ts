@@ -2243,6 +2243,11 @@
     openFolder: 'Open a folder to see the calendar.',
     empty: 'Nothing scheduled.',
     today: 'Today',
+    mark: {
+      note: 'Daily note',
+      open: 'Open tasks',
+      done: 'Done',
+    },
     allDay: 'All day',
     undated: 'Unscheduled',
     more: '+{count} more',

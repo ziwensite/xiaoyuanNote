@@ -2214,6 +2214,11 @@ export const zh: I18n = {
     openFolder: '打开一个文件夹后才能查看日历。',
     empty: '暂无日程。',
     today: '今天',
+    mark: {
+      note: '日记',
+      open: '未完任务',
+      done: '已完成',
+    },
     allDay: '全天',
     undated: '未排期',
     more: '还有 {count} 项',
