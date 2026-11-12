@@ -2248,6 +2248,7 @@
     more: '+{count} more',
     prev: 'Previous',
     next: 'Next',
+    pickMonth: 'Pick year/month',
     view: {
       agenda: 'Agenda',
       day: 'Day',

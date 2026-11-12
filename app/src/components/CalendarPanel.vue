@@ -21,7 +21,6 @@ import { useCalendarStore } from '../stores/calendar';
 import { useHolidaysStore } from '../stores/holidays';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
-import PanelHeader from './panel/PanelHeader.vue';
 import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
 import { buildCalendarView, monthGridRange } from '../lib/calendar-view';
 import {
@@ -139,6 +138,30 @@ const monthTitle = computed(() => {
   const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { year: 'numeric', month: 'long' });
   return fmt.format(wallDate(calendar.focusDate));
 });
+
+/** Year/month picker: click the title to open; pick a month to jump there. */
+const ymOpen = ref(false);
+const ymYear = ref(0);
+const ymMonth = ref(0);
+function toggleYearMonthPicker() {
+  if (ymOpen.value) {
+    ymOpen.value = false;
+    return;
+  }
+  const [y, m] = calendar.focusDate.split('-').map(Number);
+  ymYear.value = y;
+  ymMonth.value = m;
+  ymOpen.value = true;
+}
+function pickMonth(m: number) {
+  const mm = String(m).padStart(2, '0');
+  calendar.setFocusDate(`${ymYear.value}-${mm}-01`);
+  ymOpen.value = false;
+}
+function shiftAndClose(delta: number) {
+  calendar.shiftMonth(delta);
+  ymOpen.value = false;
+}
 
 function wallDate(date: string): Date {
   const [y, m, d] = date.split('-').map(Number);
@@ -268,38 +291,89 @@ function openSelectedDay() {
 
 <template>
   <div class="calendar-panel rp">
-    <PanelHeader :title="monthTitle">
-      <button
-        class="rp-icon-btn"
-        type="button"
-        :title="t('calendar.prev')"
-        :aria-label="t('calendar.prev')"
-        @click="calendar.shiftMonth(-1)"
-      >
-        <Icons name="chevron-left" :size="14" />
-      </button>
-      <button class="rp-btn rp-btn--sm calendar-panel__today" type="button" @click="calendar.goToday()">
-        {{ t('calendar.today') }}
-      </button>
-      <button
-        class="rp-icon-btn"
-        type="button"
-        :title="t('calendar.next')"
-        :aria-label="t('calendar.next')"
-        @click="calendar.shiftMonth(1)"
-      >
-        <Icons name="chevron-right" :size="14" />
-      </button>
-      <button
-        class="rp-icon-btn"
-        type="button"
-        :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
-        :aria-label="t('calendar.selectedDay.open', { date: calendar.focusDate })"
-        @click="openSelectedDay"
-      >
-        <Icons name="calendar" :size="14" />
-      </button>
-    </PanelHeader>
+    <div class="rp-head calendar-panel__head">
+      <div class="calendar-panel__nav">
+        <button
+          class="rp-icon-btn"
+          type="button"
+          :title="t('calendar.prev')"
+          :aria-label="t('calendar.prev')"
+          @click="shiftAndClose(-1)"
+        >
+          <Icons name="chevron-left" :size="14" />
+        </button>
+        <button
+          class="calendar-panel__month"
+          type="button"
+          :title="t('calendar.pickMonth')"
+          :aria-label="t('calendar.pickMonth')"
+          @click="toggleYearMonthPicker"
+        >
+          {{ monthTitle }}
+        </button>
+        <button
+          class="rp-icon-btn"
+          type="button"
+          :title="t('calendar.next')"
+          :aria-label="t('calendar.next')"
+          @click="shiftAndClose(1)"
+        >
+          <Icons name="chevron-right" :size="14" />
+        </button>
+      </div>
+      <div class="calendar-panel__head-actions">
+        <button class="rp-btn rp-btn--sm calendar-panel__today" type="button" @click="calendar.goToday()">
+          {{ t('calendar.today') }}
+        </button>
+        <button
+          class="rp-icon-btn"
+          type="button"
+          :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
+          :aria-label="t('calendar.selectedDay.open', { date: calendar.focusDate })"
+          @click="openSelectedDay"
+        >
+          <Icons name="calendar" :size="14" />
+        </button>
+      </div>
+      <div v-if="ymOpen" class="calendar-panel__ym-backdrop" @click="ymOpen = false"></div>
+      <div v-if="ymOpen" class="calendar-panel__ym" role="dialog" :aria-label="t('calendar.pickMonth')">
+        <div class="calendar-panel__ym-year">
+          <button
+            class="rp-icon-btn"
+            type="button"
+            :title="t('calendar.prev')"
+            :aria-label="t('calendar.prev')"
+            :disabled="ymYear <= 1900"
+            @click="ymYear--"
+          >
+            <Icons name="chevron-left" :size="14" />
+          </button>
+          <span class="calendar-panel__ym-year-label">{{ ymYear }}</span>
+          <button
+            class="rp-icon-btn"
+            type="button"
+            :title="t('calendar.next')"
+            :aria-label="t('calendar.next')"
+            :disabled="ymYear >= 2200"
+            @click="ymYear++"
+          >
+            <Icons name="chevron-right" :size="14" />
+          </button>
+        </div>
+        <div class="calendar-panel__ym-months">
+          <button
+            v-for="m in 12"
+            :key="m"
+            type="button"
+            class="calendar-panel__ym-month"
+            :class="{ 'is-active': m === ymMonth }"
+            @click="pickMonth(m)"
+          >
+            {{ m }}
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div v-if="!hasFolder" class="rp-empty">{{ t('calendar.openFolder') }}</div>
 
@@ -381,6 +455,99 @@ function openSelectedDay() {
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  position: relative;
+}
+
+.calendar-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: auto;
+  flex: 0 0 auto;
+  min-height: 36px;
+}
+.calendar-panel__nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.calendar-panel__month {
+  border: 0;
+  margin: 0;
+  padding: 2px 4px;
+  background: transparent;
+  color: var(--text, #1f2328);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.calendar-panel__month:hover {
+  background: var(--hover, rgba(0, 0, 0, 0.06));
+}
+.calendar-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.calendar-panel__ym-backdrop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 3000px;
+  z-index: 5;
+}
+.calendar-panel__ym {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 8px;
+  right: 8px;
+  z-index: 6;
+  padding: 8px;
+  border: 1px solid var(--line-2, #d0d7de);
+  border-radius: 10px;
+  background: var(--surface-2, #fff);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.calendar-panel__ym-year {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.calendar-panel__ym-year-label {
+  font-weight: 600;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.calendar-panel__ym-months {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.calendar-panel__ym-month {
+  border: 1px solid var(--line-2, #d0d7de);
+  border-radius: 6px;
+  background: var(--surface-1, #fff);
+  color: var(--text-1, #1f2328);
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.calendar-panel__ym-month:hover {
+  background: var(--hover, rgba(0, 0, 0, 0.06));
+}
+.calendar-panel__ym-month.is-active {
+  border-color: var(--accent, #3b82f6);
+  color: var(--accent, #3b82f6);
+  font-weight: 600;
 }
 
 .calendar-mini {

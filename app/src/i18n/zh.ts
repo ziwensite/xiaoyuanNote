@@ -2219,6 +2219,7 @@ export const zh: I18n = {
     more: '还有 {count} 项',
     prev: '上一页',
     next: '下一页',
+    pickMonth: '选择年月',
     view: {
       agenda: '议程',
       day: '日',
