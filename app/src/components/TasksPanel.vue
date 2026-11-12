@@ -247,8 +247,9 @@ async function openTask(task: WorkspaceTask) {
         </option>
       </select>
       <select
+        v-if="windowOn"
         class="tasks-panel__select"
-        :value="windowOn ? windowKind : 'off'"
+        :value="windowKind"
         :aria-label="t('tasks.period.toggle')"
         @change="setPeriod"
       >
@@ -258,6 +259,7 @@ async function openTask(task: WorkspaceTask) {
         </option>
       </select>
       <button
+        v-if="!windowOn"
         class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': windowOn }"
         type="button"
