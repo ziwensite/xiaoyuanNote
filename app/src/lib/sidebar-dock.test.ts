@@ -26,7 +26,7 @@ import {
   sanitizeSidebarDock,
   setDockGroupHeight,
   sideDockPanes,
-  splitDockGroup,
+  appendToNewRegion,
   type SidebarDockState,
 } from './sidebar-dock.ts';
 import { SIDEBAR_PANE_DEFS } from '../panes/sidebar-panes.ts';
@@ -547,28 +547,53 @@ test('stage 2 blobs without height keep their old shape', () => {
   assert.deepEqual(clean.groups, base.groups);
 });
 
-test('stage 2 splitDockGroup moves a pane into a new region', () => {
+test('stage 2 appendToNewRegion peels a pane into a new trailing region', () => {
   const before = stagedDock();
-  const after = splitDockGroup(before, 'right', 0, 'backlinks');
+  const after = appendToNewRegion(before, 'right', 'backlinks');
   assert.notEqual(after, before);
   assert.equal(after.groups.right.length, 3);
   assert.deepEqual(after.groups.right[0].panes, ['outline']);
-  assert.deepEqual(after.groups.right[1].panes, ['backlinks']);
-  assert.equal(after.groups.right[1].active, 'backlinks');
-  assert.equal(after.groups.right[0].height, 0.5);
-  assert.equal(after.groups.right[1].height, 0.5);
+  assert.deepEqual(after.groups.right[2].panes, ['backlinks']);
+  assert.equal(after.groups.right[2].active, 'backlinks');
   assert.equal(before.groups.right.length, 2);
 });
 
-test('stage 2 splitDockGroup refuses files, unknown panes and single-tab regions', () => {
+test('stage 2 appendToNewRegion splits a pane off the files region', () => {
+  // Left holds files + outline; peeling outline must leave files in place and
+  // open a new region below it. This is the drag case that used to be blocked by
+  // the files lock (left could never be split).
+  const before: SidebarDockState = {
+    ...stagedDock(),
+    groups: {
+      left: [{ panes: ['files', 'outline'], active: 'outline' }],
+      right: stagedDock().groups.right,
+    },
+  };
+  const after = appendToNewRegion(before, 'left', 'outline');
+  assert.notEqual(after, before);
+  assert.deepEqual(after.groups.left[0].panes, ['files']);
+  assert.equal(after.groups.left.length, 2);
+  assert.deepEqual(after.groups.left[1].panes, ['outline']);
+  assert.equal(after.groups.left[1].active, 'outline');
+});
+
+test('stage 2 appendToNewRegion moves a pane cross-side into a new region', () => {
   const before = stagedDock();
-  assert.equal(splitDockGroup(before, 'left', 0, 'outline'), before);
-  assert.equal(splitDockGroup(before, 'right', 0, 'files'), before);
-  assert.equal(splitDockGroup(before, 'right', 0, 'calendar'), before);
-  assert.equal(splitDockGroup(before, 'right', 9, 'outline'), before);
-  const single = splitDockGroup(before, 'right', 1, 'agent');
-  assert.notEqual(single, before);
-  assert.equal(splitDockGroup(single, 'right', 2, 'agent'), single);
+  const after = appendToNewRegion(before, 'left', 'backlinks');
+  assert.notEqual(after, before);
+  assert.equal(paneGroup(after, 'backlinks')?.side, 'left');
+  assert.equal(after.groups.left.length, 2);
+  assert.deepEqual(after.groups.left[1].panes, ['backlinks']);
+  // The right region it left keeps its remaining panes.
+  assert.deepEqual(after.groups.right[0].panes, ['outline']);
+  assert.equal(after.groups.right[0].panes.includes('backlinks'), false);
+});
+
+test('stage 2 appendToNewRegion refuses files and unknown panes', () => {
+  const before = stagedDock();
+  assert.equal(appendToNewRegion(before, 'right', 'files'), before);
+  assert.equal(appendToNewRegion(before, 'right', 'calendar'), before);
+  assert.equal(appendToNewRegion(before, 'right', 'ghost'), before);
 });
 
 test('stage 2 mergeDockGroups folds the next region back', () => {

@@ -26,7 +26,7 @@ import {
   type SidebarSide,
   paneDef,
   paneGroup,
-  PRIMARY_PANE_ID,
+  isMovablePane,
 } from '../../lib/sidebar-dock';
 import { dockDrag } from '../../lib/dock-drag';
 import { dragWindowFromChrome, toggleMaximizeFromChrome } from '../../lib/window-drag';
@@ -232,15 +232,15 @@ function onEdgeContext(ev: MouseEvent) {
 /** Whether this column should show the split drop zone right now. True only
  *  while a tab from THIS side is being dragged AND that tab's region actually
  *  has a second pane to peel off (the old `canSplitRegion` guard). So a
- *  single-pane or `files` region never advertises a dead drop, and a split
- *  never crosses sides — a left tab can never drop on a right-side zone. */
-const showSplitZone = computed<boolean>(() => {
-  if (!dockDrag.id) return false;
-  const loc = paneGroup(settings.sidebarDock, dockDrag.id);
+ *  single-pane region never advertises a dead drop. */
+const splitHighlight = computed<boolean>(() => {
+  if (!dockDrag.over?.split || dockDrag.over.side !== props.side) return false;
+  const id = dockDrag.id;
+  if (!id || !isMovablePane(id)) return false;
+  const loc = paneGroup(settings.sidebarDock, id);
   if (!loc || loc.side !== props.side) return false;
-  const group = settings.sidebarDock.groups[loc.side]?.[loc.group];
-  if (!group) return false;
-  return group.panes.length > 1 && !group.panes.includes(PRIMARY_PANE_ID);
+  const group = settings.sidebarDock.groups[props.side]?.[loc.group];
+  return !!group && group.panes.length > 1;
 });
 </script>
 
@@ -251,7 +251,9 @@ const showSplitZone = computed<boolean>(() => {
       `side-sidebar--${props.side}`,
       props.overlay ? 'side-sidebar--overlay' : '',
       isDropHost ? 'side-sidebar--drop-host' : '',
+      splitHighlight ? 'side-sidebar--split' : '',
     ]"
+    :data-dock-side="props.side"
     :style="dockStyle"
   >
     <!-- Folded: a 32px icon rail. Every reachable pane and `+` stay one click
@@ -376,17 +378,6 @@ const showSplitZone = computed<boolean>(() => {
         </div>
       </template>
     </template>
-    <!-- Drag a tab here to peel it off into a new region (the "split" action
-         that used to live in the tab right-click menu). Only the dragged tab's
-         own side shows this, so a split never crosses sides. -->
-    <div
-      v-if="showSplitZone"
-      class="dock-split-zone"
-      :class="{ 'dock-split-zone--over': dockDrag.over?.split && dockDrag.over.side === props.side }"
-      :data-dock-split-zone="props.side"
-    >
-      <span class="dock-split-zone__label">{{ t('panelMenu.splitRegion') }}</span>
-    </div>
   </aside>
 </template>
 
@@ -447,31 +438,13 @@ const showSplitZone = computed<boolean>(() => {
   background: var(--bg-2, var(--bg-sidebar));
 }
 
-/* Drag-to-split drop zone: appears at a column's foot only while a tab from
- * that column is in flight. Dashed until hovered, then solid accent. */
-.dock-split-zone {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  margin: 0 6px 6px;
-  border: 1px dashed var(--bd-strong, var(--hairline));
-  border-radius: 8px;
-  color: var(--text-3);
-  font: 12px/1 var(--font-ui);
-  cursor: copy;
-  user-select: none;
-}
-.dock-split-zone--over {
-  border-color: var(--accent);
-  color: var(--accent-text);
+/* Drag-to-split affordance: while a tab hovers a column (anywhere but its tab
+ *  strip), the whole column highlights — dropping there peels the tab into a new
+ *  region at the column's foot. This is the large, easy target that replaced the
+ *  old tiny dashed zone. */
+.side-sidebar--split {
+  box-shadow: inset 0 0 0 2px var(--accent);
   background: var(--accent-soft);
-}
-.dock-split-zone__label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Folded column: a full-height 32px icon rail. Same surface as the open

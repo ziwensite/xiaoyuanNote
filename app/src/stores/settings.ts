@@ -14,7 +14,7 @@ import {
   paneGroup,
   setDockGroupHeight,
   sideDockPanes,
-  splitDockGroup,
+  appendToNewRegion,
   type DockTabTarget,
   type LegacySidebarBlob,
   type SidebarDockState,
@@ -1631,31 +1631,22 @@ export const useSettingsStore = defineStore('settings', {
       this.syncLegacySwitches();
       this.persist();
     },
-    /** Stage 2 — the three region actions. All pure functions reject illegal
-     *  input (files' region, single-tab regions, bad indices) by returning the
-     *  same state, which doubles as "nothing to persist". */
-    splitDockRegion(side: SidebarSide, groupIndex: number, paneId: SidebarPaneId) {
-      const next = splitDockGroup(this.sidebarDock, side, groupIndex, paneId);
-      if (next === this.sidebarDock) return;
-      this.sidebarDock = next;
-      this.syncLegacySwitches();
-      this.persist();
-    },
+    /** Stage 2 — region merge (fold the next region into this one). Drag-based
+     *  "merge" is handled by `moveDockTab` + region cleanup; this explicit fold
+     *  is kept for completeness. Illegal input returns the same state. */
     mergeDockRegions(side: SidebarSide, groupIndex: number) {
       const next = mergeDockGroups(this.sidebarDock, side, groupIndex);
       if (next === this.sidebarDock) return;
       this.sidebarDock = next;
       this.persist();
     },
-    /** Drag "split": peel `paneId` out of its current region into a new region
-     *  below it. The caller only passes the side it was dropped on (which equals
-     *  the pane's own side — the drop zone only renders there), so the source
-     *  group is resolved here. Same locked / single-tab / unknown guards as
-     *  `splitDockGroup` apply; an illegal drop is a no-op. */
+    /** Drag "split": move `paneId` to `side` as a brand-new trailing region. The
+     *  caller passes the side the tab was dropped on (any side — dropping on a
+     *  column creates a new region there, same-side peel or cross-side move).
+     *  `appendToNewRegion` rejects files / unknown panes and collapses an emptied
+     *  source region; an illegal drop is a no-op. */
     splitDockRegionFromDrag(side: SidebarSide, paneId: SidebarPaneId) {
-      const loc = paneGroup(this.sidebarDock, paneId);
-      if (!loc || loc.side !== side) return;
-      const next = splitDockGroup(this.sidebarDock, side, loc.group, paneId);
+      const next = appendToNewRegion(this.sidebarDock, side, paneId);
       if (next === this.sidebarDock) return;
       this.sidebarDock = next;
       this.syncLegacySwitches();

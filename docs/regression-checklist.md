@@ -161,7 +161,7 @@ Rows from `docs/specs/sidebar-shell-stage1/tasks.md`. All eight were code-inferr
 | N9 | two regions on one side | splitting a tab creates a second strip + body stacked below; each strip has its own `+` and `»` | yes |
 | N10 | drag lands in the right region | dropping on a lower body / strip puts the tab in that region, not group 0; the insertion line appears on the right strip | no |
 | N11 | splitter persists | dragging the separator changes the share; relaunch keeps it; the `files` region shows no separator and never resizes | no |
-| N12 | split / merge via drag | drag a tab to its own column's foot (only that side shows the drop zone) → peel it into a new region (split); drag a tab onto another region → move/merge there, and an emptied region auto-collapses; `files` cannot be dragged out and is never a merge target; the illegal-drop guards are enforced by `splitDockGroup` / `mergeDockGroups` (unit-tested in `sidebar-dock.test.ts`) — replace the old right-click menu | yes (guards unit-tested; the drop-zone affordance still needs a human) |
+| N12 | split / merge via drag | drag a tab anywhere in a column (the whole column highlights) → peel it into a new region at that column's foot (split); works on **either** side, incl. peeling a non-`files` pane off the `files` region; drag a tab onto a tab strip → merge/insert into that region (and an emptied region auto-collapses); `files` is never draggable; the illegal-drop guards are enforced by `appendToNewRegion` / `moveDockTab` (unit-tested in `sidebar-dock.test.ts`) — replaces the old right-click menu | yes (guards unit-tested) |
 
 ## O. Virtual editor tabs (P0–P4)
 From `docs/specs/editor-input-tabs/spec.md` §6(4). File-tab behaviour is the baseline: any difference is a regression.

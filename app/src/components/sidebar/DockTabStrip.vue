@@ -238,40 +238,39 @@ function select(id: ImplementedSidebarPaneId) {
 /* ------------------------------------------------------------------ drag --- */
 function updateDropTarget(x: number, y: number) {
   const el = document.elementFromPoint(x, y) as HTMLElement | null;
-  // A drop on the dock's split zone peels the dragged pane into a new region.
-  // Checked before the region hit-test because the zone sits at a column's
-  // bottom, outside any `[data-dock-region]`.
-  const splitZone = el?.closest<HTMLElement>('[data-dock-split-zone]');
-  if (splitZone) {
-    const side = splitZone.dataset.dockSplitZone;
+  // 1. Over a tab strip (or one of its tabs) → merge / insert into that region
+  //    at the shown index. Works same-side and cross-side, so dropping a tab on
+  //    another column's strip moves it there.
+  const strip = el?.closest<HTMLElement>('[data-dock-strip]');
+  if (strip) {
+    const side = strip.dataset.dockSide;
+    const group = Number(strip.dataset.dockGroup);
     if (side === 'left' || side === 'right') {
-      dockDrag.over = { side, group: 0, index: 0, split: true };
+      const tab = el?.closest<HTMLElement>('[data-dock-tab]');
+      let index = Number.POSITIVE_INFINITY;
+      if (tab && tab.dataset.dockIndex != null) {
+        const raw = Number(tab.dataset.dockIndex);
+        if (Number.isFinite(raw) && raw >= 0) {
+          const rect = tab.getBoundingClientRect();
+          index = x > rect.left + rect.width / 2 ? raw + 1 : raw;
+        }
+      }
+      dockDrag.over = { side, group, index: Number.isFinite(index) ? index : 9999 };
       return;
     }
   }
-  const region = el?.closest<HTMLElement>('[data-dock-region]');
-  const side = region?.dataset.dockSide;
-  const group = Number(region?.dataset.dockGroup ?? -1);
-  if (!region || (side !== 'left' && side !== 'right') || !Number.isFinite(group) || group < 0) {
-    // Search box, window buttons, editor tabs: not a dock target = cancel.
-    dockDrag.over = null;
+  // 2. Over a column but not its strip → split: peel the dragged pane into a new
+  //    region at that column's foot. Any column qualifies (same-side peel or
+  //    cross-side move), so dragging a tab onto the other panel creates a region
+  //    there — this is what makes the left panel splittable too. The `<aside>`
+  //    and each region body carry `data-dock-side`.
+  const sideEl = el?.closest<HTMLElement>('[data-dock-side]');
+  const side = sideEl?.dataset.dockSide;
+  if (side === 'left' || side === 'right') {
+    dockDrag.over = { side, group: 0, index: 0, split: true };
     return;
   }
-  const tab = el?.closest<HTMLElement>('[data-dock-tab]');
-  let index = Number.POSITIVE_INFINITY;
-  if (tab && tab.dataset.dockIndex != null) {
-    const raw = Number(tab.dataset.dockIndex);
-    if (Number.isFinite(raw) && raw >= 0) {
-      const rect = tab.getBoundingClientRect();
-      index = x > rect.left + rect.width / 2 ? raw + 1 : raw;
-    }
-  }
-  const tabGroup = Number(tab?.dataset.dockGroup ?? group);
-  dockDrag.over = {
-    side,
-    group: Number.isFinite(tabGroup) && tabGroup >= 0 ? tabGroup : group,
-    index: Number.isFinite(index) ? index : 9999,
-  };
+  dockDrag.over = null;
 }
 
 const suppressClick = ref(false);
@@ -305,8 +304,8 @@ function onTabPointerDown(ev: PointerEvent, id: ImplementedSidebarPaneId) {
     if (!dragging) return;
     suppressClick.value = true;
     if (target?.split) {
-      // Split: peel the pane into a new region. The drop zone only renders on
-      // the pane's own side, so `target.side` is its source side.
+      // Split: peel the pane into a new region at the foot of the column it was
+      // dropped on (any side — same-side peel or cross-side move).
       settings.splitDockRegionFromDrag(target.side, id);
     } else if (target) {
       settings.moveDockTab(id, { side: target.side, group: target.group, index: target.index });
@@ -332,7 +331,9 @@ function onTabClick(id: ImplementedSidebarPaneId) {
  *  visible run. */
 const dropAt = computed<number | null>(() => {
   const over = dockDrag.over;
-  if (!over || over.side !== props.side) return null;
+  // A split target (column, not a strip) draws the column highlight instead of
+  // an insertion line, so suppress the line here.
+  if (!over || over.split || over.side !== props.side) return null;
   // Stage 2: each strip draws the insertion line for its own region only.
   if (props.regionIndex !== undefined && over.group !== props.regionIndex) return null;
   let insert = over.index;
@@ -361,6 +362,7 @@ const dropAt = computed<number | null>(() => {
     role="tablist"
     :aria-label="props.side === 'left' ? t('header.leftPanels') : t('header.rightPanels')"
     data-dock-region
+    data-dock-strip
     :data-dock-side="props.side"
     :data-dock-group="props.regionIndex ?? 0"
     :style="stripStyle"

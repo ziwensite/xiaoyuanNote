@@ -660,29 +660,43 @@ function isLockedGroup(group: SidebarDockGroup | undefined): boolean {
 }
 
 /**
- * Stage 2, pure: pull one pane out of `groupIndex` into a new region directly
- * after it. Both halves share the source weight. Files' region, unknown or
- * unmovable panes, out-of-range indices and single-tab regions are rejected.
+ * Stage 2, pure — drag-to-split primitive. Move `paneId` out of its current
+ * region and append it as a brand-new trailing region on `side`. Used when a tab
+ * is dropped on a column (rather than on a tab strip): the new region always
+ * lands at that column's foot. It works for a same-side peel and a cross-side
+ * move alike. Only movable panes participate, so `files` is implicitly
+ * protected; an emptied non-files source region collapses away (the files
+ * region never empties, because `files` can never be the pane removed).
  */
-export function splitDockGroup(
+export function appendToNewRegion(
   state: SidebarDockState,
   side: SidebarSide,
-  groupIndex: number,
   paneId: SidebarPaneId,
 ): SidebarDockState {
-  const source = state.groups[side][groupIndex];
-  if (!source || !isMovablePane(paneId) || isLockedGroup(source)) return state;
-  const at = source.panes.indexOf(paneId);
-  if (at < 0 || source.panes.length < 2) return state;
-
+  if (!isMovablePane(paneId)) return state;
   const next = cloneDock(state);
-  const groups = next.groups[side];
-  const from = groups[groupIndex];
-  from.panes.splice(at, 1);
-  if (from.active === paneId) from.active = from.panes[0] ?? null;
-  const half = clampGroupHeight((from.height ?? DOCK_GROUP_DEFAULT_HEIGHT) / 2);
-  from.height = half;
-  groups.splice(groupIndex + 1, 0, { panes: [paneId], active: paneId, height: half });
+  // Detach the pane from wherever it currently lives; a pane lives in exactly
+  // one group, so we stop at the first hit.
+  let removed = false;
+  for (const s of ['left', 'right'] as const) {
+    const groups = next.groups[s];
+    for (let gi = 0; gi < groups.length; gi += 1) {
+      const g = groups[gi];
+      const i = g.panes.indexOf(paneId);
+      if (i < 0) continue;
+      g.panes.splice(i, 1);
+      if (g.active === paneId) g.active = g.panes[0] ?? null;
+      // Drop the now-empty region. The files region can never be the one emptied
+      // here (files is not movable), so it always keeps its home.
+      if (g.panes.length === 0) groups.splice(gi, 1);
+      removed = true;
+      break;
+    }
+    if (removed) break;
+  }
+  if (!removed) return state;
+  // Append a fresh trailing region on the target side.
+  next.groups[side].push({ panes: [paneId], active: paneId, height: DOCK_GROUP_DEFAULT_HEIGHT });
   return next;
 }
 
