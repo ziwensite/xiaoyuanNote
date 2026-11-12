@@ -134,8 +134,10 @@ const groups = computed(() => {
   return [...byFile.entries()].map(([path, g]) => ({ path, ...g }));
 });
 
-const openCount = computed(() => tasks.value.filter((x) => !x.done).length);
-const total = computed(() => tasks.value.length);
+/** Count tracks the *current filter scope* (view / priority / period / calendar
+ *  link), not the whole workspace — so (未完 / 总计) updates as filters change. */
+const openCount = computed(() => visible.value.filter((x) => !x.done).length);
+const total = computed(() => visible.value.length);
 /** Header date readout: two lines for a selected day (bold `12日周五` over the
  *  lunar day), or one bold line for a selected week (`第47周`). */
 const WEEKDAY_CN = ['日', '一', '二', '三', '四', '五', '六'];
