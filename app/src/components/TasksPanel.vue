@@ -259,6 +259,17 @@ async function openTask(task: WorkspaceTask) {
       </select>
       <button
         class="rp-icon-btn tasks-panel__flag"
+        :class="{ 'is-on': windowOn }"
+        type="button"
+        :title="t('tasks.period.toggle')"
+        :aria-label="t('tasks.period.toggle')"
+        :aria-pressed="windowOn"
+        @click="windowOn = !windowOn"
+      >
+        <Icons name="calendar" :size="14" />
+      </button>
+      <button
+        class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': priorityOnly }"
         type="button"
         :title="t('tasks.priorityOnly')"
