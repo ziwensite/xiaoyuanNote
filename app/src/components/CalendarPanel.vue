@@ -19,6 +19,7 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
 import { useCalendarStore } from '../stores/calendar';
 import { useHolidaysStore } from '../stores/holidays';
+import { useLunarStore } from '../stores/lunar';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
 import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
@@ -42,6 +43,7 @@ const workspace = useWorkspaceStore();
 const settings = useSettingsStore();
 const calendar = useCalendarStore();
 const holidays = useHolidaysStore();
+const lunar = useLunarStore();
 const { t, lang } = useI18n();
 
 const gridEl = ref<HTMLElement | null>(null);
@@ -68,11 +70,13 @@ const gridColumns = computed(() =>
   showWeeks.value ? '18px repeat(7, minmax(0, 1fr))' : 'repeat(7, minmax(0, 1fr))',
 );
 const holidayMap = computed(() => holidays.index);
+const lunarMap = computed(() => lunar.index);
 
 onMounted(() => {
   // Opening the pane is one of the three refresh events. It honours the TTL,
   // runs in the background and stays silent on failure.
   void holidays.maybeRefresh('open');
+  void lunar.maybeRefresh('open');
 });
 
 const range = computed(() => {
@@ -225,17 +229,52 @@ function isFestivalDay(date: string): boolean {
   return f !== null && STATUTORY_FESTIVAL_KEYS.has(f.key);
 }
 
+const TRAD_FESTIVALS: Array<[string, string, string]> = [
+  ['正月', '初一', '春节'],
+  ['正月', '十五', '元宵'],
+  ['五月', '初五', '端午'],
+  ['八月', '十五', '中秋'],
+  ['九月', '初九', '重阳'],
+  ['十二月', '初八', '腊八'],
+  ['十二月', '廿三', '小年'],
+  ['十二月', '廿四', '小年'],
+];
+
+/** Traditional lunar festivals resolved from the *online* lunar data (so they
+ *  are not computed locally). Returns the display name, or null. 小年 covers
+ *  both the northern (廿三) and southern (廿四) customs. */
+function tradNameOf(
+  day?: { lunarMonth?: string; lunarDate?: string } | null,
+): string | null {
+  if (!day || !day.lunarMonth || !day.lunarDate) return null;
+  for (const [m, d, name] of TRAD_FESTIVALS) {
+    if (day.lunarMonth === m && day.lunarDate === d) return name;
+  }
+  return null;
+}
+
+/**
+ * The 9 px second line. Priority: statutory festival name (real day only) →
+ * online traditional festival (春节/元宵/端午/中秋/重阳/腊八/小年) → online solar
+ * term (小寒…大雪, all 24) → local lunar day. The lunar data is keyed by date
+ * and fetched online; missing years fall through to the local algorithm.
+ */
 function subLabel(date: string): string {
   const hit = holidayOf(date);
   if (hit?.kind === 'off' && hit.name && isFestivalDay(date)) return hit.name;
+  const lunar = lunarMap.value.get(date);
+  const trad = tradNameOf(lunar);
+  if (trad) return trad;
+  const st = lunar?.solarTerm;
+  if (st) return st;
   if (!showLunar.value) return '';
   const festival = festivalOf(date);
   if (festival) return festival.name;
-  const lunar = solarToLunar(date);
-  if (!lunar) return '';
-  const prefix = lunar.leap ? '闰' : '';
-  if (lunar.day === 1) return `${prefix}${lunarMonthName(lunar.month)}`;
-  return `${prefix}${lunarDayName(lunar.day)}`;
+  const l = solarToLunar(date);
+  if (!l) return '';
+  const prefix = l.leap ? '闰' : '';
+  if (l.day === 1) return `${prefix}${lunarMonthName(l.month)}`;
+  return `${prefix}${lunarDayName(l.day)}`;
 }
 
 function tooltipFor(date: string): string {
