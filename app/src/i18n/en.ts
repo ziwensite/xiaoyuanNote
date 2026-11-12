@@ -2195,6 +2195,7 @@
       today: 'Due',
       all: 'All',
     },
+    view: 'View',
     linkCalendar: 'Link to calendar',
     week: 'Week {week}',
     count: '( {done} / {total} )',
@@ -2204,6 +2205,7 @@
     next: 'Next',
     period: {
       toggle: 'Period window',
+      off: 'Off',
       daily: 'Day',
       weekly: 'Week',
       monthly: 'Month',

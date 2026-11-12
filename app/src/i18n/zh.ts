@@ -2167,6 +2167,7 @@ export const zh: I18n = {
       today: '到期',
       all: '全部',
     },
+    view: '视图',
     linkCalendar: '跟随日历',
     week: '第 {week} 周',
     count: '( {done} / {total} )',
@@ -2176,6 +2177,7 @@ export const zh: I18n = {
     next: '下一',
     period: {
       toggle: '周期窗口',
+      off: '关闭',
       daily: '日',
       weekly: '周',
       monthly: '月',

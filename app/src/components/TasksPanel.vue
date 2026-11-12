@@ -22,7 +22,6 @@ import { useCalendarStore } from '../stores/calendar';
 import { useI18n } from '../i18n';
 import { addDays } from '../lib/calendar';
 import Icons from './Icons.vue';
-import SegControl from './panel/SegControl.vue';
 import { lunarDateLabel } from '../lib/lunar';
 import { isoWeek } from '../lib/iso-week';
 import { isOverdue, localDateKey, type TaskPriority } from '../lib/tasks';
@@ -61,8 +60,25 @@ function stepWindow(delta: number) {
   windowDate.value = shiftPeriod(windowKind.value, activeWindow.value.anchor, delta);
 }
 
-function setWindowKind(event: Event) {
-  windowKind.value = (event.target as HTMLSelectElement).value as PeriodKind;
+function setFilter(event: Event) {
+  filter.value = (event.target as HTMLSelectElement).value as Filter;
+}
+
+/** Period dropdown: "off" clears the period window; any other value turns it on
+ *  and switches the kind (resetting the anchor to today) — without touching the
+ *  open/today/all view or the priority filter, so only the list changes. */
+function setPeriod(event: Event) {
+  const v = (event.target as HTMLSelectElement).value;
+  if (v === 'off') {
+    windowOn.value = false;
+    return;
+  }
+  windowOn.value = true;
+  const k = v as PeriodKind;
+  if (k !== windowKind.value) {
+    windowKind.value = k;
+    windowDate.value = new Date();
+  }
 }
 
 /** Recomputed per render rather than cached: the panel can be open across
@@ -220,44 +236,48 @@ async function openTask(task: WorkspaceTask) {
     </div>
 
     <div class="tasks-panel__filters">
-      <SegControl
-        v-if="!windowOn"
-        v-model="filter"
-        class="tasks-panel__seg"
-        :options="(['open', 'today', 'all'] as Filter[]).map((f) => ({ value: f, label: t(`tasks.filter.${f}`) }))"
-      />
-      <div v-else class="tasks-panel__window">
-        <button
-          class="tasks-panel__step"
-          type="button"
-          :title="t('tasks.period.prev')"
-          :aria-label="t('tasks.period.prev')"
-          @click="stepWindow(-1)"
-        >
-          <Icons name="chevron-left" :size="14" />
-        </button>
-        <select
-          class="tasks-panel__kind"
-          :value="windowKind"
-          :aria-label="t('tasks.period.toggle')"
-          @change="setWindowKind"
-        >
-          <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
-            {{ t(`tasks.period.${kind}`) }}
-          </option>
-        </select>
-        <button
-          class="tasks-panel__step"
-          type="button"
-          :title="t('tasks.period.next')"
-          :aria-label="t('tasks.period.next')"
-          @click="stepWindow(1)"
-        >
-          <Icons name="chevron-right" :size="14" />
-        </button>
-      </div>
+      <select
+        class="tasks-panel__select"
+        :value="filter"
+        :aria-label="t('tasks.view')"
+        @change="setFilter"
+      >
+        <option v-for="f in (['open', 'today', 'all'] as Filter[])" :key="f" :value="f">
+          {{ t(`tasks.filter.${f}`) }}
+        </option>
+      </select>
+      <select
+        class="tasks-panel__select"
+        :value="windowOn ? windowKind : 'off'"
+        :aria-label="t('tasks.period.toggle')"
+        @change="setPeriod"
+      >
+        <option value="off">{{ t('tasks.period.off') }}</option>
+        <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
+          {{ t(`tasks.period.${kind}`) }}
+        </option>
+      </select>
       <button
-        v-if="!windowOn"
+        v-if="windowOn"
+        class="tasks-panel__step"
+        type="button"
+        :title="t('tasks.period.prev')"
+        :aria-label="t('tasks.period.prev')"
+        @click="stepWindow(-1)"
+      >
+        <Icons name="chevron-left" :size="14" />
+      </button>
+      <button
+        v-if="windowOn"
+        class="tasks-panel__step"
+        type="button"
+        :title="t('tasks.period.next')"
+        :aria-label="t('tasks.period.next')"
+        @click="stepWindow(1)"
+      >
+        <Icons name="chevron-right" :size="14" />
+      </button>
+      <button
         class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': priorityOnly }"
         type="button"
@@ -267,17 +287,6 @@ async function openTask(task: WorkspaceTask) {
         @click="priorityOnly = !priorityOnly"
       >
         <span class="tasks-panel__bars tasks-panel__bars--high" aria-hidden="true"><i /><i /><i /></span>
-      </button>
-      <button
-        class="rp-icon-btn tasks-panel__flag"
-        :class="{ 'is-on': windowOn }"
-        type="button"
-        :title="t('tasks.period.toggle')"
-        :aria-label="t('tasks.period.toggle')"
-        :aria-pressed="windowOn"
-        @click="windowOn = !windowOn"
-      >
-        <Icons name="calendar" :size="14" />
       </button>
     </div>
     <div v-if="windowOn" class="tasks-panel__range" :title="t('tasks.period.note')">
@@ -353,18 +362,17 @@ async function openTask(task: WorkspaceTask) {
   gap: 6px;
   padding: 0 8px 8px 12px;
 }
-.tasks-panel__seg {
+.tasks-panel__select {
   flex: 1 1 auto;
   min-width: 0;
-}
-/* P6: paging a period. The select is a native one on purpose — five kinds in a
-   segmented control would be unreadable at sidebar width. */
-.tasks-panel__window {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
+  height: 24px;
+  padding: 0 4px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-size: 12px;
+  cursor: pointer;
 }
 .tasks-panel__step {
   flex: 0 0 auto;
@@ -384,16 +392,8 @@ async function openTask(task: WorkspaceTask) {
   background: var(--fill-1);
   color: var(--text-1);
 }
-.tasks-panel__kind {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 24px;
-  padding: 0 4px;
-  border: 1px solid var(--line-2);
-  border-radius: 6px;
-  background: var(--surface-2);
-  color: var(--text-1);
-  font-size: 12px;
+.tasks-panel__select:hover {
+  border-color: var(--line-3);
 }
 .tasks-panel__range {
   flex: 0 0 auto;
