@@ -459,6 +459,7 @@ function openSelectedDay() {
 }
 
 .calendar-panel__head {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
