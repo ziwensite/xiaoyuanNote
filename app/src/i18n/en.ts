@@ -2195,6 +2195,11 @@
       today: 'Due',
       all: 'All',
     },
+    linkCalendar: 'Link to calendar',
+    followDay: 'Selected day {date}',
+    followWeek: 'Selected week {from} – {to}',
+    prev: 'Previous',
+    next: 'Next',
     period: {
       toggle: 'Period window',
       daily: 'Day',
@@ -2224,7 +2229,7 @@
       checkUpdated: 'Updated holiday data for {years}',
       checkFailed: 'Check failed — using cached data',
     },
-    week: { header: 'W', tooltip: 'ISO week {week}' },
+    week: { header: 'W', tooltip: 'ISO week {week}', select: 'Select week {week}' },
     day: { off: 'Day off · {name}', work: 'Make-up workday' },
     lunar: { tooltip: 'Lunar calendar: {value}' },
     selectedDay: {

@@ -8,8 +8,8 @@
  * so each workspace keeps its own place. `dialogOpen` is session-only.
  */
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
-import { localDateKey, shiftMonth as shiftMonthDate } from '../lib/calendar';
+import { computed, ref, watch } from 'vue';
+import { addDays, localDateKey, shiftMonth as shiftMonthDate } from '../lib/calendar';
 import {
   parseCalendarPrefs,
   serializeCalendarPrefs,
@@ -44,6 +44,11 @@ function writeBucket(key: string, value: string): void {
 export const useCalendarStore = defineStore('calendar', () => {
   const workspace = useWorkspaceStore();
   const focusDate = ref(localDateKey(new Date()));
+  /** When non-null, the calendar shows a whole-week selection (its Monday); the
+   *  linked tasks panel reads this to list that week's due tasks. Null = a
+   *  single-day selection. */
+  const selectedWeekStart = ref<string | null>(null);
+  const isWeekSelected = computed(() => selectedWeekStart.value !== null);
   const view = ref<CalendarEditorView>('month');
   const dialogOpen = ref(false);
 
@@ -73,12 +78,34 @@ export const useCalendarStore = defineStore('calendar', () => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(date)) focusDate.value = date;
   }
 
+  /** Select a single day; clears any week selection. */
+  function selectDay(date: string) {
+    setFocusDate(date);
+    selectedWeekStart.value = null;
+  }
+
+  /** Select a whole week by its Monday: the grid highlights the row and the
+   *  linked tasks panel (if on) shows that week's due tasks. */
+  function selectWeek(weekStart: string) {
+    selectedWeekStart.value = weekStart;
+    setFocusDate(weekStart);
+  }
+
+  /** Pager for the linked tasks panel — step the current selection by `delta`
+   *  days (±1 for a day, ±7 for a week). Writes back so the calendar follows. */
+  function stepLinked(delta: number) {
+    if (selectedWeekStart.value === null) selectDay(addDays(focusDate.value, delta));
+    else selectWeek(addDays(selectedWeekStart.value, delta));
+  }
+
   function shiftMonth(delta: number) {
     focusDate.value = shiftMonthDate(focusDate.value, delta);
+    selectedWeekStart.value = null;
   }
 
   function goToday() {
     focusDate.value = localDateKey(new Date());
+    selectedWeekStart.value = null;
   }
 
   function setView(next: CalendarEditorView) {
@@ -110,9 +137,14 @@ export const useCalendarStore = defineStore('calendar', () => {
 
   return {
     focusDate,
+    selectedWeekStart,
+    isWeekSelected,
     view,
     dialogOpen,
     setFocusDate,
+    selectDay,
+    selectWeek,
+    stepLinked,
     shiftMonth,
     goToday,
     setView,

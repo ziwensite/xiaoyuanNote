@@ -2167,6 +2167,11 @@ export const zh: I18n = {
       today: '到期',
       all: '全部',
     },
+    linkCalendar: '跟随日历',
+    followDay: '已选日期 {date}',
+    followWeek: '已选周 {from} – {to}',
+    prev: '上一',
+    next: '下一',
     period: {
       toggle: '周期窗口',
       daily: '日',
@@ -2195,7 +2200,7 @@ export const zh: I18n = {
       checkUpdated: '已更新到 {years} 年',
       checkFailed: '检查失败，继续使用缓存',
     },
-    week: { header: 'W', tooltip: 'ISO 第 {week} 周' },
+    week: { header: 'W', tooltip: 'ISO 第 {week} 周', select: '选择第 {week} 周' },
     day: { off: '放假 · {name}', work: '调休补班' },
     lunar: { tooltip: '农历：{value}' },
     selectedDay: {

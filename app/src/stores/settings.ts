@@ -290,6 +290,10 @@ interface Settings {
   periodic: PeriodicConfig;
   /** First day of the week for weekly notes: 0 = Sunday … 6 = Saturday. */
   weekStartsOn: number;
+  /** Tasks panel "link to calendar": when on, the panel lists tasks whose due
+   *  date falls on the calendar's selected day (or the selected week), and its
+   *  pager writes back to the calendar selection so the two stay in sync. */
+  tasksLinkCalendar: boolean;
   /** Heading automatic writes insert under; empty = append at the end. */
   captureHeading: string;
   /**
@@ -828,6 +832,7 @@ function defaults(): Settings {
     dailyNotesTemplate: '',
     periodic: defaultPeriodicConfig(),
     weekStartsOn: 1,
+    tasksLinkCalendar: false,
     captureHeading: '## 任务',
     captures: [],
     // Obsidian Tasks writes the next occurrence above the completed line; that
@@ -1491,6 +1496,10 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleCalendarIsoWeeks() {
       this.calendarShowIsoWeeks = !this.calendarShowIsoWeeks;
+      this.persist();
+    },
+    toggleTasksLinkCalendar() {
+      this.tasksLinkCalendar = !this.tasksLinkCalendar;
       this.persist();
     },
     toggleCalendarAutoUpdateHolidays() {

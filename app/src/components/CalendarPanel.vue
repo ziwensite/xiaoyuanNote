@@ -1,16 +1,17 @@
 <script setup lang="ts">
 /**
- * Sidebar calendar — a compact month grid plus the selected day's task list.
+ * Sidebar calendar — a compact month grid for picking a day or a whole week.
  *
  * The dock is 292 px wide (≈35 px per day cell), which cannot hold a usable
  * time grid: detailed day/week/agenda views and editing live in the dialog
- * (`CalendarDialog.vue`). Clicking a day therefore only *selects* it, and the
- * lines due that day appear underneath, in the same pane — that is the question
- * a sidebar calendar is usually asked. The dialog stays one click away in the
- * header (and on Enter, for keyboard users).
+ * (`CalendarDialog.vue`). Clicking a day selects it; clicking a week number in
+ * the left gutter selects that whole week. The selection is shared with the
+ * tasks panel when its "link to calendar" switch is on, so the two never
+ * disagree about which day/week is current. The dialog stays one click away in
+ * the header (and on Enter, for keyboard users).
  *
- * Month and selected day come from `stores/calendar`, the same state the
- * dialog uses, so the two can never show different months.
+ * Month and selection come from `stores/calendar`, the same state the dialog
+ * uses, so the two can never show different months.
  */
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
@@ -18,16 +19,11 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useSettingsStore } from '../stores/settings';
 import { useCalendarStore } from '../stores/calendar';
 import { useHolidaysStore } from '../stores/holidays';
-import { useTilesStore } from '../stores/tiles';
-import { useToastsStore } from '../stores/toasts';
-import { useTasks } from '../composables/useTasks';
-import { useFiles } from '../composables/useFiles';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
 import PanelHeader from './panel/PanelHeader.vue';
-import { addDays, localDateKey, type CalendarEntry, type CalendarTask } from '../lib/calendar';
+import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
 import { buildCalendarView, monthGridRange } from '../lib/calendar-view';
-import { samePath } from '../lib/path-key';
 import {
   dailyNoteDates,
   dayDensity,
@@ -47,10 +43,6 @@ const workspace = useWorkspaceStore();
 const settings = useSettingsStore();
 const calendar = useCalendarStore();
 const holidays = useHolidaysStore();
-const tiles = useTilesStore();
-const toasts = useToastsStore();
-const files = useFiles();
-const taskList = useTasks();
 const { t, lang } = useI18n();
 
 const gridEl = ref<HTMLElement | null>(null);
@@ -93,18 +85,18 @@ const viewData = computed(() =>
   buildCalendarView(idx.entries as CalendarEntry[], range.value),
 );
 
-/** The selection IS the shared focus date: one value drives the grid outline,
- *  the list below and the dialog's starting day. */
-const selectedTasks = computed(
-  () => viewData.value.days.find((day) => day.date === calendar.focusDate)?.tasks ?? [],
-);
-const dayLabel = computed(() =>
-  new Intl.DateTimeFormat(htmlLangFor(lang.value), {
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(wallDate(calendar.focusDate)),
-);
+/** The linked tasks panel reads the same selection: when a whole week is
+ *  selected, every cell in that row is highlighted. */
+const selectedWeekSet = computed<Set<string> | null>(() => {
+  const wk = calendar.selectedWeekStart;
+  if (!wk) return null;
+  const set = new Set<string>();
+  for (let i = 0; i < 7; i++) set.add(addDays(wk, i));
+  return set;
+});
+function isInSelectedWeek(date: string): boolean {
+  return selectedWeekSet.value?.has(date) ?? false;
+}
 
 const noteDates = computed(() =>
   dailyNoteDates(
@@ -257,46 +249,20 @@ function onGridKeydown(event: KeyboardEvent) {
   if (delta === undefined) return;
   event.preventDefault();
   const next = addDays(calendar.focusDate, delta);
-  calendar.setFocusDate(next);
+  calendar.selectDay(next);
   nextTick(() => {
     gridEl.value?.querySelector<HTMLElement>(`[data-date="${next}"]`)?.focus();
   });
 }
 
-/** A click only selects — the day's lines are what the pane is for now. */
+/** A click selects a single day (clears any week selection). */
 function pick(date: string) {
-  calendar.setFocusDate(date);
+  calendar.selectDay(date);
 }
 
 /** Desktop: an editor tab; narrow windows / tablets: the dialog. */
 function openSelectedDay() {
   calendar.openWorkspace();
-}
-
-async function toggleSelected(task: CalendarTask) {
-  // Toggle the live index row, not the projection: the calendar's copy is a
-  // snapshot that would go stale the moment the file is written.
-  const live = taskList.tasks.value.find(
-    (x) => samePath(x.path, task.path) && x.line === task.line,
-  );
-  if (!live) {
-    toasts.warning(t('calendar.toastTaskGone'));
-    return;
-  }
-  await taskList.toggle(live);
-}
-
-async function openSelectedTask(task: CalendarTask) {
-  await files.openPath(task.path, { bypassNewWindow: true });
-  // Same jump path as the tasks panel: the editor needs a tick to mount the
-  // document before the line can be revealed.
-  setTimeout(() => {
-    window.dispatchEvent(
-      new CustomEvent('solomd:outline-goto', {
-        detail: { line: task.line, paneId: tiles.focusedPaneId },
-      }),
-    );
-  }, 120);
 }
 </script>
 
@@ -327,8 +293,8 @@ async function openSelectedTask(task: CalendarTask) {
       <button
         class="rp-icon-btn"
         type="button"
-        :title="t('calendar.selectedDay.open', { date: dayLabel })"
-        :aria-label="t('calendar.selectedDay.open', { date: dayLabel })"
+        :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
+        :aria-label="t('calendar.selectedDay.open', { date: calendar.focusDate })"
         @click="openSelectedDay"
       >
         <Icons name="calendar" :size="14" />
@@ -358,14 +324,17 @@ async function openSelectedTask(task: CalendarTask) {
           @keydown="onGridKeydown"
         >
           <template v-for="row in weeks" :key="row.week">
-            <span
+            <button
               v-if="showWeeks"
-              class="calendar-mini__weeknum"
-              :title="t('calendar.week.tooltip', { week: row.week })"
-              aria-hidden="true"
+              type="button"
+              class="calendar-mini__weeknum calendar-mini__weeknum--btn"
+              :title="t('calendar.week.select', { week: row.week })"
+              :aria-label="t('calendar.week.select', { week: row.week })"
+              :aria-pressed="calendar.isWeekSelected && row.days[0] === calendar.selectedWeekStart"
+              @click="calendar.selectWeek(row.days[0])"
             >
               {{ row.week }}
-            </span>
+            </button>
             <button
               v-for="date in row.days"
               :key="date"
@@ -376,6 +345,7 @@ async function openSelectedTask(task: CalendarTask) {
                 'is-outside': !inMonth(date),
                 'is-today': isToday(date),
                 'is-selected': isFocus(date),
+                'is-week-selected': isInSelectedWeek(date),
               }"
               :tabindex="isFocus(date) ? 0 : -1"
               :title="tooltipFor(date)"
@@ -401,33 +371,6 @@ async function openSelectedTask(task: CalendarTask) {
         </div>
       </div>
 
-      <section class="calendar-day">
-        <h4 class="rp-section calendar-day__head">
-          <span class="rp-row__label">{{ dayLabel }}</span>
-          <span class="calendar-day__count">{{ selectedTasks.length }}</span>
-        </h4>
-        <div v-if="selectedTasks.length === 0" class="rp-empty">
-          {{ t('calendar.selectedDay.empty') }}
-        </div>
-        <ul v-else class="rp-list calendar-day__list">
-          <li
-            v-for="task in selectedTasks"
-            :key="`${task.path}:${task.line}`"
-            class="rp-row calendar-day__item"
-            :class="{ 'is-done': task.done }"
-            @click="openSelectedTask(task)"
-          >
-            <input
-              type="checkbox"
-              class="rp-check"
-              :checked="task.done"
-              :aria-label="task.title"
-              @click.stop="toggleSelected(task)"
-            />
-            <span class="rp-row__label">{{ task.title }}</span>
-          </li>
-        </ul>
-      </section>
     </template>
   </div>
 </template>
@@ -518,43 +461,31 @@ async function openSelectedTask(task: CalendarTask) {
   background: var(--accent-soft);
 }
 
-/* ── Selected day's lines ─────────────────────────────────────────────── */
-.calendar-day {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--line-2, rgba(0, 0, 0, 0.08));
+/* Whole-week selection: every cell in the selected row gets a soft fill so the
+   week reads as one unit; the focused day still keeps its accent hairline. */
+.calendar-mini__cell.is-week-selected {
+  background: var(--accent-soft);
 }
 
-.calendar-day__head {
-  flex: 0 0 auto;
-  padding: 8px 18px 4px;
-}
-
-.calendar-day > .rp-empty {
-  padding: 16px;
-}
-
-.calendar-day__list {
-  flex: 0 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 0 10px 12px;
-}
-
-.calendar-day__item {
+/* Week-number gutter becomes a clickable "select this week" button. */
+.calendar-mini__weeknum--btn {
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-3, #8a9199);
+  font: inherit;
   cursor: pointer;
 }
 
-/* Done lines stay visible — the day's full record — but recede. */
-.calendar-day__item.is-done {
-  color: var(--text-3);
+.calendar-mini__weeknum--btn:hover {
+  background: var(--hover, rgba(0, 0, 0, 0.06));
+  color: var(--text-1, #1f2328);
 }
 
-.calendar-day__item.is-done .rp-row__label {
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
+.calendar-mini__weeknum--btn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent, #3b82f6);
 }
 
 /* Second line: lunar day / festival. Deliberately one short string, 9 px, so

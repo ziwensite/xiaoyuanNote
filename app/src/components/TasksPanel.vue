@@ -18,7 +18,9 @@ import { useFiles } from '../composables/useFiles';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useTilesStore } from '../stores/tiles';
 import { useSettingsStore } from '../stores/settings';
+import { useCalendarStore } from '../stores/calendar';
 import { useI18n } from '../i18n';
+import { addDays } from '../lib/calendar';
 import Icons from './Icons.vue';
 import PanelHeader from './panel/PanelHeader.vue';
 import SegControl from './panel/SegControl.vue';
@@ -31,6 +33,7 @@ const files = useFiles();
 const idx = useWorkspaceIndexStore();
 const tiles = useTilesStore();
 const settings = useSettingsStore();
+const calendar = useCalendarStore();
 const { t } = useI18n();
 
 type Filter = 'open' | 'today' | 'all';
@@ -65,7 +68,28 @@ function setWindowKind(event: Event) {
  *  midnight, and a stale "today" is how a task silently stops being overdue. */
 const today = computed(() => localDateKey(new Date()));
 
+/** Range the panel follows when "link to calendar" is on: a single day, or the
+ *  whole selected week. Null when the link is off (falls through to the
+ *  ordinary filters below). */
+const linkedRange = computed<{ start: string; end: string } | null>(() => {
+  if (!settings.tasksLinkCalendar) return null;
+  const wk = calendar.selectedWeekStart;
+  if (wk) return { start: wk, end: addDays(wk, 6) };
+  return { start: calendar.focusDate, end: calendar.focusDate };
+});
+
 const visible = computed<WorkspaceTask[]>(() => {
+  const range = linkedRange.value;
+  if (range) {
+    // Linked mode: every task due inside the range, done or not, so it mirrors
+    // what the calendar used to show underneath its grid. Priority filter still
+    // applies on top.
+    let list = tasks.value.filter(
+      (x) => x.meta.due !== null && x.meta.due >= range.start && x.meta.due <= range.end,
+    );
+    if (priorityOnly.value) list = list.filter((x) => x.meta.priority !== null);
+    return list;
+  }
   if (windowOn.value) return tasksInWindow(tasks.value, activeWindow.value);
   let list = tasks.value;
   if (filter.value === 'open') list = list.filter((x) => !x.done);
@@ -92,7 +116,23 @@ const groups = computed(() => {
 
 const openCount = computed(() => tasks.value.filter((x) => !x.done).length);
 /** A window IS an "unfinished only" list, so its own length is the count. */
-const shownCount = computed(() => (windowOn.value ? visible.value.length : openCount.value));
+const shownCount = computed(() => {
+  if (settings.tasksLinkCalendar || windowOn.value) return visible.value.length;
+  return openCount.value;
+});
+
+const rangeLabel = computed(() => {
+  const r = linkedRange.value;
+  if (!r) return '';
+  if (r.start === r.end) return t('tasks.followDay', { date: r.start });
+  return t('tasks.followWeek', { from: r.start, to: r.end });
+});
+
+/** Pager for linked mode: step the calendar's selection so the two stay bound. */
+function stepLinked(delta: number) {
+  calendar.stepLinked(delta);
+}
+
 const hasFolder = computed(() => idx.folder !== null);
 
 function overdue(task: WorkspaceTask): boolean {
@@ -118,42 +158,79 @@ async function openTask(task: WorkspaceTask) {
     <PanelHeader :count="shownCount || null" />
 
     <div class="tasks-panel__filters">
-      <SegControl
-        v-if="!windowOn"
-        v-model="filter"
-        class="tasks-panel__seg"
-        :options="(['open', 'today', 'all'] as Filter[]).map((f) => ({ value: f, label: t(`tasks.filter.${f}`) }))"
-      />
-      <div v-else class="tasks-panel__window">
+      <button
+        class="rp-icon-btn tasks-panel__flag"
+        :class="{ 'is-on': settings.tasksLinkCalendar }"
+        type="button"
+        :title="t('tasks.linkCalendar')"
+        :aria-label="t('tasks.linkCalendar')"
+        :aria-pressed="settings.tasksLinkCalendar"
+        @click="settings.toggleTasksLinkCalendar()"
+      >
+        <Icons name="link" :size="14" />
+      </button>
+
+      <template v-if="settings.tasksLinkCalendar">
+        <span class="tasks-panel__range">{{ rangeLabel }}</span>
         <button
           class="tasks-panel__step"
           type="button"
-          :title="t('tasks.period.prev')"
-          :aria-label="t('tasks.period.prev')"
-          @click="stepWindow(-1)"
+          :title="t('tasks.prev')"
+          :aria-label="t('tasks.prev')"
+          @click="stepLinked(calendar.selectedWeekStart ? -7 : -1)"
         >
           <Icons name="chevron-left" :size="14" />
         </button>
-        <select
-          class="tasks-panel__kind"
-          :value="windowKind"
-          :aria-label="t('tasks.period.toggle')"
-          @change="setWindowKind"
-        >
-          <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
-            {{ t(`tasks.period.${kind}`) }}
-          </option>
-        </select>
         <button
           class="tasks-panel__step"
           type="button"
-          :title="t('tasks.period.next')"
-          :aria-label="t('tasks.period.next')"
-          @click="stepWindow(1)"
+          :title="t('tasks.next')"
+          :aria-label="t('tasks.next')"
+          @click="stepLinked(calendar.selectedWeekStart ? 7 : 1)"
         >
           <Icons name="chevron-right" :size="14" />
         </button>
-      </div>
+      </template>
+
+      <template v-else>
+        <SegControl
+          v-if="!windowOn"
+          v-model="filter"
+          class="tasks-panel__seg"
+          :options="(['open', 'today', 'all'] as Filter[]).map((f) => ({ value: f, label: t(`tasks.filter.${f}`) }))"
+        />
+        <div v-else class="tasks-panel__window">
+          <button
+            class="tasks-panel__step"
+            type="button"
+            :title="t('tasks.period.prev')"
+            :aria-label="t('tasks.period.prev')"
+            @click="stepWindow(-1)"
+          >
+            <Icons name="chevron-left" :size="14" />
+          </button>
+          <select
+            class="tasks-panel__kind"
+            :value="windowKind"
+            :aria-label="t('tasks.period.toggle')"
+            @change="setWindowKind"
+          >
+            <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
+              {{ t(`tasks.period.${kind}`) }}
+            </option>
+          </select>
+          <button
+            class="tasks-panel__step"
+            type="button"
+            :title="t('tasks.period.next')"
+            :aria-label="t('tasks.period.next')"
+            @click="stepWindow(1)"
+          >
+            <Icons name="chevron-right" :size="14" />
+          </button>
+        </div>
+      </template>
+
       <button
         v-if="!windowOn"
         class="rp-icon-btn tasks-panel__flag"
@@ -167,6 +244,7 @@ async function openTask(task: WorkspaceTask) {
         <span class="tasks-panel__bars tasks-panel__bars--high" aria-hidden="true"><i /><i /><i /></span>
       </button>
       <button
+        v-if="!settings.tasksLinkCalendar"
         class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': windowOn }"
         type="button"
