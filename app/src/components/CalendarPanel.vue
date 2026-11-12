@@ -693,7 +693,7 @@ function openSelectedDay() {
 }
 
 .calendar-mini__corner.is-work {
-  border: 1px solid #3b82f6;
+  background: #3b82f6;
 }
 
 /* Density dot moved out of the flow (top-right) so the lunar line owns the
