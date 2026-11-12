@@ -689,11 +689,11 @@ function openSelectedDay() {
 }
 
 .calendar-mini__corner.is-off {
-  background: #3b82f6;
+  background: #e5484d;
 }
 
 .calendar-mini__corner.is-work {
-  border: 1px solid #8a9199;
+  border: 1px solid #3b82f6;
 }
 
 /* Density dot moved out of the flow (top-right) so the lunar line owns the
@@ -756,10 +756,10 @@ function openSelectedDay() {
 /* Holiday / make-up-work days tint the solar day number to match the corner
    mark (off = accent blue, work = muted grey). Today's filled dot wins. */
 .calendar-mini__day.is-off {
-  color: #3b82f6;
+  color: #e5484d;
 }
 .calendar-mini__day.is-work {
-  color: #8a9199;
+  color: #3b82f6;
 }
 
 .calendar-mini__cell.is-outside .calendar-mini__mark,
