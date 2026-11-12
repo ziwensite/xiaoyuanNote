@@ -24,7 +24,7 @@ import { addDays } from '../lib/calendar';
 import Icons from './Icons.vue';
 import PanelHeader from './panel/PanelHeader.vue';
 import SegControl from './panel/SegControl.vue';
-import { isOverdue, localDateKey } from '../lib/tasks';
+import { isOverdue, localDateKey, type TaskPriority } from '../lib/tasks';
 import { PERIOD_KINDS, shiftPeriod, type PeriodKind } from '../lib/periodic-notes';
 import { periodWindow, tasksInWindow } from '../lib/period-window';
 
@@ -155,6 +155,36 @@ function overdue(task: WorkspaceTask): boolean {
 
 function keyOf(task: WorkspaceTask): string {
   return `${task.path}:${task.line}`;
+}
+
+/** Obsidian Tasks priority glyphs (docs/specs … priority row): 🔺 ⏫ 🔼 🔽 ⏬. */
+const PRIORITY_ICON: Record<Exclude<TaskPriority, null>, string> = {
+  highest: '🔺',
+  high: '⏫',
+  medium: '🔼',
+  low: '🔽',
+  lowest: '⏬',
+};
+function priorityIcon(p: TaskPriority): string | null {
+  return p ? PRIORITY_ICON[p] : null;
+}
+
+/** Single click expands/collapses the two-line clamp; double click opens the
+ *  note. A short timer keeps a double click from also toggling the row. */
+let clickTimer: ReturnType<typeof setTimeout> | null = null;
+function onRowClick(key: string) {
+  if (clickTimer) return;
+  clickTimer = setTimeout(() => {
+    clickTimer = null;
+    toggleExpand(key);
+  }, 200);
+}
+function onRowDblClick(task: WorkspaceTask) {
+  if (clickTimer) {
+    clearTimeout(clickTimer);
+    clickTimer = null;
+  }
+  openTask(task);
 }
 
 async function openTask(task: WorkspaceTask) {
@@ -292,8 +322,8 @@ async function openTask(task: WorkspaceTask) {
             :key="keyOf(task)"
             class="rp-row tasks-panel__item"
             :class="{ 'tasks-panel__item--done': task.done, 'is-expanded': isExpanded(keyOf(task)) }"
-            @click="toggleExpand(keyOf(task))"
-            @dblclick="openTask(task)"
+            @click="onRowClick(keyOf(task))"
+            @dblclick="onRowDblClick(task)"
           >
             <input
               v-if="!windowOn"
@@ -306,13 +336,17 @@ async function openTask(task: WorkspaceTask) {
             <span v-else class="tasks-panel__mark" aria-hidden="true">•</span>
             <div class="tasks-panel__text-wrap">
               <span class="tasks-panel__text" :class="{ 'is-clamped': !isExpanded(keyOf(task)) }">{{ task.meta.title }}</span>
-              <div class="tasks-panel__badges">
+              <div class="tasks-panel__meta-row">
                 <span
-                  v-if="task.meta.priority"
-                  class="tasks-panel__bars"
-                  :class="`tasks-panel__bars--${task.meta.priority}`"
+                  v-if="priorityIcon(task.meta.priority)"
+                  class="tasks-panel__priority"
                   :title="task.meta.priority"
-                ><i /><i /><i /></span>
+                >{{ priorityIcon(task.meta.priority) }}</span>
+                <span
+                  v-if="task.meta.due"
+                  class="tasks-panel__due"
+                  :class="{ 'tasks-panel__due--overdue': overdue(task) }"
+                >{{ task.meta.due }}</span>
                 <span
                   v-if="task.meta.recurrence && task.meta.recurrence.kind !== 'natural'"
                   class="tasks-panel__recur"
@@ -324,11 +358,6 @@ async function openTask(task: WorkspaceTask) {
                   "
                 >🔁</span>
               </div>
-              <span
-                v-if="task.meta.due"
-                class="tasks-panel__due"
-                :class="{ 'tasks-panel__due--overdue': overdue(task) }"
-              >{{ task.meta.due }}</span>
             </div>
           </li>
         </ul>
@@ -460,16 +489,20 @@ async function openTask(task: WorkspaceTask) {
   text-decoration: line-through;
   color: var(--text-3);
 }
-.tasks-panel__badges {
+.tasks-panel__meta-row {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
-/* Due date moves to its own bottom line so it never crowds a long title. */
+.tasks-panel__priority {
+  font-size: 12px;
+  line-height: 1;
+}
+/* Priority glyph and due date share one bottom row so neither crowds a long
+   title. */
 .tasks-panel__due {
-  flex: 0 0 auto;
-  align-self: flex-start;
   font-size: 12px;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
