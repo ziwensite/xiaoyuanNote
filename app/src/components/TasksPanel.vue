@@ -357,13 +357,14 @@ async function openTask(task: WorkspaceTask) {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   padding: 0 8px 8px 12px;
 }
 .tasks-panel__select {
   flex: 0 0 auto;
-  width: 3.5ch;
-  min-width: 0;
+  width: auto;
+  min-width: max-content;
   height: 24px;
   padding: 0 2px;
   border: 1px solid var(--line-2);
@@ -398,6 +399,7 @@ async function openTask(task: WorkspaceTask) {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 0 12px 8px;
   font-size: 12px;
