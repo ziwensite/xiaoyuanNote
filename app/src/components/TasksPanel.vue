@@ -258,26 +258,6 @@ async function openTask(task: WorkspaceTask) {
         </option>
       </select>
       <button
-        v-if="windowOn"
-        class="tasks-panel__step"
-        type="button"
-        :title="t('tasks.period.prev')"
-        :aria-label="t('tasks.period.prev')"
-        @click="stepWindow(-1)"
-      >
-        <Icons name="chevron-left" :size="14" />
-      </button>
-      <button
-        v-if="windowOn"
-        class="tasks-panel__step"
-        type="button"
-        :title="t('tasks.period.next')"
-        :aria-label="t('tasks.period.next')"
-        @click="stepWindow(1)"
-      >
-        <Icons name="chevron-right" :size="14" />
-      </button>
-      <button
         class="rp-icon-btn tasks-panel__flag"
         :class="{ 'is-on': priorityOnly }"
         type="button"
@@ -289,8 +269,26 @@ async function openTask(task: WorkspaceTask) {
         <span class="tasks-panel__bars tasks-panel__bars--high" aria-hidden="true"><i /><i /><i /></span>
       </button>
     </div>
-    <div v-if="windowOn" class="tasks-panel__range" :title="t('tasks.period.note')">
-      {{ windowRange }}
+    <div v-if="windowOn" class="tasks-panel__range">
+      <button
+        class="tasks-panel__step"
+        type="button"
+        :title="t('tasks.period.prev')"
+        :aria-label="t('tasks.period.prev')"
+        @click="stepWindow(-1)"
+      >
+        <Icons name="chevron-left" :size="14" />
+      </button>
+      <span class="tasks-panel__range-text">{{ windowRange }}</span>
+      <button
+        class="tasks-panel__step"
+        type="button"
+        :title="t('tasks.period.next')"
+        :aria-label="t('tasks.period.next')"
+        @click="stepWindow(1)"
+      >
+        <Icons name="chevron-right" :size="14" />
+      </button>
     </div>
 
     <div v-if="!hasFolder" class="rp-empty">{{ t('tasks.openFolder') }}</div>
@@ -363,10 +361,11 @@ async function openTask(task: WorkspaceTask) {
   padding: 0 8px 8px 12px;
 }
 .tasks-panel__select {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  width: 3.5ch;
   min-width: 0;
   height: 24px;
-  padding: 0 4px;
+  padding: 0 2px;
   border: 1px solid var(--line-2);
   border-radius: 6px;
   background: var(--surface-2);
@@ -397,11 +396,19 @@ async function openTask(task: WorkspaceTask) {
 }
 .tasks-panel__range {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 0 12px 8px;
   font-size: 12px;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
+}
+.tasks-panel__range-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  text-align: center;
 }
 /* Stands in for the checkbox in window mode: the window is read-only, rows
    are links into the note where the line actually lives. */

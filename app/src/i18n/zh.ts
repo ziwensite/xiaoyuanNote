@@ -2163,7 +2163,7 @@ export const zh: I18n = {
       },
     },
     filter: {
-      open: '未完成',
+      open: '未完',
       today: '到期',
       all: '全部',
     },
