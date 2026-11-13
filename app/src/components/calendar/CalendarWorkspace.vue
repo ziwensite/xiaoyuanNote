@@ -26,6 +26,7 @@ import { useFiles } from '../../composables/useFiles';
 import { useDailyNotes } from '../../composables/useDailyNotes';
 import { useI18n, htmlLangFor } from '../../i18n';
 import Icons from '../Icons.vue';
+import CalendarHeader from '../CalendarHeader.vue';
 import {
   addDays,
   buildCalendarMaterial,
@@ -1227,35 +1228,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div v-else class="cal-w__single">
-      <header class="cal-bar">
-        <div class="cal-bar__left">
-          <span class="cal-bar__title">{{ mode === 'day' ? dayTitle : monthTitle }}</span>
-          <div class="cal-w__seg" role="group" :aria-label="t('calendar.title')">
-            <button
-              v-for="view in CALENDAR_EDITOR_VIEWS"
-              :key="view"
-              type="button"
-              :class="{ 'is-active': calendar.view === view }"
-              :aria-pressed="calendar.view === view"
-              @click="calendar.setView(view)"
-            >{{ t(`calendar.view.${view}`) }}</button>
-          </div>
-        </div>
-        <div class="cal-nav">
-          <button type="button" class="cal-nav__btn" :title="t('calendar.newEvent')" @click="newOnFocusDate">
-            <Icons name="plus" :size="14" />
-          </button>
-          <button type="button" class="cal-nav__btn" :title="t('calendar.prev')" @click="shift(-1)">
-            <Icons name="chevron-left" :size="14" />
-          </button>
-          <button type="button" class="cal-nav__btn" @click="calendar.goToday()">
-            {{ t('calendar.today') }}
-          </button>
-          <button type="button" class="cal-nav__btn" :title="t('calendar.next')" @click="shift(1)">
-            <Icons name="chevron-right" :size="14" />
-          </button>
-        </div>
-      </header>
+      <CalendarHeader :show-open-day="false" />
 
       <!-- Day -->
       <div v-if="mode === 'day'" class="cal-day">
