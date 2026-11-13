@@ -9,7 +9,7 @@
  * calendar icon that opens the full workspace; `showOpenDay` toggles the
  * "open selected day" button (hidden in the workspace itself).
  */
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
 import { addDays } from '../lib/calendar';
@@ -63,26 +63,43 @@ const headerTitle = computed(() => {
  *  over the editor while the picker is open, plus a card-ish active state on
  *  the title button that anchors it. No `color-scheme` flipping — the input's
  *  own system-coloured background flipped with it, so repeated clicks made
- *  the bubble oscillate between light and dark. */
-const pickerActive = ref(false);
-function closePicker() {
-  pickerActive.value = false;
-}
+ *  the bubble oscillate between light and dark.
+ *
+ *  `showPicker()` paints synchronously, so the scrim/card are toggled with a
+ *  synchronous class on the header (a pseudo-element, no v-if). A reactive
+ *  `v-if`/`:class` landed one frame later, making the bubble appear before
+ *  its backdrop — that was the sluggish pop. */
+const headEl = ref<HTMLElement | null>(null);
+const pickerEl = ref<HTMLInputElement | null>(null);
+type PickerInput = HTMLInputElement & { showPicker?: () => void };
+
+let picking = false;
 function onGlobalKeydown(ev: KeyboardEvent) {
-  if (ev.key === 'Escape' && pickerActive.value) closePicker();
+  if (ev.key === 'Escape') closePicker();
 }
 function onGlobalPointerDown(ev: PointerEvent) {
-  if (!pickerActive.value) return;
   // The title button toggles itself in openNativePicker; every other click
   // (scrim, toolbar, another control) dismisses the picker state.
   const target = ev.target as HTMLElement | null;
   if (target?.closest('.calendar-panel__month')) return;
   closePicker();
 }
-onMounted(() => {
-  window.addEventListener('keydown', onGlobalKeydown);
-  window.addEventListener('pointerdown', onGlobalPointerDown, true);
-});
+function setPicking(next: boolean) {
+  if (picking === next) return;
+  picking = next;
+  headEl.value?.classList.toggle('is-picking', next);
+  // Only listen while open, instead of two permanent global listeners.
+  if (next) {
+    window.addEventListener('keydown', onGlobalKeydown);
+    window.addEventListener('pointerdown', onGlobalPointerDown, true);
+  } else {
+    window.removeEventListener('keydown', onGlobalKeydown);
+    window.removeEventListener('pointerdown', onGlobalPointerDown, true);
+  }
+}
+function closePicker() {
+  setPicking(false);
+}
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onGlobalKeydown);
   window.removeEventListener('pointerdown', onGlobalPointerDown, true);
@@ -92,10 +109,8 @@ onBeforeUnmount(() => {
  *  the title calls showPicker() so the browser/OS renders its own date UI —
  *  a calendar popover on desktop, a wheel picker on mobile. focus()+click()
  *  is the fallback for engines that do not implement showPicker(). */
-const pickerEl = ref<HTMLInputElement | null>(null);
-type PickerInput = HTMLInputElement & { showPicker?: () => void };
 function openNativePicker() {
-  if (pickerActive.value) {
+  if (picking) {
     closePicker();
     return;
   }
@@ -103,11 +118,13 @@ function openNativePicker() {
   if (!el) return;
   // A cancelled native picker can leave the DOM value out of sync while the
   // Vue-side focusDate is unchanged, so re-sync before every open.
-  el.value = calendar.focusDate;
+  if (el.value !== calendar.focusDate) el.value = calendar.focusDate;
   // Drop any inline colour-scheme left by an earlier session/HMR so the
   // bubble always uses the system default palette.
-  el.style.colorScheme = '';
-  pickerActive.value = true;
+  if (el.style.colorScheme) el.style.colorScheme = '';
+  // Toggle BEFORE showPicker: the scrim/card are then styled in the same
+  // frame the browser starts painting the bubble.
+  setPicking(true);
   if (typeof el.showPicker === 'function') {
     try {
       el.showPicker();
@@ -162,8 +179,7 @@ function togglePanel() {
 </script>
 
 <template>
-  <div class="calendar-panel__head">
-    <div v-if="pickerActive" class="calendar-panel__scrim" aria-hidden="true" @click="closePicker"></div>
+  <div ref="headEl" class="calendar-panel__head">
     <div class="calendar-panel__nav">
       <button
         class="rp-icon-btn"
@@ -176,7 +192,6 @@ function togglePanel() {
       </button>
       <button
         class="calendar-panel__month"
-        :class="{ 'is-picking': pickerActive }"
         type="button"
         :title="t('calendar.pickMonth')"
         :aria-label="t('calendar.pickMonth')"
@@ -270,12 +285,16 @@ function togglePanel() {
 }
 /* While the native picker is open, give the editor a very light scrim so the
    browser-drawn bubble (default palette, no rec colouring) reads as a raised
-   layer. No blur: it would soften the whole editor and fight the simple look. */
-.calendar-panel__scrim {
+   layer. A pseudo-element toggled by a synchronous class: no DOM insertion,
+   no v-if, no transition — it paints in the same frame as the native bubble.
+   No blur: it would soften the whole editor and fight the simple look. */
+.calendar-panel__head.is-picking::before {
+  content: '';
   position: fixed;
   inset: 0;
   z-index: 40;
   background: rgba(0, 0, 0, 0.08);
+  pointer-events: none;
 }
 .calendar-panel__right {
   position: relative;
@@ -332,7 +351,7 @@ function togglePanel() {
 }
 /* Card-ish anchor for the native bubble: hairline edge + soft shadow, using
    the theme's default surface colour rather than an inverted one. */
-.calendar-panel__month.is-picking {
+.calendar-panel__head.is-picking .calendar-panel__month {
   background: var(--bg-pop, #fff);
   border-radius: 8px;
   box-shadow:
