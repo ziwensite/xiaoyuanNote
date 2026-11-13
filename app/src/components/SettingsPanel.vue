@@ -100,7 +100,7 @@ function withChord(key: string, actionId: string): string {
 
 // v3.0 — left-side category nav. Settings was a 30+ item single scroll;
 // split into 6 groups so the user navigates by category, not by scroll.
-type SettingsCategory = 'basics' | 'writing' | 'sync' | 'integrations' | 'export' | 'keys' | 'advanced';
+type SettingsCategory = 'basics' | 'writing' | 'calendar' | 'sync' | 'integrations' | 'export' | 'keys' | 'tasks' | 'advanced';
 const activeCategory = ref<SettingsCategory>('basics');
 // #144 — all six category pages share the single scrolling `.settings__body`
 // (pages are toggled via CSS display), so one page's scrollTop leaked into
@@ -261,10 +261,12 @@ onUnmounted(stopRecording);
 const categories: { id: SettingsCategory; icon: string; labelKey: string }[] = [
   { id: 'basics', icon: 'settings', labelKey: 'settings.catBasics' },
   { id: 'writing', icon: 'pencil', labelKey: 'settings.catWriting' },
+  { id: 'calendar', icon: 'calendar', labelKey: 'settings.catCalendar' },
   { id: 'sync', icon: 'cloud', labelKey: 'settings.catSync' },
   { id: 'integrations', icon: 'plug', labelKey: 'settings.catIntegrations' },
   { id: 'export', icon: 'export', labelKey: 'settings.catExport' },
   { id: 'keys', icon: 'keyboard', labelKey: 'settings.catKeys' },
+  { id: 'tasks', icon: 'list', labelKey: 'settings.catTasks' },
   { id: 'advanced', icon: 'wrench', labelKey: 'settings.catAdvanced' },
 ];
 const activeCategoryLabelKey = computed(
@@ -325,7 +327,7 @@ const frameProps = computed(() =>
 // Every category, `keys` included — it was missing, so the shortcut sheet's
 // "change shortcuts" link opened Settings on Basics instead.
 const VALID_CATEGORIES = new Set<SettingsCategory>([
-  'basics', 'writing', 'sync', 'integrations', 'export', 'keys', 'advanced',
+  'basics', 'writing', 'calendar', 'sync', 'integrations', 'export', 'keys', 'tasks', 'advanced',
 ]);
 watch(
   // `initialSection` is watched too: in tab mode the panel stays open, so a
@@ -1220,7 +1222,7 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.wheelZoomHint') }}</p>
         </section>
 
-        <section data-cat="basics">
+        <section data-cat="calendar">
           <label>
             <input
               type="checkbox"
@@ -2327,7 +2329,7 @@ function onSelectPdfFont(v: string) {
           />
         </section>
 
-        <section data-cat="advanced">
+        <section data-cat="tasks">
           <label>{{ t('settings.recurringTaskPlacement') }}</label>
           <select
             :value="settings.recurringTaskPlacement"
@@ -2337,6 +2339,18 @@ function onSelectPdfFont(v: string) {
             <option value="above">{{ t('settings.recurringTaskPlacementAbove') }}</option>
           </select>
           <p class="setting-hint">{{ t('settings.recurringTaskPlacementHint') }}</p>
+        </section>
+
+        <section data-cat="tasks">
+          <label>
+            <input
+              type="checkbox"
+              :checked="settings.tasksLinkCalendar"
+              @change="settings.toggleTasksLinkCalendar()"
+            />
+            {{ t('tasks.linkCalendar') }}
+          </label>
+          <p class="setting-hint">{{ t('tasks.linkCalendarHint') }}</p>
         </section>
 
         <!-- P5 — capture presets. Each one also shows up in the command palette. -->
