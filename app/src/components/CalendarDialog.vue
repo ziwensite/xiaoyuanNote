@@ -15,7 +15,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { DsModal } from '../ui';
 import { useCalendarStore } from '../stores/calendar';
-import { CALENDAR_EDITOR_VIEWS } from '../lib/calendar-prefs';
 import { useI18n } from '../i18n';
 import CalendarWorkspace from './calendar/CalendarWorkspace.vue';
 
@@ -52,18 +51,6 @@ onBeforeUnmount(() => {
     <template #header>
       <div class="cal-dialog__head">
         <h2 class="cal-dialog__title">{{ t('calendar.title') }}</h2>
-        <div class="cal-dialog__seg" role="group" :aria-label="t('calendar.title')">
-          <button
-            v-for="view in CALENDAR_EDITOR_VIEWS"
-            :key="view"
-            type="button"
-            :class="{ 'is-active': calendar.view === view }"
-            :aria-pressed="calendar.view === view"
-            @click="calendar.setView(view)"
-          >
-            {{ t(`calendar.view.${view}`) }}
-          </button>
-        </div>
       </div>
     </template>
 

@@ -54,6 +54,15 @@ import {
   type CalendarViewDay,
   type TaskDueGroup,
 } from '../../lib/calendar-view';
+import { CALENDAR_EDITOR_VIEWS } from '../../lib/calendar-prefs';
+import {
+  festivalOf,
+  lunarDayName,
+  lunarMonthName,
+  solarToLunar,
+} from '../../lib/lunar';
+import { solarTermOf } from '../../lib/solar-terms';
+import { useHolidaysStore } from '../../stores/holidays';
 import {
   dailyNoteDates,
   dayDensity,
@@ -84,6 +93,7 @@ const tabs = useTabsStore();
 const toasts = useToastsStore();
 const tiles = useTilesStore();
 const calendar = useCalendarStore();
+const holidays = useHolidaysStore();
 const files = useFiles();
 const taskList = useTasks();
 const daily = useDailyNotes();
@@ -137,6 +147,51 @@ const mode = computed(() => {
 });
 
 const monthDays = computed(() => monthGridRange(calendar.focusDate));
+
+// Lunar / solar-term / holiday second line, mirroring the dock panel so the
+// opened calendar agrees with the sidebar month grid.
+const showLunar = computed(() => settings.calendarShowLunar);
+const holidayMap = computed(() => holidays.index);
+const STATUTORY_FESTIVAL_KEYS = new Set(['qingming', 'springFestival', 'dragonBoat', 'midAutumn']);
+function isFestivalDay(date: string): boolean {
+  const [, mm, dd] = date.split('-');
+  if (mm === '01' && dd === '01') return true; // 元旦
+  if (mm === '05' && dd === '01') return true; // 劳动节
+  if (mm === '10' && dd === '01') return true; // 国庆
+  const f = festivalOf(date);
+  return f !== null && STATUTORY_FESTIVAL_KEYS.has(f.key);
+}
+function subLabel(date: string): string {
+  const hit = holidayMap.value.get(date);
+  if (hit?.kind === 'off' && hit.name && isFestivalDay(date)) return hit.name;
+  const festival = festivalOf(date);
+  if (festival) return festival.name;
+  const st = solarTermOf(date);
+  if (st) return st;
+  if (!showLunar.value) return '';
+  const l = solarToLunar(date);
+  if (!l) return '';
+  const prefix = l.leap ? '闰' : '';
+  if (l.day === 1) return `${prefix}${lunarMonthName(l.month)}`;
+  return `${prefix}${lunarDayName(l.day)}`;
+}
+
+// Year/month picker — mirrors the dock panel's "选择年月" navigation so the
+// opened calendar can jump to any month the same way the sidebar can.
+const ymOpen = ref(false);
+const ymYear = ref(0);
+const ymMonth = ref(0);
+function openYm() {
+  const [y, m] = calendar.focusDate.split('-').map(Number);
+  ymYear.value = y;
+  ymMonth.value = m;
+  ymOpen.value = true;
+}
+function pickYm(m: number) {
+  const mm = String(m).padStart(2, '0');
+  calendar.setFocusDate(`${ymYear.value}-${mm}-01`);
+  ymOpen.value = false;
+}
 const range = computed(() => {
   switch (mode.value) {
     case 'day':
@@ -1135,7 +1190,26 @@ onBeforeUnmount(() => {
     <div v-else-if="mode === 'month'" class="cal-w__split">
       <section class="cal-month">
         <header class="cal-month__head">
-          <span class="cal-month__title">{{ monthTitle }}</span>
+          <div class="cal-month__head-left">
+            <button
+              type="button"
+              class="cal-month__title"
+              :title="t('calendar.pickMonth')"
+              @click="openYm"
+            >
+              {{ monthTitle }}
+            </button>
+            <div class="cal-w__seg" role="group" :aria-label="t('calendar.title')">
+              <button
+                v-for="view in CALENDAR_EDITOR_VIEWS"
+                :key="view"
+                type="button"
+                :class="{ 'is-active': calendar.view === view }"
+                :aria-pressed="calendar.view === view"
+                @click="calendar.setView(view)"
+              >{{ t(`calendar.view.${view}`) }}</button>
+            </div>
+          </div>
           <div class="cal-nav">
             <button type="button" class="cal-nav__btn" :title="t('calendar.newEvent')" @click="newOnFocusDate">
               <Icons name="plus" :size="14" />
@@ -1178,12 +1252,35 @@ onBeforeUnmount(() => {
             @dblclick="newOnMonth(date)"
           >
             <span class="cal-month__day">{{ dayNumber(date) }}</span>
+            <span v-if="subLabel(date)" class="cal-month__sub">{{ subLabel(date) }}</span>
             <span
               class="cal-month__mark"
               :class="`is-${densityOf(date).state}`"
               aria-hidden="true"
             />
           </button>
+        </div>
+        <div v-if="ymOpen" class="cal-w__ym-backdrop" @click="ymOpen = false"></div>
+        <div v-if="ymOpen" class="cal-w__ym" role="dialog" :aria-label="t('calendar.pickMonth')">
+          <div class="cal-w__ym-year">
+            <button type="button" class="cal-nav__btn" :disabled="ymYear <= 1900" @click="ymYear--">
+              <Icons name="chevron-left" :size="14" />
+            </button>
+            <span class="cal-w__ym-year-label">{{ ymYear }}</span>
+            <button type="button" class="cal-nav__btn" :disabled="ymYear >= 2200" @click="ymYear++">
+              <Icons name="chevron-right" :size="14" />
+            </button>
+          </div>
+          <div class="cal-w__ym-months">
+            <button
+              v-for="m in 12"
+              :key="m"
+              type="button"
+              class="cal-w__ym-month"
+              :class="{ 'is-active': m === ymMonth }"
+              @click="pickYm(m)"
+            >{{ m }}</button>
+          </div>
         </div>
       </section>
 
@@ -1286,7 +1383,19 @@ onBeforeUnmount(() => {
 
     <div v-else class="cal-w__single">
       <header class="cal-bar">
-        <span class="cal-bar__title">{{ mode === 'day' ? dayTitle : monthTitle }}</span>
+        <div class="cal-bar__left">
+          <span class="cal-bar__title">{{ mode === 'day' ? dayTitle : monthTitle }}</span>
+          <div class="cal-w__seg" role="group" :aria-label="t('calendar.title')">
+            <button
+              v-for="view in CALENDAR_EDITOR_VIEWS"
+              :key="view"
+              type="button"
+              :class="{ 'is-active': calendar.view === view }"
+              :aria-pressed="calendar.view === view"
+              @click="calendar.setView(view)"
+            >{{ t(`calendar.view.${view}`) }}</button>
+          </div>
+        </div>
         <div class="cal-nav">
           <button type="button" class="cal-nav__btn" :title="t('calendar.newEvent')" @click="newOnFocusDate">
             <Icons name="plus" :size="14" />
@@ -1517,6 +1626,110 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 8px;
   padding-bottom: 8px;
+}
+
+.cal-month__head-left,
+.cal-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cal-w__seg {
+  display: inline-flex;
+  border: 1px solid var(--bd-hair);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cal-w__seg button {
+  font-size: 11px;
+  padding: 2px 9px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--bd-hair);
+  cursor: pointer;
+  color: var(--text-2);
+  font: inherit;
+}
+.cal-w__seg button:last-child {
+  border-right: none;
+}
+.cal-w__seg button.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.cal-month__title {
+  font: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+}
+.cal-month__title:hover {
+  color: var(--accent);
+}
+
+.cal-month__sub {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-3);
+  margin-top: 2px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-w__ym-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.18);
+  z-index: 50;
+}
+.cal-w__ym {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-0);
+  border: 1px solid var(--bd-hair);
+  border-radius: 10px;
+  padding: 14px;
+  z-index: 51;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.28);
+  min-width: 240px;
+}
+.cal-w__ym-year {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cal-w__ym-year-label {
+  font-weight: 600;
+  font-size: 13px;
+}
+.cal-w__ym-months {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.cal-w__ym-month {
+  padding: 7px 0;
+  border: 1px solid var(--bd-hair);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-1);
+}
+.cal-w__ym-month.is-active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
 .cal-month__title,
