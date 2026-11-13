@@ -55,14 +55,7 @@ import {
   type TaskDueGroup,
 } from '../../lib/calendar-view';
 import { CALENDAR_EDITOR_VIEWS } from '../../lib/calendar-prefs';
-import {
-  festivalOf,
-  lunarDayName,
-  lunarMonthName,
-  solarToLunar,
-} from '../../lib/lunar';
-import { solarTermOf } from '../../lib/solar-terms';
-import { useHolidaysStore } from '../../stores/holidays';
+import CalendarPanel from '../CalendarPanel.vue';
 import {
   dailyNoteDates,
   dayDensity,
@@ -93,7 +86,6 @@ const tabs = useTabsStore();
 const toasts = useToastsStore();
 const tiles = useTilesStore();
 const calendar = useCalendarStore();
-const holidays = useHolidaysStore();
 const files = useFiles();
 const taskList = useTasks();
 const daily = useDailyNotes();
@@ -134,7 +126,6 @@ const writeEntryTo = createEntryWriter({
 
 const root = ref<HTMLElement | null>(null);
 const dayGrid = ref<HTMLElement | null>(null);
-const monthGridEl = ref<HTMLElement | null>(null);
 const width = ref(0);
 
 const today = computed(() => localDateKey(new Date()));
@@ -148,50 +139,7 @@ const mode = computed(() => {
 
 const monthDays = computed(() => monthGridRange(calendar.focusDate));
 
-// Lunar / solar-term / holiday second line, mirroring the dock panel so the
-// opened calendar agrees with the sidebar month grid.
-const showLunar = computed(() => settings.calendarShowLunar);
-const holidayMap = computed(() => holidays.index);
-const STATUTORY_FESTIVAL_KEYS = new Set(['qingming', 'springFestival', 'dragonBoat', 'midAutumn']);
-function isFestivalDay(date: string): boolean {
-  const [, mm, dd] = date.split('-');
-  if (mm === '01' && dd === '01') return true; // 元旦
-  if (mm === '05' && dd === '01') return true; // 劳动节
-  if (mm === '10' && dd === '01') return true; // 国庆
-  const f = festivalOf(date);
-  return f !== null && STATUTORY_FESTIVAL_KEYS.has(f.key);
-}
-function subLabel(date: string): string {
-  const hit = holidayMap.value.get(date);
-  if (hit?.kind === 'off' && hit.name && isFestivalDay(date)) return hit.name;
-  const festival = festivalOf(date);
-  if (festival) return festival.name;
-  const st = solarTermOf(date);
-  if (st) return st;
-  if (!showLunar.value) return '';
-  const l = solarToLunar(date);
-  if (!l) return '';
-  const prefix = l.leap ? '闰' : '';
-  if (l.day === 1) return `${prefix}${lunarMonthName(l.month)}`;
-  return `${prefix}${lunarDayName(l.day)}`;
-}
 
-// Year/month picker — mirrors the dock panel's "选择年月" navigation so the
-// opened calendar can jump to any month the same way the sidebar can.
-const ymOpen = ref(false);
-const ymYear = ref(0);
-const ymMonth = ref(0);
-function openYm() {
-  const [y, m] = calendar.focusDate.split('-').map(Number);
-  ymYear.value = y;
-  ymMonth.value = m;
-  ymOpen.value = true;
-}
-function pickYm(m: number) {
-  const mm = String(m).padStart(2, '0');
-  calendar.setFocusDate(`${ymYear.value}-${mm}-01`);
-  ymOpen.value = false;
-}
 const range = computed(() => {
   switch (mode.value) {
     case 'day':
@@ -256,27 +204,7 @@ const noteDates = computed(() =>
   ),
 );
 
-/** Same three-state rule as the sidebar mini month (see `calendar-density`). */
-const densities = computed(() => {
-  const map = new Map<string, CalendarDayDensity>();
-  for (const day of viewData.value.days) {
-    map.set(day.date, dayDensity(day, noteDates.value.has(day.date)));
-  }
-  return map;
-});
 
-const EMPTY_DENSITY: CalendarDayDensity = {
-  state: 'none',
-  total: 0,
-  done: 0,
-  todo: 0,
-  events: 0,
-  hasNote: false,
-};
-
-function densityOf(date: string): CalendarDayDensity {
-  return densities.value.get(date) ?? EMPTY_DENSITY;
-}
 
 const monthTitle = computed(() => {
   const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { year: 'numeric', month: 'long' });
@@ -328,31 +256,13 @@ function dayNumber(date: string): string {
   return String(Number(date.slice(8, 10)));
 }
 
-function inMonth(date: string): boolean {
-  return date.slice(0, 7) === calendar.focusDate.slice(0, 7);
-}
+
 
 function isFocus(date: string): boolean {
   return date === calendar.focusDate;
 }
 
-function tooltipFor(date: string): string {
-  const d = densityOf(date);
-  const parts = [date];
-  if (d.total > 0) {
-    parts.push(t('calendar.tooltip.tasks', { total: d.total, done: d.done, todo: d.todo }));
-  }
-  if (d.events > 0) parts.push(t('calendar.tooltip.events', { count: d.events }));
-  if (d.hasNote) parts.push(t('calendar.tooltip.note'));
-  return parts.join(' · ');
-}
 
-const ARROW_DELTAS: Record<string, number> = {
-  ArrowLeft: -1,
-  ArrowRight: 1,
-  ArrowUp: -7,
-  ArrowDown: 7,
-};
 
 function isTypingTarget(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -361,23 +271,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
 }
 
-/** Arrows move the shared focus date; Enter opens that day's detail view. */
-function onMonthKeydown(event: KeyboardEvent) {
-  if (isTypingTarget(event.target)) return;
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    openDay(calendar.focusDate);
-    return;
-  }
-  const delta = ARROW_DELTAS[event.key];
-  if (delta === undefined) return;
-  event.preventDefault();
-  const next = addDays(calendar.focusDate, delta);
-  calendar.setFocusDate(next);
-  nextTick(() => {
-    monthGridEl.value?.querySelector<HTMLElement>(`[data-date="${next}"]`)?.focus();
-  });
-}
+
 
 /** Space toggles the focused task; arrows move between visible rows. */
 function onTaskKeydown(event: KeyboardEvent, task: CalendarTask) {
@@ -1139,6 +1033,18 @@ function newOnMonth(date: string) {
   openNew(date, 540, true);
 }
 
+/** The month grid is the shared `CalendarPanel`, so its native click/dblclick
+ *  bubble up to this host wrapper; we forward them so the workspace keeps its
+ *  own interactions (select day, create event on dblclick) intact. */
+function onMiniClick(event: MouseEvent) {
+  const el = (event.target as HTMLElement).closest('[data-date]') as HTMLElement | null;
+  if (el?.dataset.date) clickDay(el.dataset.date);
+}
+function onMiniDblClick(event: MouseEvent) {
+  const el = (event.target as HTMLElement).closest('[data-date]') as HTMLElement | null;
+  if (el?.dataset.date) newOnMonth(el.dataset.date);
+}
+
 function newOnHour(date: string, hour: number) {
   openNew(date, hour * 60, false);
 }
@@ -1188,99 +1094,24 @@ onBeforeUnmount(() => {
     <div v-if="!hasFolder" class="cal-empty">{{ t('calendar.openFolder') }}</div>
 
     <div v-else-if="mode === 'month'" class="cal-w__split">
-      <section class="cal-month">
-        <header class="cal-month__head">
-          <div class="cal-month__head-left">
+      <section class="cal-month" style="display:flex;flex-direction:column;min-height:0;flex:1 1 auto;">
+        <div class="cal-w__topbar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;">
+          <div class="cal-w__seg" role="group" :aria-label="t('calendar.title')">
             <button
+              v-for="view in CALENDAR_EDITOR_VIEWS"
+              :key="view"
               type="button"
-              class="cal-month__title"
-              :title="t('calendar.pickMonth')"
-              @click="openYm"
-            >
-              {{ monthTitle }}
-            </button>
-            <div class="cal-w__seg" role="group" :aria-label="t('calendar.title')">
-              <button
-                v-for="view in CALENDAR_EDITOR_VIEWS"
-                :key="view"
-                type="button"
-                :class="{ 'is-active': calendar.view === view }"
-                :aria-pressed="calendar.view === view"
-                @click="calendar.setView(view)"
-              >{{ t(`calendar.view.${view}`) }}</button>
-            </div>
+              :class="{ 'is-active': calendar.view === view }"
+              :aria-pressed="calendar.view === view"
+              @click="calendar.setView(view)"
+            >{{ t(`calendar.view.${view}`) }}</button>
           </div>
-          <div class="cal-nav">
-            <button type="button" class="cal-nav__btn" :title="t('calendar.newEvent')" @click="newOnFocusDate">
-              <Icons name="plus" :size="14" />
-            </button>
-            <button type="button" class="cal-nav__btn" :title="t('calendar.prev')" @click="shift(-1)">
-              <Icons name="chevron-left" :size="14" />
-            </button>
-            <button type="button" class="cal-nav__btn" @click="calendar.goToday()">
-              {{ t('calendar.today') }}
-            </button>
-            <button type="button" class="cal-nav__btn" :title="t('calendar.next')" @click="shift(1)">
-              <Icons name="chevron-right" :size="14" />
-            </button>
-          </div>
-        </header>
-        <div class="cal-month__weekdays" aria-hidden="true">
-          <span v-for="(label, i) in weekdayLabels" :key="i">{{ label }}</span>
-        </div>
-        <div
-          ref="monthGridEl"
-          class="cal-month__grid"
-          @keydown="onMonthKeydown"
-        >
-          <button
-            v-for="date in monthDays"
-            :key="date"
-            type="button"
-            class="cal-month__cell"
-            :data-date="date"
-            :class="{
-              'is-outside': !inMonth(date),
-              'is-today': date === today,
-              'is-focus': isFocus(date),
-            }"
-            :tabindex="isFocus(date) ? 0 : -1"
-            :title="tooltipFor(date)"
-            :aria-label="tooltipFor(date)"
-            :aria-pressed="isFocus(date)"
-            @click="clickDay(date)"
-            @dblclick="newOnMonth(date)"
-          >
-            <span class="cal-month__day">{{ dayNumber(date) }}</span>
-            <span v-if="subLabel(date)" class="cal-month__sub">{{ subLabel(date) }}</span>
-            <span
-              class="cal-month__mark"
-              :class="`is-${densityOf(date).state}`"
-              aria-hidden="true"
-            />
+          <button type="button" class="cal-nav__btn" :title="t('calendar.newEvent')" @click="newOnFocusDate">
+            <Icons name="plus" :size="14" />
           </button>
         </div>
-        <div v-if="ymOpen" class="cal-w__ym-backdrop" @click="ymOpen = false"></div>
-        <div v-if="ymOpen" class="cal-w__ym" role="dialog" :aria-label="t('calendar.pickMonth')">
-          <div class="cal-w__ym-year">
-            <button type="button" class="cal-nav__btn" :disabled="ymYear <= 1900" @click="ymYear--">
-              <Icons name="chevron-left" :size="14" />
-            </button>
-            <span class="cal-w__ym-year-label">{{ ymYear }}</span>
-            <button type="button" class="cal-nav__btn" :disabled="ymYear >= 2200" @click="ymYear++">
-              <Icons name="chevron-right" :size="14" />
-            </button>
-          </div>
-          <div class="cal-w__ym-months">
-            <button
-              v-for="m in 12"
-              :key="m"
-              type="button"
-              class="cal-w__ym-month"
-              :class="{ 'is-active': m === ymMonth }"
-              @click="pickYm(m)"
-            >{{ m }}</button>
-          </div>
+        <div class="cal-month__host" style="flex:1 1 auto;min-height:0;" @click="onMiniClick" @dblclick="onMiniDblClick">
+          <CalendarPanel :show-open-day="false" />
         </div>
       </section>
 

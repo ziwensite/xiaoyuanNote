@@ -45,6 +45,11 @@ const calendar = useCalendarStore();
 const holidays = useHolidaysStore();
 const { t, lang } = useI18n();
 
+/** When embedded in the full calendar workspace the "open day" button is
+ *  redundant (you are already in the calendar), so it can be hidden. */
+const props = defineProps<{ showOpenDay?: boolean }>();
+const showOpenDay = computed(() => props.showOpenDay !== false);
+
 const gridEl = ref<HTMLElement | null>(null);
 
 const today = computed(() => localDateKey(new Date()));
@@ -355,6 +360,7 @@ function openSelectedDay() {
           {{ t('calendar.today') }}
         </button>
         <button
+          v-if="showOpenDay"
           class="rp-icon-btn"
           type="button"
           :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
