@@ -2206,6 +2206,7 @@ export const ru: I18n = {
       day: 'День',
       week: 'Неделя',
       month: 'Месяц',
+      year: 'Год',
     },
     groups: {
       overdue: 'Просрочено',

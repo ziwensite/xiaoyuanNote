@@ -2232,6 +2232,7 @@ export const nl: I18n = {
       day: 'Dag',
       week: 'Week',
       month: 'Maand',
+      year: 'Jaar',
     },
     groups: {
       overdue: 'Achterstallig',

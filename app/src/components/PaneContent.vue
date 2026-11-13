@@ -843,11 +843,10 @@ function onPreviewSearchEvent(e: Event) {
 .split-divider + .pane--preview :deep(.preview-host) {
   border-left: none;
 }
-/* #367 / 5.0 — a hairline with a small, always-visible grip in the middle
-   (docs/v5-ui-spec.md, split board). 1px of layout so the editor's
-   `splitRatio`% stays exact; the ::before is a 9px invisible hit zone. Hover
-   and drag deepen the line and the grip rather than painting the accent —
-   the divider is furniture, not a call to action. */
+/* #367 / 5.0 — the sidebar dock's drag-line language: 1px of layout so
+   `splitRatio`% stays exact, a 9px invisible hit zone in ::before, and one
+   accent bar in ::after while hovering / dragging / keyboard-focused.
+   No grip and no fill. */
 .split-divider {
   flex: 0 0 var(--hair-w, 1px);
   position: relative;
@@ -856,38 +855,19 @@ function onPreviewSearchEvent(e: Event) {
   cursor: col-resize;
   touch-action: none;
   outline: none;
-  transition: background var(--dur-fast) var(--ease-out);
 }
 .split-divider::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -4px;
-  right: -4px;
-}
-.split-divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 28px;
-  transform: translate(-50%, -50%);
-  border-radius: 3px;
-  background: var(--fill-2);
-  transition: background var(--dur-fast) var(--ease-out), height var(--dur-fast) var(--ease-out);
-}
-.split-divider:hover,
-.split-divider--active {
-  background: var(--fill-2);
+  inset: 0 -4px;
 }
 .split-divider:hover::after,
+.split-divider:active::after,
+.split-divider:focus-visible::after,
 .split-divider--active::after {
-  background: var(--text-3);
-  height: 36px;
-}
-.split-divider:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 0 -1px;
   background: var(--accent);
 }
 </style>

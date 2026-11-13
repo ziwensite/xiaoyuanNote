@@ -2232,6 +2232,7 @@ export const tr: I18n = {
       day: 'Gün',
       week: 'Hafta',
       month: 'Ay',
+      year: 'Yıl',
     },
     groups: {
       overdue: 'Gecikmiş',

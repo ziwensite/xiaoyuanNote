@@ -2232,6 +2232,7 @@ export const uk: I18n = {
       day: 'День',
       week: 'Тиждень',
       month: 'Місяць',
+      year: 'Рік',
     },
     groups: {
       overdue: 'Прострочено',

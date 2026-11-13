@@ -403,32 +403,27 @@ const splitHighlight = computed<boolean>(() => {
   border-bottom: var(--bd-hair);
   overflow: hidden;
 }
-/* Only the RIGHT column draws a divider. The left column's edge is left as a
- * surface step — `--bg-sidebar` against the editor's `--bg` — which already
- * reads as a boundary (1.11:1) without any line: the tint difference is what
- * makes the pane read as a pane, and a hairline on top of it was a SECOND
- * painter 1px from the 4px scrollbar pill, which is what looked like "two
- * borders" and a 1px overhang. Measured at 1x: with the hair, x291 is
- * #e2e2df (1.17 vs the pane, 1.30 vs the editor); without it, x291 is the
- * pane tint and the step to the editor is 1.11 — still a visible edge, one
- * pigment lighter, and no possible double line.
- *
- * Hover/keyboard still paints `.side-sidebar__resize::after` at the same x, so
- * the edge has unambiguous feedback while it is being dragged; that highlight
- * is the only line the left edge ever shows.
- *
- * The right column keeps its hair: it is not adjacent to a scrollbar, the user
- * reports no problem there, and it separates white from tint on that side. */
+/* BOTH column edges now draw the same 1px hairline as the dock's middle
+ * splitter. The line belongs to the column so the folded rail and the overlay
+ * drawer — neither of which has a resize handle — keep their boundary too.
+ * The handle sits at exactly the same x and only paints the accent on top,
+ * so each boundary is always ONE line, never border + highlight. */
+.side-sidebar--left::after,
 .side-sidebar--right::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
   width: var(--hair-w);
   background: var(--hairline);
   pointer-events: none;
   z-index: 1;
+}
+.side-sidebar--left::after {
+  right: 0;
+}
+.side-sidebar--right::after {
+  left: 0;
 }
 .side-sidebar--drop-host {
   background: var(--bg-2, var(--bg-sidebar));
@@ -501,7 +496,9 @@ const splitHighlight = computed<boolean>(() => {
 .dock-group + .dock-group {
   border-top: var(--bd-hair);
 }
-/* Stage 2: 1px separator with a 9px hit area, like the column edge. */
+/* Canonical drag-line style for the whole app: a 1px hairline, a 9px
+   transparent hit area in ::before, and ONE accent bar in ::after while
+   hovering or dragging. Every other draggable divider mirrors this block. */
 .dock-splitter {
   flex: 0 0 var(--hair-w);
   height: var(--hair-w);
@@ -548,64 +545,53 @@ const splitHighlight = computed<boolean>(() => {
  * the two columns no longer matched. The 2px clearance is already the pill's
  * own transparent border, so nothing else is needed here. */
 
-/* Drag handle for live-resize. Sits on the outer edge.
+/* Drag handle for live-resize — the same three pieces as `.dock-splitter`:
+ * a 1px hairline (drawn by the column's ::after at exactly this x), a 9px
+ * transparent hit zone in ::before, and ONE accent bar in ::after while
+ * hovering / dragging / keyboard-focused. No translucent 8px band.
  *
- * The 8px band is the HIT AREA ONLY and stays transparent: a translucent
- * fill on it read as two vertical lines (the band's own two hard edges, one
- * either side of the 1px column border). The affordance is a single hairline,
- * the same language as the editor's `.split-divider` — so hover / drag / focus
- * all light the SAME one line.
- *
- * The line lives entirely INSIDE the column (`right/left: 4px` pins it to the
- * inner edge of this 8px band, which overhangs the border by 4px a side).
- * Measured at 150% scaling (dpr 1.5): while it straddled the edge, its outer
- * 1 CSS px fell inside `.main-col`, and the editor header there is
- * `position: relative; z-index: 20` with an opaque `--bg` — above this
- * handle's z-index 10 in the root stacking context — so the header band showed
- * 1 physical pixel of accent and the body band below it showed 3.
- *
- * It is `--hair-w` wide, not 2px: the highlight REPLACES the static
- * `.side-sidebar::after` hair at exactly the same x, it does not widen the
- * boundary. A 2px highlight covered the 1px hair plus one extra pixel inside
- * the column, which read as the border thickening / sticking out on hover. */
+ * The accent bar grows INWARD only (2px extra inside the column, 3px total).
+ * A bar straddling the boundary used to be clipped by the editor header,
+ * which is `position: relative; z-index: 20` with an opaque `--bg`. */
 .side-sidebar__resize {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 8px;
+  width: var(--hair-w);
   cursor: ew-resize;
   z-index: 10;
   background: transparent;
   outline: none;
 }
-.side-sidebar__resize::after {
+.side-sidebar__resize::before {
   content: '';
+  position: absolute;
+  inset: 0 -4px;
+}
+.side-sidebar__resize::after {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: var(--hair-w);
-  background: transparent;
-  transition: background var(--dur-fast) var(--ease-out);
+  background: var(--accent);
 }
 .side-sidebar__resize--right {
-  right: -4px;
+  right: 0;
 }
 .side-sidebar__resize--right::after {
-  right: 4px;
+  left: -2px;
+  right: 0;
 }
 .side-sidebar__resize--left {
-  left: -4px;
+  left: 0;
 }
 .side-sidebar__resize--left::after {
-  left: 4px;
+  left: 0;
+  right: -2px;
 }
 .side-sidebar__resize:hover::after,
+.side-sidebar__resize:active::after,
 .side-sidebar__resize:focus-visible::after,
 .side-sidebar__resize--active::after {
-  /* Opaque, not the translucent --accent-ring: the line crosses the white
-   * header band and the tinted pane body, and a 45% accent composited over two
-   * different backdrops reads as two different weights. Mixing the accent with
-   * --bg up front gives one constant colour for the whole column. */
-  background: color-mix(in srgb, var(--accent) 45%, var(--bg));
+  content: '';
 }
 </style>

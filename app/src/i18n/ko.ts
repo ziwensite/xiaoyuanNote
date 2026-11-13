@@ -2213,6 +2213,7 @@ export const ko: I18n = {
       day: '일',
       week: '주',
       month: '월',
+      year: '년',
     },
     groups: {
       overdue: '기한 지남',

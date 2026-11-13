@@ -27,6 +27,9 @@ import { useDailyNotes } from '../../composables/useDailyNotes';
 import { useI18n, htmlLangFor } from '../../i18n';
 import Icons from '../Icons.vue';
 import CalendarHeader from '../CalendarHeader.vue';
+import TaskFilterBar from '../tasks/TaskFilterBar.vue';
+import { useTaskFilter } from '../../composables/useTaskFilter';
+import { priorityIcon } from '../../lib/task-display';
 import {
   addDays,
   buildCalendarMaterial,
@@ -132,10 +135,13 @@ const width = ref(0);
 const today = computed(() => localDateKey(new Date()));
 const hasFolder = computed(() => idx.folder !== null);
 
-/** Month keeps its split layout; day/week degrade by available width. */
+/** Month keeps its split layout, year gets its own full-width grid; day/week
+ *  degrade by available width. */
 const mode = computed(() => {
-  if (calendar.view === 'month') return 'month';
-  return resolveCalendarViewMode(calendar.view, width.value || 900);
+  const view = calendar.view;
+  if (view === 'month') return 'month';
+  if (view === 'year') return 'year';
+  return resolveCalendarViewMode(view, width.value || 900);
 });
 
 const monthDays = computed(() => monthGridRange(calendar.focusDate));
@@ -151,6 +157,10 @@ const range = computed(() => {
     }
     case 'month':
       return { from: monthDays.value[0], to: addDays(monthDays.value[41], 1) };
+    case 'year': {
+      const y = Number(calendar.focusDate.slice(0, 4));
+      return { from: `${y}-01-01`, to: `${y + 1}-01-01` };
+    }
     default:
       return { from: addDays(calendar.focusDate, -7), to: addDays(calendar.focusDate, 32) };
   }
@@ -171,26 +181,11 @@ const allTasks = computed(() => material.value.tasks);
 /** `🆔 → line`, for event edits that must write the line as well as the note. */
 const entryLines = computed(() => material.value.lines);
 
-const taskDoneCount = computed(() => allTasks.value.filter((task) => task.done).length);
-
-/** Simple text + state filter — deliberately not a query language. */
-const taskQuery = ref('');
-const taskFilter = ref<'all' | 'todo' | 'done'>('all');
-const TASK_FILTERS = ['all', 'todo', 'done'] as const;
-
-function cycleTaskFilter() {
-  const index = TASK_FILTERS.indexOf(taskFilter.value);
-  taskFilter.value = TASK_FILTERS[(index + 1) % TASK_FILTERS.length];
-}
-
-const filteredTasks = computed(() => {
-  const query = taskQuery.value.trim().toLowerCase();
-  return allTasks.value.filter((task) => {
-    if (taskFilter.value === 'todo' && task.done) return false;
-    if (taskFilter.value === 'done' && !task.done) return false;
-    return !query || task.title.toLowerCase().includes(query);
-  });
-});
+/** The SAME filter chain as the tasks sidebar panel. Only the grouping and
+ *  row layout differ here: due-date buckets instead of file groups. */
+const { filter: filterTasks, count: countTasks } = useTaskFilter();
+const filteredTasks = computed(() => filterTasks(allTasks.value));
+const taskTally = computed(() => countTasks(allTasks.value));
 
 const taskGroups = computed(() => groupTasksByDue(filteredTasks.value, today.value, true));
 const visibleTasks = computed(() => taskGroups.value.flatMap((group) => group.tasks));
@@ -208,6 +203,57 @@ const noteDates = computed(() =>
 
 
 
+
+/** The year view only supplies the four-quarter / twelve-month SHELL. Every
+ *  month is rendered by `CalendarPanel` — the very same month grid the sidebar
+ *  and the main month view use — so density, holidays, lunar labels and
+ *  selection come from one implementation, not a second mini calendar. */
+interface YearMonth {
+  key: string;
+  label: string;
+}
+interface YearQuarter {
+  index: number;
+  label: string;
+  rangeLabel: string;
+  months: YearMonth[];
+}
+
+const yearQuarters = computed<YearQuarter[]>(() => {
+  const y = Number(calendar.focusDate.slice(0, 4));
+  const monthFmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { month: 'long' });
+  const quarters: YearQuarter[] = [];
+  for (let q = 0; q < 4; q += 1) {
+    const months: YearMonth[] = [];
+    for (let m = 0; m < 3; m += 1) {
+      const month = q * 3 + m + 1;
+      months.push({
+        key: `${y}-${String(month).padStart(2, '0')}`,
+        label: monthFmt.format(new Date(y, month - 1, 1)),
+      });
+    }
+    quarters.push({
+      index: q + 1,
+      label: `Q${q + 1}`,
+      rangeLabel: `${months[0].label} – ${months[2].label}`,
+      months,
+    });
+  }
+  return quarters;
+});
+
+/** Slice the single full-year projection by month and hand it to the compact
+ *  panels — they then skip `buildCalendarView` entirely. */
+const yearDaysByMonth = computed(() => {
+  const byMonth = new Map<string, CalendarViewDay[]>();
+  for (const day of viewData.value.days) {
+    const key = day.date.slice(0, 7);
+    const list = byMonth.get(key) ?? [];
+    list.push(day);
+    byMonth.set(key, list);
+  }
+  return byMonth;
+});
 
 const weekdayLabels = computed(() => {
   const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { weekday: 'short' });
@@ -1043,6 +1089,12 @@ function openDay(date: string) {
   calendar.setView('day');
 }
 
+/** Year grid → month view for the clicked month. */
+function openMonth(key: string) {
+  calendar.setFocusDate(`${key}-01`);
+  calendar.setView('month');
+}
+
 function eventsOf(day: CalendarViewDay): CalendarOccurrence[] {
   return [...day.allDay, ...day.timed.map((block) => block.occurrence)];
 }
@@ -1112,26 +1164,10 @@ onBeforeUnmount(() => {
         <header class="cal-tasks-pane__head">
           <span>
             {{ t('calendar.tasks') }}
-            <span class="cal-tasks-pane__count">({{ taskDoneCount }}/{{ allTasks.length }})</span>
+            <span class="cal-tasks-pane__count">{{ t('tasks.count', { done: taskTally.open, total: taskTally.total }) }}</span>
           </span>
         </header>
-        <div class="cal-tasks-pane__tools">
-          <input
-            v-model="taskQuery"
-            type="search"
-            class="cal-tasks-pane__filter"
-            :placeholder="t('calendar.filter.placeholder')"
-            :aria-label="t('calendar.filter.placeholder')"
-          />
-          <button
-            type="button"
-            class="cal-tasks-pane__state"
-            :title="t('calendar.filter.cycle')"
-            @click="cycleTaskFilter"
-          >
-            {{ t(`calendar.filter.${taskFilter}`) }}
-          </button>
-        </div>
+        <TaskFilterBar :show-search="true" />
         <div class="cal-tasks-pane__scroll">
           <div v-if="visibleTasks.length === 0" class="cal-empty cal-empty--sm">
             {{ t('calendar.noTasks') }}
@@ -1166,6 +1202,11 @@ onBeforeUnmount(() => {
                 @click.stop="toggleTask(task)"
               />
               <span class="cal-task-row__title">{{ task.title }}</span>
+              <span
+                v-if="priorityIcon(task.priority)"
+                class="cal-task-row__priority"
+                :title="task.priority"
+              >{{ priorityIcon(task.priority) }}</span>
               <span
                 v-if="task.recurrenceKind && task.recurrenceKind !== 'natural'"
                 class="cal-task-row__recur"
@@ -1208,8 +1249,35 @@ onBeforeUnmount(() => {
     <div v-else class="cal-w__single">
       <CalendarHeader :show-open-day="false" />
 
+      <!-- Year: four quarters × three months -->
+      <div v-if="mode === 'year'" class="cal-year">
+        <section v-for="quarter in yearQuarters" :key="quarter.index" class="cal-year__quarter">
+          <div class="cal-year__quarter-head">
+            <span class="cal-year__quarter-tag">{{ quarter.label }}</span>
+            <span class="cal-year__quarter-range">{{ quarter.rangeLabel }}</span>
+          </div>
+          <div class="cal-year__months">
+            <section v-for="month in quarter.months" :key="month.key" class="cal-year__month">
+              <button
+                type="button"
+                class="cal-year__month-title"
+                :title="month.key"
+                @click="openMonth(month.key)"
+              >{{ month.label }}</button>
+              <CalendarPanel
+                :month="month.key"
+                :days="yearDaysByMonth.get(month.key)"
+                :show-open-day="false"
+                compact
+                @pick="openDay"
+              />
+            </section>
+          </div>
+        </section>
+      </div>
+
       <!-- Day -->
-      <div v-if="mode === 'day'" class="cal-day">
+      <div v-else-if="mode === 'day'" class="cal-day">
         <div class="cal-day__allday">
           <span class="cal-day__allday-label">{{ t('calendar.allDay') }}</span>
           <button
@@ -1370,6 +1438,84 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 
+/* Year view — four quarter rows, each holding three compact month cards. */
+.cal-year {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 0 20px;
+}
+.cal-year__quarter + .cal-year__quarter {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: var(--bd-hair);
+}
+.cal-year__quarter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.cal-year__quarter-tag {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.cal-year__quarter-range {
+  color: var(--text-3);
+  font-size: 12px;
+}
+.cal-year__months {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.cal-year__month {
+  min-width: 0;
+  padding: 10px;
+  border: var(--bd-hair);
+  border-radius: var(--r-sm);
+  background: var(--bg-pop, var(--bg));
+}
+.cal-year__month-title {
+  display: block;
+  width: 100%;
+  padding: 0 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+.cal-year__month-title:hover {
+  color: var(--accent);
+}
+/* Each card's grid IS CalendarPanel. Only its box needs to shrink from
+   "full-height pane" to "fits this card". */
+.cal-year__month :deep(.calendar-panel) {
+  height: auto;
+  min-height: 0;
+}
+@media (max-width: 900px) {
+  .cal-year__months {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.cal-w.is-narrow .cal-year__months {
+  grid-template-columns: 1fr;
+}
+@media (max-width: 620px) {
+  .cal-year__months {
+    grid-template-columns: 1fr;
+  }
+}
+
 .cal-empty {
   padding: 32px 16px;
   color: var(--text-3);
@@ -1397,27 +1543,39 @@ onBeforeUnmount(() => {
   width: auto;
   max-height: 50%;
   overflow-y: auto;
-  border-right: 0;
-  border-bottom: var(--bd-hair);
 }
 
+/* The one drag line between the two panes, matching the sidebar dock's
+   middle splitter: 1px hairline, 9px transparent hit zone, one accent bar
+   on interaction. Adjacent panes no longer draw their own border. */
 .cal-w__resizer {
-  flex: 0 0 6px;
+  --drag-hit: 0 -4px;
+  --drag-glow: 0 -1px;
+  flex: 0 0 var(--hair-w, 1px);
   align-self: stretch;
   cursor: col-resize;
   position: relative;
-  background: transparent;
+  z-index: 2;
+  background: var(--hairline);
+  outline: none;
 }
-.cal-w__resizer:hover {
-  background: var(--hover, rgba(0, 0, 0, 0.06));
+.cal-w__resizer::before {
+  content: '';
+  position: absolute;
+  inset: var(--drag-hit);
+}
+.cal-w__resizer:hover::after,
+.cal-w__resizer:active::after,
+.cal-w__resizer:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: var(--drag-glow);
+  background: var(--accent);
 }
 .cal-w.is-narrow .cal-w__resizer {
-  display: block;
+  --drag-hit: -4px 0;
+  --drag-glow: -1px 0;
   cursor: row-resize;
-}
-
-.cal-w.is-narrow .cal-editor-host {
-  border-left: 0;
 }
 
 .cal-month {
@@ -1427,7 +1585,6 @@ onBeforeUnmount(() => {
   width: 360px;
   min-width: 0;
   padding: 12px 14px;
-  border-right: var(--bd-hair);
 }
 
 .cal-month__head,
@@ -1552,41 +1709,8 @@ onBeforeUnmount(() => {
   font-weight: 400;
 }
 
-.cal-tasks-pane__tools {
-  display: flex;
-  gap: 6px;
-  padding: 0 12px 8px;
-}
-
-.cal-tasks-pane__filter {
-  flex: 1;
-  min-width: 0;
-  height: 26px;
-  padding: 0 8px;
-  border: var(--bd-hair);
-  border-radius: var(--r-sm);
-  background: var(--bg-input, var(--fill-1));
-  color: var(--text);
-  font: inherit;
-  font-size: 12px;
-}
-
-.cal-tasks-pane__state {
-  flex: none;
-  height: 26px;
-  padding: 0 8px;
-  border: var(--bd-hair);
-  border-radius: var(--r-sm);
-  background: var(--fill-1);
-  color: var(--text-2);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.cal-tasks-pane__state:hover {
-  color: var(--text);
-}
+/* The filter row — search box, view, period window, priority and the calendar
+   link — and all of its styles live in the shared tasks/TaskFilterBar.vue. */
 
 .cal-tasks-pane__scroll {
   flex: 1;
@@ -1673,6 +1797,12 @@ onBeforeUnmount(() => {
   color: var(--danger, #d33);
 }
 
+/* Same badges as the sidebar row, just inline instead of on a third line. */
+.cal-task-row__priority {
+  flex: none;
+  font-size: 11px;
+  line-height: 1;
+}
 .cal-task-row__due {
   flex: none;
   color: var(--text-3);
@@ -1967,7 +2097,6 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  border-left: var(--bd-hair);
 }
 
 .cal-editor-float {

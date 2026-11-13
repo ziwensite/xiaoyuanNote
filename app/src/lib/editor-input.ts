@@ -72,7 +72,7 @@ export interface EditorKindDef {
   deserialize(json: unknown): unknown | null;
 }
 
-const CALENDAR_VIEWS: readonly CalendarEditorView[] = ['month', 'day', 'week'];
+const CALENDAR_VIEWS: readonly CalendarEditorView[] = ['month', 'day', 'week', 'year'];
 
 export function readCalendarArgs(json: unknown): CalendarTabArgs | null {
   if (!json || typeof json !== 'object') return null;

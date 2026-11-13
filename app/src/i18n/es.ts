@@ -2215,6 +2215,7 @@ export const es: I18n = {
       day: 'Día',
       week: 'Semana',
       month: 'Mes',
+      year: 'Año',
     },
     groups: {
       overdue: 'Vencidas',

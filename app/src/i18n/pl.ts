@@ -2232,6 +2232,7 @@ export const pl: I18n = {
       day: 'Dzień',
       week: 'Tydzień',
       month: 'Miesiąc',
+      year: 'Rok',
     },
     groups: {
       overdue: 'Zaległe',

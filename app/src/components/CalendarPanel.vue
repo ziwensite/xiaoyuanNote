@@ -24,7 +24,7 @@ import Icons from './Icons.vue';
 import CalendarHeader from './CalendarHeader.vue';
 import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
 import { CALENDAR_EDITOR_VIEWS } from '../lib/calendar-prefs';
-import { buildCalendarView, monthGridRange } from '../lib/calendar-view';
+import { buildCalendarView, monthGridRange, type CalendarViewDay } from '../lib/calendar-view';
 import {
   dailyNoteDates,
   dayDensity,
@@ -48,17 +48,40 @@ const holidays = useHolidaysStore();
 const { t, lang } = useI18n();
 
 /** When embedded in the full calendar workspace the "open day" button is
- *  redundant (you are already in the calendar), so it can be hidden. */
-const props = defineProps<{ showOpenDay?: boolean; showHeader?: boolean; preview?: boolean }>();
+ *  redundant (you are already in the calendar), so it can be hidden.
+ *
+ *  `month` lets the year view render twelve DIFFERENT months from this SAME
+ *  component instead of maintaining a second mini-grid. `days` feeds it the
+ *  already-built year projection, so twelve instances don't each re-parse the
+ *  workspace. `compact` only tightens the surrounding padding/gaps — every
+ *  cell keeps its ISO week, lunar/festival line and holiday corner. With no
+ *  `month`, behaviour is exactly the sidebar calendar's. */
+const props = defineProps<{
+  showOpenDay?: boolean;
+  preview?: boolean;
+  month?: string;
+  compact?: boolean;
+  days?: CalendarViewDay[];
+}>();
+const emit = defineEmits<{ (e: 'pick', date: string): void }>();
 const showOpenDay = computed(() => props.showOpenDay !== false);
-const showHeader = computed(() => props.showHeader !== false);
 
 const gridEl = ref<HTMLElement | null>(null);
 
 const today = computed(() => localDateKey(new Date()));
 const hasFolder = computed(() => idx.folder !== null);
 
-const grid = computed(() => monthGridRange(calendar.focusDate));
+/** `YYYY-MM` from the year view, or the shared focus date everywhere else. */
+const anchorDate = computed(() => {
+  const raw = props.month;
+  if (!raw) return calendar.focusDate;
+  return /^\d{4}-\d{2}$/.test(raw) ? `${raw}-01` : raw;
+});
+const monthTitle = computed(() => {
+  const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { year: 'numeric', month: 'long' });
+  return fmt.format(wallDate(anchorDate.value));
+});
+const grid = computed(() => monthGridRange(anchorDate.value));
 
 /** Six Monday-start rows; the left gutter carries each row's ISO week. */
 const weeks = computed(() => {
@@ -80,7 +103,10 @@ const holidayMap = computed(() => holidays.index);
 
 onMounted(() => {
   // Opening the pane is one of the three refresh events. It honours the TTL,
-  // runs in the background and stays silent on failure.
+  // runs in the background and stays silent on failure. `maybeRefresh` is
+  // single-flight + idempotent, so the twelve year-grid instances are safe;
+  // keeping it here matters because the year view is often the FIRST view
+  // opened, and it still shows the holiday corner.
   void holidays.maybeRefresh('open');
 });
 
@@ -119,7 +145,9 @@ const noteDates = computed(() =>
 /** Same three-state rule as the dialog month grid (see `calendar-density`). */
 const densities = computed(() => {
   const map = new Map<string, CalendarDayDensity>();
-  for (const day of viewData.value.days) {
+  // The year view passes a slice of its single full-year projection, so twelve
+  // compact instances never rebuild the whole calendar material.
+  for (const day of props.days ?? viewData.value.days) {
     map.set(day.date, dayDensity(day, noteDates.value.has(day.date)));
   }
   return map;
@@ -168,7 +196,7 @@ function isFocus(date: string): boolean {
 }
 
 function inMonth(date: string): boolean {
-  return date.slice(0, 7) === calendar.focusDate.slice(0, 7);
+  return date.slice(0, 7) === anchorDate.value.slice(0, 7);
 }
 
 function dayNumber(date: string): string {
@@ -274,7 +302,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 
 /** Arrows move the shared focus date; Enter still opens the day in the dialog. */
 function onGridKeydown(event: KeyboardEvent) {
-  if (isTypingTarget(event.target)) return;
+  if (props.compact || isTypingTarget(event.target)) return;
   if (event.key === 'Enter') {
     event.preventDefault();
     openSelectedDay();
@@ -290,8 +318,13 @@ function onGridKeydown(event: KeyboardEvent) {
   });
 }
 
-/** A click selects a single day (clears any week selection). */
+/** A click selects a single day (clears any week selection). In the year grid
+ *  the parent decides what a click means — it opens that day view. */
 function pick(date: string) {
+  if (props.month) {
+    emit('pick', date);
+    return;
+  }
   calendar.selectDay(date);
 }
 
@@ -299,8 +332,8 @@ function pick(date: string) {
 </script>
 
 <template>
-  <div class="calendar-panel rp">
-    <CalendarHeader :preview="preview" :show-open-day="showOpenDay" />
+  <div class="calendar-panel rp" :class="{ 'is-compact': props.compact }">
+    <CalendarHeader v-if="!props.compact" :preview="preview" :show-open-day="showOpenDay" />
 
     <div v-if="!hasFolder" class="rp-empty">{{ t('calendar.openFolder') }}</div>
 
@@ -329,6 +362,7 @@ function pick(date: string) {
               v-if="showWeeks"
               type="button"
               class="calendar-mini__weeknum calendar-mini__weeknum--btn"
+              :tabindex="props.compact ? -1 : undefined"
               :title="t('calendar.week.select', { week: row.week })"
               :aria-label="t('calendar.week.select', { week: row.week })"
               :aria-pressed="calendar.isWeekSelected && row.days[0] === calendar.selectedWeekStart"
@@ -348,7 +382,7 @@ function pick(date: string) {
                 'is-selected': isFocus(date),
                 'is-week-selected': isInSelectedWeek(date),
               }"
-              :tabindex="isFocus(date) ? 0 : -1"
+              :tabindex="props.compact ? -1 : isFocus(date) ? 0 : -1"
               :title="tooltipFor(date)"
               :aria-label="tooltipFor(date)"
               :aria-pressed="isFocus(date)"
@@ -519,6 +553,18 @@ function pick(date: string) {
 
 .calendar-mini__cell:hover {
   background: var(--hover, rgba(0, 0, 0, 0.06));
+}
+
+/* Compact instances — the twelve month cards in the year view. Only the
+   surrounding padding/gaps shrink; the cells, ISO-week gutter, lunar/festival
+   line and holiday corners stay exactly as in the sidebar month grid. */
+.calendar-panel.is-compact .calendar-mini {
+  padding: 0;
+  gap: 4px;
+}
+.calendar-panel.is-compact .calendar-mini__weekdays,
+.calendar-panel.is-compact .calendar-mini__grid {
+  gap: 1px;
 }
 
 .calendar-mini__cell.is-outside {

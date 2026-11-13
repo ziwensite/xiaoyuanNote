@@ -2215,6 +2215,7 @@ export const de: I18n = {
       day: 'Tag',
       week: 'Woche',
       month: 'Monat',
+      year: 'Jahr',
     },
     groups: {
       overdue: 'Überfällig',

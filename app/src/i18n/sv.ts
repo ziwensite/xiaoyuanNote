@@ -2232,6 +2232,7 @@ export const sv: I18n = {
       day: 'Dag',
       week: 'Vecka',
       month: 'Månad',
+      year: 'År',
     },
     groups: {
       overdue: 'Försenad',

@@ -5,7 +5,7 @@
  * CalendarWorkspace). One header for every view keeps the switching segment,
  * navigation and actions identical everywhere.
  *
- * `preview` mode (dock) hides the [日][周][月] segment and shows a single
+ * `preview` mode (dock) hides the [日][周][月][年] segment and shows a single
  * calendar icon that opens the full workspace; `showOpenDay` toggles the
  * "open selected day" button (hidden in the workspace itself).
  */
@@ -50,10 +50,15 @@ const weekTitle = computed(() => {
 // In the dock preview the panel is always a month grid, so it must NOT follow
 // the main calendar's view — otherwise switching day/week/month there would also
 // flip the dock's title and date navigation.
+const yearTitle = computed(() => {
+  const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { year: 'numeric' });
+  return fmt.format(wallDate(calendar.focusDate));
+});
 const effectiveView = computed<CalendarEditorView>(() => (props.preview ? 'month' : calendar.view));
 const headerTitle = computed(() => {
   if (effectiveView.value === 'day') return dayTitle.value;
   if (effectiveView.value === 'week') return weekTitle.value;
+  if (effectiveView.value === 'year') return yearTitle.value;
   return monthTitle.value;
 });
 
@@ -145,6 +150,7 @@ function onDateChange(ev: Event) {
 function shiftStep(delta: number) {
   if (effectiveView.value === 'day') calendar.setFocusDate(addDays(calendar.focusDate, delta));
   else if (effectiveView.value === 'week') calendar.setFocusDate(addDays(calendar.focusDate, delta * 7));
+  else if (effectiveView.value === 'year') calendar.shiftMonth(delta * 12);
   else calendar.shiftMonth(delta);
 }
 
@@ -305,6 +311,9 @@ function togglePanel() {
   flex: 0 0 auto;
   min-width: 0;
 }
+/* Date navigation sits at the right of every view's header. The auto margin
+   absorbs the free space even where a host still uses `space-between`, so the
+   nav group and the right-hand controls line up together on the right. */
 .calendar-panel__nav {
   position: relative;
   z-index: 41;
@@ -314,6 +323,7 @@ function togglePanel() {
   gap: 2px;
   flex: 0 0 auto;
   min-width: 0;
+  margin-left: auto;
 }
 /* The native input must stay in the render tree (showPicker() rejects
    display:none) but must not occupy layout space or intercept clicks. */

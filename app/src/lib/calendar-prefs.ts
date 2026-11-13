@@ -5,9 +5,10 @@
  */
 import { localDateKey } from './calendar';
 
-export type CalendarEditorView = 'month' | 'day' | 'week';
+export type CalendarEditorView = 'month' | 'day' | 'week' | 'year';
 
-export const CALENDAR_EDITOR_VIEWS: readonly CalendarEditorView[] = ['day', 'week', 'month'];
+/** Segment order in the header: 日 / 周 / 月 / 年. */
+export const CALENDAR_EDITOR_VIEWS: readonly CalendarEditorView[] = ['day', 'week', 'month', 'year'];
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -21,7 +22,7 @@ export function isCalendarDate(value: unknown): value is string {
 }
 
 export function isCalendarEditorView(value: unknown): value is CalendarEditorView {
-  return value === 'month' || value === 'day' || value === 'week';
+  return value === 'month' || value === 'day' || value === 'week' || value === 'year';
 }
 
 /** Parse a stored bucket; invalid values fall back instead of throwing. */

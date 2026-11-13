@@ -2233,6 +2233,7 @@ export const zh: I18n = {
       day: '日',
       week: '周',
       month: '月',
+      year: '年',
     },
     groups: {
       overdue: '逾期',

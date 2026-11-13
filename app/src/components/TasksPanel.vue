@@ -17,115 +17,43 @@ import { useTasks, type WorkspaceTask } from '../composables/useTasks';
 import { useFiles } from '../composables/useFiles';
 import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useTilesStore } from '../stores/tiles';
-import { useSettingsStore } from '../stores/settings';
 import { useCalendarStore } from '../stores/calendar';
 import { useI18n } from '../i18n';
-import { addDays } from '../lib/calendar';
 import Icons from './Icons.vue';
 import { lunarDateLabel } from '../lib/lunar';
 import { isoWeek } from '../lib/iso-week';
-import { isOverdue, localDateKey, type TaskPriority } from '../lib/tasks';
-import { PERIOD_KINDS, shiftPeriod, type PeriodKind } from '../lib/periodic-notes';
-import { periodWindow, tasksInWindow } from '../lib/period-window';
+import { isOverdue } from '../lib/tasks';
+import { priorityIcon } from '../lib/task-display';
+import { useTaskFilter } from '../composables/useTaskFilter';
+import TaskFilterBar from './tasks/TaskFilterBar.vue';
 
 const { tasks, toggle } = useTasks();
 const files = useFiles();
 const idx = useWorkspaceIndexStore();
 const tiles = useTilesStore();
-const settings = useSettingsStore();
 const calendar = useCalendarStore();
 const { t } = useI18n();
+const { windowOn, today, filter: filterTasks, count } = useTaskFilter();
 
-type Filter = 'open' | 'today' | 'all';
-const filter = ref<Filter>('open');
-const priorityOnly = ref(false);
-
-/**
- * P6 — the period window (spec §5.5) is a filter, not a roll-up: it lists the
- * unfinished lines dated inside one periodic note's range and writes nothing
- * into that note. `windowDate` is any day in the period; the window itself is
- * always recomputed from the anchor, so paging from mid-week stays on weeks.
- */
-const windowOn = ref(false);
-const windowKind = ref<PeriodKind>('weekly');
-const windowDate = ref(new Date());
-const activeWindow = computed(() => periodWindow(windowKind.value, windowDate.value, settings.weekStartsOn));
-const windowRange = computed(() =>
-  activeWindow.value.start === activeWindow.value.end
-    ? activeWindow.value.start
-    : `${activeWindow.value.start} – ${activeWindow.value.end}`,
+/** Adapt the index projection to the shared filter's shape. `...t` keeps
+ *  path / line / meta / fileName, so a row can still write through useTasks()
+ *  without a second lookup. */
+const filterItems = computed(() =>
+  tasks.value.map((t) => ({
+    ...t,
+    title: t.meta.title,
+    due: t.meta.due,
+    priority: t.meta.priority,
+  })),
 );
-
-function stepWindow(delta: number) {
-  windowDate.value = shiftPeriod(windowKind.value, activeWindow.value.anchor, delta);
-}
-
-function setFilter(event: Event) {
-  filter.value = (event.target as HTMLSelectElement).value as Filter;
-}
-
-/** Period dropdown: "off" clears the period window; any other value turns it on
- *  and switches the kind (resetting the anchor to today) — without touching the
- *  open/today/all view or the priority filter, so only the list changes. */
-function setPeriod(event: Event) {
-  const v = (event.target as HTMLSelectElement).value;
-  if (v === 'off') {
-    windowOn.value = false;
-    return;
-  }
-  windowOn.value = true;
-  const k = v as PeriodKind;
-  if (k !== windowKind.value) {
-    windowKind.value = k;
-    windowDate.value = new Date();
-  }
-}
-
-/** Recomputed per render rather than cached: the panel can be open across
- *  midnight, and a stale "today" is how a task silently stops being overdue. */
-const today = computed(() => localDateKey(new Date()));
-
-/** Range the panel follows when "link to calendar" is on: a single day, or the
- *  whole selected week. Null when the link is off (falls through to the
- *  ordinary filters below). */
-const linkedRange = computed<{ start: string; end: string } | null>(() => {
-  if (!settings.tasksLinkCalendar) return null;
-  const wk = calendar.selectedWeekStart;
-  if (wk) return { start: wk, end: addDays(wk, 6) };
-  return { start: calendar.focusDate, end: calendar.focusDate };
-});
-
-/** The calendar link is an *extra* AND condition layered on top of whatever the
- *  ordinary filters already chose — it never replaces them (per design: the
- *  link must not disturb the filters below). So we build the base list from
- *  open/today/all or the period window, apply priority, then narrow by the
- *  calendar's selected day/week when the link is on. */
-const visible = computed<WorkspaceTask[]>(() => {
-  let list: WorkspaceTask[];
-  if (windowOn.value) list = tasksInWindow(tasks.value, activeWindow.value);
-  else {
-    list = tasks.value;
-    if (filter.value === 'open') list = list.filter((x) => !x.done);
-    else if (filter.value === 'today') {
-      list = list.filter(
-        (x) => !x.done && x.meta.due !== null && x.meta.due <= today.value,
-      );
-    }
-  }
-  if (priorityOnly.value) list = list.filter((x) => x.meta.priority !== null);
-  const range = linkedRange.value;
-  if (range) {
-    list = list.filter(
-      (x) => x.meta.due !== null && x.meta.due >= range.start && x.meta.due <= range.end,
-    );
-  }
-  return list;
-});
+type Row = (typeof filterItems.value)[number];
+const visible = computed(() => filterTasks(filterItems.value));
+const tally = computed(() => count(filterItems.value));
 
 /** Grouped by file so a row's origin is obvious without repeating the file
  *  name on every line. */
 const groups = computed(() => {
-  const byFile = new Map<string, { fileName: string; items: WorkspaceTask[] }>();
+  const byFile = new Map<string, { fileName: string; items: Row[] }>();
   for (const task of visible.value) {
     const g = byFile.get(task.path) ?? { fileName: task.fileName, items: [] };
     g.items.push(task);
@@ -133,25 +61,6 @@ const groups = computed(() => {
   }
   return [...byFile.entries()].map(([path, g]) => ({ path, ...g }));
 });
-
-/** Count follows every *date* scope — the period window (kind + paging) and the
- *  linked calendar day/week — plus the priority filter. The open/today/all view
- *  is deliberately excluded: choosing a view only changes which rows are shown,
- *  never the unfinished/total tally. */
-const statList = computed<WorkspaceTask[]>(() => {
-  let list: WorkspaceTask[] = tasks.value;
-  if (windowOn.value) list = tasksInWindow(tasks.value, activeWindow.value);
-  if (priorityOnly.value) list = list.filter((x) => x.meta.priority !== null);
-  const range = linkedRange.value;
-  if (range) {
-    list = list.filter(
-      (x) => x.meta.due !== null && x.meta.due >= range.start && x.meta.due <= range.end,
-    );
-  }
-  return list;
-});
-const openCount = computed(() => statList.value.filter((x) => !x.done).length);
-const total = computed(() => statList.value.length);
 /** Header date readout: two lines for a selected day (bold `12日周五` over the
  *  lunar day), or one bold line for a selected week (`第47周`). */
 const WEEKDAY_CN = ['日', '一', '二', '三', '四', '五', '六'];
@@ -184,18 +93,6 @@ function overdue(task: WorkspaceTask): boolean {
 
 function keyOf(task: WorkspaceTask): string {
   return `${task.path}:${task.line}`;
-}
-
-/** Obsidian Tasks priority glyphs (docs/specs … priority row): 🔺 ⏫ 🔼 🔽 ⏬. */
-const PRIORITY_ICON: Record<Exclude<TaskPriority, null>, string> = {
-  highest: '🔺',
-  high: '⏫',
-  medium: '🔼',
-  low: '🔽',
-  lowest: '⏬',
-};
-function priorityIcon(p: TaskPriority): string | null {
-  return p ? PRIORITY_ICON[p] : null;
 }
 
 /** Single click expands/collapses the two-line clamp; double click opens the
@@ -237,88 +134,10 @@ async function openTask(task: WorkspaceTask) {
         <div class="tasks-panel__date-main">{{ dateInfo.main }}</div>
         <div v-if="dateInfo.kind === 'day'" class="tasks-panel__date-sub">{{ dateInfo.sub }}</div>
       </div>
-      <span class="tasks-panel__count">{{ t('tasks.count', { done: openCount, total: total }) }}</span>
-      <button
-        class="rp-icon-btn tasks-panel__flag"
-        :class="{ 'is-on': settings.tasksLinkCalendar }"
-        type="button"
-        :title="t('tasks.linkCalendar')"
-        :aria-label="t('tasks.linkCalendar')"
-        :aria-pressed="settings.tasksLinkCalendar"
-        @click="settings.toggleTasksLinkCalendar()"
-      >
-        <Icons name="link" :size="14" />
-      </button>
+      <span class="tasks-panel__count">{{ t('tasks.count', { done: tally.open, total: tally.total }) }}</span>
     </div>
 
-    <div class="tasks-panel__filters">
-      <select
-        class="tasks-panel__select"
-        :value="filter"
-        :aria-label="t('tasks.view')"
-        @change="setFilter"
-      >
-        <option v-for="f in (['open', 'today', 'all'] as Filter[])" :key="f" :value="f">
-          {{ t(`tasks.filter.${f}`) }}
-        </option>
-      </select>
-      <select
-        v-if="windowOn"
-        class="tasks-panel__select"
-        :value="windowKind"
-        :aria-label="t('tasks.period.toggle')"
-        @change="setPeriod"
-      >
-        <option value="off">{{ t('tasks.period.off') }}</option>
-        <option v-for="kind in PERIOD_KINDS" :key="kind" :value="kind">
-          {{ t(`tasks.period.${kind}`) }}
-        </option>
-      </select>
-      <button
-        v-if="!windowOn"
-        class="rp-icon-btn tasks-panel__flag"
-        :class="{ 'is-on': windowOn }"
-        type="button"
-        :title="t('tasks.period.toggle')"
-        :aria-label="t('tasks.period.toggle')"
-        :aria-pressed="windowOn"
-        @click="windowOn = !windowOn"
-      >
-        <Icons name="calendar" :size="14" />
-      </button>
-      <button
-        class="rp-icon-btn tasks-panel__flag"
-        :class="{ 'is-on': priorityOnly }"
-        type="button"
-        :title="t('tasks.priorityOnly')"
-        :aria-label="t('tasks.priorityOnly')"
-        :aria-pressed="priorityOnly"
-        @click="priorityOnly = !priorityOnly"
-      >
-        <span class="tasks-panel__bars tasks-panel__bars--high" aria-hidden="true"><i /><i /><i /></span>
-      </button>
-    </div>
-    <div v-if="windowOn" class="tasks-panel__range">
-      <button
-        class="tasks-panel__step"
-        type="button"
-        :title="t('tasks.period.prev')"
-        :aria-label="t('tasks.period.prev')"
-        @click="stepWindow(-1)"
-      >
-        <Icons name="chevron-left" :size="14" />
-      </button>
-      <span class="tasks-panel__range-text">{{ windowRange }}</span>
-      <button
-        class="tasks-panel__step"
-        type="button"
-        :title="t('tasks.period.next')"
-        :aria-label="t('tasks.period.next')"
-        @click="stepWindow(1)"
-      >
-        <Icons name="chevron-right" :size="14" />
-      </button>
-    </div>
+    <TaskFilterBar />
 
     <div v-if="!hasFolder" class="rp-empty">{{ t('tasks.openFolder') }}</div>
     <div v-else-if="groups.length === 0" class="rp-empty">
@@ -353,15 +172,20 @@ async function openTask(task: WorkspaceTask) {
               <span class="tasks-panel__text" :class="{ 'is-clamped': !isExpanded(keyOf(task)) }">{{ task.meta.title }}</span>
               <div class="tasks-panel__meta-row">
                 <span
+                  v-if="task.meta.due"
+                  class="tasks-panel__due"
+                  :class="{ 'tasks-panel__due--overdue': overdue(task) }"
+                >{{ task.meta.due }}</span>
+                <span
                   v-if="priorityIcon(task.meta.priority)"
                   class="tasks-panel__priority"
                   :title="task.meta.priority"
                 >{{ priorityIcon(task.meta.priority) }}</span>
                 <span
-                  v-if="task.meta.due"
-                  class="tasks-panel__due"
-                  :class="{ 'tasks-panel__due--overdue': overdue(task) }"
-                >{{ task.meta.due }}</span>
+                  v-if="task.meta.reminders?.length"
+                  class="tasks-panel__reminder"
+                  :title="task.meta.reminders.join(', ')"
+                >⏰</span>
                 <span
                   v-if="task.meta.recurrence && task.meta.recurrence.kind !== 'natural'"
                   class="tasks-panel__recur"
@@ -382,65 +206,8 @@ async function openTask(task: WorkspaceTask) {
 </template>
 
 <style scoped>
-.tasks-panel__filters {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 0 8px 8px 12px;
-}
-.tasks-panel__select {
-  flex: 0 0 auto;
-  width: auto;
-  min-width: max-content;
-  height: 24px;
-  padding: 0 2px;
-  border: 1px solid var(--line-2);
-  border-radius: 6px;
-  background: var(--surface-2);
-  color: var(--text-1);
-  font-size: 12px;
-  cursor: pointer;
-}
-.tasks-panel__step {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-3);
-  cursor: pointer;
-}
-.tasks-panel__step:hover {
-  background: var(--fill-1);
-  color: var(--text-1);
-}
-.tasks-panel__select:hover {
-  border-color: var(--line-3);
-}
-.tasks-panel__range {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 12px 8px;
-  font-size: 12px;
-  color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-}
-.tasks-panel__range-text {
-  flex: 0 1 auto;
-  min-width: 0;
-  text-align: center;
-}
+/* The filter row, its controls and the period pager live in the shared
+   TaskFilterBar.vue — this file only styles the list itself. */
 /* Stands in for the checkbox in window mode: the window is read-only, rows
    are links into the note where the line actually lives. */
 .tasks-panel__mark {
@@ -451,10 +218,6 @@ async function openTask(task: WorkspaceTask) {
   font-size: 11px;
   line-height: 1.35;
   text-align: center;
-}
-.tasks-panel__flag {
-  width: 28px;
-  height: 28px;
 }
 .tasks-panel__group + .tasks-panel__group {
   margin-top: 6px;
@@ -502,12 +265,10 @@ async function openTask(task: WorkspaceTask) {
   color: var(--text-3);
 }
 .tasks-panel__count {
+  margin-left: auto;
   font-size: 12px;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
-}
-.tasks-panel__head .tasks-panel__flag {
-  margin-left: auto;
 }
 .tasks-panel__text-wrap {
   flex: 1;
@@ -568,38 +329,13 @@ async function openTask(task: WorkspaceTask) {
 .tasks-panel__recur--unsupported {
   opacity: 0.35;
 }
-/* Priority: three ascending bars, filled by level (no emoji). */
-.tasks-panel__bars {
+/* Third-row badges — due date, importance, reminder, recurrence — are the
+   same fields the main calendar view shows, just stacked instead of inline. */
+.tasks-panel__reminder {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 1.5px;
-  height: 11px;
-  margin-top: 3px;
-}
-.tasks-panel__bars i {
-  display: block;
-  width: 2.5px;
-  border-radius: 1px;
-  background: var(--fill-2);
-}
-.tasks-panel__bars i:nth-child(1) { height: 5px; }
-.tasks-panel__bars i:nth-child(2) { height: 8px; }
-.tasks-panel__bars i:nth-child(3) { height: 11px; }
-/* Five parsed levels collapse onto the three bars: highest reads like high,
-   lowest like low. The distinction still shows in sorting. */
-.tasks-panel__bars--lowest i:nth-child(1),
-.tasks-panel__bars--low i:nth-child(1),
-.tasks-panel__bars--medium i:nth-child(-n + 2),
-.tasks-panel__bars--high i,
-.tasks-panel__bars--highest i {
-  background: var(--accent);
-}
-.tasks-panel__flag .tasks-panel__bars {
-  margin-top: 0;
-}
-.tasks-panel__flag:not(.is-on) .tasks-panel__bars i {
-  background: currentColor;
-  opacity: 0.55;
+  font-size: 11px;
+  line-height: 1.3;
+  opacity: 0.75;
+  cursor: help;
 }
 </style>

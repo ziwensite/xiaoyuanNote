@@ -24,7 +24,7 @@ function onMouseDown(e: MouseEvent) {
   // Get the branch container dimensions
   const container = (e.target as HTMLElement).parentElement;
   const totalSize = container
-    ? (props.direction === 'horizontal' ? container.clientWidth : container.clientHeight) - 4 // minus divider width
+    ? (props.direction === 'horizontal' ? container.clientWidth : container.clientHeight) - 1 // minus the 1px divider
     : 1000;
 
   function onMove(ev: MouseEvent) {
@@ -70,21 +70,38 @@ function findBranch() {
 </template>
 
 <style scoped>
+/* Mirrors the sidebar dock's middle splitter: 1px hairline, 9px transparent
+   hit zone, one accent bar on hover / drag / focus. --hit / --glow transpose
+   the inset for the horizontal (row-splitting) variant. */
 .tile-divider {
-  flex-shrink: 0;
-  background: var(--border);
-  transition: background 0.15s;
+  --hit: 0 -4px;
+  --glow: 0 -1px;
+  flex: 0 0 var(--hair-w, 1px);
+  position: relative;
+  z-index: 2;
+  background: var(--hairline);
+  outline: none;
 }
-.tile-divider:hover,
-.tile-divider--active {
+.tile-divider::before {
+  content: '';
+  position: absolute;
+  inset: var(--hit);
+}
+.tile-divider:hover::after,
+.tile-divider:active::after,
+.tile-divider:focus-visible::after,
+.tile-divider--active::after {
+  content: '';
+  position: absolute;
+  inset: var(--glow);
   background: var(--accent);
 }
 .tile-divider--horizontal {
-  width: 4px;
   cursor: col-resize;
 }
 .tile-divider--vertical {
-  height: 4px;
+  --hit: -4px 0;
+  --glow: -1px 0;
   cursor: row-resize;
 }
 </style>

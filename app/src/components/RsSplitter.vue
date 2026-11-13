@@ -66,46 +66,30 @@ function startDrag(e: MouseEvent) {
 </template>
 
 <style scoped>
-/* 5.0 — the divider between stacked panes is a hairline (what every
-   inspector in a Mac app draws); the 9 px hit area lives in ::before so the
-   line stays thin without being hard to grab. #294's "can this be resized?"
-   answer is kept: hovering (after a short delay, so a pointer passing over
-   doesn't flash) or dragging shows a 2 px accent bar. Double-click resets. */
+/* Same drag-line language as the sidebar dock's middle splitter: 1px
+   hairline, 9px transparent hit zone, one accent bar while hovering /
+   dragging / dragging-by-class. Double-click still resets. */
 .rs-splitter {
-  flex: 0 0 var(--hair-w);
-  height: var(--hair-w);
+  flex: 0 0 var(--hair-w, 1px);
+  height: var(--hair-w, 1px);
   position: relative;
   z-index: 5;
   cursor: row-resize;
   background: var(--hairline);
+  outline: none;
 }
 .rs-splitter::before {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  top: -4px;
-  bottom: -4px;
+  inset: -4px 0;
 }
-.rs-splitter::after {
+.rs-splitter:hover::after,
+.rs-splitter:active::after,
+.rs-splitter:focus-visible::after,
+.rs-splitter--active::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 2px;
-  transform: translateY(-50%);
+  inset: -1px 0;
   background: var(--accent);
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease) 0ms;
-  pointer-events: none;
-}
-.rs-splitter:hover::after {
-  opacity: 1;
-  transition-delay: 150ms;
-}
-body.rs-splitter--dragging .rs-splitter--active::after {
-  opacity: 1;
-  transition-delay: 0ms;
 }
 </style>

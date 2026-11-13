@@ -2217,6 +2217,7 @@ export const pt: I18n = {
       day: 'Dia',
       week: 'Semana',
       month: 'Mês',
+      year: 'Ano',
     },
     groups: {
       overdue: 'Atrasadas',

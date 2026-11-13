@@ -2213,6 +2213,7 @@ export const ja: I18n = {
       day: '日',
       week: '週',
       month: '月',
+      year: '年',
     },
     groups: {
       overdue: '期限切れ',

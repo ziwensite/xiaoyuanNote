@@ -2215,6 +2215,7 @@ export const it: I18n = {
       day: 'Giorno',
       week: 'Settimana',
       month: 'Mese',
+      year: 'Anno',
     },
     groups: {
       overdue: 'In ritardo',
