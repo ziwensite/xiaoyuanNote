@@ -9,7 +9,7 @@
  * calendar icon that opens the full workspace; `showOpenDay` toggles the
  * "open selected day" button (hidden in the workspace itself).
  */
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
 import { addDays } from '../lib/calendar';
@@ -57,69 +57,57 @@ const headerTitle = computed(() => {
   return monthTitle.value;
 });
 
-/** Normalise any CSS colour (hex, rgb(), color-mix(), …) to RGBA via canvas. */
-function toRgb(css: string): [number, number, number, number] | null {
-  if (typeof document === 'undefined') return null;
-  const ctx = document.createElement('canvas').getContext('2d');
-  if (!ctx) return null;
-  ctx.fillStyle = '#000';
-  ctx.fillStyle = css;
-  const normalised = ctx.fillStyle;
-  if (normalised.startsWith('#')) {
-    const hex = normalised.slice(1);
-    const h = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex.slice(0, 6);
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 1];
-  }
-  const nums = normalised.match(/[\d.]+/g);
-  if (!nums || nums.length < 3) return null;
-  return [Number(nums[0]), Number(nums[1]), Number(nums[2]), nums.length > 3 ? Number(nums[3]) : 1];
+/** The native calendar bubble is painted by the browser OUTSIDE the DOM, so
+ *  page CSS cannot give it a background, border or shadow. Keep its default
+ *  palette and create the contrast on our side instead: a very light scrim
+ *  over the editor while the picker is open, plus a card-ish active state on
+ *  the title button that anchors it. No `color-scheme` flipping — the input's
+ *  own system-coloured background flipped with it, so repeated clicks made
+ *  the bubble oscillate between light and dark. */
+const pickerActive = ref(false);
+function closePicker() {
+  pickerActive.value = false;
 }
-
-function isDarkSurface(r: number, g: number, b: number): boolean {
-  // Rec. 709 luma — cheap, and only used for a contrast decision.
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
+function onGlobalKeydown(ev: KeyboardEvent) {
+  if (ev.key === 'Escape' && pickerActive.value) closePicker();
 }
-
-/** Decide the REAL surface colour behind the picker. A custom theme can paint
- *  the editor black while `color-scheme` still says `light`, so never trust the
- *  declaration alone: walk ancestors for the first opaque background, then
- *  fall back to the --bg token and finally to color-scheme. */
-function surfaceIsDark(from: HTMLElement): boolean {
-  if (typeof window === 'undefined') return false;
-  let node: HTMLElement | null = from;
-  while (node) {
-    const raw = getComputedStyle(node).backgroundColor;
-    const rgba = raw && raw !== 'transparent' ? toRgb(raw) : null;
-    if (rgba && rgba[3] >= 0.9) return isDarkSurface(rgba[0], rgba[1], rgba[2]);
-    node = node.parentElement;
-  }
-  const token = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-  const fromToken = token ? toRgb(token) : null;
-  if (fromToken) return isDarkSurface(fromToken[0], fromToken[1], fromToken[2]);
-  const scheme = getComputedStyle(document.documentElement).colorScheme;
-  return scheme.includes('dark') && !scheme.includes('light');
+function onGlobalPointerDown(ev: PointerEvent) {
+  if (!pickerActive.value) return;
+  // The title button toggles itself in openNativePicker; every other click
+  // (scrim, toolbar, another control) dismisses the picker state.
+  const target = ev.target as HTMLElement | null;
+  if (target?.closest('.calendar-panel__month')) return;
+  closePicker();
 }
+onMounted(() => {
+  window.addEventListener('keydown', onGlobalKeydown);
+  window.addEventListener('pointerdown', onGlobalPointerDown, true);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onGlobalKeydown);
+  window.removeEventListener('pointerdown', onGlobalPointerDown, true);
+});
 
 /** One native date input backs every view (dock, month, day, week). Clicking
  *  the title calls showPicker() so the browser/OS renders its own date UI —
- *  a calendar popover on desktop, a wheel picker on mobile — instead of a
- *  hand-built popover. focus()+click() is the fallback for engines that do
- *  not implement showPicker(). */
+ *  a calendar popover on desktop, a wheel picker on mobile. focus()+click()
+ *  is the fallback for engines that do not implement showPicker(). */
 const pickerEl = ref<HTMLInputElement | null>(null);
 type PickerInput = HTMLInputElement & { showPicker?: () => void };
 function openNativePicker() {
+  if (pickerActive.value) {
+    closePicker();
+    return;
+  }
   const el = pickerEl.value as PickerInput | null;
   if (!el) return;
   // A cancelled native picker can leave the DOM value out of sync while the
   // Vue-side focusDate is unchanged, so re-sync before every open.
   el.value = calendar.focusDate;
-
-  // The native calendar bubble is painted by the browser OUTSIDE the DOM, so
-  // page CSS cannot give it a background, border or shadow. Paint it in the
-  // OPPOSITE brightness of the surface actually behind it: a dark bubble over
-  // a light editor, a light bubble over a dark/black editor.
-  el.style.colorScheme = surfaceIsDark(el) ? 'light' : 'dark';
-
+  // Drop any inline colour-scheme left by an earlier session/HMR so the
+  // bubble always uses the system default palette.
+  el.style.colorScheme = '';
+  pickerActive.value = true;
   if (typeof el.showPicker === 'function') {
     try {
       el.showPicker();
@@ -134,6 +122,7 @@ function openNativePicker() {
 function onDateChange(ev: Event) {
   const value = (ev.target as HTMLInputElement).value;
   if (value) calendar.setFocusDate(value);
+  closePicker();
 }
 
 function shiftStep(delta: number) {
@@ -174,6 +163,7 @@ function togglePanel() {
 
 <template>
   <div class="calendar-panel__head">
+    <div v-if="pickerActive" class="calendar-panel__scrim" aria-hidden="true" @click="closePicker"></div>
     <div class="calendar-panel__nav">
       <button
         class="rp-icon-btn"
@@ -186,6 +176,7 @@ function togglePanel() {
       </button>
       <button
         class="calendar-panel__month"
+        :class="{ 'is-picking': pickerActive }"
         type="button"
         :title="t('calendar.pickMonth')"
         :aria-label="t('calendar.pickMonth')"
@@ -277,7 +268,18 @@ function togglePanel() {
   overflow: visible;
   padding: 8px 10px 4px;
 }
+/* While the native picker is open, give the editor a very light scrim so the
+   browser-drawn bubble (default palette, no rec colouring) reads as a raised
+   layer. No blur: it would soften the whole editor and fight the simple look. */
+.calendar-panel__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.08);
+}
 .calendar-panel__right {
+  position: relative;
+  z-index: 41;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -286,6 +288,7 @@ function togglePanel() {
 }
 .calendar-panel__nav {
   position: relative;
+  z-index: 41;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -326,6 +329,15 @@ function togglePanel() {
 }
 .calendar-panel__month:hover {
   background: var(--hover, rgba(0, 0, 0, 0.06));
+}
+/* Card-ish anchor for the native bubble: hairline edge + soft shadow, using
+   the theme's default surface colour rather than an inverted one. */
+.calendar-panel__month.is-picking {
+  background: var(--bg-pop, #fff);
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px var(--hairline, rgba(128, 128, 128, 0.35)),
+    0 4px 14px rgba(0, 0, 0, 0.14);
 }
 .calendar-panel__head-actions {
   display: flex;
