@@ -22,6 +22,7 @@ import { useHolidaysStore } from '../stores/holidays';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
 import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
+import { CALENDAR_EDITOR_VIEWS } from '../lib/calendar-prefs';
 import { buildCalendarView, monthGridRange } from '../lib/calendar-view';
 import {
   dailyNoteDates,
@@ -146,6 +147,26 @@ const monthTitle = computed(() => {
   return fmt.format(wallDate(calendar.focusDate));
 });
 
+const dayTitle = computed(() => {
+  const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), {
+    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
+  });
+  return fmt.format(wallDate(calendar.focusDate));
+});
+const weekTitle = computed(() => {
+  const d = wallDate(calendar.focusDate);
+  const dow = d.getDay();
+  const ws = addDays(calendar.focusDate, -((dow + 6) % 7));
+  const we = addDays(ws, 6);
+  const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { month: 'long', day: 'numeric' });
+  return `${fmt.format(wallDate(ws))} – ${fmt.format(wallDate(we))}`;
+});
+const headerTitle = computed(() => {
+  if (calendar.view === 'day') return dayTitle.value;
+  if (calendar.view === 'week') return weekTitle.value;
+  return monthTitle.value;
+});
+
 /** Year/month picker: click the title to open; pick a month to jump there. */
 const ymOpen = ref(false);
 const ymYear = ref(0);
@@ -165,9 +186,33 @@ function pickMonth(m: number) {
   calendar.setFocusDate(`${ymYear.value}-${mm}-01`);
   ymOpen.value = false;
 }
-function shiftAndClose(delta: number) {
-  calendar.shiftMonth(delta);
+
+// Date picker — day/week header title jumps to a specific date (the dock only
+// renders the month grid, so picking a date here just moves the shared focus).
+const dateOpen = ref(false);
+const dateYear = ref(0);
+const dateMonth = ref(0);
+function openDatePicker() {
+  const [y, m] = calendar.focusDate.split('-').map(Number);
+  dateYear.value = y;
+  dateMonth.value = m;
+  dateOpen.value = true;
+}
+function daysInMonth(y: number, m: number): number {
+  return new Date(y, m, 0).getDate();
+}
+function pickDate(day: number) {
+  const mm = String(dateMonth.value).padStart(2, '0');
+  const dd = String(day).padStart(2, '0');
+  calendar.setFocusDate(`${dateYear.value}-${mm}-${dd}`);
+  dateOpen.value = false;
+}
+function shiftStep(delta: number) {
+  if (calendar.view === 'day') calendar.setFocusDate(addDays(calendar.focusDate, delta));
+  else if (calendar.view === 'week') calendar.setFocusDate(addDays(calendar.focusDate, delta * 7));
+  else calendar.shiftMonth(delta);
   ymOpen.value = false;
+  dateOpen.value = false;
 }
 
 function wallDate(date: string): Date {
@@ -322,18 +367,41 @@ function pick(date: string) {
 function openSelectedDay() {
   calendar.openWorkspace();
 }
+
+/** Header title click: month opens the year/month picker, day/week open the
+ *  date picker, so the shared focus date is editable from any view. */
+function onTitleClick() {
+  if (calendar.view === 'month') toggleYearMonthPicker();
+  else openDatePicker();
+}
+
+/** The dock is a read-only preview, so "+" opens the full calendar workspace
+ *  (desktop path) focused on the current day/view, where the editor lives. */
+function onNew() {
+  calendar.openWorkspace(calendar.focusDate, calendar.view);
+}
 </script>
 
 <template>
   <div class="calendar-panel rp">
     <div class="rp-head calendar-panel__head" v-if="showHeader">
+      <div class="calendar-panel__seg" role="group" :aria-label="t('calendar.title')">
+        <button
+          v-for="view in CALENDAR_EDITOR_VIEWS"
+          :key="view"
+          type="button"
+          :class="{ 'is-active': calendar.view === view }"
+          :aria-pressed="calendar.view === view"
+          @click="calendar.setView(view)"
+        >{{ t(`calendar.view.${view}`) }}</button>
+      </div>
       <div class="calendar-panel__nav">
         <button
           class="rp-icon-btn"
           type="button"
           :title="t('calendar.prev')"
           :aria-label="t('calendar.prev')"
-          @click="shiftAndClose(-1)"
+          @click="shiftStep(-1)"
         >
           <Icons name="chevron-left" :size="14" />
         </button>
@@ -342,16 +410,16 @@ function openSelectedDay() {
           type="button"
           :title="t('calendar.pickMonth')"
           :aria-label="t('calendar.pickMonth')"
-          @click="toggleYearMonthPicker"
+          @click="onTitleClick"
         >
-          {{ monthTitle }}
+          {{ headerTitle }}
         </button>
         <button
           class="rp-icon-btn"
           type="button"
           :title="t('calendar.next')"
           :aria-label="t('calendar.next')"
-          @click="shiftAndClose(1)"
+          @click="shiftStep(1)"
         >
           <Icons name="chevron-right" :size="14" />
         </button>
@@ -359,6 +427,15 @@ function openSelectedDay() {
       <div class="calendar-panel__head-actions">
         <button class="rp-btn rp-btn--sm calendar-panel__today" type="button" @click="calendar.goToday()">
           {{ t('calendar.today') }}
+        </button>
+        <button
+          type="button"
+          class="rp-icon-btn"
+          :title="t('calendar.newEvent')"
+          :aria-label="t('calendar.newEvent')"
+          @click="onNew"
+        >
+          <Icons name="plus" :size="14" />
         </button>
         <button
           v-if="showOpenDay"
@@ -406,6 +483,42 @@ function openSelectedDay() {
             @click="pickMonth(m)"
           >
             {{ m }}
+          </button>
+        </div>
+      </div>
+      <div v-if="dateOpen" class="calendar-panel__ym-backdrop" @click="dateOpen = false"></div>
+      <div v-if="dateOpen" class="calendar-panel__ym" role="dialog" :aria-label="t('calendar.pickMonth')">
+        <div class="calendar-panel__ym-year">
+          <button type="button" class="rp-icon-btn" :disabled="dateYear <= 1900" @click="dateYear--">
+            <Icons name="chevron-left" :size="14" />
+          </button>
+          <span class="calendar-panel__ym-year-label">{{ dateYear }}</span>
+          <button type="button" class="rp-icon-btn" :disabled="dateYear >= 2200" @click="dateYear++">
+            <Icons name="chevron-right" :size="14" />
+          </button>
+        </div>
+        <div class="calendar-panel__ym-months">
+          <button
+            v-for="m in 12"
+            :key="m"
+            type="button"
+            class="calendar-panel__ym-month"
+            :class="{ 'is-active': m === dateMonth }"
+            @click="dateMonth = m"
+          >
+            {{ m }}
+          </button>
+        </div>
+        <div class="calendar-panel__date-days">
+          <button
+            v-for="d in daysInMonth(dateYear, dateMonth)"
+            :key="d"
+            type="button"
+            class="calendar-panel__date-day"
+            :class="{ 'is-active': `${dateYear}-${String(dateMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}` === calendar.focusDate }"
+            @click="pickDate(d)"
+          >
+            {{ d }}
           </button>
         </div>
       </div>
@@ -591,6 +704,55 @@ function openSelectedDay() {
   background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 .calendar-panel__ym-month.is-active {
+  border-color: var(--accent, #3b82f6);
+  color: var(--accent, #3b82f6);
+  font-weight: 600;
+}
+
+.calendar-panel__seg {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.calendar-panel__seg button {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 12px;
+  padding: 4px 0;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.15));
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-2, #5b6168);
+}
+.calendar-panel__seg button:hover {
+  background: var(--hover, rgba(0, 0, 0, 0.06));
+}
+.calendar-panel__seg button.is-active {
+  border-color: var(--accent, #3b82f6);
+  color: var(--accent, #3b82f6);
+  font-weight: 600;
+}
+
+.calendar-panel__date-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 8px;
+}
+.calendar-panel__date-day {
+  font-size: 12px;
+  padding: 4px 0;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-2, #5b6168);
+}
+.calendar-panel__date-day:hover {
+  background: var(--hover, rgba(0, 0, 0, 0.06));
+}
+.calendar-panel__date-day.is-active {
   border-color: var(--accent, #3b82f6);
   color: var(--accent, #3b82f6);
   font-weight: 600;
