@@ -47,8 +47,9 @@ const { t, lang } = useI18n();
 
 /** When embedded in the full calendar workspace the "open day" button is
  *  redundant (you are already in the calendar), so it can be hidden. */
-const props = defineProps<{ showOpenDay?: boolean }>();
+const props = defineProps<{ showOpenDay?: boolean; showHeader?: boolean }>();
 const showOpenDay = computed(() => props.showOpenDay !== false);
+const showHeader = computed(() => props.showHeader !== false);
 
 const gridEl = ref<HTMLElement | null>(null);
 
@@ -325,7 +326,7 @@ function openSelectedDay() {
 
 <template>
   <div class="calendar-panel rp">
-    <div class="rp-head calendar-panel__head">
+    <div class="rp-head calendar-panel__head" v-if="showHeader">
       <div class="calendar-panel__nav">
         <button
           class="rp-icon-btn"

@@ -1045,6 +1045,24 @@ function onMiniDblClick(event: MouseEvent) {
   if (el?.dataset.date) newOnMonth(el.dataset.date);
 }
 
+// Year/month picker — the shared CalendarPanel's own header is hidden when the
+// workspace embeds it, so the workspace owns the "pick month" navigation to
+// keep the three views (day/week/month) on one identical header.
+const ymOpen = ref(false);
+const ymYear = ref(0);
+const ymMonth = ref(0);
+function openYm() {
+  const [y, m] = calendar.focusDate.split('-').map(Number);
+  ymYear.value = y;
+  ymMonth.value = m;
+  ymOpen.value = true;
+}
+function pickYm(m: number) {
+  const mm = String(m).padStart(2, '0');
+  calendar.setFocusDate(`${ymYear.value}-${mm}-01`);
+  ymOpen.value = false;
+}
+
 function newOnHour(date: string, hour: number) {
   openNew(date, hour * 60, false);
 }
@@ -1095,23 +1113,59 @@ onBeforeUnmount(() => {
 
     <div v-else-if="mode === 'month'" class="cal-w__split">
       <section class="cal-month" style="display:flex;flex-direction:column;min-height:0;flex:1 1 auto;">
-        <div class="cal-w__topbar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;">
-          <div class="cal-w__seg" role="group" :aria-label="t('calendar.title')">
-            <button
-              v-for="view in CALENDAR_EDITOR_VIEWS"
-              :key="view"
-              type="button"
-              :class="{ 'is-active': calendar.view === view }"
-              :aria-pressed="calendar.view === view"
-              @click="calendar.setView(view)"
-            >{{ t(`calendar.view.${view}`) }}</button>
+        <header class="cal-bar">
+          <div class="cal-bar__left">
+            <span class="cal-bar__title" :title="t('calendar.pickMonth')" @click="openYm">{{ monthTitle }}</span>
+            <div class="cal-w__seg" role="group" :aria-label="t('calendar.title')">
+              <button
+                v-for="view in CALENDAR_EDITOR_VIEWS"
+                :key="view"
+                type="button"
+                :class="{ 'is-active': calendar.view === view }"
+                :aria-pressed="calendar.view === view"
+                @click="calendar.setView(view)"
+              >{{ t(`calendar.view.${view}`) }}</button>
+            </div>
           </div>
-          <button type="button" class="cal-nav__btn" :title="t('calendar.newEvent')" @click="newOnFocusDate">
-            <Icons name="plus" :size="14" />
-          </button>
-        </div>
+          <div class="cal-nav">
+            <button type="button" class="cal-nav__btn" :title="t('calendar.newEvent')" @click="newOnFocusDate">
+              <Icons name="plus" :size="14" />
+            </button>
+            <button type="button" class="cal-nav__btn" :title="t('calendar.prev')" @click="shift(-1)">
+              <Icons name="chevron-left" :size="14" />
+            </button>
+            <button type="button" class="cal-nav__btn" @click="calendar.goToday()">
+              {{ t('calendar.today') }}
+            </button>
+            <button type="button" class="cal-nav__btn" :title="t('calendar.next')" @click="shift(1)">
+              <Icons name="chevron-right" :size="14" />
+            </button>
+          </div>
+        </header>
         <div class="cal-month__host" style="flex:1 1 auto;min-height:0;" @click="onMiniClick" @dblclick="onMiniDblClick">
-          <CalendarPanel :show-open-day="false" />
+          <CalendarPanel :show-open-day="false" :show-header="false" />
+        </div>
+        <div v-if="ymOpen" class="cal-w__ym-backdrop" @click="ymOpen = false"></div>
+        <div v-if="ymOpen" class="cal-w__ym" role="dialog" :aria-label="t('calendar.pickMonth')">
+          <div class="cal-w__ym-year">
+            <button type="button" class="cal-nav__btn" :disabled="ymYear <= 1900" @click="ymYear--">
+              <Icons name="chevron-left" :size="14" />
+            </button>
+            <span class="cal-w__ym-year-label">{{ ymYear }}</span>
+            <button type="button" class="cal-nav__btn" :disabled="ymYear >= 2200" @click="ymYear++">
+              <Icons name="chevron-right" :size="14" />
+            </button>
+          </div>
+          <div class="cal-w__ym-months">
+            <button
+              v-for="m in 12"
+              :key="m"
+              type="button"
+              class="cal-w__ym-month"
+              :class="{ 'is-active': m === ymMonth }"
+              @click="pickYm(m)"
+            >{{ m }}</button>
+          </div>
         </div>
       </section>
 
