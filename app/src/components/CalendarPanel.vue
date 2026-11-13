@@ -734,10 +734,10 @@ function onNew() {
   min-width: 0;
 }
 .calendar-panel__seg button {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: 44px;
   font-size: 12px;
-  padding: 4px 0;
+  padding: 4px 10px;
   border: 1px solid var(--border, rgba(0, 0, 0, 0.15));
   background: transparent;
   border-radius: 6px;

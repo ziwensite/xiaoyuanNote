@@ -7,7 +7,7 @@ import { localDateKey } from './calendar';
 
 export type CalendarEditorView = 'month' | 'day' | 'week';
 
-export const CALENDAR_EDITOR_VIEWS: readonly CalendarEditorView[] = ['month', 'day', 'week'];
+export const CALENDAR_EDITOR_VIEWS: readonly CalendarEditorView[] = ['day', 'month', 'week'];
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
