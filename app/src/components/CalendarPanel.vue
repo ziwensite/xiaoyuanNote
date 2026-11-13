@@ -619,16 +619,20 @@ function onNew() {
 .calendar-panel__head {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
   height: auto;
   flex: 0 0 auto;
-  min-height: 36px;
+  min-height: 0;
+  overflow: visible;
+  padding: 8px 10px 4px;
 }
 .calendar-panel__nav {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 2px;
   min-width: 0;
 }
@@ -651,6 +655,7 @@ function onNew() {
 .calendar-panel__head-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
   flex: 0 0 auto;
 }
