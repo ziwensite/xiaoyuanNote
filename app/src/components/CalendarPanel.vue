@@ -642,9 +642,8 @@ function onNew() {
 .calendar-panel__nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 2px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
 }
 .calendar-panel__month {
