@@ -15,11 +15,13 @@ import Icons from './Icons.vue';
 import { addDays } from '../lib/calendar';
 import { CALENDAR_EDITOR_VIEWS, type CalendarEditorView } from '../lib/calendar-prefs';
 import { useCalendarStore } from '../stores/calendar';
+import { useTabsStore } from '../stores/tabs';
 
 const props = defineProps<{ showOpenDay?: boolean; preview?: boolean }>();
 const showOpenDay = computed(() => props.showOpenDay !== false);
 
 const calendar = useCalendarStore();
+const tabs = useTabsStore();
 const { t, lang } = useI18n();
 
 function wallDate(date: string): Date {
@@ -118,6 +120,26 @@ function onTitleClick() {
 function onNew() {
   calendar.openWorkspace(calendar.focusDate, calendar.view);
 }
+
+/** The dock preview's calendar icon toggles the full workspace: it lights up
+ *  while the workspace is open, and clicking it again closes the workspace.
+ *  Covers both the desktop editor tab and the narrow-screen dialog. */
+const panelOpen = computed(() => {
+  if (calendar.dialogOpen) return true;
+  return tabs.tabs.some((t) => t.kind === 'calendar');
+});
+function togglePanel() {
+  if (!panelOpen.value) {
+    calendar.openWorkspace(calendar.focusDate, calendar.view);
+    return;
+  }
+  if (calendar.dialogOpen) {
+    calendar.closeDialog();
+    return;
+  }
+  const t = tabs.tabs.find((x) => x.kind === 'calendar');
+  if (t) tabs.closeTab(t.id);
+}
 </script>
 
 <template>
@@ -156,9 +178,11 @@ function onNew() {
         <button
           type="button"
           class="rp-icon-btn"
+          :class="{ 'is-active': panelOpen }"
+          :aria-pressed="panelOpen"
           :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
           :aria-label="t('calendar.selectedDay.open', { date: calendar.focusDate })"
-          @click="calendar.openWorkspace(calendar.focusDate, calendar.view)"
+          @click="togglePanel"
         >
           <Icons name="calendar" :size="14" />
         </button>
@@ -211,7 +235,13 @@ function onNew() {
         >
           <Icons name="chevron-left" :size="14" />
         </button>
-        <span class="calendar-panel__ym-year-label">{{ ymYear }}</span>
+        <input
+          class="calendar-panel__ym-year-input"
+          type="number"
+          v-model.number="ymYear"
+          :min="1900"
+          :max="2200"
+        />
         <button
           class="rp-icon-btn"
           type="button"
@@ -242,7 +272,13 @@ function onNew() {
         <button type="button" class="rp-icon-btn" :disabled="dateYear <= 1900" @click="dateYear--">
           <Icons name="chevron-left" :size="14" />
         </button>
-        <span class="calendar-panel__ym-year-label">{{ dateYear }}</span>
+        <input
+          class="calendar-panel__ym-year-input"
+          type="number"
+          v-model.number="dateYear"
+          :min="1900"
+          :max="2200"
+        />
         <button type="button" class="rp-icon-btn" :disabled="dateYear >= 2200" @click="dateYear++">
           <Icons name="chevron-right" :size="14" />
         </button>
@@ -340,9 +376,10 @@ function onNew() {
 .calendar-panel__ym {
   position: absolute;
   top: calc(100% + 4px);
-  left: 8px;
+  left: auto;
   right: 8px;
   z-index: 6;
+  width: auto;
   padding: 8px;
   border: 1px solid var(--line-2, #d0d7de);
   border-radius: 10px;
@@ -360,9 +397,22 @@ function onNew() {
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
+.calendar-panel__ym-year-input {
+  width: 72px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line-2, #d0d7de);
+  border-radius: 6px;
+  padding: 2px 4px;
+  background: var(--surface-1, #fff);
+  color: var(--text, #1f2328);
+}
 .calendar-panel__ym-months {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 44px);
   gap: 4px;
 }
 .calendar-panel__ym-month {
@@ -410,7 +460,7 @@ function onNew() {
 }
 .calendar-panel__date-days {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(7, 32px);
   gap: 2px;
   margin-top: 8px;
 }
@@ -430,5 +480,9 @@ function onNew() {
   border-color: var(--accent, #3b82f6);
   color: var(--accent, #3b82f6);
   font-weight: 600;
+}
+.rp-icon-btn.is-active {
+  color: var(--accent, #3b82f6);
+  background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 </style>
