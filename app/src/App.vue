@@ -103,7 +103,6 @@ import { IS_APP_STORE_BUILD } from './lib/app-build';
 import { runWhenIdle } from './lib/idle';
 import { MERMAID_INSERT_SNIPPET } from './lib/insert-snippet';
 import { focusActiveEditorSoon } from './lib/editor-focus';
-import { prefersOverlayEditor } from './lib/editor-layout';
 import { requestHeaderSearch } from './lib/header-search';
 import { measureMenu, placeMenuFromPoint } from './lib/menu-position';
 const UiPreview = defineAsyncComponent(() => import('./components/UiPreview.vue'));
@@ -232,12 +231,11 @@ function openSettingsAt(section: string | null = null) {
     wizardOpen.value = true;
     return;
   }
-  // Desktop: a singleton editor tab (D4 — not restored after relaunch).
-  // Phones / tablets / narrow panes keep the modal settings sheet.
-  if (!prefersOverlayEditor()) {
-    tabs.openInput('settings', section ? { section } : {});
-    return;
-  }
+  // Settings opens as a modal dialog on every surface now. It used to open as
+  // an in-editor tab on wide screens, whose background clashed with the editor
+  // area; closing any lingering settings tab keeps the editor clean.
+  const existing = tabs.tabs.find((t) => t.kind === 'settings');
+  if (existing) tabs.closeTab(existing.id);
   settingsInitialSection.value = section;
   settingsOpen.value = true;
 }
@@ -1270,6 +1268,11 @@ function scheduleStarPrompt() {
 
 onMounted(async () => {
   scheduleStarPrompt();
+  // Settings now opens as a modal dialog; close any settings tab left over
+  // from the old in-editor variant (e.g. one kept alive across HMR) so the
+  // editor area doesn't show it with a clashing background.
+  const leftover = tabs.tabs.find((t) => t.kind === 'settings');
+  if (leftover) tabs.closeTab(leftover.id);
   // Calendar holidays: load the on-disk cache immediately; refresh only when
   // the cache is missing or the year rolled over. Event-driven, never a timer.
   void holidays.maybeRefresh('startup');
