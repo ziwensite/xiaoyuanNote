@@ -1072,6 +1072,31 @@ function chipTime(occ: CalendarOccurrence): string {
   return occ.allDay ? t('calendar.allDay') : timeOf(occ.start);
 }
 
+// Split resizer — calendar pane width as a percentage (default 40%).
+const calSplit = ref(40);
+let splitDrag: { startX: number; startSplit: number; container: HTMLElement } | null = null;
+function beginSplitDrag(ev: PointerEvent) {
+  const container = (ev.currentTarget as HTMLElement).parentElement as HTMLElement;
+  splitDrag = { startX: ev.clientX, startSplit: calSplit.value, container };
+  window.addEventListener('pointermove', onSplitMove);
+  window.addEventListener('pointerup', endSplitDrag);
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+}
+function onSplitMove(ev: PointerEvent) {
+  if (!splitDrag) return;
+  const rect = splitDrag.container.getBoundingClientRect();
+  const deltaPct = ((ev.clientX - splitDrag.startX) / rect.width) * 100;
+  calSplit.value = Math.min(80, Math.max(20, splitDrag.startSplit + deltaPct));
+}
+function endSplitDrag() {
+  splitDrag = null;
+  window.removeEventListener('pointermove', onSplitMove);
+  window.removeEventListener('pointerup', endSplitDrag);
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+}
+
 let observer: ResizeObserver | null = null;
 onMounted(() => {
   const el = root.value;
@@ -1094,11 +1119,12 @@ onBeforeUnmount(() => {
     <div v-if="!hasFolder" class="cal-empty">{{ t('calendar.openFolder') }}</div>
 
     <div v-else-if="mode === 'month'" class="cal-w__split">
-      <section class="cal-month" style="display:flex;flex-direction:column;min-height:0;flex:1 1 auto;">
+      <section class="cal-month" style="display:flex;flex-direction:column;min-height:0;" :style="{ flex: '0 0 ' + calSplit + '%' }">
         <div class="cal-month__host" style="flex:1 1 auto;min-height:0;" @click="onMiniClick" @dblclick="onMiniDblClick">
           <CalendarPanel :show-open-day="false" />
         </div>
       </section>
+      <div class="cal-w__resizer" @pointerdown="beginSplitDrag" role="separator"></div>
 
       <section v-if="!editor" class="cal-tasks-pane">
         <header class="cal-tasks-pane__head">
@@ -1419,6 +1445,32 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   border-right: 0;
   border-bottom: var(--bd-hair);
+}
+
+.cal-w__resizer {
+  flex: 0 0 6px;
+  align-self: stretch;
+  cursor: col-resize;
+  position: relative;
+  background: transparent;
+}
+.cal-w__resizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--border, rgba(0, 0, 0, 0.15));
+}
+.cal-w__resizer:hover::after,
+.cal-w__resizer:active::after {
+  width: 2px;
+  background: var(--accent, #3b82f6);
+}
+.cal-w.is-narrow .cal-w__resizer {
+  display: none;
 }
 
 .cal-w.is-narrow .cal-editor-host {
