@@ -439,61 +439,6 @@ function pick(date: string) {
   gap: 4px;
   flex: 0 0 auto;
 }
-.calendar-panel__ym-backdrop {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  height: 3000px;
-  z-index: 5;
-}
-.calendar-panel__ym {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 8px;
-  right: 8px;
-  z-index: 6;
-  padding: 8px;
-  border: 1px solid var(--line-2, #d0d7de);
-  border-radius: 10px;
-  background: var(--surface-2, #fff);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-}
-.calendar-panel__ym-year {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.calendar-panel__ym-year-label {
-  font-weight: 600;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-.calendar-panel__ym-months {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-}
-.calendar-panel__ym-month {
-  border: 1px solid var(--line-2, #d0d7de);
-  border-radius: 6px;
-  background: var(--surface-1, #fff);
-  color: var(--text-1, #1f2328);
-  font: inherit;
-  font-size: 12px;
-  padding: 4px 0;
-  cursor: pointer;
-}
-.calendar-panel__ym-month:hover {
-  background: var(--hover, rgba(0, 0, 0, 0.06));
-}
-.calendar-panel__ym-month.is-active {
-  border-color: var(--accent, #3b82f6);
-  color: var(--accent, #3b82f6);
-  font-weight: 600;
-}
-
 .calendar-panel__seg {
   display: flex;
   gap: 2px;
@@ -515,30 +460,6 @@ function pick(date: string) {
   background: var(--hover, rgba(0, 0, 0, 0.06));
 }
 .calendar-panel__seg button.is-active {
-  border-color: var(--accent, #3b82f6);
-  color: var(--accent, #3b82f6);
-  font-weight: 600;
-}
-
-.calendar-panel__date-days {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 2px;
-  margin-top: 8px;
-}
-.calendar-panel__date-day {
-  font-size: 12px;
-  padding: 4px 0;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--text-2, #5b6168);
-}
-.calendar-panel__date-day:hover {
-  background: var(--hover, rgba(0, 0, 0, 0.06));
-}
-.calendar-panel__date-day.is-active {
   border-color: var(--accent, #3b82f6);
   color: var(--accent, #3b82f6);
   font-weight: 600;

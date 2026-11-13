@@ -70,6 +70,19 @@ function openNativePicker() {
   // A cancelled native picker can leave the DOM value out of sync while the
   // Vue-side focusDate is unchanged, so re-sync before every open.
   el.value = calendar.focusDate;
+
+  // The native calendar bubble is painted by the browser OUTSIDE the DOM, so
+  // page CSS cannot give it a background, border or shadow. In the light theme
+  // it is white — the same as the editor surface — and reads as flat. Painting
+  // it in the opposite scheme makes it stand out in both themes: a dark bubble
+  // over a light editor, a light bubble over a dark editor. Reading :root
+  // covers custom themes instead of hard-coding [data-theme].
+  const rootScheme = typeof window === 'undefined'
+    ? 'light'
+    : getComputedStyle(document.documentElement).colorScheme;
+  const isDark = rootScheme.includes('dark') && !rootScheme.includes('light');
+  el.style.colorScheme = isDark ? 'light' : 'dark';
+
   if (typeof el.showPicker === 'function') {
     try {
       el.showPicker();
