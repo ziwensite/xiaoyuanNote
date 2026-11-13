@@ -57,6 +57,49 @@ const headerTitle = computed(() => {
   return monthTitle.value;
 });
 
+/** Normalise any CSS colour (hex, rgb(), color-mix(), …) to RGBA via canvas. */
+function toRgb(css: string): [number, number, number, number] | null {
+  if (typeof document === 'undefined') return null;
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#000';
+  ctx.fillStyle = css;
+  const normalised = ctx.fillStyle;
+  if (normalised.startsWith('#')) {
+    const hex = normalised.slice(1);
+    const h = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex.slice(0, 6);
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 1];
+  }
+  const nums = normalised.match(/[\d.]+/g);
+  if (!nums || nums.length < 3) return null;
+  return [Number(nums[0]), Number(nums[1]), Number(nums[2]), nums.length > 3 ? Number(nums[3]) : 1];
+}
+
+function isDarkSurface(r: number, g: number, b: number): boolean {
+  // Rec. 709 luma — cheap, and only used for a contrast decision.
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
+}
+
+/** Decide the REAL surface colour behind the picker. A custom theme can paint
+ *  the editor black while `color-scheme` still says `light`, so never trust the
+ *  declaration alone: walk ancestors for the first opaque background, then
+ *  fall back to the --bg token and finally to color-scheme. */
+function surfaceIsDark(from: HTMLElement): boolean {
+  if (typeof window === 'undefined') return false;
+  let node: HTMLElement | null = from;
+  while (node) {
+    const raw = getComputedStyle(node).backgroundColor;
+    const rgba = raw && raw !== 'transparent' ? toRgb(raw) : null;
+    if (rgba && rgba[3] >= 0.9) return isDarkSurface(rgba[0], rgba[1], rgba[2]);
+    node = node.parentElement;
+  }
+  const token = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  const fromToken = token ? toRgb(token) : null;
+  if (fromToken) return isDarkSurface(fromToken[0], fromToken[1], fromToken[2]);
+  const scheme = getComputedStyle(document.documentElement).colorScheme;
+  return scheme.includes('dark') && !scheme.includes('light');
+}
+
 /** One native date input backs every view (dock, month, day, week). Clicking
  *  the title calls showPicker() so the browser/OS renders its own date UI —
  *  a calendar popover on desktop, a wheel picker on mobile — instead of a
@@ -72,16 +115,10 @@ function openNativePicker() {
   el.value = calendar.focusDate;
 
   // The native calendar bubble is painted by the browser OUTSIDE the DOM, so
-  // page CSS cannot give it a background, border or shadow. In the light theme
-  // it is white — the same as the editor surface — and reads as flat. Painting
-  // it in the opposite scheme makes it stand out in both themes: a dark bubble
-  // over a light editor, a light bubble over a dark editor. Reading :root
-  // covers custom themes instead of hard-coding [data-theme].
-  const rootScheme = typeof window === 'undefined'
-    ? 'light'
-    : getComputedStyle(document.documentElement).colorScheme;
-  const isDark = rootScheme.includes('dark') && !rootScheme.includes('light');
-  el.style.colorScheme = isDark ? 'light' : 'dark';
+  // page CSS cannot give it a background, border or shadow. Paint it in the
+  // OPPOSITE brightness of the surface actually behind it: a dark bubble over
+  // a light editor, a light bubble over a dark/black editor.
+  el.style.colorScheme = surfaceIsDark(el) ? 'light' : 'dark';
 
   if (typeof el.showPicker === 'function') {
     try {
