@@ -2889,7 +2889,9 @@ function onSelectPdfFont(v: string) {
 .settings__body[data-active-cat="integrations"] > [data-cat="integrations"],
 .settings__body[data-active-cat="export"] > [data-cat="export"],
 .settings__body[data-active-cat="keys"] > [data-cat="keys"],
-.settings__body[data-active-cat="advanced"] > [data-cat="advanced"] {
+.settings__body[data-active-cat="advanced"] > [data-cat="advanced"],
+.settings__body[data-active-cat="calendar"] > [data-cat="calendar"],
+.settings__body[data-active-cat="tasks"] > [data-cat="tasks"] {
   display: block;
 }
 .settings__body[data-active-cat="basics"] > section[data-cat="basics"],
@@ -2899,6 +2901,8 @@ function onSelectPdfFont(v: string) {
 .settings__body[data-active-cat="export"] > section[data-cat="export"],
 .settings__body[data-active-cat="keys"] > section[data-cat="keys"],
 .settings__body[data-active-cat="advanced"] > section[data-cat="advanced"],
+.settings__body[data-active-cat="calendar"] > section[data-cat="calendar"],
+.settings__body[data-active-cat="tasks"] > section[data-cat="tasks"],
 .settings__body[data-searching] > section[data-cat] {
   display: grid;
 }
