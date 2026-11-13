@@ -62,5 +62,5 @@ const emit = defineEmits<{
     v-if="props.id === 'agent'"
     @open-settings="(section?: string) => emit('openSettings', section ?? 'integrations')"
   />
-  <CalendarPanel v-if="props.id === 'calendar'" />
+  <CalendarPanel v-if="props.id === 'calendar'" :preview="true" />
 </template>

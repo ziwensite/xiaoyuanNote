@@ -48,7 +48,7 @@ const { t, lang } = useI18n();
 
 /** When embedded in the full calendar workspace the "open day" button is
  *  redundant (you are already in the calendar), so it can be hidden. */
-const props = defineProps<{ showOpenDay?: boolean; showHeader?: boolean }>();
+const props = defineProps<{ showOpenDay?: boolean; showHeader?: boolean; preview?: boolean }>();
 const showOpenDay = computed(() => props.showOpenDay !== false);
 const showHeader = computed(() => props.showHeader !== false);
 
@@ -385,41 +385,26 @@ function onNew() {
 <template>
   <div class="calendar-panel rp">
     <div class="calendar-panel__head">
-      <div class="calendar-panel__top">
-        <div class="calendar-panel__seg" role="group" :aria-label="t('calendar.title')">
-          <button
-            v-for="view in CALENDAR_EDITOR_VIEWS"
-            :key="view"
-            type="button"
-            :class="{ 'is-active': calendar.view === view }"
-            :aria-pressed="calendar.view === view"
-            @click="calendar.setView(view)"
-          >{{ t(`calendar.view.${view}`) }}</button>
-        </div>
-        <div class="calendar-panel__head-actions">
-          <button class="rp-btn rp-btn--sm calendar-panel__today" type="button" @click="calendar.goToday()">
-            {{ t('calendar.today') }}
-          </button>
-          <button
-            type="button"
-            class="rp-icon-btn"
-            :title="t('calendar.newEvent')"
-            :aria-label="t('calendar.newEvent')"
-            @click="onNew"
-          >
-            <Icons name="plus" :size="14" />
-          </button>
-          <button
-            v-if="showOpenDay"
-            class="rp-icon-btn"
-            type="button"
-            :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
-            :aria-label="t('calendar.selectedDay.open', { date: calendar.focusDate })"
-            @click="openSelectedDay"
-          >
-            <Icons name="calendar" :size="14" />
-          </button>
-        </div>
+      <div v-if="preview" class="calendar-panel__open">
+        <button
+          type="button"
+          class="rp-icon-btn"
+          :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
+          :aria-label="t('calendar.selectedDay.open', { date: calendar.focusDate })"
+          @click="calendar.openWorkspace(calendar.focusDate, calendar.view)"
+        >
+          <Icons name="calendar" :size="14" />
+        </button>
+      </div>
+      <div v-else class="calendar-panel__seg" role="group" :aria-label="t('calendar.title')">
+        <button
+          v-for="view in CALENDAR_EDITOR_VIEWS"
+          :key="view"
+          type="button"
+          :class="{ 'is-active': calendar.view === view }"
+          :aria-pressed="calendar.view === view"
+          @click="calendar.setView(view)"
+        >{{ t(`calendar.view.${view}`) }}</button>
       </div>
       <div class="calendar-panel__nav">
         <button
@@ -448,6 +433,30 @@ function onNew() {
           @click="shiftStep(1)"
         >
           <Icons name="chevron-right" :size="14" />
+        </button>
+      </div>
+      <div class="calendar-panel__head-actions">
+        <button class="rp-btn rp-btn--sm calendar-panel__today" type="button" @click="calendar.goToday()">
+          {{ t('calendar.today') }}
+        </button>
+        <button
+          type="button"
+          class="rp-icon-btn"
+          :title="t('calendar.newEvent')"
+          :aria-label="t('calendar.newEvent')"
+          @click="onNew"
+        >
+          <Icons name="plus" :size="14" />
+        </button>
+        <button
+          v-if="showOpenDay && !preview"
+          class="rp-icon-btn"
+          type="button"
+          :title="t('calendar.selectedDay.open', { date: calendar.focusDate })"
+          :aria-label="t('calendar.selectedDay.open', { date: calendar.focusDate })"
+          @click="openSelectedDay"
+        >
+          <Icons name="calendar" :size="14" />
         </button>
       </div>
       <div v-if="ymOpen" class="calendar-panel__ym-backdrop" @click="ymOpen = false"></div>
@@ -621,10 +630,9 @@ function onNew() {
 .calendar-panel__head {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   height: auto;
   flex: 0 0 auto;
   min-height: 0;
@@ -636,6 +644,7 @@ function onNew() {
   align-items: center;
   justify-content: space-between;
   gap: 2px;
+  flex: 1 1 auto;
   min-width: 0;
 }
 .calendar-panel__month {
@@ -650,6 +659,9 @@ function onNew() {
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .calendar-panel__month:hover {
   background: var(--hover, rgba(0, 0, 0, 0.06));
@@ -716,16 +728,10 @@ function onNew() {
   font-weight: 600;
 }
 
-.calendar-panel__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
 .calendar-panel__seg {
   display: flex;
   gap: 2px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
 }
 .calendar-panel__seg button {
