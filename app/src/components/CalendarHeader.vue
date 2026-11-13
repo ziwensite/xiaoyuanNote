@@ -13,7 +13,7 @@ import { computed, ref } from 'vue';
 import { useI18n, htmlLangFor } from '../i18n';
 import Icons from './Icons.vue';
 import { addDays } from '../lib/calendar';
-import { CALENDAR_EDITOR_VIEWS } from '../lib/calendar-prefs';
+import { CALENDAR_EDITOR_VIEWS, type CalendarEditorView } from '../lib/calendar-prefs';
 import { useCalendarStore } from '../stores/calendar';
 
 const props = defineProps<{ showOpenDay?: boolean; preview?: boolean }>();
@@ -45,9 +45,13 @@ const weekTitle = computed(() => {
   const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { month: 'long', day: 'numeric' });
   return `${fmt.format(wallDate(ws))} – ${fmt.format(wallDate(we))}`;
 });
+// In the dock preview the panel is always a month grid, so it must NOT follow
+// the main calendar's view — otherwise switching day/week/month there would also
+// flip the dock's title and date navigation.
+const effectiveView = computed<CalendarEditorView>(() => (props.preview ? 'month' : calendar.view));
 const headerTitle = computed(() => {
-  if (calendar.view === 'day') return dayTitle.value;
-  if (calendar.view === 'week') return weekTitle.value;
+  if (effectiveView.value === 'day') return dayTitle.value;
+  if (effectiveView.value === 'week') return weekTitle.value;
   return monthTitle.value;
 });
 
@@ -92,8 +96,8 @@ function pickDate(day: number) {
 }
 
 function shiftStep(delta: number) {
-  if (calendar.view === 'day') calendar.setFocusDate(addDays(calendar.focusDate, delta));
-  else if (calendar.view === 'week') calendar.setFocusDate(addDays(calendar.focusDate, delta * 7));
+  if (effectiveView.value === 'day') calendar.setFocusDate(addDays(calendar.focusDate, delta));
+  else if (effectiveView.value === 'week') calendar.setFocusDate(addDays(calendar.focusDate, delta * 7));
   else calendar.shiftMonth(delta);
   ymOpen.value = false;
   dateOpen.value = false;
@@ -106,7 +110,7 @@ function openSelectedDay() {
 /** Header title click: month opens the year/month picker, day/week open the
  *  date picker, so the shared focus date is editable from any view. */
 function onTitleClick() {
-  if (calendar.view === 'month') toggleYearMonthPicker();
+  if (effectiveView.value === 'month') toggleYearMonthPicker();
   else openDatePicker();
 }
 
