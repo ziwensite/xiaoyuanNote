@@ -207,19 +207,7 @@ const noteDates = computed(() =>
 
 
 
-const monthTitle = computed(() => {
-  const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { year: 'numeric', month: 'long' });
-  return fmt.format(wallDate(calendar.focusDate));
-});
 
-const dayTitle = computed(() => {
-  const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-  return fmt.format(wallDate(calendar.focusDate));
-});
 
 const weekdayLabels = computed(() => {
   const fmt = new Intl.DateTimeFormat(htmlLangFor(lang.value), { weekday: 'short' });
@@ -1050,16 +1038,6 @@ function newOnHour(date: string, hour: number) {
   openNew(date, hour * 60, false);
 }
 
-function newOnFocusDate() {
-  openNew(calendar.focusDate, 540, true);
-}
-
-function shift(delta: number) {
-  if (mode.value === 'day') calendar.setFocusDate(addDays(calendar.focusDate, delta));
-  else if (mode.value === 'week') calendar.setFocusDate(addDays(calendar.focusDate, delta * 7));
-  else calendar.setFocusDate(shiftMonth(calendar.focusDate, delta));
-}
-
 function openDay(date: string) {
   calendar.setFocusDate(date);
   calendar.setView('day');
@@ -1453,117 +1431,7 @@ onBeforeUnmount(() => {
 }
 
 .cal-month__head,
-.cal-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 8px;
-}
 
-.cal-month__head-left,
-.cal-bar__left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.cal-w__seg {
-  display: inline-flex;
-  border: 1px solid var(--bd-hair);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.cal-w__seg button {
-  font-size: 11px;
-  padding: 2px 9px;
-  background: transparent;
-  border: none;
-  border-right: 1px solid var(--bd-hair);
-  cursor: pointer;
-  color: var(--text-2);
-  font: inherit;
-}
-.cal-w__seg button:last-child {
-  border-right: none;
-}
-.cal-w__seg button.is-active {
-  background: var(--accent);
-  color: #fff;
-}
-
-.cal-month__title {
-  font: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  color: inherit;
-}
-.cal-month__title:hover {
-  color: var(--accent);
-}
-
-.cal-month__sub {
-  font-size: 9px;
-  line-height: 1;
-  color: var(--text-3);
-  margin-top: 2px;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cal-w__ym-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.18);
-  z-index: 50;
-}
-.cal-w__ym {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--bg-0);
-  border: 1px solid var(--bd-hair);
-  border-radius: 10px;
-  padding: 14px;
-  z-index: 51;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.28);
-  min-width: 240px;
-}
-.cal-w__ym-year {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.cal-w__ym-year-label {
-  font-weight: 600;
-  font-size: 13px;
-}
-.cal-w__ym-months {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-.cal-w__ym-month {
-  padding: 7px 0;
-  border: 1px solid var(--bd-hair);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  font-size: 12px;
-  color: var(--text-1);
-}
-.cal-w__ym-month.is-active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
 
 .cal-month__title,
 .cal-bar__title {
@@ -1571,32 +1439,7 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
-.cal-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
 
-.cal-nav__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text-2);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.cal-nav__btn:hover {
-  background: var(--fill-1);
-  color: var(--text);
-}
 
 .cal-month__weekdays,
 .cal-month__grid {
