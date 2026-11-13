@@ -384,7 +384,7 @@ function onNew() {
 
 <template>
   <div class="calendar-panel rp">
-    <div class="rp-head calendar-panel__head" v-if="showHeader">
+    <div class="calendar-panel__head">
       <div class="calendar-panel__seg" role="group" :aria-label="t('calendar.title')">
         <button
           v-for="view in CALENDAR_EDITOR_VIEWS"
