@@ -57,7 +57,7 @@ export function useShortcuts(hooks: Hooks = {}) {
     const inField = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
     if (inField && !inEditor) return false;
     if (settings.viewMode === 'preview' || settings.viewMode === 'reading') return false;
-    window.dispatchEvent(new CustomEvent('solomd:format-markdown', { detail: { kind } }));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:format-markdown', { detail: { kind } }));
   }
 
   /**
@@ -76,7 +76,7 @@ export function useShortcuts(hooks: Hooks = {}) {
     const inField = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
     if (inField && !inEditor) return false;
     if (settings.viewMode === 'preview' || settings.viewMode === 'reading') return false;
-    window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd } }));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-command', { detail: { cmd } }));
   }
 
   /** #106 — cycle the focused pane to the previous/next tab in the bar.
@@ -138,7 +138,7 @@ export function useShortcuts(hooks: Hooks = {}) {
     // editor. CodeMirror keeps handling it itself — see appRunsAfterEditor in handler().
     'editor.aiRewrite': () => {
       if (IS_APP_STORE_BUILD) return false;
-      window.dispatchEvent(new CustomEvent('solomd:toolbar-ai-rewrite'));
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:toolbar-ai-rewrite'));
     },
     'editor.selectWord': () => editorCommand('selectWord'),
     'editor.deleteWord': () => editorCommand('deleteWord'),
@@ -204,7 +204,7 @@ export function useShortcuts(hooks: Hooks = {}) {
     'editor.find': () => {
       if (settings.viewMode !== 'preview' || tabs.activeTab?.language !== 'markdown') return false;
       window.dispatchEvent(
-        new CustomEvent('solomd:preview-search', { detail: { paneId: tiles.focusedPaneId } }),
+        new CustomEvent('xiaoyuan-note:preview-search', { detail: { paneId: tiles.focusedPaneId } }),
       );
     },
     // Opens the same find bar with the caret in the replace field. The
@@ -212,12 +212,12 @@ export function useShortcuts(hooks: Hooks = {}) {
     'editor.replace': () => {
       if (settings.viewMode === 'preview' && tabs.activeTab?.language === 'markdown') {
         window.dispatchEvent(
-          new CustomEvent('solomd:preview-search', { detail: { paneId: tiles.focusedPaneId } }),
+          new CustomEvent('xiaoyuan-note:preview-search', { detail: { paneId: tiles.focusedPaneId } }),
         );
         return;
       }
       window.dispatchEvent(
-        new CustomEvent('solomd:editor-find', { detail: { paneId: tiles.focusedPaneId, replace: true } }),
+        new CustomEvent('xiaoyuan-note:editor-find', { detail: { paneId: tiles.focusedPaneId, replace: true } }),
       );
     },
     'tab.prev': () => activateTabByOffset(-1),
@@ -283,7 +283,7 @@ export function useShortcuts(hooks: Hooks = {}) {
     if (tableEditor.session) {
       e.preventDefault();
       if (actionId === 'file.closeTab') {
-        window.dispatchEvent(new Event('solomd:table-close-request'));
+        window.dispatchEvent(new Event('xiaoyuan-note:table-close-request'));
       }
       return;
     }

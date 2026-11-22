@@ -77,7 +77,7 @@ export { LT_SETTINGS_CHANGED_EVENT };
 
 /** Fired when session-only state (ignores, accepted words) changes and
  *  decorations need a redraw without new requests. */
-export const LT_REDRAW_EVENT = 'solomd:languagetool-redraw';
+export const LT_REDRAW_EVENT = 'xiaoyuan-note:languagetool-redraw';
 
 export function ltEnabled(): boolean {
   return useSettingsStore().ltMode !== 'off';

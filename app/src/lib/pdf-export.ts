@@ -1,5 +1,5 @@
 /**
- * Direct PDF export for SoloMD using html2pdf.js (jsPDF + html2canvas).
+ * Direct PDF export for xiaoyuanNote using html2pdf.js (jsPDF + html2canvas).
  *
  * Strategy: render the markdown into an off-screen DOM container with the
  * same look as the Preview pane, run any Mermaid blocks through the

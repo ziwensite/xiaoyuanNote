@@ -47,7 +47,7 @@ const inputRef = ref<HTMLTextAreaElement | null>(null);
 /** Toggle: include the active note's content as additional context on each
  *  send. Persisted across sessions in localStorage. Off by default — costs
  *  tokens, and not every chat is about the active doc. */
-const INCLUDE_ACTIVE_NOTE_KEY = 'solomd:agent-include-active-note';
+const INCLUDE_ACTIVE_NOTE_KEY = 'xiaoyuan-note:agent-include-active-note';
 const includeActiveNote = ref(false);
 try {
   includeActiveNote.value = localStorage.getItem(INCLUDE_ACTIVE_NOTE_KEY) === '1';
@@ -72,7 +72,7 @@ const ACTIVE_NOTE_CHAR_LIMIT = 8192;
  * snippets + active note path) before the user's message.
  */
 const SYSTEM_PROMPT =
-  'You are a helpful writing and research assistant inside SoloMD, a local-first markdown editor. The user is chatting with you about their notes. Be concise and accurate. Use markdown formatting in replies when helpful. If the user asks about specific notes you have not been shown, ask which note they mean rather than fabricating content.';
+  'You are a helpful writing and research assistant inside xiaoyuanNote, a local-first markdown editor. The user is chatting with you about their notes. Be concise and accurate. Use markdown formatting in replies when helpful. If the user asks about specific notes you have not been shown, ask which note they mean rather than fabricating content.';
 
 /**
  * Build a workspace-context system message describing where the user is.
@@ -153,7 +153,7 @@ async function copyAssistantMessage(content: string) {
 }
 
 /** Insert a finished assistant reply into the focused editor pane.
- *  Reuses the existing `solomd:insert-markdown` event that PaneContent
+ *  Reuses the existing `xiaoyuan-note:insert-markdown` event that PaneContent
  *  already listens for — replaces the current selection if any, else
  *  inserts at the cursor; the caret lands at the end of the inserted
  *  text. */
@@ -165,7 +165,7 @@ function insertAssistantMessage(content: string) {
     return;
   }
   window.dispatchEvent(
-    new CustomEvent('solomd:insert-markdown', {
+    new CustomEvent('xiaoyuan-note:insert-markdown', {
       detail: { snippet: content, paneId },
     }),
   );
@@ -185,7 +185,7 @@ async function send() {
   errorMsg.value = null;
 
   // Push user message + empty assistant placeholder. Chunks stream into the
-  // placeholder via the `solomd://ai-chunk` listener below.
+  // placeholder via the `xiaoyuan-note://ai-chunk` listener below.
   agent.addMessage({ role: 'user', content: prompt });
   agent.addMessage({ role: 'assistant', content: '' });
   draft.value = '';
@@ -296,7 +296,7 @@ let unlistenRunStarted: UnlistenFn | null = null;
 
 onMounted(async () => {
   unlistenChunk = await listen<{ request_id: string; chunk: string }>(
-    'solomd://ai-chunk',
+    'xiaoyuan-note://ai-chunk',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
       agent.appendToLastAssistant(e.payload.chunk);
@@ -304,7 +304,7 @@ onMounted(async () => {
     },
   );
   unlistenDone = await listen<{ request_id: string; full_text: string }>(
-    'solomd://ai-done',
+    'xiaoyuan-note://ai-done',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
       // Drop any trailing empty assistant bubble (happens when the final
@@ -319,7 +319,7 @@ onMounted(async () => {
     },
   );
   unlistenError = await listen<{ request_id: string; error: string }>(
-    'solomd://ai-error',
+    'xiaoyuan-note://ai-error',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
       agent.isStreaming = false;
@@ -345,7 +345,7 @@ onMounted(async () => {
     tool_call_id: string;
     tool: string;
     args: Record<string, unknown>;
-  }>('solomd://ai-tool-call', (e) => {
+  }>('xiaoyuan-note://ai-tool-call', (e) => {
     if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
     agent.insertToolCall({
       toolCallId: e.payload.tool_call_id,
@@ -361,7 +361,7 @@ onMounted(async () => {
     tool_call_id: string;
     result: unknown;
     error?: string;
-  }>('solomd://ai-tool-result', (e) => {
+  }>('xiaoyuan-note://ai-tool-result', (e) => {
     if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
     let resultStr: string;
     try {
@@ -380,7 +380,7 @@ onMounted(async () => {
     autoscroll();
   });
   unlistenRunStarted = await listen<{ request_id: string; run_id: string }>(
-    'solomd://ai-run-started',
+    'xiaoyuan-note://ai-run-started',
     (e) => {
       if (!agent.currentRunId || e.payload.request_id !== agent.currentRunId) return;
       agent.currentPersistRunId = e.payload.run_id;

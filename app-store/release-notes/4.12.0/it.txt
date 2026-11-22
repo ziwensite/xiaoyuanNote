@@ -4,7 +4,7 @@ La stampa non segue più il tema dell'app. Un tema scuro veniva stampato scuro: 
 
 Eliminare un file lascia otto secondi per annullare. Nulla viene spostato altrove: il file resta esattamente dov'è finché il tempo non scade.
 
-Cattura rapida, da qualsiasi punto. Una scorciatoia di sistema apre un riquadro sopra ciò che stai facendo. Scrivi una riga, premi Invio e finisce nella tua Posta in arrivo senza che SoloMD venga mai in primo piano.
+Cattura rapida, da qualsiasi punto. Una scorciatoia di sistema apre un riquadro sopra ciò che stai facendo. Scrivi una riga, premi Invio e finisce nella tua Posta in arrivo senza che xiaoyuanNote venga mai in primo piano.
 
 Un pannello Attività. Ogni «- [ ]» dello spazio di lavoro in un unico elenco, con priorità e scadenze lette sia dalle emoji di Obsidian Tasks sia da una notazione in solo ASCII. Fai clic su un'attività per andare alla sua riga; spuntala per scrivere il file.
 

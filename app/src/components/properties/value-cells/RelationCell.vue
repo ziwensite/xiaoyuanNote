@@ -53,7 +53,7 @@ async function open(link: Link) {
   if (link.heading) {
     setTimeout(() => {
       window.dispatchEvent(
-        new CustomEvent('solomd:outline-goto', { detail: { heading: link.heading } }),
+        new CustomEvent('xiaoyuan-note:outline-goto', { detail: { heading: link.heading } }),
       );
     }, 200);
   }

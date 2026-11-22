@@ -426,7 +426,7 @@ fn open_db(path: &Path) -> Result<Connection, String> {
 }
 
 fn db_path_for(folder: &Path) -> PathBuf {
-    folder.join(".solomd").join("embeddings.sqlite")
+    folder.join(".xiaoyuanNote").join("embeddings.sqlite")
 }
 
 // ---------------------------------------------------------------------------
@@ -444,8 +444,8 @@ fn list_markdown(root: &Path) -> Vec<PathBuf> {
         if !p.is_file() {
             continue;
         }
-        // Skip our own DB and any `.solomd/` machinery.
-        if p.components().any(|c| c.as_os_str() == ".solomd") {
+        // Skip our own DB and any `.xiaoyuan-note/` machinery.
+        if p.components().any(|c| c.as_os_str() == ".xiaoyuanNote") {
             continue;
         }
         let lower = p
@@ -597,7 +597,7 @@ pub fn rag_set_enabled_inner(folder: String, enabled: bool) -> Result<RagStatus,
     }
     if enabled && !folder.is_empty() {
         let f = PathBuf::from(&folder);
-        // Ensure .solomd ignored on git side too — append (idempotent).
+        // Ensure .xiaoyuanNote ignored on git side too — append (idempotent).
         ensure_gitignore(&f);
         run_indexer(&f, false)?;
     }
@@ -765,12 +765,12 @@ pub fn rag_reindex_file_inner(folder: String, file_path: String) -> Result<(), S
 }
 
 // ---------------------------------------------------------------------------
-// .gitignore guard — keep .solomd/ out of AutoGit history
+// .gitignore guard — keep .xiaoyuan-note/ out of AutoGit history
 // ---------------------------------------------------------------------------
 
 fn ensure_gitignore(folder: &Path) {
     let gi = folder.join(".gitignore");
-    let line = ".solomd/";
+    let line = ".xiaoyuan-note/";
     let existing = fs::read_to_string(&gi).unwrap_or_default();
     if existing.lines().any(|l| l.trim() == line) {
         return;

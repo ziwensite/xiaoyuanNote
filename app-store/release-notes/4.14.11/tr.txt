@@ -1,4 +1,4 @@
-SoloMD 4.14.11, kapsamlı bir test turunda bulunan sorunları düzeltir. Bunların bazıları metni değiştirebiliyor ya da kaybettirebiliyordu, bu yüzden güncellemenizi öneririz.
+xiaoyuanNote 4.14.11, kapsamlı bir test turunda bulunan sorunları düzeltir. Bunların bazıları metni değiştirebiliyor ya da kaybettirebiliyordu, bu yüzden güncellemenizi öneririz.
 
 • CJK Denetimi artık dosya adlarını (文档.md, 压缩包.tar.gz) ve üç noktayı noktalama hatası saymıyor; böylece "Tümünü uygula" bunları yeniden yazamıyor.
 • Word belgesi içe aktarılırken kalın yazı yerinde kalıyor; numaralı listeler, görev listeleri ve bağlantılar geri geliyor. Word'e dışa aktarma görevleri [ ] / [x] ile işaretliyor.

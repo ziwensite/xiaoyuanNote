@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build pipeline for the SoloMD web clipper.
+ * Build pipeline for the xiaoyuanNote web clipper.
  *
  * Produces two parallel `dist/<target>/` directories — one for Chrome
  * (Manifest V3) and one for Firefox (Manifest V2) — plus zipped artefacts

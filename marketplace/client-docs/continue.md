@@ -1,4 +1,4 @@
-# `solomd-mcp` in Continue.dev
+# `xiaoyuan-note-mcp` in Continue.dev
 
 [Continue](https://continue.dev) (VS Code + JetBrains AI assistant) reads
 MCP config from `~/.continue/config.json` under the `mcp` key.
@@ -7,14 +7,14 @@ MCP config from `~/.continue/config.json` under the `mcp` key.
 
 ```bash
 # macOS
-cargo install solomd-mcp
+cargo install xiaoyuan-note-mcp
 
 # Linux x64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-x64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-x64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Linux arm64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-arm64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-arm64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Windows — unzip and put on PATH.
@@ -27,22 +27,22 @@ curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mc
   "models": [...],
   "mcp": [
     {
-      "name": "solomd",
-      "command": "solomd-mcp",
+      "name": "xiaoyuanNote",
+      "command": "xiaoyuan-note-mcp",
       "args": ["--workspace", "/Users/you/notes"]
     }
   ]
 }
 ```
 
-Reload Continue. The MCP block in the sidebar should show `solomd` with
+Reload Continue. The MCP block in the sidebar should show `xiaoyuanNote` with
 16 tools (15 by default).
 
 ## Try it
 
 In Continue chat:
 
-> /solomd search for "TODO" and group by directory.
+> /xiaoyuanNote search for "TODO" and group by directory.
 
 Or just ask naturally — Continue will figure out which tool to call:
 
@@ -57,10 +57,10 @@ Or just ask naturally — Continue will figure out which tool to call:
 ]
 ```
 
-## About SoloMD
+## About xiaoyuanNote
 
-[**SoloMD**](https://solomd.app) is the Markdown editor that ships this MCP
+[**xiaoyuanNote**](https://xiaoyuannote.app) is the Markdown editor that ships this MCP
 server pre-wired. Get the desktop app for the Agent panel UI, AutoGit
 history navigation, and the pending write accept/reject screen:
 
-[📥 Download SoloMD for macOS / Windows / Linux](https://github.com/zhitongblog/solomd/releases/latest)
+[📥 Download xiaoyuanNote for macOS / Windows / Linux](https://github.com/zhitongblog/xiaoyuan-note/releases/latest)

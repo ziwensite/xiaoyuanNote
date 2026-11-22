@@ -5,7 +5,7 @@
  * (and the future Command Palette "Run recipe…" entry) can share a
  * single cache + mutation surface.
  *
- * Listens for `solomd://recipes-run-finished` events emitted by the
+ * Listens for `xiaoyuan-note://recipes-run-finished` events emitted by the
  * Rust runner so the pending-runs section refreshes without polling.
  */
 
@@ -94,7 +94,7 @@ export const useRecipesStore = defineStore('recipes', {
     /**
      * Refresh `recipes` + `pendingRuns` + `history` for `workspace`.
      * Cheap to call repeatedly — the Rust side just rescans
-     * `.solomd/agents/` and `.solomd/agent-runs/` (both are small).
+     * `.xiaoyuan-note/agents/` and `.xiaoyuan-note/agent-runs/` (both are small).
      */
     async refresh(workspace: string | null): Promise<void> {
       // #230 — `recipe_runner` is desktop/iOS only (it drives git-backed
@@ -235,7 +235,7 @@ export const useRecipesStore = defineStore('recipes', {
      */
     async subscribe(workspaceGetter: () => string | null): Promise<void> {
       if (this.unlistenRun) return;
-      this.unlistenRun = await listen('solomd://recipes-run-finished', () => {
+      this.unlistenRun = await listen('xiaoyuan-note://recipes-run-finished', () => {
         const ws = workspaceGetter();
         if (ws) {
           // Don't await — fire-and-forget refresh.

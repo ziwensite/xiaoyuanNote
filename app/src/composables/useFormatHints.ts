@@ -41,7 +41,7 @@ export function useFormatHints() {
       t('hints.formatKey', { key: chord, name: t(`cmd.fmt.${kind}`) }),
       'info',
       9000,
-      () => window.dispatchEvent(new CustomEvent('solomd:open-settings', { detail: { section: 'keys' } })),
+      () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-settings', { detail: { section: 'keys' } })),
       { actionLabel: t('hints.formatChange') },
     );
   };

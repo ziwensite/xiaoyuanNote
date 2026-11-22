@@ -35,10 +35,10 @@ const apiStatusKind = ref<'ok' | 'err' | ''>('');
 
 function selectApiProvider(p: 'baidu' | 'alipan' | 'onedrive' | 'dropbox') {
   settings.cloudApiProvider = p;
-  if (p === 'baidu' && (!settings.cloudApiRemotePath || settings.cloudApiRemotePath === '/SoloMD')) {
-    settings.cloudApiRemotePath = '/apps/SoloMD';
-  } else if (p !== 'baidu' && settings.cloudApiRemotePath === '/apps/SoloMD') {
-    settings.cloudApiRemotePath = '/SoloMD';
+  if (p === 'baidu' && (!settings.cloudApiRemotePath || settings.cloudApiRemotePath === '/xiaoyuanNote')) {
+    settings.cloudApiRemotePath = '/apps/xiaoyuanNote';
+  } else if (p !== 'baidu' && settings.cloudApiRemotePath === '/apps/xiaoyuanNote') {
+    settings.cloudApiRemotePath = '/xiaoyuanNote';
   }
   apiDeviceCode.value = '';
   apiUserCode.value = '';
@@ -124,7 +124,7 @@ async function pushCloudApi() {
       workspace: workspace.currentFolder,
       provider: settings.cloudApiProvider,
       accessToken: settings.cloudApiToken,
-      remotePath: settings.cloudApiRemotePath || '/apps/SoloMD',
+      remotePath: settings.cloudApiRemotePath || '/apps/xiaoyuanNote',
       passphrase: settings.cloudApiPassphrase,
     });
     apiStatusText.value = res.message;
@@ -152,13 +152,13 @@ async function pullCloudApi() {
       workspace: workspace.currentFolder,
       provider: settings.cloudApiProvider,
       accessToken: settings.cloudApiToken,
-      remotePath: settings.cloudApiRemotePath || '/apps/SoloMD',
+      remotePath: settings.cloudApiRemotePath || '/apps/xiaoyuanNote',
       passphrase: settings.cloudApiPassphrase,
     });
     apiStatusText.value = res.message;
     apiStatusKind.value = 'ok';
     toasts.success(res.message);
-    window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
   } catch (e) {
     const msg = String((e as Error)?.message ?? e);
     apiStatusText.value = msg;
@@ -176,7 +176,7 @@ function saveConfig() {
 function applyPreset(url: string) {
   settings.webdavUrl = url;
   if (!settings.webdavRemotePath) {
-    settings.webdavRemotePath = '/SoloMD';
+    settings.webdavRemotePath = '/xiaoyuanNote';
   }
   settings.webdavEnabled = true;
   settings.persist();
@@ -191,7 +191,7 @@ async function testConnection() {
       url: settings.webdavUrl,
       username: settings.webdavUsername,
       password: settings.webdavPassword,
-      remotePath: settings.webdavRemotePath || '/SoloMD',
+      remotePath: settings.webdavRemotePath || '/xiaoyuanNote',
     });
     statusText.value = res;
     statusKind.value = 'ok';
@@ -219,7 +219,7 @@ async function pushWorkspace() {
       url: settings.webdavUrl,
       username: settings.webdavUsername,
       password: settings.webdavPassword,
-      remotePath: settings.webdavRemotePath || '/SoloMD',
+      remotePath: settings.webdavRemotePath || '/xiaoyuanNote',
       encrypted: settings.webdavEncrypted,
       passphrase: settings.webdavPassphrase,
     });
@@ -249,14 +249,14 @@ async function pullWorkspace() {
       url: settings.webdavUrl,
       username: settings.webdavUsername,
       password: settings.webdavPassword,
-      remotePath: settings.webdavRemotePath || '/SoloMD',
+      remotePath: settings.webdavRemotePath || '/xiaoyuanNote',
       encrypted: settings.webdavEncrypted,
       passphrase: settings.webdavPassphrase,
     });
     statusText.value = res.message;
     statusKind.value = 'ok';
     toasts.success(res.message);
-    window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
   } catch (e) {
     const msg = String((e as Error)?.message ?? e);
     statusText.value = msg;
@@ -328,7 +328,7 @@ async function pullCloudVault() {
     vaultStatusText.value = res.message;
     vaultStatusKind.value = 'ok';
     toasts.success(res.message);
-    window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
   } catch (e) {
     const msg = String((e as Error)?.message ?? e);
     vaultStatusText.value = msg;
@@ -441,7 +441,7 @@ async function pullCloudVault() {
           v-model="settings.webdavRemotePath"
           type="text"
           class="settings__input"
-          placeholder="/SoloMD"
+          placeholder="/xiaoyuanNote"
           @change="saveConfig"
         />
       </label>
@@ -555,8 +555,8 @@ async function pullCloudVault() {
     <p class="settings__hint">
       {{
         settings.language === 'zh'
-          ? '无需配置服务器：直接选择您电脑上个人网盘客户端的本地同步盘目录（如百度网盘同步盘、阿里云盘备份盘、夸克网盘、OneDrive、iCloud Drive、坚果云等）。SoloMD 会使用 XChaCha20-Poly1305 + Argon2id 将笔记加密为 .enc 密文写入该网盘目录，既防止隐私泄露与网盘扫描误封，又能通过网盘客户端在多台设备间自动同步密文并一键解密还原。'
-          : 'Select any local sync folder managed by your personal cloud drive client (Baidu Netdisk, Aliyun Drive, OneDrive, iCloud Drive, Dropbox, Nutstore). SoloMD encrypts every note with XChaCha20-Poly1305 (.enc) into that folder so your cloud provider only ever sees ciphertext, and any device sharing that cloud folder can decrypt & sync.'
+          ? '无需配置服务器：直接选择您电脑上个人网盘客户端的本地同步盘目录（如百度网盘同步盘、阿里云盘备份盘、夸克网盘、OneDrive、iCloud Drive、坚果云等）。xiaoyuanNote 会使用 XChaCha20-Poly1305 + Argon2id 将笔记加密为 .enc 密文写入该网盘目录，既防止隐私泄露与网盘扫描误封，又能通过网盘客户端在多台设备间自动同步密文并一键解密还原。'
+          : 'Select any local sync folder managed by your personal cloud drive client (Baidu Netdisk, Aliyun Drive, OneDrive, iCloud Drive, Dropbox, Nutstore). xiaoyuanNote encrypts every note with XChaCha20-Poly1305 (.enc) into that folder so your cloud provider only ever sees ciphertext, and any device sharing that cloud folder can decrypt & sync.'
       }}
     </p>
 
@@ -577,8 +577,8 @@ async function pullCloudVault() {
             style="flex: 1;"
             :placeholder="
               settings.language === 'zh'
-                ? '例如：D:\\BaiduNetdiskWorkspace\\SoloMD-Vault 或 ~/OneDrive/SoloMD-Vault'
-                : 'e.g. ~/OneDrive/SoloMD-Vault or D:\\BaiduNetdisk\\SoloMD-Vault'
+                ? '例如：D:\\BaiduNetdiskWorkspace\\xiaoyuan-note-Vault 或 ~/OneDrive/xiaoyuan-note-Vault'
+                : 'e.g. ~/OneDrive/xiaoyuan-note-Vault or D:\\BaiduNetdisk\\xiaoyuan-note-Vault'
             "
             @change="saveConfig"
           />
@@ -676,8 +676,8 @@ async function pullCloudVault() {
     <p class="settings__hint">
       {{
         settings.language === 'zh'
-          ? '不依赖本地网盘同步客户端，也不需要搭建 WebDAV：直接通过官方开放平台 API 将整个笔记库压缩并用 Argon2id + XChaCha20-Poly1305 加密为单个密文包 (solomd-vault.enc) 上传至网盘（连文件名与目录结构也完全加密隐藏）。'
-          : 'No local sync client or WebDAV server required: compresses and encrypts your entire workspace with Argon2id + XChaCha20-Poly1305 into a single zero-knowledge bundle (solomd-vault.enc, hiding even filenames) and syncs directly via the cloud provider OpenAPI.'
+          ? '不依赖本地网盘同步客户端，也不需要搭建 WebDAV：直接通过官方开放平台 API 将整个笔记库压缩并用 Argon2id + XChaCha20-Poly1305 加密为单个密文包 (xiaoyuan-note-vault.enc) 上传至网盘（连文件名与目录结构也完全加密隐藏）。'
+          : 'No local sync client or WebDAV server required: compresses and encrypts your entire workspace with Argon2id + XChaCha20-Poly1305 into a single zero-knowledge bundle (xiaoyuan-note-vault.enc, hiding even filenames) and syncs directly via the cloud provider OpenAPI.'
       }}
     </p>
 
@@ -783,15 +783,15 @@ async function pullCloudVault() {
         <span>
           {{
             settings.language === 'zh'
-              ? '网盘远程存储目录 (自动存放 solomd-vault.enc)'
-              : 'Remote Directory Path (stores solomd-vault.enc)'
+              ? '网盘远程存储目录 (自动存放 xiaoyuan-note-vault.enc)'
+              : 'Remote Directory Path (stores xiaoyuan-note-vault.enc)'
           }}
         </span>
         <input
           v-model="settings.cloudApiRemotePath"
           type="text"
           class="settings__input"
-          :placeholder="settings.cloudApiProvider === 'baidu' ? '/apps/SoloMD' : '/SoloMD'"
+          :placeholder="settings.cloudApiProvider === 'baidu' ? '/apps/xiaoyuanNote' : '/xiaoyuanNote'"
           @change="saveConfig"
         />
       </label>

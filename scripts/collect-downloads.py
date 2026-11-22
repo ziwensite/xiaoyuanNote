@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Collect download counts from every channel and send them to solomd.app.
+"""Collect download counts from every channel and send them to xiaoyuannote.app.
 
 Runs once a day from .github/workflows/download-stats.yml; also runnable by
 hand:
 
     python3 scripts/collect-downloads.py --dry-run     # print, send nothing
-    python3 scripts/collect-downloads.py               # POST to solomd.app
+    python3 scripts/collect-downloads.py               # POST to xiaoyuannote.app
 
 What each channel reports, and how it is stored (web/migrations/0003):
 
@@ -32,8 +32,8 @@ A channel without credentials is skipped with a note, never sent as zero.
 Environment:
   GITHUB_TOKEN                     optional (rate limit)
   ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_PATH or ASC_KEY_P8 (key contents)
-  SOLOMD_INGEST_TOKEN              required unless --dry-run
-  SOLOMD_INGEST_URL                default https://solomd.app/api/admin/downloads
+  XIAOYUAN_NOTE_INGEST_TOKEN              required unless --dry-run
+  XIAOYUAN_NOTE_INGEST_URL                default https://xiaoyuannote.app/api/admin/downloads
 
 Standard library + the openssl binary only, like scripts/lib/asc_api.py.
 """
@@ -58,11 +58,11 @@ import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 
-REPO = "zhitongblog/solomd"
-BUNDLE_ID = "app.solomd"
+REPO = "zhitongblog/xiaoyuan-note"
+BUNDLE_ID = "app.xiaoyuannote"
 MSSTORE_APP_ID = "9NXGHK2LL1Q4"
-PLAY_PACKAGE = "app.solomd"
-UA = "SoloMD-download-stats"
+PLAY_PACKAGE = "app.xiaoyuannote"
+UA = "xiaoyuan-note-download-stats"
 
 # Direct connections: the dev machine's proxy drops Apple/Google calls (see
 # scripts/lib/asc_api.py). CI has no proxy either way.
@@ -97,7 +97,7 @@ def log(*a):
 def classify(name: str):
     """Keep in sync with web/src/lib/download-channels.ts::classifyAsset."""
     n = name.lower()
-    if n.startswith(("solomd-mcp", "solomd-clipper", "solomd-skills")):
+    if n.startswith(("xiaoyuan-note-mcp", "xiaoyuan-note-clipper", "xiaoyuan-note-skills")):
         return "tools"
     if "sha256sums" in n or n.endswith((".sig", ".json", ".txt")):
         return None
@@ -147,7 +147,7 @@ def collect_github():
 def collect_chocolatey():
     # The package-level DownloadCount field reads 0 on community.chocolatey.org;
     # the real figures are per version (VersionDownloadCount), so sum those.
-    url = "https://community.chocolatey.org/api/v2/FindPackagesById()?" + urllib.parse.urlencode({"id": "'solomd'"})
+    url = "https://community.chocolatey.org/api/v2/FindPackagesById()?" + urllib.parse.urlencode({"id": "'xiaoyuanNote'"})
     total, versions = 0, 0
     while url:
         xml = http(url).decode("utf-8", "replace")
@@ -350,10 +350,10 @@ def main():
     if args.dry_run:
         print(json.dumps(payload, ensure_ascii=False)[:4000])
     else:
-        token = os.environ.get("SOLOMD_INGEST_TOKEN")
+        token = os.environ.get("XIAOYUAN_NOTE_INGEST_TOKEN")
         if not token:
-            sys.exit("SOLOMD_INGEST_TOKEN is not set")
-        url = os.environ.get("SOLOMD_INGEST_URL", "https://solomd.app/api/admin/downloads")
+            sys.exit("XIAOYUAN_NOTE_INGEST_TOKEN is not set")
+        url = os.environ.get("XIAOYUAN_NOTE_INGEST_URL", "https://xiaoyuannote.app/api/admin/downloads")
         res = http(url, data=json.dumps(payload).encode(), method="POST",
                    headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"})
         log(f"  sent: {res.decode()}")

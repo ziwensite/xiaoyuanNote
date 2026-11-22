@@ -8,6 +8,6 @@ Scegliere un tema e non vedere alcun cambiamento ora viene spiegato: un tema del
 
 L'app si avvia più in fretta. Prima veniva compilato tutto prima del primo fotogramma: il motore dei diagrammi, entrambi i dizionari cinesi, le esportazioni PDF e Word, la presentazione. Ora si caricano quando servono e il primo disegno è circa il 30% più rapido.
 
-Un file modificato in un altro editor — o mentre SoloMD era chiuso — viene ora rilevato, all'avvio e ogni volta che la finestra torna in primo piano. Le modifiche non salvate non vengono mai sovrascritte.
+Un file modificato in un altro editor — o mentre xiaoyuanNote era chiuso — viene ora rilevato, all'avvio e ogni volta che la finestra torna in primo piano. Le modifiche non salvate non vengono mai sovrascritte.
 
 Il pulsante della barra laterale destra fa sempre qualcosa.

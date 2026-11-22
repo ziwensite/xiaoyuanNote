@@ -1,7 +1,7 @@
 /**
  * Saved-view on-disk file format (F5 — Markdown-first YAML sidecar).
  *
- * Each saved view is ONE file at `{workspace}/.solomd/views/{slug}.yml`,
+ * Each saved view is ONE file at `{workspace}/.xiaoyuan-note/views/{slug}.yml`,
  * mirroring Tolaria's "one file per view" model. No note frontmatter is
  * touched — views are standalone documents that git-round-trip cleanly.
  *
@@ -105,6 +105,10 @@ export interface ViewFile {
   sort: SortSpec | null;
   /** Recursive all/any filter tree — evaluated via bases.matchesGroup. */
   filters: FilterGroup;
+  /** Data scope for the embedded query block: notes (default), tasks, lines. */
+  from?: 'notes' | 'tasks' | 'lines';
+  /** Render the embedded query result as a table or a list. */
+  render?: 'table' | 'list';
 }
 
 /** Relationship operators understood at the view layer (resolved in store). */
@@ -388,7 +392,7 @@ function normalizeNode(raw: unknown): FilterNode | null {
 }
 
 /** Folder (relative to the workspace root) where view files live. */
-export const VIEWS_DIR = '.solomd/views';
+export const VIEWS_DIR = '.xiaoyuan-note/views';
 
 /**
  * Derive a filesystem-safe slug from a view name. Lowercase, spaces → `-`,
@@ -443,7 +447,13 @@ export function normalizeViewFile(slug: string, raw: unknown): ViewFile {
   // Accept both `filters` (tree) and a bare `filterGroup` key for resilience.
   const filters = normalizeFilterGroup(obj.filters ?? obj.filterGroup ?? []);
 
-  return { slug, name, icon, color, order, columns, sort, filters };
+  const from =
+    obj.from === 'notes' || obj.from === 'tasks' || obj.from === 'lines'
+      ? obj.from
+      : undefined;
+  const render = obj.render === 'table' || obj.render === 'list' ? obj.render : undefined;
+
+  return { slug, name, icon, color, order, columns, sort, filters, from, render };
 }
 
 function normalizeSort(raw: unknown): SortSpec | null {
@@ -471,6 +481,8 @@ export function serializeViewFile(view: ViewFile): string {
   if (view.icon) out.icon = view.icon;
   if (view.color) out.color = view.color;
   out.order = view.order;
+  if (view.from && view.from !== 'notes') out.from = view.from;
+  if (view.render) out.render = view.render;
   if (view.columns.length) out.columns = view.columns;
   if (view.sort) out.sort = { column: view.sort.column, dir: view.sort.dir };
   out.filters = view.filters;
@@ -501,5 +513,7 @@ export function emptyView(slug: string, name: string): ViewFile {
     columns: [],
     sort: { column: 'mtime', dir: 'desc' },
     filters: { combinator: 'all', children: [] },
+    from: 'notes',
+    render: 'table',
   };
 }

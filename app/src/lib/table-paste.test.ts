@@ -53,13 +53,13 @@ test('handles multi-line cells (<br>) and colspan in HTML tables (#460)', () => 
 });
 
 test('falls back to TSV when HTML is absent (#460)', () => {
-  const tsv = '项目\t状态\t负责人\nSoloMD\t进行中\tAlex\nWebDAV\t已完成\tBot\n';
+  const tsv = '项目\t状态\t负责人\nxiaoyuanNote\t进行中\tAlex\nWebDAV\t已完成\tBot\n';
   assert.equal(
     tsvToMarkdown(tsv),
     [
       '| 项目 | 状态 | 负责人 |',
       '| --- | --- | --- |',
-      '| SoloMD | 进行中 | Alex |',
+      '| xiaoyuanNote | 进行中 | Alex |',
       '| WebDAV | 已完成 | Bot |',
     ].join('\n'),
   );

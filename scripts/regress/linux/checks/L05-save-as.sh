@@ -6,7 +6,7 @@ sleep 1.5
 shot after >/dev/null
 expect "saveas-copy.md written" test -f "$VAULT/saveas-copy.md"
 expect "byte-identical to index.md" cmp -s "$VAULT/index.md" "$VAULT/saveas-copy.md"
-expect "window title follows (saveas-copy.md — SoloMD)" wait_title '^saveas-copy\.md — SoloMD$' 5
+expect "window title follows (saveas-copy.md — xiaoyuanNote)" wait_title '^saveas-copy\.md — xiaoyuanNote$' 5
 # a later save goes to the new file, not the old one
 key ctrl+End; typ "AFTER-SAVEAS"; key ctrl+s; sleep 1.5
 expect "next Ctrl+S writes the new file" grep -q AFTER-SAVEAS "$VAULT/saveas-copy.md"

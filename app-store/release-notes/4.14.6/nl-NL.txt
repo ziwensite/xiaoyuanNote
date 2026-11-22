@@ -4,6 +4,6 @@ Vet, cursief, doorgehaald en code over meerdere alinea's maken nu elke alinea ap
 
 Menu's: Zoeken en vervangen in het menu Bewerken, de zoomopdrachten in het submenu Weergave › Zoomen, en het menu Help toont het Markdown-spiekbriefje, de sneltoetsen en de opdrachtregel apart. Het menu Invoegen krijgt koppen 4–6.
 
-Links in notities openen altijd in je browser, nooit binnen SoloMD.
+Links in notities openen altijd in je browser, nooit binnen xiaoyuan-note.
 
-Na een paar dagen gebruik vraagt SoloMD één keer — en maar één keer — of je het een ster op GitHub wilt geven.
+Na een paar dagen gebruik vraagt xiaoyuanNote één keer — en maar één keer — of je het een ster op GitHub wilt geven.

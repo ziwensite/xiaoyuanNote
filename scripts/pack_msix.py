@@ -9,8 +9,8 @@ the Store's validator expects. The parts it checks are the manifest, the
 content-types map, and a block map of SHA-256 hashes over 64 KB blocks of every
 payload file.
 
-    python3 scripts/pack_msix.py --msi dist/SoloMD_4.12.0_x64_en-US.msi \\
-                                 --version 4.12.0 --arch x64 --out /tmp/SoloMD.msix
+    python3 scripts/pack_msix.py --msi dist/XIAOYUAN_NOTE_4.12.0_x64_en-US.msi \\
+                                 --version 4.12.0 --arch x64 --out /tmp/xiaoyuan-note.msix
 
 This script has now been written twice, because the first copy lived in a temp
 directory and was cleaned up between releases. It lives in the repository.
@@ -33,11 +33,11 @@ from xml.sax.saxutils import escape
 # the published package (displaycatalog's PublisherCertificateName and
 # PackageFamilyName) and the publisher string is verified against the family
 # name hash below — get the case wrong and Windows derives a different hash.
-IDENTITY_NAME = "zhitong.SoloMD"
+IDENTITY_NAME = "zhitong.xiaoyuanNote"
 PUBLISHER = "CN=359F6F65-9E32-4216-A4A1-9AF570A7877A"
 PUBLISHER_DISPLAY = "zhitong"
 EXPECTED_FAMILY_HASH = "3vmxy07xh2v3m"
-DISPLAY_NAME = "SoloMD"
+DISPLAY_NAME = "xiaoyuanNote"
 DESCRIPTION = "One file. One window. Just write."
 BACKGROUND_COLOR = "#121110"
 
@@ -131,7 +131,7 @@ def manifest(version: str, arch: str) -> str:
     <Resource Language="en-us" />
   </Resources>
   <Applications>
-    <Application Id="SoloMD" Executable="SoloMD.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="xiaoyuanNote" Executable="xiaoyuan-note.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="{escape(DISPLAY_NAME)}"
         Description="{escape(DESCRIPTION)}"
@@ -188,9 +188,9 @@ def extract_msi(msi: str, into: str):
         sys.exit("ERROR: msiextract not found — `brew install msitools`.")
     subprocess.run(["msiextract", os.path.abspath(msi)], cwd=into,
                    check=True, capture_output=True)
-    root = os.path.join(into, "PFiles", "SoloMD")
+    root = os.path.join(into, "PFiles", "xiaoyuanNote")
     if not os.path.isdir(root):
-        sys.exit(f"ERROR: {msi} did not unpack to PFiles/SoloMD — layout changed?")
+        sys.exit(f"ERROR: {msi} did not unpack to PFiles/xiaoyuanNote — layout changed?")
     payload = []
     for dirpath, _, names in os.walk(root):
         for n in sorted(names):

@@ -5,7 +5,7 @@
  * `IndexEntry` shape so it can be unit-tested directly (see
  * /tmp/tolaria/checks/inbox-*.mjs) and reused from `useInbox` / `InboxView`.
  *
- * Mirrors Tolaria's `noteListHelpers` inbox section, but keyed on SoloMD's
+ * Mirrors Tolaria's `noteListHelpers` inbox section, but keyed on xiaoyuanNote’s
  * existing on-disk `inbox: true|false` front-matter flag (NOT Tolaria's
  * `_organized`). `inbox: true` = unorganized / still in the inbox; absent or
  * `inbox: false` = organized.

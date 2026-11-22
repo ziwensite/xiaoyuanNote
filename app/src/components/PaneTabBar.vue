@@ -493,15 +493,27 @@ function onMiddleUp() {
   middleDragging = false;
 }
 
-// Close context menu (and the #218 tab list) on click outside
-function onDocClick() {
+// Close the context menu and the #218 tab list on a press (left OR right)
+// outside. `mousedown` (capture) instead of `click`/`contextmenu`: the tab-list
+// trigger and the menus use `@click.stop`, which stops `click` bubbling and
+// would leave a stale menu when another popup opens. A press on the tab-list
+// trigger is ignored so its toggle handler still works; the right-click context
+// menu closes on any outside press regardless.
+function onDocDown(e: MouseEvent) {
+  const t = e.target as Node | null;
+  if (t && ctxEl.value && ctxEl.value.contains(t)) return;
+  if (t && tabListEl.value && tabListEl.value.contains(t)) return;
+  const isOwnTrigger = !!(t && (t as HTMLElement).closest('[data-pt-trigger]'));
   if (ctxMenu.value) closeCtxMenu();
-  if (tabListPos.value) tabListPos.value = null;
+  if (isOwnTrigger) return;
+  if (tabListPos.value) { tabListPos.value = null; tabListFilter.value = ''; }
 }
 
-onMounted(() => document.addEventListener('click', onDocClick));
+onMounted(() => {
+  document.addEventListener('mousedown', onDocDown, true);
+});
 onBeforeUnmount(() => {
-  document.removeEventListener('click', onDocClick);
+  document.removeEventListener('mousedown', onDocDown, true);
   // Drop any drag listeners still attached if the bar unmounts mid-drag.
   teardownPointer();
   window.removeEventListener('mousemove', onMiddleMove);
@@ -568,6 +580,7 @@ onBeforeUnmount(() => {
         :title="t('tabMenu.allTabs')"
         :aria-label="t('tabMenu.allTabs')"
         :aria-expanded="!!tabListPos"
+        data-pt-trigger
         @click.stop="toggleTabList"
       >
         <Icon name="chevron-down" :size="16" />

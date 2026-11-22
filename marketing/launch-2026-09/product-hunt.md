@@ -5,10 +5,10 @@ Tuesday–Thursday. Product Hunt ranks by the votes of the first few hours, so
 line up the announcement channels (X, the GitHub README badge, Discord, the
 V2EX thread) for the same morning.
 
-- **Name:** SoloMD
+- **Name:** xiaoyuanNote
 - **Tagline (≤ 60):** `Typora-style Markdown editor, free and open source`
 - **Topics:** Productivity · Writing Tools · Open Source · Markdown · Developer Tools
-- **Links:** https://solomd.app · https://github.com/zhitongblog/solomd · App Store · Google Play · Microsoft Store
+- **Links:** https://xiaoyuannote.app · https://github.com/zhitongblog/xiaoyuan-note · App Store · Google Play · Microsoft Store
 - **Pricing:** Free
 
 ## Description (≤ 260)
@@ -23,7 +23,7 @@ server for your AI tools.
 ## First comment (maker)
 
 ```
-Hi Product Hunt! I built SoloMD because I wanted Typora's editing feel in
+Hi Product Hunt! I built xiaoyuanNote because I wanted Typora's editing feel in
 something open source that also runs on my phone.
 
 What's in it:
@@ -34,7 +34,7 @@ What's in it:
 • Bundled MCP server, so Claude, Cursor and other agents can read your notes
   (write access only if you turn it on)
 
-A confession: most of SoloMD is written and released by Claude Code, with me
+A confession: most of xiaoyuanNote is written and released by Claude Code, with me
 reviewing and deciding what ships. It's all MIT on GitHub if you want to
 look.
 
@@ -43,11 +43,11 @@ I'd love to hear what would make you switch from your current editor.
 
 ## Gallery (1270×760)
 
-1. Hero: live-preview editing (web/public/demo/solomd-hero.png, cropped)
+1. Hero: live-preview editing (web/public/demo/xiaoyuan-note-hero.png, cropped)
 2. Split view plus Mermaid diagram
 3. Mobile: iPhone and Android side by side
 4. Export: PDF and Word output
-5. MCP: Claude Code driving a SoloMD vault
+5. MCP: Claude Code driving a xiaoyuanNote vault
 
 To produce: 1 can be cropped from the existing hero image. 2–5 need new
 screenshots, which I can take from the app once you approve the kit.

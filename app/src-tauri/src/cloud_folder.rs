@@ -1,21 +1,21 @@
 //! v2.6.1 — Cloud-folder detection + cross-device session restore.
 //!
-//! Two complementary primitives that together let SoloMD pick up where the
+//! Two complementary primitives that together let xiaoyuanNote pick up where the
 //! user left off across machines, without our v2.6.0 GitHub sync layer:
 //!
 //! 1. **Cloud-folder detection.** If the workspace path lives inside iCloud
 //!    Drive, Dropbox, OneDrive, or Google Drive, the provider already runs
-//!    background sync; SoloMD just needs to surface that fact in the UI
+//!    background sync; xiaoyuanNote just needs to surface that fact in the UI
 //!    ("your workspace is in iCloud — saves propagate automatically") and
 //!    avoid showing GitHub-sync nudges that would feel redundant.
 //!
-//! 2. **Per-device session files.** `<folder>/.solomd/session.<deviceId>.json`
+//! 2. **Per-device session files.** `<folder>/.xiaoyuan-note/session.<deviceId>.json`
 //!    holds open tabs + cursor positions. Each device writes its own; the
 //!    cloud provider syncs them like any other file. On launch we check
 //!    sibling sessions, and if one is newer than ours and from a different
 //!    device, offer to restore from it.
 //!
-//! Crucially: session files are gitignored alongside `.solomd/sync.json` so
+//! Crucially: session files are gitignored alongside `.xiaoyuan-note/sync.json` so
 //! they don't end up in the GitHub-backed repo (which would conflict per-pull).
 
 use std::fs;
@@ -24,8 +24,8 @@ use std::time::UNIX_EPOCH;
 
 use serde::{Deserialize, Serialize};
 
-const DEVICE_ID_FILE: &str = ".solomd-device-id";
-const SESSIONS_DIR: &str = ".solomd";
+const DEVICE_ID_FILE: &str = ".xiaoyuan-note-device-id";
+const SESSIONS_DIR: &str = ".xiaoyuanNote";
 
 #[derive(Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -356,15 +356,15 @@ mod tests {
             CloudProvider::Nutstore
         );
         assert_eq!(
-            detect_provider(Path::new("/Users/alex/BaiduNetdiskWorkspace/SoloMD")).provider,
+            detect_provider(Path::new("/Users/alex/BaiduNetdiskWorkspace/xiaoyuanNote")).provider,
             CloudProvider::BaiduNetdisk
         );
         assert_eq!(
-            detect_provider(Path::new("/Users/alex/AliyunDrive/SoloMD")).provider,
+            detect_provider(Path::new("/Users/alex/AliyunDrive/xiaoyuanNote")).provider,
             CloudProvider::AliyunDrive
         );
         assert_eq!(
-            detect_provider(Path::new("/Users/alex/QuarkDrive/SoloMD")).provider,
+            detect_provider(Path::new("/Users/alex/QuarkDrive/xiaoyuanNote")).provider,
             CloudProvider::QuarkDrive
         );
     }
@@ -386,7 +386,7 @@ mod tests {
     #[test]
     fn session_round_trip() {
         let dir = std::env::temp_dir().join(format!(
-            "solomd-session-test-{}",
+            "xiaoyuan-note-session-test-{}",
             SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()
         ));
         fs::create_dir_all(&dir).unwrap();

@@ -52,7 +52,7 @@ jobs:
           GITEE_USER: ${{ secrets.GITEE_USERNAME }}
         run: |
           set -euo pipefail
-          REMOTE="git@gitee.com:${GITEE_USER}/solomd.git"
+          REMOTE="git@gitee.com:${GITEE_USER}/xiaoyuan-note.git"
           # Not `--mirror`: in an Actions checkout that also pushes
           # refs/remotes/origin/* ("deny updating a hidden ref" on Gitee).
           # Mirror GitHub's branches (origin/*) and tags explicitly;

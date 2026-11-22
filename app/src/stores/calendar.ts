@@ -3,7 +3,7 @@
  * view is selected. The sidebar mini month and the full dialog both read and
  * write this store, so they can never show different months.
  *
- * Focus date + view persist per workspace (`solomd.calendar.v1::<folder>`),
+ * Focus date + view persist per workspace (`xiaoyuan-note.calendar.v1::<folder>`),
  * mirroring the tabs bucket: the calendar is about files in that workspace,
  * so each workspace keeps its own place. `dialogOpen` is session-only.
  */
@@ -19,7 +19,7 @@ import { useWorkspaceStore } from './workspace';
 import { useTabsStore } from './tabs';
 import { prefersOverlayEditor } from '../lib/editor-layout';
 
-const KEY_PREFIX = 'solomd.calendar.v1::';
+const KEY_PREFIX = 'xiaoyuan-note.calendar.v1::';
 
 function bucketKey(folder: string | null): string {
   return `${KEY_PREFIX}${folder ?? ''}`;
@@ -114,11 +114,17 @@ export const useCalendarStore = defineStore('calendar', () => {
 
   /** The one entry point for "show the full calendar". Desktop widths open it
    *  as an editor tab (singleton, parameters updated in place); narrow windows,
-   *  phones and tablets keep the dialog. */
-  function openWorkspace(date?: string, nextView?: CalendarEditorView) {
+   *  phones and tablets keep the dialog. `forceTab` lets an explicit header
+   *  click open the editor tab even when the column is merely narrow, not a
+   *  phone/tablet shell. */
+  function openWorkspace(
+    date?: string,
+    nextView?: CalendarEditorView,
+    opts?: { forceTab?: boolean },
+  ) {
     if (date) setFocusDate(date);
     if (nextView) setView(nextView);
-    if (prefersOverlayEditor()) {
+    if (!opts?.forceTab && prefersOverlayEditor()) {
       dialogOpen.value = true;
       return;
     }

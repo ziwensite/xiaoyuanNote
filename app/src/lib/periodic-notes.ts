@@ -1,13 +1,13 @@
 /**
- * Periodic notes (batch 10 / P2) — five kinds, one folder + filename format +
- * template each, resolved by pure functions.
+ * Periodic notes — folder + filename format + template per kind, resolved by
+ * pure functions.
  *
- * This is the shape the reference plugin uses (see spec §2.1): every kind is
- * just "anchor date → formatted name → `<folder>/<name>`". There is no
- * aggregation between kinds, and nothing here touches the file system — the
- * composable `useDailyNotes` does the open/create half.
+ * `PERIOD_KINDS` stays the five calendar periods used by task filters and
+ * capture presets. `ALL_PERIODIC_KINDS` adds `flash`, a timestamped note type
+ * exposed in Calendar → Periodic Notes alongside diary/week/month/etc.
  *
  * Anchors:
+ *   flash      the exact moment (hours/minutes stay in the filename)
  *   daily      the day itself
  *   weekly     first day of that week, per `weekStartsOn`
  *   monthly    the 1st
@@ -17,14 +17,21 @@
 
 import { formatDailyFilename, isoDate, isoWeekNumber, weekdayName } from './daily-notes';
 
-export type PeriodKind = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+export type PeriodKind = 'flash' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 
+/** Calendar periods only — task filters and capture presets keep this list. */
 export const PERIOD_KINDS: readonly PeriodKind[] = [
   'daily',
   'weekly',
   'monthly',
   'quarterly',
   'yearly',
+];
+
+/** Everything stored in `settings.periodic`, including the timestamped flash note. */
+export const ALL_PERIODIC_KINDS: readonly PeriodKind[] = [
+  'flash',
+  ...PERIOD_KINDS,
 ];
 
 export interface PeriodConfig {
@@ -46,6 +53,7 @@ export type PeriodicConfig = Record<PeriodKind, PeriodConfig>;
  */
 export function defaultPeriodicConfig(): PeriodicConfig {
   return {
+    flash: { folder: 'Flash', format: 'YYYY-MM-DD-HHmm.md', template: '' },
     daily: { folder: 'Daily', format: 'YYYY-MM-DD.md', template: '' },
     weekly: { folder: 'Weekly', format: 'YYYY-[W]WW.md', template: '' },
     monthly: { folder: 'Monthly', format: 'YYYY-MM.md', template: '' },
@@ -71,7 +79,7 @@ export function mergePeriodicConfig(
   const defaults = defaultPeriodicConfig();
   const saved = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
   const out = {} as PeriodicConfig;
-  for (const kind of PERIOD_KINDS) {
+  for (const kind of ALL_PERIODIC_KINDS) {
     const base = defaults[kind];
     const entry = saved[kind];
     if (entry && typeof entry === 'object') {
@@ -108,6 +116,8 @@ export function shiftDays(date: Date, days: number): Date {
 export function periodAnchor(kind: PeriodKind, date: Date, weekStartsOn = 1): Date {
   const d = startOfDay(date);
   switch (kind) {
+    case 'flash':
+      return new Date(date.getTime());
     case 'daily':
       return d;
     case 'weekly': {
@@ -128,6 +138,8 @@ export function periodAnchor(kind: PeriodKind, date: Date, weekStartsOn = 1): Da
 export function shiftPeriod(kind: PeriodKind, date: Date, delta: number): Date {
   const d = startOfDay(date);
   switch (kind) {
+    case 'flash':
+      return new Date(d.getTime() + delta * 60_000);
     case 'daily':
       return shiftDays(d, delta);
     case 'weekly':

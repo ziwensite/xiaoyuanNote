@@ -5,7 +5,7 @@
 # Conventions
 #   ADB           adb pinned to the device under test ($SERIAL)
 #   OUT           this run's output dir (shots/, ui/, logs)
-#   PKG           app.solomd
+#   PKG           app.xiaoyuanNote
 #   pass "detail" / fail "detail"   end a check (exactly one per check)
 #   note "text"   extra line in the log for this check
 #
@@ -14,7 +14,7 @@
 # accessibility tree lazily: the first dump after a navigation often shows the
 # WebView as one opaque node, so `dump` retries until the tree has children.
 
-PKG="${PKG:-app.solomd}"
+PKG="${PKG:-app.xiaoyuanNote}"
 ADB=adb_
 adb_() { adb -s "$SERIAL" "$@"; }
 UI_PY="$SUITE/lib/ui.py"

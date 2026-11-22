@@ -9,7 +9,7 @@ const lang = 'en' as const;
 
 <Layout
   title="Sync with iCloud — no setup, just put the folder in it"
-  description="SoloMD syncs through iCloud Drive, Dropbox, OneDrive or Google Drive with no account and no plugin: put your notes folder in the cloud drive and open it in SoloMD. Mac / iPhone / iPad steps, cross-device session restore, and what to watch out for when editing on two machines."
+  description="xiaoyuanNote syncs through iCloud Drive, Dropbox, OneDrive or Google Drive with no account and no plugin: put your notes folder in the cloud drive and open it in xiaoyuan-note. Mac / iPhone / iPad steps, cross-device session restore, and what to watch out for when editing on two machines."
   lang={lang}
 >
   <Header lang={lang} />
@@ -20,13 +20,13 @@ const lang = 'en' as const;
       </nav>
 
       <h1>Sync with iCloud</h1>
-      <p class="lead">No account to create, no plugin to install. Put the folder in iCloud, open it in SoloMD, done.</p>
+      <p class="lead">No account to create, no plugin to install. Put the folder in iCloud, open it in xiaoyuanNote, done.</p>
 
       <h2>Why there is nothing to configure</h2>
       <p>
         Your notes are ordinary <code>.md</code> files on disk — no private database, no
-        proprietary format. So syncing doesn't involve SoloMD at all: iCloud is already
-        syncing that folder, and SoloMD just reads and writes local files.
+        proprietary format. So syncing doesn't involve xiaoyuanNote at all: iCloud is already
+        syncing that folder, and xiaoyuanNote just reads and writes local files.
       </p>
       <p>
         Which also means <strong>the same approach works for Dropbox, OneDrive, Google
@@ -37,7 +37,7 @@ const lang = 'en' as const;
       <ol>
         <li>Open Finder and click <strong>iCloud Drive</strong> in the sidebar</li>
         <li>Create a folder in it, e.g. <code>Notes</code></li>
-        <li>SoloMD → <strong>Open Folder</strong> → pick that <code>Notes</code> folder</li>
+        <li>xiaoyuanNote → <strong>Open Folder</strong> → pick that <code>Notes</code> folder</li>
       </ol>
       <p>That's the whole setup. From then on every save propagates to your other devices in the background.</p>
       <p>
@@ -47,11 +47,11 @@ const lang = 'en' as const;
         into it from a terminal.
       </p>
 
-      <h2>Two things SoloMD adds on top</h2>
+      <h2>Two things xiaoyuanNote adds on top</h2>
 
       <h3>1. It recognises cloud folders</h3>
       <p>
-        When you open a folder, SoloMD checks whether it sits inside iCloud, Dropbox,
+        When you open a folder, xiaoyuanNote checks whether it sits inside iCloud, Dropbox,
         OneDrive or Google Drive. If it does:
       </p>
       <ul>
@@ -66,17 +66,17 @@ const lang = 'en' as const;
       <p>
         Each device writes a small file recording which tabs you have open. Open the same
         vault on another machine and, if a newer record from a different device is found,
-        SoloMD offers to restore it — your tabs come back as you left them.
+        xiaoyuanNote offers to restore it — your tabs come back as you left them.
       </p>
       <p>
-        Those records live in <code>.solomd/</code> inside the vault and sync along with
+        Those records live in <code>.xiaoyuan-note/</code> inside the vault and sync along with
         everything else. <strong>They are only written inside genuinely cloud-synced
-        folders</strong> — open a plain local folder and SoloMD leaves nothing behind.
+        folders</strong> — open a plain local folder and xiaoyuanNote leaves nothing behind.
       </p>
 
       <h2>iPhone / iPad</h2>
       <p>
-        Same idea: SoloMD on iOS reaches iCloud Drive through the system Files app. Open
+        Same idea: xiaoyuanNote on iOS reaches iCloud Drive through the system Files app. Open
         the same <code>Notes</code> folder you created on the Mac — it is literally the
         same files.
       </p>
@@ -102,7 +102,7 @@ const lang = 'en' as const;
         <li>
           <strong>iCloud gives you no version history.</strong> If you want "undo a bad
           edit", "see what changed", or real conflict handling, that's the other route —
-          see <a href="/docs/sync/">Sync, History &amp; Backup</a>. SoloMD has local
+          see <a href="/docs/sync/">Sync, History &amp; Backup</a>. xiaoyuanNote has local
           snapshots and GitHub / Gitea sync built in, and both work alongside a cloud
           drive.
         </li>
@@ -117,7 +117,7 @@ const lang = 'en' as const;
       <h2>If it isn't working</h2>
       <ul>
         <li>
-          <strong>No cloud banner?</strong> SoloMD didn't recognise the path as iCloud. The
+          <strong>No cloud banner?</strong> xiaoyuanNote didn't recognise the path as iCloud. The
           usual cause is opening an <em>alias or symlink</em> that points into iCloud
           rather than the real path. Re-open it from Finder's "iCloud Drive" entry.
         </li>
@@ -127,7 +127,7 @@ const lang = 'en' as const;
           Account, and that iCloud Drive is enabled.
         </li>
         <li>
-          Still stuck? <a href="https://github.com/zhitongblog/solomd/issues">Open an
+          Still stuck? <a href="https://github.com/zhitongblog/xiaoyuan-note/issues">Open an
           issue</a> with your path and what you see, and we'll dig in.
         </li>
       </ul>

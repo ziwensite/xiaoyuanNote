@@ -13,7 +13,7 @@ to be self-contained for users finding us via Smithery / Google.
 | Continue.dev | [`continue.md`](continue.md) |
 | Zed | [`zed.md`](zed.md) |
 
-Each file embeds the same "Get SoloMD" download CTA at the bottom — the
+Each file embeds the same "Get xiaoyuanNote" download CTA at the bottom — the
 desktop app is the GUI upgrade path for users who land here via the MCP.
 
 ## Source-of-truth conventions

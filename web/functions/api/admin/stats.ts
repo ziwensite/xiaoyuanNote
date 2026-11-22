@@ -37,7 +37,7 @@ function unauthorized(): Response {
     status: 401,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'WWW-Authenticate': 'Bearer realm="solomd-admin"',
+      'WWW-Authenticate': 'Bearer realm="xiaoyuan-note-admin"',
     },
   });
 }
@@ -151,7 +151,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     )
       .bind(sevenDaysAgo)
       .first<{ n: number }>(),
-    // Promoter referral codes (solomd.app/?ref=<code>, see /promote).
+    // Promoter referral codes (xiaoyuannote.app/?ref=<code>, see /promote).
     env.DB.prepare(
       `SELECT json_extract(props, '$.ref') AS ref,
               SUM(event = 'ref_visit') AS visits,

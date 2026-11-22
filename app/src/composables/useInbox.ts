@@ -181,7 +181,7 @@ export function useInbox() {
    * is applied to what is on screen, not to text a few keystrokes old.
    */
   function flipInboxFlag(tab: Tab): boolean {
-    window.dispatchEvent(new Event('solomd:flush-content-sync'));
+    window.dispatchEvent(new Event('xiaoyuan-note:flush-content-sync'));
     const cur = readInboxFlag(tab.content) === true;
     tabs.setContent(tab.id, setInboxFlag(tab.content, !cur));
     return cur;
@@ -247,7 +247,7 @@ export function useInbox() {
       return;
     }
 
-    window.dispatchEvent(new Event('solomd:flush-content-sync'));
+    window.dispatchEvent(new Event('xiaoyuan-note:flush-content-sync'));
     const wasInbox = readInboxFlag(tab.content) === true;
     const advancing =
       wasInbox &&

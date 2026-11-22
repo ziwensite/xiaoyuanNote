@@ -1,4 +1,4 @@
-/* SoloMD 5.0 — right-sidebar panel + full-page view anatomy
+/* xiaoyuanNote 5.0 — right-sidebar panel + full-page view anatomy
  * (docs/v5-ui-spec.md §2, §6).
  *
  * One vocabulary for every inspector pane (Outline, Backlinks, Tags, Tasks,
@@ -410,10 +410,18 @@ a.rp-chip:hover {
 .rp-icon-btn:focus-visible,
 .rp-btn:focus-visible,
 .rp-chip:focus-visible,
-.rp-check:focus-visible,
 .pg-icon-btn:focus-visible {
   outline: none;
   box-shadow: var(--ring);
+}
+/* The checkbox uses the 1px inset ring (--ring-tight) like every other field,
+   and a default cursor when shown read-only (e.g. a rendered note preview). */
+.rp-check:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-tight);
+}
+.rp-check:disabled {
+  cursor: default;
 }
 
 /* ── Segmented control (shared with SegControl.vue) ─────────────────── */

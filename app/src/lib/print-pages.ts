@@ -47,8 +47,8 @@ export function printableBox(
 function scopeSelector(sel: string): string | null {
   const s = sel.trim();
   if (!s) return null;
-  if (/#solomd-print-overlay|\.solomd-print-content/.test(s)) return s;
-  if (/\.preview-content|\.md-toc/.test(s)) return `#solomd-print-overlay ${s}`;
+  if (/#xiaoyuan-note-print-overlay|\.xiaoyuan-note-print-content/.test(s)) return s;
+  if (/\.preview-content|\.md-toc/.test(s)) return `#xiaoyuan-note-print-overlay ${s}`;
   return null;
 }
 
@@ -164,7 +164,7 @@ export function withPrintPagination<T>(
   use: (p: PrintPagination) => T,
 ): T {
   const style = document.createElement('style');
-  style.id = 'solomd-print-measure';
+  style.id = 'xiaoyuan-note-print-measure';
   style.textContent = printRulesAsScreenCss();
   document.head.appendChild(style);
 

@@ -1,7 +1,7 @@
 /**
  * F2 — Type registry derivation (pure functions).
  *
- * SoloMD mirrors Tolaria's "types-as-lenses" model entirely in Markdown
+ * xiaoyuanNote mirrors Tolaria's "types-as-lenses" model entirely in Markdown
  * frontmatter, so vaults stay cross-compatible. Two note roles, both ordinary
  * Markdown files:
  *
@@ -26,7 +26,7 @@ export interface TypeIndexEntry {
   frontmatter: Record<string, unknown> | null;
 }
 
-/** Accent color keys SoloMD supports (map to --accent-* in the panel CSS). */
+/** Accent color keys xiaoyuanNote supports (map to --accent-* in the panel CSS). */
 export type TypeColorKey =
   | 'orange'
   | 'red'

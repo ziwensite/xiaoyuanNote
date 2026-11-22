@@ -1,0 +1,778 @@
+#!/bin/bash
+#
+# XIAOYUAN_NOTE - CLI for XIAOYUAN_NOTE Markdown Editor
+# https://github.com/zhitongblog/XIAOYUAN_NOTE
+#
+# Usage:
+#   XIAOYUAN_NOTE open <title|path>     Open a markdown file in XIAOYUAN_NOTE
+#   XIAOYUAN_NOTE new <title> [text]    Create a new markdown file and open it
+#   XIAOYUAN_NOTE list [folder]         List markdown files in a folder
+#   XIAOYUAN_NOTE search <query>        Search markdown files in CWD for a query
+#   XIAOYUAN_NOTE cat <title|path>      Print a markdown file's content
+#   XIAOYUAN_NOTE export <file> -f FMT  Export to html / md / txt / docx (source checkout)
+#   XIAOYUAN_NOTE agent <prompt>        Run an LLM CLI against the vault via MCP
+#   XIAOYUAN_NOTE mcp <sub>             Manage the MCP entry in your AI clients
+#   XIAOYUAN_NOTE help                  Show this help
+#   XIAOYUAN_NOTE --version             Print the XIAOYUAN_NOTE version
+#
+# Every subcommand accepts -h / --help.
+#
+# Notes:
+#   - Default notes directory: $XIAOYUAN_NOTE_NOTES (or ~/Documents/XIAOYUAN_NOTE if unset)
+#   - "title" arguments resolve to <notes-dir>/<title>.md if no extension is
+#     given. Pass an explicit path to bypass this.
+
+set -e
+
+# ---- Version -------------------------------------------------------------
+# Bumped with the app (see scripts/release.sh). A copy run from a source
+# checkout reads the live version from tauri.conf.json instead, so the two
+# can't drift there.
+XIAOYUAN_NOTE_VERSION="5.0.13"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+XIAOYUAN_NOTE_version() {
+    local conf="$SCRIPT_DIR/../app/src-tauri/tauri.conf.json" v=""
+    if [[ -f "$conf" ]]; then
+        v="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$conf" | head -1)"
+    fi
+    echo "${v:-$XIAOYUAN_NOTE_VERSION}"
+}
+
+# ---- Colors --------------------------------------------------------------
+# Only when stdout is a terminal, and never with NO_COLOR set
+# (https://no-color.org) — escapes in a pipe or a file are just noise.
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+    GREEN='\033[0;32m'
+    BLUE='\033[0;34m'
+    YELLOW='\033[0;33m'
+    DIM='\033[2m'
+    NC='\033[0m'
+else
+    GREEN='' BLUE='' YELLOW='' DIM='' NC=''
+fi
+
+# `-h` / `--help` anywhere in a subcommand's arguments means "show usage":
+# it must never be taken as a title, a folder or a prompt (`new --help`
+# used to create --help.md and open it).
+wants_help() {
+    local a
+    for a in "$@"; do
+        [[ "$a" == "-h" || "$a" == "--help" ]] && return 0
+    done
+    return 1
+}
+
+# ---- Notes dir resolution ------------------------------------------------
+NOTES_DIR="${XIAOYUAN_NOTE_NOTES:-$HOME/Documents/XIAOYUAN_NOTE}"
+
+ensure_notes_dir() {
+    if [[ ! -d "$NOTES_DIR" ]]; then
+        mkdir -p "$NOTES_DIR"
+    fi
+}
+
+# ---- App binary detection ------------------------------------------------
+detect_XIAOYUAN_NOTE_bin() {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        local mac_paths=(
+            "/Applications/XIAOYUAN_NOTE.app/Contents/MacOS/XIAOYUAN_NOTE"
+            "$HOME/Applications/XIAOYUAN_NOTE.app/Contents/MacOS/XIAOYUAN_NOTE"
+        )
+        for p in "${mac_paths[@]}"; do
+            [[ -x "$p" ]] && echo "$p" && return 0
+        done
+    elif [[ "$(uname)" == "Linux" ]]; then
+        for cmd in XIAOYUAN_NOTE XIAOYUAN_NOTE; do
+            if command -v "$cmd" >/dev/null 2>&1; then
+                command -v "$cmd"
+                return 0
+            fi
+        done
+        local linux_paths=(
+            "/usr/bin/XIAOYUAN_NOTE"
+            "/usr/local/bin/XIAOYUAN_NOTE"
+            "/opt/XIAOYUAN_NOTE/XIAOYUAN_NOTE"
+        )
+        for p in "${linux_paths[@]}"; do
+            [[ -x "$p" ]] && echo "$p" && return 0
+        done
+    fi
+    return 1
+}
+
+# ---- Path resolution -----------------------------------------------------
+# Resolve a title or path to a filesystem path. Rules:
+#   1. If contains '/' or has .md/.markdown/.txt extension, use as-is
+#      (relative to CWD if not absolute).
+#   2. Otherwise, treat as title and look in $NOTES_DIR/<title>.md
+resolve_path() {
+    local input="$1"
+    [[ -z "$input" ]] && return 1
+    if [[ "$input" == /* ]]; then
+        echo "$input"
+        return 0
+    fi
+    if [[ "$input" == *.md || "$input" == *.markdown || "$input" == *.txt ]]; then
+        echo "$PWD/$input"
+        return 0
+    fi
+    if [[ "$input" == */* ]]; then
+        echo "$PWD/$input"
+        return 0
+    fi
+    echo "$NOTES_DIR/$input.md"
+}
+
+# ---- Commands ------------------------------------------------------------
+cmd_help() {
+    printf "${GREEN}XIAOYUAN_NOTE${NC} — CLI for XIAOYUAN_NOTE Markdown Editor\n"
+    printf "         %s\n\n" "https://github.com/zhitongblog/XIAOYUAN_NOTE"
+    printf "${BLUE}USAGE${NC}\n"
+    printf "  XIAOYUAN_NOTE <command> [args]\n\n"
+    printf "${BLUE}COMMANDS${NC}\n"
+    printf "  ${GREEN}%-22s${NC} %s\n" "open <title|path>" "Open file in XIAOYUAN_NOTE"
+    printf "  ${GREEN}%-22s${NC} %s\n" "new <title> [text]" "Create new note + open"
+    printf "  ${GREEN}%-22s${NC} %s\n" "list [folder]" "List markdown files"
+    printf "  ${GREEN}%-22s${NC} %s\n" "search <query>" "Search markdown for text"
+    printf "  ${GREEN}%-22s${NC} %s\n" "cat <title|path>" "Print file content"
+    printf "  ${GREEN}%-22s${NC} %s\n" "export <file> -f FMT" "Export to html / md / txt / docx (needs a source checkout)"
+    printf "  ${GREEN}%-22s${NC} %s\n" "agent <prompt…>" "Run an LLM agent against the vault via MCP"
+    printf "  ${GREEN}%-22s${NC} %s\n" "mcp <sub>" "Manage MCP integration (mcp help for subcommands)"
+    printf "  ${GREEN}%-22s${NC} %s\n" "mcp-config" "Print the MCP config snippet (back-compat alias)"
+    printf "  ${GREEN}%-22s${NC} %s\n" "help" "Show this help"
+    printf "  ${GREEN}%-22s${NC} %s\n" "--version" "Print the XIAOYUAN_NOTE version"
+    printf "\n  Every command takes ${GREEN}-h${NC} / ${GREEN}--help${NC} for its own usage.\n"
+    printf "\n${BLUE}NOTES DIR${NC}\n"
+    printf "  ${DIM}%s${NC}\n" "$NOTES_DIR"
+    printf "  ${DIM}override with XIAOYUAN_NOTE_NOTES env var${NC}\n"
+}
+
+usage_open() {
+    echo "Usage: XIAOYUAN_NOTE open <title|path>"
+    echo "  Open a note in XIAOYUAN_NOTE. A bare title resolves to <notes-dir>/<title>.md."
+}
+
+cmd_open() {
+    wants_help "$@" && { usage_open; exit 0; }
+    local target="$1"
+    [[ -z "$target" ]] && { usage_open >&2; exit 1; }
+    local path
+    path="$(resolve_path "$target")"
+    if [[ ! -f "$path" ]]; then
+        printf "${YELLOW}File not found:${NC} %s\n" "$path" >&2
+        exit 1
+    fi
+    local bin
+    if bin="$(detect_XIAOYUAN_NOTE_bin)"; then
+        "$bin" "$path" >/dev/null 2>&1 &
+        disown 2>/dev/null || true
+        printf "Opening ${GREEN}%s${NC}\n" "$path"
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        open -a XIAOYUAN_NOTE "$path"
+    else
+        printf "${YELLOW}XIAOYUAN_NOTE not found.${NC} Install from https://XIAOYUAN_NOTE.app\n" >&2
+        exit 1
+    fi
+}
+
+usage_new() {
+    echo "Usage: XIAOYUAN_NOTE new <title> [text]"
+    echo "  Create <notes-dir>/<title>.md with a heading (and optional body), then open it."
+}
+
+cmd_new() {
+    wants_help "$@" && { usage_new; exit 0; }
+    local title="$1"; shift || true
+    local body="$*"
+    [[ -z "$title" ]] && { usage_new >&2; exit 1; }
+    ensure_notes_dir
+    local path
+    path="$(resolve_path "$title")"
+    if [[ -f "$path" ]]; then
+        printf "${YELLOW}File already exists:${NC} %s\n" "$path" >&2
+        exit 1
+    fi
+    {
+        printf "# %s\n\n" "$title"
+        [[ -n "$body" ]] && printf "%s\n" "$body"
+    } > "$path"
+    printf "Created ${GREEN}%s${NC}\n" "$path"
+    cmd_open "$path"
+}
+
+usage_list() {
+    echo "Usage: XIAOYUAN_NOTE list [folder]"
+    echo "  List every markdown file under the folder (default: notes dir), at any depth."
+    echo "  Hidden folders and node_modules are skipped."
+}
+
+cmd_list() {
+    wants_help "$@" && { usage_list; exit 0; }
+    local folder="${1:-$NOTES_DIR}"
+    [[ "$folder" != "/" ]] && folder="${folder%/}"
+    if [[ ! -d "$folder" ]]; then
+        printf "${YELLOW}Not a folder:${NC} %s\n" "$folder" >&2
+        exit 1
+    fi
+    # Any depth, like the app's file tree and MCP list_notes. -mindepth 1
+    # keeps the prune test off the root itself, so `XIAOYUAN_NOTE list .` works.
+    find "$folder" -mindepth 1 \( -name ".*" -o -name node_modules \) -prune -o \
+            -type f \( -name "*.md" -o -name "*.markdown" \) -print 2>/dev/null \
+        | sort \
+        | while IFS= read -r f; do
+            local rel="${f#$folder/}"
+            printf "  ${GREEN}%s${NC}\n" "$rel"
+        done
+}
+
+usage_search() {
+    echo "Usage: XIAOYUAN_NOTE search <query>"
+    echo "  Case-insensitive search of the notes dir (rg if installed, else grep)."
+}
+
+cmd_search() {
+    wants_help "$@" && { usage_search; exit 0; }
+    local query="$*"
+    [[ -z "$query" ]] && { usage_search >&2; exit 1; }
+    local folder="$NOTES_DIR"
+    [[ ! -d "$folder" ]] && folder="$PWD"
+    if command -v rg >/dev/null 2>&1; then
+        rg --color=auto -i -t md "$query" "$folder" 2>/dev/null || {
+            printf "${DIM}No matches for: %s${NC}\n" "$query"
+        }
+    else
+        grep -ri --include="*.md" --include="*.markdown" -n "$query" "$folder" 2>/dev/null || {
+            printf "${DIM}No matches for: %s${NC}\n" "$query"
+        }
+    fi
+}
+
+usage_cat() {
+    echo "Usage: XIAOYUAN_NOTE cat <title|path>"
+    echo "  Print a note to stdout."
+}
+
+cmd_cat() {
+    wants_help "$@" && { usage_cat; exit 0; }
+    local target="$1"
+    [[ -z "$target" ]] && { usage_cat >&2; exit 1; }
+    local path
+    path="$(resolve_path "$target")"
+    if [[ ! -f "$path" ]]; then
+        printf "${YELLOW}File not found:${NC} %s\n" "$path" >&2
+        exit 1
+    fi
+    cat "$path"
+}
+
+# `XIAOYUAN_NOTE export <file> [--format html|md|txt|docx] [--output <path>]`
+# Convert a markdown file to another format using the same engine the GUI
+# uses. Backs onto app/scripts/XIAOYUAN_NOTE-export.mjs (Node, no GUI required).
+#
+# That script and its node_modules only exist in a source checkout: the
+# app bundle doesn't ship them and install-cli.sh only downloads this file.
+# So an installed CLI says so plainly instead of pointing at a path that
+# was never going to exist. XIAOYUAN_NOTE_EXPORT_SCRIPT points it at a checkout.
+usage_export() {
+    echo "Usage: XIAOYUAN_NOTE export <title|path> [--format html|md|txt|docx] [--output <path>] [--number-headings]"
+    echo "  Export with the same engine as the app. Default format html, written next to the note."
+    echo "  Needs Node.js 18+ and a XIAOYUAN_NOTE source checkout with \`pnpm install\` run in app/:"
+    echo "  run scripts/XIAOYUAN_NOTE from that checkout, or set XIAOYUAN_NOTE_EXPORT_SCRIPT=<checkout>/app/scripts/XIAOYUAN_NOTE-export.mjs."
+}
+
+cmd_export() {
+    wants_help "$@" && { usage_export; exit 0; }
+    local target="$1"; shift || true
+    [[ -z "$target" ]] && { usage_export >&2; exit 1; }
+    local path
+    path="$(resolve_path "$target")"
+    if [[ ! -f "$path" ]]; then
+        printf "${YELLOW}File not found:${NC} %s\n" "$path" >&2
+        exit 1
+    fi
+    # Locate the script + the app dir (it must run with cwd = app/ so node
+    # can resolve docx + markdown-it from app/node_modules without hassle).
+    local script="${XIAOYUAN_NOTE_EXPORT_SCRIPT:-$SCRIPT_DIR/../app/scripts/XIAOYUAN_NOTE-export.mjs}"
+    if [[ ! -f "$script" ]]; then
+        printf "${YELLOW}XIAOYUAN_NOTE export needs a XIAOYUAN_NOTE source checkout.${NC}\n" >&2
+        printf "  It runs app/scripts/XIAOYUAN_NOTE-export.mjs with Node.js and the app's node_modules,\n" >&2
+        printf "  which the installed app and install-cli.sh don't include. Either:\n" >&2
+        printf "    git clone https://github.com/zhitongblog/XIAOYUAN_NOTE && cd XIAOYUAN_NOTE/app && pnpm install\n" >&2
+        printf "    then run XIAOYUAN_NOTE/scripts/XIAOYUAN_NOTE export …\n" >&2
+        printf "  or point this CLI at an existing checkout:\n" >&2
+        printf "    export XIAOYUAN_NOTE_EXPORT_SCRIPT=/path/to/XIAOYUAN_NOTE/app/scripts/XIAOYUAN_NOTE-export.mjs\n" >&2
+        printf "  ${DIM}(In the app itself: File → Export.)${NC}\n" >&2
+        exit 1
+    fi
+    local app_dir
+    app_dir="$(cd "$(dirname "$script")/.." && pwd)"
+    if ! command -v node >/dev/null 2>&1; then
+        printf "${YELLOW}Node.js required for XIAOYUAN_NOTE export.${NC} Install Node 18+ (https://nodejs.org)\n" >&2
+        exit 1
+    fi
+    if [[ ! -d "$app_dir/node_modules/docx" ]]; then
+        printf "${YELLOW}app/node_modules missing. Run \`pnpm install\` in %s first.${NC}\n" "$app_dir" >&2
+        exit 1
+    fi
+    (cd "$app_dir" && node "$script" "$path" "$@")
+}
+
+# ---- v3.1 agent endpoint -------------------------------------------------
+# Detect the bundled XIAOYUAN_NOTE-mcp binary alongside the desktop app, falling
+# back to anything on PATH. We don't ship a separate sidecar yet — the
+# desktop app embeds it via tauri externalBin, so the lookup mirrors
+# detect_XIAOYUAN_NOTE_bin().
+detect_mcp_bin() {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # Tauri's externalBin lands next to the main binary in
+        # Contents/MacOS/. Resources/ is where older builds and docs said
+        # it was; kept as a fallback.
+        local mac_paths=(
+            "/Applications/XIAOYUAN_NOTE.app/Contents/MacOS/XIAOYUAN_NOTE-mcp"
+            "$HOME/Applications/XIAOYUAN_NOTE.app/Contents/MacOS/XIAOYUAN_NOTE-mcp"
+            "/Applications/XIAOYUAN_NOTE.app/Contents/Resources/XIAOYUAN_NOTE-mcp"
+            "$HOME/Applications/XIAOYUAN_NOTE.app/Contents/Resources/XIAOYUAN_NOTE-mcp"
+        )
+        for p in "${mac_paths[@]}"; do
+            [[ -x "$p" ]] && echo "$p" && return 0
+        done
+    elif [[ "$(uname)" == "Linux" ]]; then
+        local linux_paths=(
+            "/usr/lib/XIAOYUAN_NOTE/XIAOYUAN_NOTE-mcp"
+            "/usr/local/lib/XIAOYUAN_NOTE/XIAOYUAN_NOTE-mcp"
+            "/opt/XIAOYUAN_NOTE/XIAOYUAN_NOTE-mcp"
+        )
+        for p in "${linux_paths[@]}"; do
+            [[ -x "$p" ]] && echo "$p" && return 0
+        done
+    fi
+    if command -v XIAOYUAN_NOTE-mcp >/dev/null 2>&1; then
+        command -v XIAOYUAN_NOTE-mcp
+        return 0
+    fi
+    return 1
+}
+
+usage_mcp_config() {
+    echo "Usage: XIAOYUAN_NOTE mcp-config"
+    echo "  Print a Claude Desktop style mcpServers snippet for the bundled XIAOYUAN_NOTE-mcp."
+    echo "  The workspace is \$XIAOYUAN_NOTE_NOTES (default ~/Documents/XIAOYUAN_NOTE)."
+}
+
+cmd_mcp_config() {
+    wants_help "$@" && { usage_mcp_config; exit 0; }
+    local mcp_bin
+    if ! mcp_bin="$(detect_mcp_bin)"; then
+        printf "${YELLOW}XIAOYUAN_NOTE-mcp not found.${NC} Install XIAOYUAN_NOTE or run install-mcp.sh.\n" >&2
+        printf "${DIM}https://github.com/zhitongblog/XIAOYUAN_NOTE/blob/main/scripts/install-mcp.sh${NC}\n" >&2
+        exit 1
+    fi
+    local workspace="${XIAOYUAN_NOTE_NOTES:-$HOME/Documents/XIAOYUAN_NOTE}"
+    cat <<EOF
+{
+  "mcpServers": {
+    "XIAOYUAN_NOTE": {
+      "command": "$mcp_bin",
+      "args": ["--workspace", "$workspace"]
+    }
+  }
+}
+EOF
+}
+
+# ---- v4.4.5 — auto-inject XIAOYUAN_NOTE-mcp into 6 AI clients' configs ---------
+# Mirror of Rust `integrations.rs` so CLI users (no GUI running) can do the
+# same flow as Settings → Integrations → "Hook XIAOYUAN_NOTE into your AI clients".
+# Requires `jq` for safe JSON merging — refuse to write if it's missing.
+
+ai_client_path() {
+    local client="$1"
+    local os
+    os="$(uname -s)"
+    case "$client" in
+        claude-desktop)
+            case "$os" in
+                Darwin) echo "$HOME/Library/Application Support/Claude/claude_desktop_config.json" ;;
+                Linux)  echo "$HOME/.config/Claude/claude_desktop_config.json" ;;
+                *)      echo "${APPDATA:-$HOME/AppData/Roaming}/Claude/claude_desktop_config.json" ;;
+            esac ;;
+        # User-scope MCP servers live in ~/.claude.json — the single
+        # dotfile. ~/.claude/mcp.json is never read by Claude Code.
+        claude-code) echo "$HOME/.claude.json" ;;
+        cursor)      echo "$HOME/.cursor/mcp.json" ;;
+        cline)
+            case "$os" in
+                Darwin) echo "$HOME/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json" ;;
+                Linux)  echo "$HOME/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json" ;;
+                *)      echo "${APPDATA:-$HOME/AppData/Roaming}/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json" ;;
+            esac ;;
+        continue)    echo "$HOME/.continue/config.json" ;;
+        zed)
+            case "$os" in
+                Darwin|Linux) echo "$HOME/.config/zed/settings.json" ;;
+                *)            echo "${APPDATA:-$HOME/AppData/Roaming}/Zed/settings.json" ;;
+            esac ;;
+        *) return 1 ;;
+    esac
+}
+
+# "Is this client installed?" probe. Usually the config file's directory,
+# but Claude Code's config sits directly in $HOME (which always exists), so
+# probe ~/.claude instead.
+ai_client_probe_dir() {
+    case "$1" in
+        claude-code) echo "$HOME/.claude" ;;
+        *)           dirname "$(ai_client_path "$1")" ;;
+    esac
+}
+
+ai_clients=(claude-desktop claude-code cursor cline continue zed)
+ai_client_label() {
+    case "$1" in
+        claude-desktop) echo "Claude Desktop" ;;
+        claude-code)    echo "Claude Code" ;;
+        cursor)         echo "Cursor" ;;
+        cline)          echo "Cline (VS Code)" ;;
+        continue)       echo "Continue.dev" ;;
+        zed)            echo "Zed" ;;
+    esac
+}
+
+# Does this client's config already declare a XIAOYUAN_NOTE server? Checks the key
+# the client actually uses when jq is available — a bare substring match
+# false-positives on ~/.claude.json, which also stores per-project history
+# (any folder with "XIAOYUAN_NOTE" in its path would look "configured").
+client_has_XIAOYUAN_NOTE() {
+    local client="$1" path="$2" filter
+    if ! command -v jq >/dev/null 2>&1; then
+        grep -q '"XIAOYUAN_NOTE"\|"name": "XIAOYUAN_NOTE"' "$path" 2>/dev/null
+        return
+    fi
+    case "$client" in
+        continue) filter='(.mcp // []) | map(select(.name == "XIAOYUAN_NOTE")) | length > 0' ;;
+        zed)      filter='(.context_servers // {}) | has("XIAOYUAN_NOTE")' ;;
+        *)        filter='(.mcpServers // {}) | has("XIAOYUAN_NOTE")' ;;
+    esac
+    [[ "$(jq -r "$filter" "$path" 2>/dev/null)" == "true" ]]
+}
+
+cmd_mcp_list() {
+    printf "${BLUE}AI clients on this machine${NC}\n\n"
+    printf "  %-18s %-4s %-13s %s\n" "CLIENT" "DIR" "HAS XIAOYUAN_NOTE" "PATH"
+    printf "  %-18s %-4s %-13s %s\n" "------" "---" "----------" "----"
+    local client path dir_color dir_text entry_color entry_text
+    for client in "${ai_clients[@]}"; do
+        path="$(ai_client_path "$client")"
+        if [[ -d "$(ai_client_probe_dir "$client")" ]]; then
+            dir_color="$GREEN"; dir_text="yes"
+        else
+            dir_color="$DIM"; dir_text="no"
+        fi
+        if [[ -f "$path" ]] && client_has_XIAOYUAN_NOTE "$client" "$path"; then
+            entry_color="$GREEN"; entry_text="configured"
+        else
+            entry_color="$DIM"; entry_text="—"
+        fi
+        # Put colors in the format string so printf interprets the escapes.
+        # %b would also work for arg values, but format-string is cleaner.
+        printf "  %-18s ${dir_color}%-4s${NC} ${entry_color}%-13s${NC} ${DIM}%s${NC}\n" \
+            "$(ai_client_label "$client")" "$dir_text" "$entry_text" "$path"
+    done
+}
+
+# jq is the only safe way to do a "preserve user's hand-edits + insert
+# XIAOYUAN_NOTE" merge across this many client schemas. Bail out loudly when it
+# isn't available so the user doesn't end up with a corrupted config.
+require_jq() {
+    if ! command -v jq >/dev/null 2>&1; then
+        printf "${YELLOW}XIAOYUAN_NOTE mcp install needs jq.${NC} Install it:\n" >&2
+        printf "  ${DIM}macOS:${NC}   brew install jq\n" >&2
+        printf "  ${DIM}Debian:${NC}  sudo apt-get install jq\n" >&2
+        printf "  ${DIM}Fedora:${NC}  sudo dnf install jq\n" >&2
+        exit 1
+    fi
+}
+
+inject_one_client() {
+    local client="$1" mcp_bin="$2" workspace="$3" allow_write="$4"
+    local path
+    path="$(ai_client_path "$client")"
+
+    # Claude Code: let its own CLI write ~/.claude.json when it's on PATH.
+    # That file also holds session state a running Claude Code rewrites, so
+    # a jq round-trip here can lose whatever it flushes meanwhile.
+    if [[ "$client" == "claude-code" ]] && command -v claude >/dev/null 2>&1; then
+        local cli_args=("--workspace" "$workspace")
+        [[ "$allow_write" == "true" ]] && cli_args+=("--allow-write")
+        claude mcp remove XIAOYUAN_NOTE -s user >/dev/null 2>&1 || true
+        if claude mcp add --scope user XIAOYUAN_NOTE -- "$mcp_bin" "${cli_args[@]}" >/dev/null; then
+            printf "  ${GREEN}✓${NC} %s — %s ${DIM}(via claude mcp add)${NC}\n" \
+                "$(ai_client_label "$client")" "$path"
+            return
+        fi
+        printf "  ${YELLOW}!${NC} claude mcp add failed — patching %s directly\n" "$path"
+    fi
+
+    mkdir -p "$(dirname "$path")"
+    # Backup any existing file before touching it.
+    if [[ -f "$path" ]]; then
+        cp "$path" "$path.bak.$(date +%s)"
+    fi
+    # Build the args array — JSON-safe via jq's --args.
+    local args=("--workspace" "$workspace")
+    [[ "$allow_write" == "true" ]] && args+=("--allow-write")
+    local existing="{}"
+    [[ -s "$path" ]] && existing="$(cat "$path")"
+    local merged
+    case "$client" in
+        claude-desktop|claude-code|cursor|cline)
+            local entry
+            if [[ "$client" == "cline" ]]; then
+                entry="$(jq -n \
+                    --arg cmd "$mcp_bin" \
+                    --args \
+                    '{command:$cmd, args:$ARGS.positional, disabled:false, autoApprove:["list_notes","read_note","search","get_outline","get_backlinks","list_tags","autogit_log","autogit_diff","sync_status","share_url","read_agent_trace"]}' \
+                    -- "${args[@]}")"
+            else
+                entry="$(jq -n --arg cmd "$mcp_bin" --args '{command:$cmd, args:$ARGS.positional}' -- "${args[@]}")"
+            fi
+            merged="$(echo "$existing" | jq --argjson entry "$entry" '. + {mcpServers: ((.mcpServers // {}) + {XIAOYUAN_NOTE: $entry})}')"
+            ;;
+        continue)
+            local entry
+            entry="$(jq -n --arg cmd "$mcp_bin" --args '{name:"XIAOYUAN_NOTE", command:$cmd, args:$ARGS.positional}' -- "${args[@]}")"
+            merged="$(echo "$existing" | jq --argjson entry "$entry" '. + {mcp: ((.mcp // []) | map(select(.name != "XIAOYUAN_NOTE")) + [$entry])}')"
+            ;;
+        zed)
+            local entry
+            entry="$(jq -n --arg cmd "$mcp_bin" --args '{command:{path:$cmd, args:$ARGS.positional}, settings:{}}' -- "${args[@]}")"
+            merged="$(echo "$existing" | jq --argjson entry "$entry" '. + {context_servers: ((.context_servers // {}) + {XIAOYUAN_NOTE: $entry})}')"
+            ;;
+    esac
+    printf "%s\n" "$merged" > "$path"
+    printf "  ${GREEN}✓${NC} %s — %s\n" "$(ai_client_label "$client")" "$path"
+}
+
+remove_one_client() {
+    local client="$1" path
+    path="$(ai_client_path "$client")"
+    if [[ "$client" == "claude-code" ]] && command -v claude >/dev/null 2>&1; then
+        if claude mcp remove XIAOYUAN_NOTE -s user >/dev/null 2>&1; then
+            printf "  ${GREEN}✓${NC} %s — XIAOYUAN_NOTE entry removed ${DIM}(via claude mcp remove)${NC}\n" \
+                "$(ai_client_label "$client")"
+            return
+        fi
+    fi
+    if [[ ! -f "$path" ]]; then
+        printf "  ${DIM}–${NC} %s — no config to clean\n" "$(ai_client_label "$client")"
+        return
+    fi
+    cp "$path" "$path.bak.$(date +%s)"
+    local cleaned
+    case "$client" in
+        claude-desktop|claude-code|cursor|cline)
+            cleaned="$(jq 'if .mcpServers then .mcpServers |= del(.XIAOYUAN_NOTE) else . end' "$path")" ;;
+        continue)
+            cleaned="$(jq 'if .mcp then .mcp |= map(select(.name != "XIAOYUAN_NOTE")) else . end' "$path")" ;;
+        zed)
+            cleaned="$(jq 'if .context_servers then .context_servers |= del(.XIAOYUAN_NOTE) else . end' "$path")" ;;
+    esac
+    printf "%s\n" "$cleaned" > "$path"
+    printf "  ${GREEN}✓${NC} %s — XIAOYUAN_NOTE entry removed\n" "$(ai_client_label "$client")"
+}
+
+cmd_mcp_install() {
+    require_jq
+    local mcp_bin
+    if ! mcp_bin="$(detect_mcp_bin)"; then
+        printf "${YELLOW}XIAOYUAN_NOTE-mcp not found.${NC} Install XIAOYUAN_NOTE first.\n" >&2
+        exit 1
+    fi
+    local workspace="${XIAOYUAN_NOTE_NOTES:-$HOME/Documents/XIAOYUAN_NOTE}"
+    local allow_write="false"
+    local targets=()
+    # Parse flags + positional client list.
+    while (( $# )); do
+        case "$1" in
+            --workspace) workspace="$2"; shift 2 ;;
+            --workspace=*) workspace="${1#*=}"; shift ;;
+            --allow-write) allow_write="true"; shift ;;
+            --all) targets=("${ai_clients[@]}"); shift ;;
+            -h|--help)
+                printf "Usage: XIAOYUAN_NOTE mcp install [CLIENT…] [--workspace PATH] [--allow-write] [--all]\n"
+                printf "  CLIENT: %s\n" "${ai_clients[*]}"
+                exit 0 ;;
+            *) targets+=("$1"); shift ;;
+        esac
+    done
+    if [[ ${#targets[@]} -eq 0 ]]; then
+        # Default: install into every client whose config DIR already exists.
+        for c in "${ai_clients[@]}"; do
+            [[ -d "$(ai_client_probe_dir "$c")" ]] && targets+=("$c")
+        done
+    fi
+    if [[ ${#targets[@]} -eq 0 ]]; then
+        printf "${YELLOW}No AI client detected on this machine.${NC} Pass a client name or --all to override.\n"
+        exit 1
+    fi
+    printf "${BLUE}Installing XIAOYUAN_NOTE MCP server for ${#targets[@]} client(s)${NC}\n"
+    printf "  ${DIM}binary:    %s${NC}\n" "$mcp_bin"
+    printf "  ${DIM}workspace: %s${NC}\n" "$workspace"
+    printf "  ${DIM}--allow-write: %s${NC}\n\n" "$allow_write"
+    for c in "${targets[@]}"; do
+        inject_one_client "$c" "$mcp_bin" "$workspace" "$allow_write"
+    done
+    printf "\n${YELLOW}Restart the AI client(s) for the new MCP server to load.${NC}\n"
+}
+
+cmd_mcp_uninstall() {
+    require_jq
+    local targets=()
+    while (( $# )); do
+        case "$1" in
+            --all) targets=("${ai_clients[@]}"); shift ;;
+            -h|--help)
+                printf "Usage: XIAOYUAN_NOTE mcp uninstall [CLIENT…] [--all]\n"
+                printf "  CLIENT: %s\n" "${ai_clients[*]}"
+                exit 0 ;;
+            *) targets+=("$1"); shift ;;
+        esac
+    done
+    if [[ ${#targets[@]} -eq 0 ]]; then
+        # Default: clean every config that already has a XIAOYUAN_NOTE entry.
+        for c in "${ai_clients[@]}"; do
+            local p
+            p="$(ai_client_path "$c")"
+            [[ -f "$p" ]] && client_has_XIAOYUAN_NOTE "$c" "$p" && targets+=("$c")
+        done
+    fi
+    if [[ ${#targets[@]} -eq 0 ]]; then
+        printf "${DIM}Nothing to uninstall — no client has a XIAOYUAN_NOTE entry.${NC}\n"
+        exit 0
+    fi
+    printf "${BLUE}Removing XIAOYUAN_NOTE MCP entry from ${#targets[@]} client(s)${NC}\n"
+    for c in "${targets[@]}"; do
+        remove_one_client "$c"
+    done
+}
+
+cmd_mcp() {
+    local sub="${1:-list}"; shift || true
+    case "$sub" in
+        list|ls)          cmd_mcp_list "$@" ;;
+        install|add)      cmd_mcp_install "$@" ;;
+        uninstall|rm)     cmd_mcp_uninstall "$@" ;;
+        config)           cmd_mcp_config "$@" ;;   # back-compat with old `XIAOYUAN_NOTE mcp-config`
+        -h|--help|help)
+            printf "${BLUE}XIAOYUAN_NOTE mcp${NC} — manage XIAOYUAN_NOTE's MCP server entry across your AI clients\n\n"
+            printf "${BLUE}USAGE${NC}\n  XIAOYUAN_NOTE mcp <subcommand> [args]\n\n"
+            printf "${BLUE}SUBCOMMANDS${NC}\n"
+            printf "  ${GREEN}%-20s${NC} %s\n" "list" "Show which AI clients are present + status"
+            printf "  ${GREEN}%-20s${NC} %s\n" "install [CLIENT…]" "Inject XIAOYUAN_NOTE into the named clients"
+            printf "  ${GREEN}%-20s${NC} %s\n" "uninstall [CLIENT…]" "Remove XIAOYUAN_NOTE from the named clients"
+            printf "  ${GREEN}%-20s${NC} %s\n" "config" "Print generic Claude Desktop snippet (back-compat)"
+            printf "\n${BLUE}CLIENTS${NC}\n  ${DIM}%s${NC}\n" "${ai_clients[*]}"
+            ;;
+        *) printf "${YELLOW}Unknown mcp subcommand:${NC} %s\n" "$sub"; exit 1 ;;
+    esac
+}
+
+# `XIAOYUAN_NOTE agent <prompt>` — hand the prompt off to whichever LLM CLI is on
+# PATH (claude / codex / aider), with XIAOYUAN_NOTE-mcp pre-wired. We deliberately
+# do not implement an LLM loop ourselves: the user already has Claude Code,
+# Codex CLI, or aider installed and configured with their BYOK keys. Our
+# job is to put a XIAOYUAN_NOTE MCP server in front of that CLI so it can read +
+# edit the vault, then pass through.
+usage_agent() {
+    echo "Usage: XIAOYUAN_NOTE agent <prompt>"
+    echo "  Start claude (or codex) with XIAOYUAN_NOTE-mcp wired to the notes dir, --allow-write on."
+    echo "  e.g. XIAOYUAN_NOTE agent 'rewrite this week of dailies into a weekly review'"
+}
+
+cmd_agent() {
+    wants_help "$@" && { usage_agent; exit 0; }
+    local prompt="$*"
+    [[ -z "$prompt" ]] && { usage_agent >&2; exit 1; }
+
+    local mcp_bin
+    if ! mcp_bin="$(detect_mcp_bin)"; then
+        printf "${YELLOW}XIAOYUAN_NOTE-mcp not found.${NC}\n" >&2
+        printf "  XIAOYUAN_NOTE bundles XIAOYUAN_NOTE-mcp inside the app (Mac/Linux). Make sure XIAOYUAN_NOTE is installed,\n" >&2
+        printf "  or run scripts/install-mcp.sh from this repo to drop it on PATH.\n" >&2
+        exit 1
+    fi
+    local workspace="${XIAOYUAN_NOTE_NOTES:-$HOME/Documents/XIAOYUAN_NOTE}"
+
+    # Generate a one-shot MCP config in TMPDIR so the LLM CLI can pick it
+    # up without us touching the user's persistent config.
+    local cfg_dir
+    cfg_dir="$(mktemp -d -t XIAOYUAN_NOTE-agent.XXXXXX)"
+    # The config grants --allow-write, so it must not outlive the session.
+    # The LLM CLI runs as a child (no exec) so this trap actually fires.
+    trap "rm -rf '$cfg_dir'" EXIT
+    local cfg="$cfg_dir/mcp.json"
+    cat > "$cfg" <<EOF
+{
+  "mcpServers": {
+    "XIAOYUAN_NOTE": {
+      "command": "$mcp_bin",
+      "args": ["--workspace", "$workspace", "--allow-write"]
+    }
+  }
+}
+EOF
+
+    printf "${DIM}vault:    %s${NC}\n" "$workspace"
+    printf "${DIM}mcp:      %s${NC}\n" "$mcp_bin"
+
+    if command -v claude >/dev/null 2>&1; then
+        printf "${BLUE}→ claude${NC} (Claude Code CLI)\n\n"
+        # `claude "query"` starts an interactive session seeded with the
+        # query. `--mcp-config` registers the XIAOYUAN_NOTE MCP for that session.
+        # We don't pass `-p` (non-interactive one-shot) by default — agent
+        # work usually needs follow-up turns.
+        claude --mcp-config "$cfg" -- "$prompt"
+    elif command -v codex >/dev/null 2>&1; then
+        printf "${BLUE}→ codex${NC} (Codex CLI)\n\n"
+        # Codex CLI registers MCP servers via ~/.codex/config.toml, not a
+        # CLI flag. Print the right snippet and run codex with the prompt.
+        printf "${DIM}Add this to ~/.codex/config.toml if not already present:${NC}\n"
+        printf "  [mcp_servers.XIAOYUAN_NOTE]\n"
+        printf "  command = \"%s\"\n" "$mcp_bin"
+        printf "  args = [\"--workspace\", \"%s\", \"--allow-write\"]\n\n" "$workspace"
+        codex "$prompt"
+    elif command -v aider >/dev/null 2>&1; then
+        printf "${BLUE}→ aider${NC} (no native MCP — printing recipe instead)\n\n"
+        printf "  The aider CLI doesn't speak MCP. Either:\n"
+        printf "  1. Install Claude Code: https://docs.claude.com/en/docs/claude-code\n"
+        printf "  2. Or run: aider %s\n" "$workspace"
+        printf "     (it will read+edit notes directly without the XIAOYUAN_NOTE MCP wrapper)\n"
+        exit 0
+    else
+        printf "${YELLOW}No supported LLM CLI found on PATH.${NC}\n\n" >&2
+        printf "  Install one of:\n" >&2
+        printf "    Claude Code  — https://docs.claude.com/en/docs/claude-code\n" >&2
+        printf "    Codex CLI    — https://github.com/openai/codex\n" >&2
+        printf "  Then re-run: XIAOYUAN_NOTE agent '$prompt'\n\n" >&2
+        printf "${DIM}MCP config that would be used:${NC}\n" >&2
+        cat "$cfg" >&2
+        exit 1
+    fi
+}
+
+# ---- Dispatch ------------------------------------------------------------
+case "${1:-help}" in
+    open)       shift; cmd_open "$@" ;;
+    new)        shift; cmd_new "$@" ;;
+    list)       shift; cmd_list "$@" ;;
+    search)     shift; cmd_search "$@" ;;
+    cat)        shift; cmd_cat "$@" ;;
+    export)     shift; cmd_export "$@" ;;
+    agent)      shift; cmd_agent "$@" ;;
+    mcp-config) shift; cmd_mcp_config "$@" ;;
+    mcp)        shift; cmd_mcp "$@" ;;
+    help|--help|-h) cmd_help ;;
+    version|--version|-V) echo "XIAOYUAN_NOTE $(XIAOYUAN_NOTE_version)" ;;
+    *) printf "${YELLOW}Unknown command:${NC} %s\n\n" "$1"; cmd_help; exit 1 ;;
+esac

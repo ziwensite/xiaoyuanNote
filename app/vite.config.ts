@@ -10,9 +10,9 @@ const host = process.env.TAURI_DEV_HOST;
 // importer — only that one — an empty module; everything else gets the real
 // KaTeX, loaded on demand by lib/render-deps.ts. Build-only: the dev server
 // pre-bundles the plugin with esbuild and never asks us.
-const KATEX_STUB = '\0solomd-katex-stub';
+const KATEX_STUB = '\0xiaoyuan-note-katex-stub';
 const katexPluginStub: Plugin = {
-  name: 'solomd-katex-plugin-stub',
+  name: 'xiaoyuan-note-katex-plugin-stub',
   apply: 'build',
   enforce: 'pre',
   resolveId(source, importer) {

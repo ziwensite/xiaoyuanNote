@@ -1,4 +1,4 @@
-- [x] 标题行（Windows titlebar）不再显示「文档名 — SoloMD」，改为可输入的搜索框
+- [x] 标题行（Windows titlebar）不再显示「文档名 — xiaoyuanNote」，改为可输入的搜索框
 - [x] 非 Windows header 的左段用同一搜索框，且位置在面板 toggle 与 80px mac inset 之后
 - [x] header 搜索图标、桌面左侧 dock 的「搜索」行、dock 的 `search` 面板均已移除，只剩一个可见入口
 - [x] ⌘⇧F / View › Search in Folder / 命令面板搜索命令都聚焦同一个搜索框，没有第二套面板开关

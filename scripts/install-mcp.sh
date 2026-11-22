@@ -1,22 +1,22 @@
 #!/bin/bash
 #
-# Installs the `solomd-mcp` binary (Model Context Protocol server for a
-# SoloMD vault) to /usr/local/bin (or $HOME/.local/bin if /usr/local/bin
+# Installs the `xiaoyuan-note-mcp` binary (Model Context Protocol server for a
+# xiaoyuanNote vault) to /usr/local/bin (or $HOME/.local/bin if /usr/local/bin
 # isn't writable).
 #
 # Run via:
-#   curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-mcp.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-mcp.sh | bash
 #
 # Override the version with: VERSION=v2.2.0 curl ... | bash
 #
 # Mirrors the layout of `scripts/install-cli.sh`. Binaries are released as
 # tarballs alongside the desktop app under
-#   solomd-mcp-<platform>-<arch>.tar.gz
-# at https://github.com/zhitongblog/solomd/releases.
+#   xiaoyuan-note-mcp-<platform>-<arch>.tar.gz
+# at https://github.com/zhitongblog/xiaoyuan-note/releases.
 
 set -e
 
-REPO="zhitongblog/solomd"
+REPO="zhitongblog/xiaoyuan-note"
 VERSION="${VERSION:-latest}"
 
 # ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@ case "$uname_s" in
     MINGW*|MSYS*|CYGWIN*) platform="win" ;;
     *)
         echo "Error: unsupported OS: $uname_s" >&2
-        echo "Build from source: cargo install --git https://github.com/$REPO solomd-mcp" >&2
+        echo "Build from source: cargo install --git https://github.com/$REPO xiaoyuan-note-mcp" >&2
         exit 1
         ;;
 esac
@@ -58,9 +58,9 @@ case "$uname_m" in
         ;;
 esac
 
-asset="solomd-mcp-${platform}-${arch}.tar.gz"
+asset="xiaoyuan-note-mcp-${platform}-${arch}.tar.gz"
 if [[ "$platform" == "win" ]]; then
-    asset="solomd-mcp-${platform}-${arch}.zip"
+    asset="xiaoyuan-note-mcp-${platform}-${arch}.zip"
 fi
 
 # ---------------------------------------------------------------------------
@@ -107,14 +107,14 @@ else
     fi
 fi
 
-target_bin="$target_dir/solomd-mcp"
-[[ "$platform" == "win" ]] && target_bin="$target_dir/solomd-mcp.exe"
+target_bin="$target_dir/xiaoyuan-note-mcp"
+[[ "$platform" == "win" ]] && target_bin="$target_dir/xiaoyuan-note-mcp.exe"
 
 # ---------------------------------------------------------------------------
 # Download + extract
 # ---------------------------------------------------------------------------
 
-tmp="$(mktemp -d -t solomd-mcp.XXXXXX)"
+tmp="$(mktemp -d -t xiaoyuan-note-mcp.XXXXXX)"
 trap 'rm -rf "$tmp"' EXIT
 
 archive="$tmp/$asset"
@@ -143,15 +143,15 @@ case "$asset" in
     *.zip)    (cd "$tmp" && unzip -q "$archive") ;;
 esac
 
-src_bin="$tmp/solomd-mcp"
-[[ "$platform" == "win" ]] && src_bin="$tmp/solomd-mcp.exe"
+src_bin="$tmp/xiaoyuan-note-mcp"
+[[ "$platform" == "win" ]] && src_bin="$tmp/xiaoyuan-note-mcp.exe"
 if [[ ! -f "$src_bin" ]]; then
     # Some release archives may include a top-level dir; find it.
-    found="$(find "$tmp" -name 'solomd-mcp' -o -name 'solomd-mcp.exe' | head -1)"
+    found="$(find "$tmp" -name 'xiaoyuan-note-mcp' -o -name 'xiaoyuan-note-mcp.exe' | head -1)"
     if [[ -n "$found" ]]; then
         src_bin="$found"
     else
-        echo "Error: solomd-mcp binary not found in archive" >&2
+        echo "Error: xiaoyuan-note-mcp binary not found in archive" >&2
         ls -la "$tmp" >&2
         exit 1
     fi
@@ -162,10 +162,10 @@ chmod +x "$target_bin"
 
 echo "Installed: $target_bin"
 echo
-echo "Try: solomd-mcp --version"
+echo "Try: xiaoyuan-note-mcp --version"
 echo
 echo "Next step — register with your MCP client. Example for Claude Code:"
-echo '  claude mcp add --scope user solomd-vault -- solomd-mcp --workspace ~/Documents/Notes'
+echo '  claude mcp add --scope user xiaoyuan-note-vault -- xiaoyuan-note-mcp --workspace ~/Documents/Notes'
 echo
 echo "That writes the user-scope config at ~/.claude.json. To scope the server"
 echo "to a single project instead, put an .mcp.json in the project root. See:"

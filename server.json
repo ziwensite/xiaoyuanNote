@@ -1,19 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.zhitongblog/solomd",
-  "title": "SoloMD",
+  "name": "io.github.zhitongblog/xiaoyuan-note",
+  "title": "xiaoyuanNote",
   "description": "Read and search a folder of Markdown notes: search, backlinks, tags, tasks, outlines, git history.",
   "version": "5.0.12",
   "repository": {
-    "url": "https://github.com/zhitongblog/solomd",
+    "url": "https://github.com/zhitongblog/xiaoyuan-note",
     "source": "github",
     "subfolder": "mcp-server"
   },
-  "websiteUrl": "https://solomd.app",
+  "websiteUrl": "https://xiaoyuannote.app",
   "packages": [
     {
       "registryType": "mcpb",
-      "identifier": "https://github.com/zhitongblog/solomd/releases/download/v5.0.12/solomd-mcp-5.0.12.mcpb",
+      "identifier": "https://github.com/zhitongblog/xiaoyuan-note/releases/download/v5.0.12/xiaoyuan-note-mcp-5.0.12.mcpb",
       "fileSha256": "526973b67d20f9daddc26d089f1a3aa510250e6eb61269d7ab6d0181e368c34e",
       "transport": {
         "type": "stdio"

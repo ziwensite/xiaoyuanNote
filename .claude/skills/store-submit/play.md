@@ -1,6 +1,6 @@
 # Google Play Console
 
-App id `4973693003540583322`, package `app.solomd`. Console lives under
+App id `4973693003540583322`, package `app.xiaoyuanNote`. Console lives under
 `https://play.google.com/console/u/0/developers/8662341371772988450/app/4973693003540583322/`.
 
 Since 4.12.0 the app is on the **production track** and needs no further
@@ -17,7 +17,7 @@ The file input is hidden: `input[type=file][accept=".aab"]`. Three things all
 have to happen, in order, or nothing does.
 
 ```bash
-$S/unzoo.sh upload 'input[type=file][accept=".aab"]' dist-android/SoloMD_X.Y.Z.aab
+$S/unzoo.sh upload 'input[type=file][accept=".aab"]' dist-android/XIAOYUAN_NOTE_X.Y.Z.aab
 ```
 
 - **A synthetic `.click()` on the input does not open anything**, and clicking
@@ -57,8 +57,8 @@ directly instead of `scripts/build-android.sh`. Both ends now refuse
 
 ```bash
 python3 -c "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); \
-print([n for n in z.namelist() if n.startswith('META-INF/')])" dist/SoloMD_X.Y.Z_play.aab
-# want: MANIFEST.MF + SOLOMD.SF + SOLOMD.RSA
+print([n for n in z.namelist() if n.startswith('META-INF/')])" dist/XIAOYUAN_NOTE_X.Y.Z_play.aab
+# want: MANIFEST.MF + xiaoyuan-note.SF + xiaoyuan-note.RSA
 ```
 
 To sign one that is already built (keeps the versionCode):

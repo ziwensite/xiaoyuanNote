@@ -14,13 +14,13 @@
 //!      (macOS / Windows / Linux). Tried first on every platform.
 //!   2. **Encrypted file (fallback)** — when keyring has no usable backend
 //!      (Android, or any platform whose secret service is unavailable), keys
-//!      are persisted to `<app_config_dir>/solomd-ai-keys.json`, each value
+//!      are persisted to `<app_config_dir>/xiaoyuan-note-ai-keys.json`, each value
 //!      encrypted with XChaCha20-Poly1305 via the same `crypto::encrypt_bytes`
 //!      / `crypto::decrypt_bytes` primitives the E2EE vault uses. The
 //!      symmetric key is a per-install 32-byte secret kept next to the store
-//!      in `solomd-ai-keys.key` — on Android the app-private config dir is
+//!      in `xiaoyuan-note-ai-keys.key` — on Android the app-private config dir is
 //!      already sandboxed per-app by the OS, so the file is only readable by
-//!      SoloMD itself.
+//!      xiaoyuanNote itself.
 //!
 //! The fallback decision is made per-call and **cached**: the first time a
 //! keyring operation reports "no backend", we flip a process-wide flag and
@@ -43,12 +43,12 @@ use tauri::{AppHandle, Manager};
 
 use super::crypto;
 
-const KEYRING_SERVICE: &str = "solomd";
-const KEY_STORE_FILE: &str = "solomd-ai-keys.json";
-const KEY_SECRET_FILE: &str = "solomd-ai-keys.key";
+const KEYRING_SERVICE: &str = "xiaoyuanNote";
+const KEY_STORE_FILE: &str = "xiaoyuan-note-ai-keys.json";
+const KEY_SECRET_FILE: &str = "xiaoyuan-note-ai-keys.key";
 /// AAD for the encrypted-file fallback. Binds each value to the keystore so
 /// a value can't be lifted out and replayed as a different file's content.
-const AAD: &str = "solomd-ai-keystore-v1";
+const AAD: &str = "xiaoyuan-note-ai-keystore-v1";
 
 // ---------------------------------------------------------------------------
 // Backend selection
@@ -129,24 +129,24 @@ fn current_config_dir() -> Option<PathBuf> {
         // Android runtime exports, then a stable in-app-data subfolder.
         std::env::var("HOME")
             .ok()
-            .map(|h| PathBuf::from(h).join("solomd"))
+            .map(|h| PathBuf::from(h).join("xiaoyuanNote"))
     } else if cfg!(target_os = "macos") {
         std::env::var("HOME").ok().map(|h| {
             PathBuf::from(h)
                 .join("Library")
                 .join("Application Support")
-                .join("solomd")
+                .join("xiaoyuanNote")
         })
     } else if cfg!(target_os = "windows") {
         std::env::var("APPDATA")
             .ok()
-            .map(|h| PathBuf::from(h).join("solomd"))
+            .map(|h| PathBuf::from(h).join("xiaoyuanNote"))
     } else {
         std::env::var("XDG_CONFIG_HOME")
             .ok()
             .map(PathBuf::from)
             .or_else(|| std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".config")))
-            .map(|p| p.join("solomd"))
+            .map(|p| p.join("xiaoyuanNote"))
     }
 }
 
@@ -392,7 +392,7 @@ mod tests {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = std::env::temp_dir().join(format!("solomd-aikeys-test-{nanos}"));
+        let dir = std::env::temp_dir().join(format!("xiaoyuan-note-aikeys-test-{nanos}"));
         std::fs::create_dir_all(&dir).unwrap();
         if let Ok(mut g) = CONFIG_DIR.lock() {
             *g = Some(dir.clone());

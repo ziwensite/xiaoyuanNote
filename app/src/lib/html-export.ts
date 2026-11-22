@@ -216,7 +216,7 @@ ${headCss ? `<style>${headCss}</style>\n` : ''}<style>
     user-select: none;
     -webkit-user-select: none;
   }
-</style>${customCss ? `\n<style id="solomd-custom-theme">\n${customCss}\n</style>` : ''}
+</style>${customCss ? `\n<style id="xiaoyuan-note-custom-theme">\n${customCss}\n</style>` : ''}
 </head>
 <body class="${['preview-content', bodyClasses].filter(Boolean).join(' ')}">
 ${body}
@@ -238,7 +238,7 @@ export interface StandaloneHtmlInput {
   plantumlServer?: string | null;
   /** Byte reader for local images (tests/harness); defaults to the Tauri one. */
   readBytes?: BinaryReader;
-  /** #439 — optional custom CSS override; defaults to active `<style id="solomd-custom-theme">`. */
+  /** #439 — optional custom CSS override; defaults to active `<style id="xiaoyuan-note-custom-theme">`. */
   customCss?: string;
   /** #454 — render line numbers inside fenced code blocks when enabled. */
   codeBlockLineNumbers?: boolean;

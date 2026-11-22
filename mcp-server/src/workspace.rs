@@ -75,7 +75,7 @@ pub struct TagCount {
 // ---------------------------------------------------------------------------
 
 /// Iterate every `.md` / `.markdown` / `.mdown` file under `root`.
-/// Skips `.git`, `node_modules`, `.solomd` and other hidden dirs.
+/// Skips `.git`, `node_modules`, `.xiaoyuanNote` and other hidden dirs.
 pub fn walk_markdown_files(root: &Path) -> impl Iterator<Item = PathBuf> + '_ {
     WalkDir::new(root)
         .follow_links(false)
@@ -472,6 +472,10 @@ pub struct TaskRef {
     /// The character between `[` and `]`.
     pub status: String,
     pub done: bool,
+    /// Due date (`YYYY-MM-DD`) parsed from the task text. Mirrors the app's
+    /// `TaskRef`. The MCP extractor does not parse it yet, so it is always
+    /// `None` here; kept for structural parity with the app's index.
+    pub due: Option<String>,
 }
 
 /// Obsidian Tasks' default status table: only `x`/`X` are DONE.
@@ -518,7 +522,7 @@ pub fn extract_tasks(raw: &str) -> Vec<TaskRef> {
             if text.is_empty() {
                 continue;
             }
-            out.push(TaskRef { line: idx as u32 + 1, text, status, done });
+            out.push(TaskRef { line: idx as u32 + 1, text, status, done, due: None });
         }
     }
     out
@@ -555,7 +559,7 @@ mod task_tests {
     fn read_full_counts_front_matter_in_line_numbers() {
         let doc = "---\ntitle: Index\ntags: [a]\n---\n# Vault Index\n\nSee [[Alpha]].\n\n## Tasks\n- [ ] Review [[Alpha]]\n";
         let dir = std::env::temp_dir().join(format!(
-            "solomd-mcp-lines-{}",
+            "xiaoyuan-note-mcp-lines-{}",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()

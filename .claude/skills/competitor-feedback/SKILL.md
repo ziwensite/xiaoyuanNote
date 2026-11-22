@@ -3,9 +3,9 @@ name: competitor-feedback
 version: 1.0.0
 description: |
   Scan competing markdown editors' user feedback (GitHub issues/discussions/releases
-  + closed-source forums) and synthesize themes cross-referenced against SoloMD's
-  own gaps and roadmap. Surfaces unmet demand SoloMD could win on, and features
-  competitors ship that SoloMD lacks. Supports a "subscribe" mode that reports only
+  + closed-source forums) and synthesize themes cross-referenced against xiaoyuanNote’s
+  own gaps and roadmap. Surfaces unmet demand xiaoyuanNote could win on, and features
+  competitors ship that xiaoyuanNote lacks. Supports a "subscribe" mode that reports only
   what's new since the last scan. Use when asked to "check competitor feedback",
   "what are users complaining about in Obsidian/Logseq/etc.", "competitor watch",
   or "subscribe to competitors' GitHub".
@@ -25,7 +25,7 @@ allowed-tools:
 
 # Competitor feedback watch
 
-Pulls real user feedback from SoloMD's competitors and turns it into a product
+Pulls real user feedback from xiaoyuanNote’s competitors and turns it into a product
 signal: **what their users want that we could win on**, and **what they ship
 that we lack**.
 
@@ -75,14 +75,14 @@ cookies). Use it via the bundled `unzoo.sh` wrapper, not MCP calls.
    "plugin breakage"). For each theme note which competitors it hits and rough volume
    (top-voted issue = strong signal).
 
-4. **Cross-reference against SoloMD.** Read `docs/roadmap.md` and recent SoloMD
-   issues (`gh issue list --repo zhitongblog/solomd --state open`). Then output two
+4. **Cross-reference against xiaoyuan-note.** Read `docs/roadmap.md` and recent xiaoyuanNote
+   issues (`gh issue list --repo zhitongblog/xiaoyuan-note --state open`). Then output two
    ranked lists:
-   - **Win-on:** pains competitors' users repeatedly hit that SoloMD already does
+   - **Win-on:** pains competitors' users repeatedly hit that xiaoyuanNote already does
      better or could cheaply own (these are positioning/marketing + wedge opportunities).
-   - **Gaps:** things competitors ship that SoloMD lacks and users clearly value
+   - **Gaps:** things competitors ship that xiaoyuanNote lacks and users clearly value
      (candidate roadmap items). Be honest about effort.
-   - Flag any theme that overlaps SoloMD's *own* recent complaints (shared weak spot).
+   - Flag any theme that overlaps xiaoyuanNote’s *own* recent complaints (shared weak spot).
 
 5. **Write the report** to `docs/competitor-feedback/YYYY-MM-DD.md` (create the dir).
    Structure: TL;DR (3-5 bullets) → themes table → Win-on → Gaps → raw per-competitor

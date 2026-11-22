@@ -8,7 +8,7 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD v1.1.6 —— 文件图标与原生打印"
+  title="xiaoyuanNote v1.1.6 —— 文件图标与原生打印"
   description="v1.1.6 更新内容：Mac 和 Windows 的 .md 文件图标独立设计，系统原生打印对话框（跨三平台）。"
   lang={lang}
 >
@@ -26,7 +26,7 @@ const lang = 'zh' as const;
 
       <h2>1. 专门的文档图标</h2>
       <p>
-        v1.1.6 之前，桌面上每个 <code>.md</code> 文件的图标和 SoloMD 主程序一模一样 ——
+        v1.1.6 之前，桌面上每个 <code>.md</code> 文件的图标和 xiaoyuanNote 主程序一模一样 ——
         同样的黑色方块 + 橙色 #MD。一眼看过去分不清文档和应用。
       </p>
       <p>
@@ -42,7 +42,7 @@ const lang = 'zh' as const;
       </p>
       <p>
         在 <strong>Windows</strong> 上，我们写了一个 NSIS installer hook
-        （<code>installer.nsh</code>），安装时注册独立的 <code>SoloMD.md</code>
+        （<code>installer.nsh</code>），安装时注册独立的 <code>xiaoyuan-note.md</code>
         ProgID，<code>DefaultIcon</code> 指向 <code>file_icon.ico</code>，
         并发信号让 Explorer 刷新 icon cache。
       </p>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate "#MD" combination logo variants for SoloMD
+# Generate "#MD" combination logo variants for xiaoyuanNote
 set -e
 cd "$(dirname "$0")"
 

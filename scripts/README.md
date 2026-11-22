@@ -12,7 +12,7 @@
 
 # 3. Upload a build to App Store Connect
 ./scripts/submit-mas.sh          # newest dist-mas/*.pkg
-./scripts/submit-ios.sh          # gen/apple/build/arm64/SoloMD.ipa
+./scripts/submit-ios.sh          # gen/apple/build/arm64/xiaoyuan-note.ipa
 
 # 4. Submit an uploaded build for review (needs an API key)
 ./scripts/submit-for-review.sh --platform ios --version 4.12.0 --notes-file notes.txt
@@ -73,7 +73,7 @@ APPLE_TEAM_ID="6NQM3XP5RF"
 ### `build-ios.sh`
 Local iOS App Store build. Needs `IOS_SIGNING_PROFILE_NAME` and
 `APPLE_TEAM_ID`, and a distribution profile at
-`app/src-tauri/SoloMD-iOS.provisionprofile`.
+`app/src-tauri/xiaoyuan-note-iOS.provisionprofile`.
 
 The Xcode project under `app/src-tauri/gen/apple/` is generated and gitignored,
 but it is not the whole truth. Signing, the `.md` file associations, the #139
@@ -169,13 +169,13 @@ AppImage it builds (#291). The bundler writes it as an absolute path into the
 directory the build happened to run in —
 
 ```
-.DirIcon -> /home/runner/work/solomd/solomd/app/src-tauri/target/release/bundle/appimage/SoloMD.AppDir/SoloMD.png
+.DirIcon -> /home/runner/work/xiaoyuan-note/xiaoyuan-note/app/src-tauri/target/release/bundle/appimage/xiaoyuan-note.AppDir/xiaoyuan-note.png
 ```
 
 — which exists on no user's machine. Launching the AppImage never resolves it,
 so this shipped unnoticed for a long time, but installers that unpack the
 AppDir (AppManager, Gear Lever) reject the package: *Symlink target not found*.
-The sibling `SoloMD.png` link right next to it is relative and correct.
+The sibling `xiaoyuan-note.png` link right next to it is relative and correct.
 
 A squashfs is immutable, so the image is rebuilt: the original ELF runtime
 bytes are kept verbatim, the AppDir is re-packed with the same compressor and

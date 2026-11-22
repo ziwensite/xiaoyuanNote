@@ -8,10 +8,10 @@ import { openUrl } from '@tauri-apps/plugin-opener';
  *
  * Three metadata sources, in priority order:
  *
- *   1. solomd.app /api/stats — Cloudflare Pages Function that proxies the
+ *   1. xiaoyuannote.app /api/stats — Cloudflare Pages Function that proxies the
  *      GitHub releases API server-side, edge-cached for 5 min. Clients hit
  *      our own domain so they're never rate-limited (regardless of how many
- *      SoloMD installs share the same NAT IP).
+ *      xiaoyuanNote installs share the same NAT IP).
  *   2. Gitee Releases API (prioritized in mainland China) / GitHub API
  *      fallback — used if #1 is unreachable.
  *
@@ -20,9 +20,9 @@ import { openUrl } from '@tauri-apps/plugin-opener';
  * (which was the v2.4.x bug that prompted this rewrite).
  */
 
-const STATS_URL = 'https://solomd.app/api/stats';
-const GITHUB_FALLBACK_URL = 'https://api.github.com/repos/zhitongblog/solomd/releases/latest';
-const GITEE_FALLBACK_URL = 'https://gitee.com/api/v5/repos/zhitong45/solomd/releases/latest';
+const STATS_URL = 'https://xiaoyuannote.app/api/stats';
+const GITHUB_FALLBACK_URL = 'https://api.github.com/repos/zhitongblog/xiaoyuan-note/releases/latest';
+const GITEE_FALLBACK_URL = 'https://gitee.com/api/v5/repos/zhitong45/xiaoyuan-note/releases/latest';
 
 export interface UpdateResult {
   current: string;
@@ -60,8 +60,8 @@ const MAS_BUILD = import.meta.env.VITE_MAS_BUILD === '1';
 
 export const isMasBuild = (): boolean => MAS_BUILD;
 
-const RELEASES_PAGE = 'https://github.com/zhitongblog/solomd/releases';
-const GITEE_RELEASES_PAGE = 'https://gitee.com/zhitong45/solomd/releases';
+const RELEASES_PAGE = 'https://github.com/zhitongblog/xiaoyuan-note/releases';
+const GITEE_RELEASES_PAGE = 'https://gitee.com/zhitong45/xiaoyuan-note/releases';
 
 let cachedIsChina: boolean | null = null;
 
@@ -93,7 +93,7 @@ function isChinaByLocaleOrTimezone(): boolean {
 export async function detectVisitorIsChina(): Promise<boolean> {
   if (cachedIsChina !== null) return cachedIsChina;
   for (const traceUrl of [
-    'https://solomd.app/cdn-cgi/trace',
+    'https://xiaoyuannote.app/cdn-cgi/trace',
     'https://www.cloudflare.com/cdn-cgi/trace',
   ]) {
     try {
@@ -201,7 +201,7 @@ export async function checkForUpdate(): Promise<UpdateResult> {
 /**
  * Fallback browser opener when direct installer download fails or on mobile.
  * Automatically routes mainland China (`CN`) visitors to the Gitee release
- * mirror and international visitors to GitHub / solomd.app.
+ * mirror and international visitors to GitHub / xiaoyuannote.app.
  */
 export async function openReleaseUrl(_url: string, version?: string | null): Promise<void> {
   try {
@@ -215,7 +215,7 @@ export async function openReleaseUrl(_url: string, version?: string | null): Pro
     } else {
       const target = cleanVer
         ? `${RELEASES_PAGE}/tag/v${cleanVer}`
-        : 'https://solomd.app/#download';
+        : 'https://xiaoyuannote.app/#download';
       await openUrl(target);
     }
   } catch {
@@ -240,7 +240,7 @@ export async function downloadAndInstallUpdate(
   try {
     const preferCn = await detectVisitorIsChina();
     if (onProgress) {
-      unlisten = await listen<UpdateProgressPayload>('solomd://update-progress', (ev) => {
+      unlisten = await listen<UpdateProgressPayload>('xiaoyuan-note://update-progress', (ev) => {
         onProgress(ev.payload);
       });
     }
@@ -263,7 +263,7 @@ export async function downloadAndInstallUpdate(
 }
 
 /** Store the last-checked timestamp so we don't spam GitHub on every launch. */
-const LS_KEY = 'solomd.update.last-check';
+const LS_KEY = 'xiaoyuan-note.update.last-check';
 const CHECK_INTERVAL = 24 * 3600 * 1000; // 24 hours
 
 export async function checkForUpdateOnStartup(): Promise<UpdateResult | null> {

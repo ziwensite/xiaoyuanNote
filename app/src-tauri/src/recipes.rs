@@ -1,7 +1,7 @@
 //! v4.0 Pillar 2 — Agent Recipes (schema + parser + loader + watcher).
 //!
 //! Recipes are declarative agent jobs persisted as YAML files in the
-//! workspace at `<workspace>/.solomd/agents/<slug>.yml`. Each file
+//! workspace at `<workspace>/.xiaoyuan-note/agents/<slug>.yml`. Each file
 //! describes:
 //!
 //!   * a trigger (`schedule` / `on-save` / `on-commit` / `on-tag-add` /
@@ -16,10 +16,10 @@
 //!   - `load_recipes(workspace)` — disk → `Vec<Recipe>` for the active
 //!     workspace
 //!   - the file-watcher used by `recipe_runner` so edits in
-//!     `.solomd/agents/` re-load without an app restart
+//!     `.xiaoyuan-note/agents/` re-load without an app restart
 //!   - the variable-interpolation routine `Recipe::variables_resolve`
 //!
-//! Spec lives in `/tmp/solomd-v4-contracts.md` §C4 (and `docs/roadmap.md`
+//! Spec lives in `/tmp/xiaoyuan-note-v4-contracts.md` §C4 (and `docs/roadmap.md`
 //! Pillar 2). Re-read C4 before changing the schema — the recipe runner
 //! and the Settings UI both rely on the exact field names below.
 
@@ -568,14 +568,14 @@ pub fn recipe_to_yaml(recipe: &Recipe) -> String {
 // Loading
 // ---------------------------------------------------------------------------
 
-/// Path to the `.solomd/agents/` directory inside `workspace`. Created on
+/// Path to the `.xiaoyuan-note/agents/` directory inside `workspace`. Created on
 /// the fly when the user saves their first recipe — we don't auto-create
 /// it on app start because the watcher tolerates a missing dir.
 pub fn agents_dir(workspace: &Path) -> PathBuf {
-    workspace.join(".solomd").join("agents")
+    workspace.join(".xiaoyuanNote").join("agents")
 }
 
-/// Scan `<workspace>/.solomd/agents/*.yml` (and `.yaml`) and return every
+/// Scan `<workspace>/.xiaoyuan-note/agents/*.yml` (and `.yaml`) and return every
 /// recipe that parses successfully. Bad recipes get logged via the
 /// returned `errors` Vec rather than aborting the whole load — one
 /// broken file shouldn't disable the others.
@@ -959,7 +959,7 @@ prompt: hi
     #[test]
     fn load_recipes_from_dir() {
         let tmp = tempdir();
-        let agents = tmp.join(".solomd").join("agents");
+        let agents = tmp.join(".xiaoyuanNote").join("agents");
         std::fs::create_dir_all(&agents).unwrap();
         std::fs::write(
             agents.join("a.yml"),
@@ -986,7 +986,7 @@ prompt: hi
     fn tempdir() -> std::path::PathBuf {
         let mut p = std::env::temp_dir();
         p.push(format!(
-            "solomd-recipes-test-{}-{}",
+            "xiaoyuan-note-recipes-test-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)

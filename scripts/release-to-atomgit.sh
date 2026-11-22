@@ -3,7 +3,7 @@
 # Sync a GitHub release to AtomGit / GitCode (binaries + body), run from your Mac.
 #
 # Why this exists alongside release-to-gitee.sh:
-#   SoloMD is part of AtomGit's G-Star program (https://atomgit.com/zhitongblog/solomd).
+#   xiaoyuanNote is part of AtomGit's G-Star program (https://atomgit.com/zhitongblog/xiaoyuan-note).
 #   AtomGit uploads release attachments directly to Huawei Cloud OBS via presigned PUT
 #   URLs (`/api/v5/repos/:owner/:repo/releases/:tag/upload_url`), avoiding Gitee's
 #   1 GB total repository attachment quota while giving mainland China users fast
@@ -38,8 +38,8 @@ fi
 
 : "${ATOMGIT_TOKEN:?Set ATOMGIT_TOKEN (export or in .env.local)}"
 ATOMGIT_USER="${ATOMGIT_USER:-zhitongblog}"
-REPO_GH="zhitongblog/solomd"
-REPO_ATOMGIT="$ATOMGIT_USER/solomd"
+REPO_GH="zhitongblog/xiaoyuan-note"
+REPO_ATOMGIT="$ATOMGIT_USER/xiaoyuanNote"
 API="https://api.gitcode.com/api/v5/repos/$REPO_ATOMGIT"
 
 echo "==> Sync $TAG  ($REPO_GH → atomgit.com/$REPO_ATOMGIT)"
@@ -61,14 +61,14 @@ seed_local() {
     cp -c "$src" "$dst" 2>/dev/null || cp "$src" "$dst"
   fi
 }
-seed_local "$ROOT/app/src-tauri/target/universal-apple-darwin/release/bundle/dmg/SoloMD_${VER}_universal.dmg" "SoloMD_${VER}_universal.dmg"
-seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-universal-release.apk" "SoloMD_${VER}_universal.apk"
-seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-arm64-v8a-release.apk" "SoloMD_${VER}_arm64-v8a.apk"
-seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-armeabi-v7a-release.apk" "SoloMD_${VER}_armeabi-v7a.apk"
-seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-x86_64-release.apk" "SoloMD_${VER}_x86_64.apk"
-seed_local "$ROOT/dist/solomd-mcp-${VER}.mcpb" "solomd-mcp-${VER}.mcpb"
-seed_local "$ROOT/dist/solomd-mcp-${VER}-smithery.mcpb" "solomd-mcp-${VER}-smithery.mcpb"
-seed_local "$ROOT/dist/solomd-skills-v${VER}.zip" "solomd-skills-v${VER}.zip"
+seed_local "$ROOT/app/src-tauri/target/universal-apple-darwin/release/bundle/dmg/XIAOYUAN_NOTE_${VER}_universal.dmg" "XIAOYUAN_NOTE_${VER}_universal.dmg"
+seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-universal-release.apk" "XIAOYUAN_NOTE_${VER}_universal.apk"
+seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-arm64-v8a-release.apk" "XIAOYUAN_NOTE_${VER}_arm64-v8a.apk"
+seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-armeabi-v7a-release.apk" "XIAOYUAN_NOTE_${VER}_armeabi-v7a.apk"
+seed_local "$ROOT/app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-x86_64-release.apk" "XIAOYUAN_NOTE_${VER}_x86_64.apk"
+seed_local "$ROOT/dist/xiaoyuan-note-mcp-${VER}.mcpb" "xiaoyuan-note-mcp-${VER}.mcpb"
+seed_local "$ROOT/dist/xiaoyuan-note-mcp-${VER}-smithery.mcpb" "xiaoyuan-note-mcp-${VER}-smithery.mcpb"
+seed_local "$ROOT/dist/xiaoyuan-note-skills-v${VER}.zip" "xiaoyuan-note-skills-v${VER}.zip"
 
 echo "==> Downloading GitHub assets to $WORK"
 gh release view "$TAG" --repo "$REPO_GH" --json assets \

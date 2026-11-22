@@ -4,10 +4,10 @@ use std::fs;
 #[test]
 fn copy_creates_parent_dirs() {
     let dir = tempfile::tempdir().unwrap();
-    let src = dir.path().join("solomd-copy-src.png").to_string_lossy().to_string();
+    let src = dir.path().join("xiaoyuan-note-copy-src.png").to_string_lossy().to_string();
     let dst = dir
         .path()
-        .join("solomd-copy-test")
+        .join("xiaoyuan-note-copy-test")
         .join("_assets")
         .join("nested")
         .join("image.png")
@@ -25,8 +25,8 @@ fn copy_creates_parent_dirs() {
 #[test]
 fn copy_overwrites_existing() {
     let dir = tempfile::tempdir().unwrap();
-    let src = dir.path().join("solomd-copy-src2.png").to_string_lossy().to_string();
-    let dst = dir.path().join("solomd-copy-dst2.png").to_string_lossy().to_string();
+    let src = dir.path().join("xiaoyuan-note-copy-src2.png").to_string_lossy().to_string();
+    let dst = dir.path().join("xiaoyuan-note-copy-dst2.png").to_string_lossy().to_string();
     fs::write(&src, b"new").unwrap();
     fs::write(&dst, b"old").unwrap();
 
@@ -38,8 +38,8 @@ fn copy_overwrites_existing() {
 #[test]
 fn copy_missing_source_errors() {
     let dir = tempfile::tempdir().unwrap();
-    let src = dir.path().join("solomd-does-not-exist.png").to_string_lossy().to_string();
-    let dst = dir.path().join("solomd-dst-fail.png").to_string_lossy().to_string();
+    let src = dir.path().join("xiaoyuan-note-does-not-exist.png").to_string_lossy().to_string();
+    let dst = dir.path().join("xiaoyuan-note-dst-fail.png").to_string_lossy().to_string();
     let result = copy_file(src, dst);
     assert!(result.is_err());
 }
@@ -50,7 +50,7 @@ fn write_binary_creates_parent_dirs() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir
         .path()
-        .join("solomd-bin-test")
+        .join("xiaoyuan-note-bin-test")
         .join("sub")
         .join("dir")
         .join("file.bin")

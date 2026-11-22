@@ -3,12 +3,12 @@
  * IntegrationsSettings — v2.4 Settings → Integrations panel.
  *
  * Two cards:
- *   1. CLI (solomd)        — `which solomd` status + install one-liner
- *   2. MCP (solomd-mcp)    — bundled sidecar path + Claude Desktop config
+ *   1. CLI (xiaoyuanNote)        — `which xiaoyuanNote` status + install one-liner
+ *   2. MCP (xiaoyuan-note-mcp)    — bundled sidecar path + Claude Desktop config
  *
  * Designed to be embedded inline inside SettingsPanel.vue right under the
  * AI rewrite section (so users see CLI + MCP + AI as a related cluster of
- * "things SoloMD talks to").
+ * "things xiaoyuanNote talks to").
  */
 
 import { ref, computed, onMounted } from 'vue';
@@ -27,19 +27,19 @@ const workspace = useWorkspaceStore();
 
 // One-liner the user pastes in their terminal. Mirrors scripts/install-cli.sh.
 const CLI_INSTALL_CMD =
-  'curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash';
+  'curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash';
 
 const settings = useSettingsStore();
-// Locale-aware so a Chinese-language SoloMD links to the Chinese docs.
+// Locale-aware so a Chinese-language xiaoyuanNote links to the Chinese docs.
 const MCP_DOCS_URL = computed(() =>
   settings.language === 'zh'
-    ? 'https://solomd.app/zh/docs/mcp/'
-    : 'https://solomd.app/docs/mcp/',
+    ? 'https://xiaoyuannote.app/zh/docs/mcp/'
+    : 'https://xiaoyuannote.app/docs/mcp/',
 );
 const CLI_DOCS_URL = computed(() =>
   settings.language === 'zh'
-    ? 'https://solomd.app/zh/docs/cli/'
-    : 'https://solomd.app/docs/cli/',
+    ? 'https://xiaoyuannote.app/zh/docs/cli/'
+    : 'https://xiaoyuannote.app/docs/cli/',
 );
 
 // ---------------------------------------------------------------------------
@@ -104,16 +104,16 @@ async function showInstall() {
 
 const claudeConfigJson = computed(() => {
   // Build the exact JSON we'd want the user to drop into their config.
-  // We always emit the `solomd-vault` server key with the bundled binary
+  // We always emit the `xiaoyuan-note-vault` server key with the bundled binary
   // path + the user's currently-open workspace folder. If either is
   // missing (no workspace, dev build) we fall back to a sensible
   // placeholder + comment.
-  const command = mcp.value.path ?? '/path/to/solomd-mcp';
+  const command = mcp.value.path ?? '/path/to/xiaoyuan-note-mcp';
   const ws = workspace.currentFolder ?? '/path/to/your/notes';
 
   const config = {
     mcpServers: {
-      'solomd-vault': {
+      'xiaoyuan-note-vault': {
         command,
         args: ['--workspace', ws],
       },
@@ -172,7 +172,7 @@ interface AiClient {
   config_path: string;
   config_exists: boolean;
   config_dir_exists: boolean;
-  has_solomd_entry: boolean;
+  has_XIAOYUAN_NOTE_entry: boolean;
 }
 
 const clients = ref<AiClient[]>([]);
@@ -185,12 +185,12 @@ async function refreshClients() {
     const list = await invoke<AiClient[]>('detect_ai_clients');
     clients.value = list;
     // Default: tick every client whose config dir already exists AND that
-    // doesn't already have a solomd entry. Skips clients that aren't
+    // doesn't already have a xiaoyuanNote entry. Skips clients that aren't
     // installed (avoids creating empty config files on disk just because
     // the wizard ran) and skips ones already wired up (idempotent UX).
     const next: Record<string, boolean> = {};
     for (const c of list) {
-      next[c.id] = c.config_dir_exists && !c.has_solomd_entry;
+      next[c.id] = c.config_dir_exists && !c.has_XIAOYUAN_NOTE_entry;
     }
     checked.value = next;
   } catch (e) {
@@ -320,7 +320,7 @@ const mcpToolKeys = [
         <summary>{{ t('integrations.cliSubcommandsHeading') }}</summary>
         <ul class="ic-list">
           <li v-for="k in cliSubKeys" :key="k">
-            <code>solomd {{ k }}</code> —
+            <code>xiaoyuanNote {{ k }}</code> —
             {{ t(`integrations.cliSubcommands.${k}`) }}
           </li>
         </ul>
@@ -415,7 +415,7 @@ const mcpToolKeys = [
               {{ t('integrations.aiClientsNotInstalled') }}
             </span>
             <span
-              v-else-if="c.has_solomd_entry"
+              v-else-if="c.has_XIAOYUAN_NOTE_entry"
               class="ai-client__badge ai-client__badge--ok"
             >
               {{ t('integrations.aiClientsAlreadyConfigured') }}
@@ -432,7 +432,7 @@ const mcpToolKeys = [
               {{ t('integrations.aiClientsOpenConfigBtn') }}
             </button>
             <button
-              v-if="c.has_solomd_entry"
+              v-if="c.has_XIAOYUAN_NOTE_entry"
               class="ic-btn ic-btn--small ic-btn--danger"
               @click="removeOne(c)"
             >

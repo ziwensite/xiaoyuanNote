@@ -111,7 +111,7 @@ export function buildAgendaGroups(view: CalendarViewData, today: string): Agenda
 - 事件行：`--accent` 2px 竖条 + 时间 + 标题；全天显示 `calendar.allDay`。
 - 任务行：复选框样式（只读）+ 标题 + 日期 chip；逾期 chip 用 `--danger`；完成删除线 + `--text-3`。
 - 点击事件：`files.openPath(path, { bypassNewWindow: true })`。
-- 点击任务：同上，再按 `TasksPanel.vue` 的 120ms `solomd:outline-goto` 跳到行。
+- 点击任务：同上，再按 `TasksPanel.vue` 的 120ms `xiaoyuan-note:outline-goto` 跳到行。
 - 月视图：7×6 网格，每格最多 3 条，超出 `calendar.more`；点格子 → 议程定位到该日。
 - 周视图：7 列，每列日期头 + 最多 3 条 + `+N`；点列头 → 切到日视图。
 - 日视图：顶部全天泳道 + 24 小时行；定时块按分列结果绝对定位。

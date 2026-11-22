@@ -1,13 +1,13 @@
-﻿import type { I18n } from './en';
+import type { I18n } from './en';
 
 export const pl: I18n = {
   iosFolder: {
-    pickerUnavailable: 'Wybór folderu jest niedostępny, więc SoloMD używa własnego folderu (Pliki › Na moim iPhonie › SoloMD).',
+    pickerUnavailable: 'Wybór folderu jest niedostępny, więc xiaoyuanNote używa własnego folderu (Pliki › Na moim iPhonie › xiaoyuanNote).',
     savedAs: 'Zapisano jako {name}',
-    restoreFailed: 'Nie udało się ponownie otworzyć ostatnio wybranego folderu — wyświetlany jest folder SoloMD. Wybierz go ponownie przez Otwórz folder.',
+    restoreFailed: 'Nie udało się ponownie otworzyć ostatnio wybranego folderu — wyświetlany jest folder xiaoyuan-note. Wybierz go ponownie przez Otwórz folder.',
   },
   starPrompt: {
-    message: 'Podoba Ci się SoloMD? Gwiazdka na GitHubie pomaga innym go znaleźć — jest darmowy i tworzony przez jedną osobę.',
+    message: 'Podoba Ci się xiaoyuanNote? Gwiazdka na GitHubie pomaga innym go znaleźć — jest darmowy i tworzony przez jedną osobę.',
     action: '★ Gwiazdka na GitHubie',
   },
   menubar: {
@@ -62,7 +62,7 @@ export const pl: I18n = {
     helpCli: 'Wiersz poleceń (CLI)',
     zoom: 'Powiększenie',
     find: "Znajdź…",
-    about: 'O SoloMD',
+    about: 'O xiaoyuanNote',
     aboutShort: 'O programie',
     minimize: 'Minimalizuj',
     maximize: 'Maksymalizuj',
@@ -86,10 +86,10 @@ export const pl: I18n = {
     theme: "Motyw",
     checkUpdate: "Sprawdź aktualizacje…",
     services: "Usługi",
-    hide: "Ukryj SoloMD",
+    hide: "Ukryj xiaoyuanNote",
     hideOthers: "Ukryj pozostałe",
     showAll: "Pokaż wszystkie",
-    quit: "Zakończ SoloMD",
+    quit: "Zakończ xiaoyuanNote",
     window: "Okno",
     quickCapture: "Szybka notatka…",
     daily: "Notatka dzienna",
@@ -310,7 +310,7 @@ export const pl: I18n = {
     empty: 'Brak podfolderów.',
     cancel: 'Anuluj',
     use: 'Użyj tego folderu',
-    permNeeded: 'SoloMD potrzebuje „dostępu do wszystkich plików”, aby przeglądać foldery na tym urządzeniu.',
+    permNeeded: 'xiaoyuanNote potrzebuje „dostępu do wszystkich plików”, aby przeglądać foldery na tym urządzeniu.',
     permGrant: 'Przyznaj dostęp',
   },
   plainFind: {
@@ -432,7 +432,7 @@ export const pl: I18n = {
     catAdvanced: 'Zaawansowane',
     catKeys: 'Skróty',
     keysInterceptedTitle: "Część skrótów przechwytuje inne oprogramowanie",
-    keysInterceptedBody: "Wymienione niżej programy rejestrują te kombinacje jako skróty globalne, więc nigdy nie docierają do SoloMD. Przeniesienie tych poleceń na klawisze po prawej nie rusza pozostałych skrótów.",
+    keysInterceptedBody: "Wymienione niżej programy rejestrują te kombinacje jako skróty globalne, więc nigdy nie docierają do xiaoyuan-note. Przeniesienie tych poleceń na klawisze po prawej nie rusza pozostałych skrótów.",
     keysApplyCompat: "Przenieś te polecenia na wolne klawisze",
     keysCompatApplied: "Przeniesiono {count} skrótów. Cofniesz to przez „Zresetuj wszystko”.",
     keysSearch: "Szukaj skrótów — nazwa lub klawisz…",
@@ -446,7 +446,7 @@ export const pl: I18n = {
     keysWriterApply: "Używaj {bold} do pogrubienia",
     keysWriterUndo: "Przywróć",
     keysWriterApplied: "{bold} to teraz pogrubienie. Drzewo plików jest pod {tree}.",
-    keysInterceptedBy: "Zwykle przechwytuje to {source}, zanim dotrze do SoloMD",
+    keysInterceptedBy: "Zwykle przechwytuje to {source}, zanim dotrze do xiaoyuanNote",
     keysHint: 'Kliknij Zmień i naciśnij żądaną kombinację. Esc anuluje. Działa natychmiast.',
     keysCatFile: 'Plik',
     keysCatEdit: 'Edycja',
@@ -562,7 +562,29 @@ export const pl: I18n = {
     cslPicked: 'Styl CSL załadowany',
     dailyNotesFolder: 'Folder notatek dziennych (względem obszaru roboczego)',
     dailyNotesFormat: 'Format nazwy plików notatek dziennych',
-    dailyNotesTemplate: 'Szablon notatek dziennych (zostaw puste dla domyślnego)',
+    dailyNotesTemplate: 'Szablon notatek dziennych (zostaw puste dla domyślnego)',
+    periodic: {
+      title: 'Periodic notes',
+      hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
+      kinds: {
+        flash: 'Flash note',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        quarterly: 'Quarterly',
+        yearly: 'Yearly',
+      },
+      templatePath: 'Template path',
+      templatePlaceholder: 'Leave empty for the built-in template',
+      savePath: 'Save path',
+      filenameFormat: 'Filename format',
+      browseFile: 'Choose template…',
+      browseFolder: 'Choose folder…',
+      clear: 'Clear',
+      markdownFilter: 'Markdown files',
+      preview: 'Preview: {path}',
+      defaultFormat: 'Default: {format}',
+    },
     recurringTaskPlacement: 'Ukończone zadanie cykliczne',
     recurringTaskPlacementBelow: 'Dodaj następne wystąpienie poniżej',
     recurringTaskPlacementAbove: 'Dodaj następne wystąpienie powyżej',
@@ -603,7 +625,7 @@ export const pl: I18n = {
       codeThemeDark: 'Zawsze ciemny',
       frontmatterHint: 'Nadpisz dla pojedynczego dokumentu blokiem `pdf:` w nagłówku YAML (pageSize / margin / font / fontSize / footer / toc).',
     },
-    imageExportBranding: 'Dołącz stopkę „Created with SoloMD” przy eksporcie do obrazu',
+    imageExportBranding: 'Dołącz stopkę „Created with xiaoyuanNote” przy eksporcie do obrazu',
     imageExportBrandingHint: 'Domyślnie włączone — łagodna autopromocja na udostępnianych zrzutach. Wyłącz, jeśli nie chcesz znaku wodnego, a krótkie notatki będą eksportowane zwięźlej, bez doczepionej karty.',
     attachmentMode: 'Where to save pasted/dropped images',
     attachmentModeShared: 'Shared `_assets/` folder per directory',
@@ -645,9 +667,9 @@ export const pl: I18n = {
     customCssReloadFailed: 'Nie udało się przeładować niestandardowego motywu CSS',
     clear: 'Wyczyść',
     fileAssoc: 'Skojarzenia plików',
-    setDefault: '⭐ Ustaw SoloMD jako domyślny edytor Markdown',
+    setDefault: '⭐ Ustaw xiaoyuanNote jako domyślny edytor Markdown',
     settingDefault: 'Ustawianie…',
-    setDefaultHint: 'Rejestruje SoloMD jako domyślną aplikację dla plików .md / .markdown / .mdown / .mkd. W systemie Windows dodaje też SoloMD do menu „Otwórz za pomocą”. W systemie Linux wymaga xdg-utils.',
+    setDefaultHint: 'Rejestruje xiaoyuanNote jako domyślną aplikację dla plików .md / .markdown / .mdown / .mkd. W systemie Windows dodaje też xiaoyuanNote do menu „Otwórz za pomocą”. W systemie Linux wymaga xdg-utils.',
     language: 'Język / Language',
     restoreSession: 'Przywróć poprzednie karty i panele przy starcie',
     restoreSessionHint: 'Wyłącz, aby zawsze startować z pustym oknem.',
@@ -667,7 +689,7 @@ export const pl: I18n = {
     revealInFileTreeOnOpen: 'Pokaż plik w drzewie plików przy otwieraniu',
     revealInFileTreeOnOpenHint: "Po włączeniu otwarcie pliku przełącza drzewo plików na jego folder. Ukryte drzewo pozostaje ukryte.",
     openLinkedFilesExternally: 'Otwieraj powiązane pliki w domyślnej aplikacji',
-    openLinkedFilesExternallyHint: 'Gdy włączone, kliknięcie linku Markdown do lokalnego pliku PDF / Office / innego dokumentu otwiera go w domyślnej aplikacji systemu. Wyłącz, aby zamiast tego przekonwertować na Markdown. Linki do .md / tekstu / obrazów zawsze otwierają się w SoloMD.',
+    openLinkedFilesExternallyHint: 'Gdy włączone, kliknięcie linku Markdown do lokalnego pliku PDF / Office / innego dokumentu otwiera go w domyślnej aplikacji systemu. Wyłącz, aby zamiast tego przekonwertować na Markdown. Linki do .md / tekstu / obrazów zawsze otwierają się w xiaoyuan-note.',
     autoCheckUpdate: 'Automatycznie sprawdzaj aktualizacje',
     checkUpdate: 'Sprawdź aktualizacje teraz',
     checkingUpdate: 'Sprawdzanie…',
@@ -676,9 +698,9 @@ export const pl: I18n = {
     updateCheckFailed: 'Nie udało się połączyć z serwerem aktualizacji — sprawdź sieć i spróbuj ponownie',
     telemetry: 'Wysyłaj anonimowe dane użytkowania',
     telemetryHint:
-      'Pomaga ulepszać SoloMD. Bez adresu IP, bez treści plików, bez danych osobowych.',
+      'Pomaga ulepszać xiaoyuan-note. Bez adresu IP, bez treści plików, bez danych osobowych.',
     telemetryNotice:
-      'SoloMD zbiera anonimowe dane użytkowania (używane funkcje, wersja, system) aby pomóc ulepszać produkt. Bez adresu IP, treści plików ani danych osobowych. Możesz to wyłączyć w każdej chwili w ustawieniach.',
+      'xiaoyuanNote zbiera anonimowe dane użytkowania (używane funkcje, wersja, system) aby pomóc ulepszać produkt. Bez adresu IP, treści plików ani danych osobowych. Możesz to wyłączyć w każdej chwili w ustawieniach.',
     telemetryNoticeOk: 'OK',
     telemetryNoticeDisable: 'Wyłącz teraz',
     imageUploaderSection: 'Przesyłanie obrazów (hosting obrazów)',
@@ -785,7 +807,7 @@ export const pl: I18n = {
     desc: 'Lekki, wieloplatformowy edytor Markdown i zwykłego tekstu.',
   },
   help: {
-    about: 'O SoloMD',
+    about: 'O xiaoyuanNote',
     markdownGuide: 'Przewodnik po Markdown',
     keyboardShortcuts: 'Skróty klawiszowe',
     noMatchingSyntax: "Brak pasującej składni",
@@ -794,7 +816,7 @@ export const pl: I18n = {
   toast: {
     outlineMovedToSecondary: 'Drzewo plików jest teraz w głównym pasku bocznym. Konspekt przeniósł się do dodatkowego paska bocznego — możesz go przywrócić z menu zakładki.',
     imageInsertFailed: "Nie udało się wstawić obrazu: {error}",
-    imageSavedOutsideVault: "Ten folder nie może jeszcze przechowywać obrazów, więc obraz zapisano w folderze Dokumenty SoloMD i podlinkowano stamtąd.",
+    imageSavedOutsideVault: "Ten folder nie może jeszcze przechowywać obrazów, więc obraz zapisano w folderze Dokumenty xiaoyuanNote i podlinkowano stamtąd.",
     newWindowFailed: 'Nie można otworzyć nowego okna',
     noActiveDoc: 'Brak aktywnego dokumentu',
     copied: 'Skopiowano',
@@ -817,7 +839,7 @@ export const pl: I18n = {
     uploadedCount: 'Przesłano {n} obraz(ów)',
     noLocalImages: 'Brak lokalnych obrazów do przesłania',
     nothingToReopen: "Brak ostatnio zamkniętych kart",
-    savedToIos: "Zapisano w Na moim iPhonie › SoloMD › {name}",
+    savedToIos: "Zapisano w Na moim iPhonie › xiaoyuanNote › {name}",
     exportingFormat: "Eksportowanie {format}…",
     exportedTo: "Wyeksportowano do {format}",
     exportFailedError: "Eksport nie powiódł się: {error}",
@@ -865,7 +887,7 @@ export const pl: I18n = {
     selectTextForAi: "Najpierw zaznacz tekst, a potem kliknij Przepisz z AI (lub naciśnij {chord}).",
     shareUnsupported: "Udostępnianie nie jest obsługiwane w tej wersji iOS",
     shareFailed: "Udostępnianie nie powiodło się: {error}",
-    androidAllFilesReturn: "Włącz „Dostęp do wszystkich plików”, a potem wróć — SoloMD uruchomi się ponownie, aby uprawnienie zaczęło działać.",
+    androidAllFilesReturn: "Włącz „Dostęp do wszystkich plików”, a potem wróć — xiaoyuanNote uruchomi się ponownie, aby uprawnienie zaczęło działać.",
     pinyinCopied: "Skopiowano pinyin do schowka",
   },
   dialog: {
@@ -1110,8 +1132,8 @@ export const pl: I18n = {
   integrations: {
     heading: 'Integracje',
     intro:
-      'SoloMD współpracuje z terminalem oraz klientami AI obsługującymi MCP (Claude Desktop, Codex CLI, Cursor), dzięki czemu możesz odczytywać i zapisywać notatki spoza aplikacji.',
-    cliTitle: 'CLI (solomd)',
+      'xiaoyuanNote współpracuje z terminalem oraz klientami AI obsługującymi MCP (Claude Desktop, Codex CLI, Cursor), dzięki czemu możesz odczytywać i zapisywać notatki spoza aplikacji.',
+    cliTitle: 'CLI (xiaoyuanNote)',
     cliInstalled: 'Zainstalowane w {path}',
     cliNotInstalled: 'Nie zainstalowane',
     cliVersionLabel: 'Wersja',
@@ -1123,14 +1145,14 @@ export const pl: I18n = {
       'Uruchom to w terminalu — sudo jest wymagane dla /usr/local/bin:',
     cliSubcommandsHeading: 'Co potrafi?',
     cliSubcommands: {
-      open: 'open <tytuł|ścieżka> — otwórz notatkę w SoloMD',
+      open: 'open <tytuł|ścieżka> — otwórz notatkę w xiaoyuanNote',
       new: 'new <tytuł> [tekst] — utwórz i otwórz nową notatkę',
       list: 'list [folder] — wypisz pliki Markdown',
       search: 'search <zapytanie> — przeszukaj notatki',
       cat: 'cat <tytuł|ścieżka> — wypisz notatkę na stdout',
       help: 'help — pokaż wszystkie polecenia',
     },
-    mcpTitle: 'Serwer MCP (solomd-mcp)',
+    mcpTitle: 'Serwer MCP (xiaoyuan-note-mcp)',
     mcpBundled: 'Dołączony w {path}',
     mcpNotBundled:
       'Nie dołączony (ta wersja deweloperska pomija sidecar externalBin). Wersje produkcyjne zawsze go zawierają.',
@@ -1159,9 +1181,9 @@ export const pl: I18n = {
     mcpWriteNote:
       'write_note + append_to_note są domyślnie wyłączone. Przekaż --allow-write, aby je włączyć.',
     // ---- v4.4.5: MCP auto-install across 6 AI clients (EN backfill) ----
-    aiClientsTitle: 'Hook SoloMD into your AI clients',
+    aiClientsTitle: 'Hook xiaoyuanNote into your AI clients',
     aiClientsIntro:
-      'One click and SoloMD writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
+      'One click and xiaoyuanNote writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
     aiClientsNotInstalled: 'not installed',
     aiClientsAlreadyConfigured: 'configured ✓',
     aiClientsReady: 'ready to inject',
@@ -1169,18 +1191,18 @@ export const pl: I18n = {
     aiClientsRemoveBtn: 'Remove',
     aiClientsAllowWrite:
       'Allow writes (--allow-write on the MCP server)',
-    aiClientsInjectBtn: 'Inject SoloMD into {n} client(s)',
+    aiClientsInjectBtn: 'Inject xiaoyuanNote into {n} client(s)',
     aiClientsInjectBtnZero: 'Nothing to inject',
     aiClientsInjectedToast:
-      '✓ Injected SoloMD into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
-    aiClientsRemovedToast: '✓ Removed SoloMD entry from {name}.',
+      '✓ Injected xiaoyuanNote into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
+    aiClientsRemovedToast: '✓ Removed xiaoyuanNote entry from {name}.',
     aiClientsRestartHint:
       'After injecting, restart the AI client (or use its "Reload MCP servers" command if it has one) for the new server to load.'
 ,
     // ---- v4.0 P4 federation: MCP profiles -----------------------------
     profilesHeading: 'Profile MCP',
     profilesIntro:
-      'Połącz wiele obszarów roboczych w jednej instancji solomd-mcp i skopiuj gotowy do wklejenia blok konfiguracji Claude Desktop. Każdy profil zawiera obszary robocze (alias + ścieżka), które serwer MCP będzie udostępniał; pierwszy wpis jest domyślny — wywołania narzędzi bez argumentu `workspace` trafiają do niego.',
+      'Połącz wiele obszarów roboczych w jednej instancji xiaoyuan-note-mcp i skopiuj gotowy do wklejenia blok konfiguracji Claude Desktop. Każdy profil zawiera obszary robocze (alias + ścieżka), które serwer MCP będzie udostępniał; pierwszy wpis jest domyślny — wywołania narzędzi bez argumentu `workspace` trafiają do niego.',
     profilesEmpty: 'Brak profili.',
     profilesCreate: 'Nowy profil',
     profilesDuplicate: 'Duplikuj',
@@ -1210,14 +1232,14 @@ export const pl: I18n = {
     profilesNamePlaceholder: 'praca-i-dom',
     profilesNewProfileDefault: 'Nowy profil',
     profilesNoMcpBinary:
-      'solomd-mcp nie został dołączony do tej wersji deweloperskiej — fragment używa zastępczej ścieżki.',
+      'xiaoyuan-note-mcp nie został dołączony do tej wersji deweloperskiej — fragment używa zastępczej ścieżki.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
   // TODO(zh): translate these once the en strings stabilise.
   recipes: {
     heading: 'Przepisy agenta',
     intro:
-      'Deklaratywne zadania agenta jako YAML w skarbcu, w katalogu .solomd/agents/. Uruchamiają się według harmonogramu cron, przy zapisie, przy commicie, przy dodaniu tagu lub ręcznie.',
+      'Deklaratywne zadania agenta jako YAML w skarbcu, w katalogu .xiaoyuan-note/agents/. Uruchamiają się według harmonogramu cron, przy zapisie, przy commicie, przy dodaniu tagu lub ręcznie.',
     openWorkspace: 'Najpierw otwórz folder — przepisy żyją wewnątrz skarbca.',
     list: 'Przepisy',
     listEmpty: 'Brak przepisów. Kliknij „Nowy przepis”, aby utworzyć.',
@@ -1386,7 +1408,7 @@ export const pl: I18n = {
     settingsHeading: 'Wyszukiwanie semantyczne',
     enable: 'Włącz wyszukiwanie semantyczne (lokalne RAG, ⌘⇧F)',
     enableHint:
-      'Domyślnie wyłączone. Po włączeniu Twoje notatki są lokalnie osadzane w <obszar_roboczy>/.solomd/embeddings.sqlite — bez sieci, bez pobierania modelu dla wbudowanego backendu hashed-trigram. ⌘⇧F otwiera panel.',
+      'Domyślnie wyłączone. Po włączeniu Twoje notatki są lokalnie osadzane w <obszar_roboczy>/.xiaoyuan-note/embeddings.sqlite — bez sieci, bez pobierania modelu dla wbudowanego backendu hashed-trigram. ⌘⇧F otwiera panel.',
     statusReady: 'Zaindeksowano: {indexed} / {total} notatek · {chunks} fragmentów · backend {backend}',
     statusEmpty: 'Jeszcze nie zaindeksowano — włącz, aby zbudować indeks.',
     reindexNow: 'Indeksuj ponownie',
@@ -1489,7 +1511,7 @@ export const pl: I18n = {
     captureHeading: 'Punkt końcowy HTTP do przechwytywania',
     enableCapture: 'Włącz punkt końcowy przechwytywania',
     enableCaptureHint:
-      'Domyślnie wyłączone. Po włączeniu SoloMD nasłuchuje na 127.0.0.1 (tylko loopback) na żądania POST z nową notatką z rozszerzenia przeglądarki, skrótu iOS, skryptu powłoki lub curl. Notatki trafiają do folderu skrzynki obszaru roboczego z `inbox: true` w YAML.',
+      'Domyślnie wyłączone. Po włączeniu xiaoyuanNote nasłuchuje na 127.0.0.1 (tylko loopback) na żądania POST z nową notatką z rozszerzenia przeglądarki, skrótu iOS, skryptu powłoki lub curl. Notatki trafiają do folderu skrzynki obszaru roboczego z `inbox: true` w YAML.',
     endpoint: 'Punkt końcowy',
     statusRunning: 'działa',
     statusStarting: 'uruchamianie…',
@@ -1515,7 +1537,7 @@ export const pl: I18n = {
       'Tylko-lokalny interfejs HTTP udostępniający te same narzędzia skarbca co MCP. Przydatne dla Alfred, Raycast, n8n, skryptów powłoki, skrótów iOS — wszystkiego, co nie obsługuje MCP.',
     enable: 'Włącz REST API',
     enableHint:
-      'Domyślnie wyłączone. Po włączeniu SoloMD nasłuchuje na 127.0.0.1 (tylko loopback). Każda trasa oprócz publicznego bannera wymaga tokena bearer poniżej.',
+      'Domyślnie wyłączone. Po włączeniu xiaoyuanNote nasłuchuje na 127.0.0.1 (tylko loopback). Każda trasa oprócz publicznego bannera wymaga tokena bearer poniżej.',
     endpoint: 'Punkt końcowy',
     statusRunning: 'działa',
     statusStarting: 'uruchamianie…',
@@ -1542,7 +1564,7 @@ export const pl: I18n = {
     close: 'Zamknij',
     chooseTitle: 'Skonfiguruj asystenta AI',
     chooseSub:
-      'SoloMD działa bez AI, ale panel agenta i przepisy potrzebują modelu. Wybierz jedną drogę — możesz ją zmienić w każdej chwili w Ustawienia → AI.',
+      'xiaoyuanNote działa bez AI, ale panel agenta i przepisy potrzebują modelu. Wybierz jedną drogę — możesz ją zmienić w każdej chwili w Ustawienia → AI.',
     cloudTitle: 'Chmura (BYOK)',
     cloudBody:
       'Anthropic Claude, OpenAI ChatGPT, Google Gemini, DeepSeek i 10+ innych. Przynieś własny klucz API.',
@@ -1555,7 +1577,7 @@ export const pl: I18n = {
     localDetecting: 'Szukam działającego serwera Ollama…',
     localNotRunning: 'Nie wykryto serwera Ollama na localhost:11434.',
     localNotRunningHint:
-      'Zainstaluj Ollama (~80 MB), uruchom, a następnie kliknij Spróbuj ponownie. SoloMD nie zawiera Ollama.',
+      'Zainstaluj Ollama (~80 MB), uruchom, a następnie kliknij Spróbuj ponownie. xiaoyuanNote nie zawiera Ollama.',
     localInstallBtn: 'Zainstaluj Ollama',
     localRetryBtn: 'Spróbuj wykryć ponownie',
     localRunningNoModel:
@@ -1591,7 +1613,7 @@ export const pl: I18n = {
   cookbook: {
     heading: 'Książka kucharska przepisów',
     intro:
-      'Wybierz przepis startowy — instalacja kopiuje YAML do .solomd/agents/ i otwiera go do edycji. Można instalować wielokrotnie; każda instalacja dostaje świeży sufiks.',
+      'Wybierz przepis startowy — instalacja kopiuje YAML do .xiaoyuan-note/agents/ i otwiera go do edycji. Można instalować wielokrotnie; każda instalacja dostaje świeży sufiks.',
     browse: 'Przeglądaj książkę',
     preview: 'Podgląd YAML',
     hidePreview: 'Ukryj podgląd',
@@ -1677,7 +1699,7 @@ export const pl: I18n = {
     autoEngageFocusHint: 'Rozpoczęcie Pomodoro włącza tryb skupienia na czas trwania; zakończenie sesji przywraca poprzedni stan.',
     defaultDuration: 'Domyślny czas trwania',
     customDurationLabel: 'Niestandardowy (minuty)',
-    notificationTitle: 'SoloMD — sesja skupienia ukończona',
+    notificationTitle: 'xiaoyuanNote — sesja skupienia ukończona',
     notificationBody: '{minutes} min · napisano {words} słów',
   },
   quickSwitcher: {
@@ -1746,7 +1768,7 @@ export const pl: I18n = {
   cloudSync: {
     detectedTitle: 'Obszar roboczy znajduje się w {label}',
     detectedHint:
-      'Pliki zapisane tutaj są automatycznie propagowane na inne urządzenia przez dostawcę chmury. SoloMD dodaje przywracanie sesji między urządzeniami — otwórz ten sam obszar roboczy na innej maszynie, a wrócą te same karty.',
+      'Pliki zapisane tutaj są automatycznie propagowane na inne urządzenia przez dostawcę chmury. xiaoyuanNote dodaje przywracanie sesji między urządzeniami — otwórz ten sam obszar roboczy na innej maszynie, a wrócą te same karty.',
     siblingCount: '{n} innych urządzeń otworzyło ten obszar roboczy.',
     restoreTitle: 'Wrócić do tego, na czym skończono?',
     restoreLead:
@@ -1764,7 +1786,7 @@ export const pl: I18n = {
   githubSync: {
     heading: 'Synchronizacja GitHub',
     intro:
-      'Wypchnij swój skarbiec do prywatnego repozytorium GitHub, aby był z Tobą na różnych urządzeniach. Dane pozostają na Twoim koncie — SoloMD wykonuje tylko git push i git pull.',
+      'Wypchnij swój skarbiec do prywatnego repozytorium GitHub, aby był z Tobą na różnych urządzeniach. Dane pozostają na Twoim koncie — xiaoyuanNote wykonuje tylko git push i git pull.',
     signInTitle: 'Połącz z GitHub',
     signInHint:
       'Wklej osobisty token dostępu (PAT). Przechowywany w pęku kluczy systemu — nigdy nie wysyłany nigdzie poza api.github.com.',
@@ -1854,11 +1876,11 @@ export const pl: I18n = {
     conflictResolveFailed: 'Rozwiązanie nie powiodło się',
     keychainHintTitle: 'macOS poprosi o hasło — kliknij „Zawsze zezwalaj”',
     keychainHintBody:
-      'Przy pierwszym wypchnięciu na GitHub, macOS wyświetli okno Keychain, aby odczytać zapisany token. Jeśli włączone jest szyfrowanie end-to-end, zobaczysz drugi monit o klucz szyfrowania. Kliknij „Zawsze zezwalaj” (nie tylko „Zezwól”) za każdym razem — to dodaje SoloMD do białej listy na stałe i nigdy więcej nie zobaczysz tego monitu na tym Macu. Jeśli klikniesz „Zezwól” raz, monit pojawi się przy każdym pushu.',
+      'Przy pierwszym wypchnięciu na GitHub, macOS wyświetli okno Keychain, aby odczytać zapisany token. Jeśli włączone jest szyfrowanie end-to-end, zobaczysz drugi monit o klucz szyfrowania. Kliknij „Zawsze zezwalaj” (nie tylko „Zezwól”) za każdym razem — to dodaje xiaoyuanNote do białej listy na stałe i nigdy więcej nie zobaczysz tego monitu na tym Macu. Jeśli klikniesz „Zezwól” raz, monit pojawi się przy każdym pushu.',
     proxyTitle: 'Proxy HTTPS (dla GFW / sieci korporacyjnych)',
     proxyPlaceholder: 'http://127.0.0.1:7897 lub socks5://127.0.0.1:1080',
     proxyHint:
-      'Kieruje git push / pull przez to proxy. Zostaw puste dla połączenia bezpośredniego. Aplikacje GUI na macOS nie dziedziczą zmiennej HTTPS_PROXY z powłoki, więc ustaw to tu specjalnie dla SoloMD. Naprawia też „Operation timed out”, gdy github.com jest niedostępny bezpośrednio.',
+      'Kieruje git push / pull przez to proxy. Zostaw puste dla połączenia bezpośredniego. Aplikacje GUI na macOS nie dziedziczą zmiennej HTTPS_PROXY z powłoki, więc ustaw to tu specjalnie dla xiaoyuan-note. Naprawia też „Operation timed out”, gdy github.com jest niedostępny bezpośrednio.',
     proxySaveBtn: 'Zapisz proxy',
     proxySaving: 'Zapisywanie…',
     proxySavedToast: 'Proxy zapisane.',
@@ -1878,7 +1900,7 @@ export const pl: I18n = {
     upgradeRowBtn: 'Włącz szyfrowanie',
     upgradeFormTitle: 'Włącz szyfrowanie end-to-end',
     upgradeFormBody:
-      'Ustaw frazę. SoloMD wyprowadzi klucz (Argon2id) i ponownie zaszyfruje każdy plik przed kolejnym pushem.',
+      'Ustaw frazę. xiaoyuanNote wyprowadzi klucz (Argon2id) i ponownie zaszyfruje każdy plik przed kolejnym pushem.',
     upgradeForcePushWarning:
       'To wymusi push zaszyfrowanej historii ponad zdalną — stare commity z tekstem jawnym staną się nieosiągalne na GitHub. Każdy, kto sklonował to repo wcześniej, będzie musiał sklonować ponownie. Jeśli zapomnisz frazy, dane są nieodzyskiwalne.',
     upgradePassphrasePlaceholder: 'Fraza skarbca (min 8 znaków)',
@@ -1921,7 +1943,7 @@ export const pl: I18n = {
       'Push your vault to a Gitea server. Enter your server URL and a Personal Access Token to get started.',
     giteaUrlTitle: 'Gitea server URL',
     giteaUrlHint:
-      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). SoloMD will append /api/v1 automatically.',
+      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). xiaoyuanNote will append /api/v1 automatically.',
     giteaUrlValidateBtn: 'Validate URL',
     giteaUrlValidating: 'Validating...',
     giteaTokenTitle: 'Gitea Personal Access Token',
@@ -2212,8 +2234,15 @@ export const pl: I18n = {
       checkUpdated: 'Zaktualizowano dni wolne dla {years}',
       checkFailed: 'Sprawdzenie nie powiodło się — używam pamięci podręcznej',
     },
-    week: { header: 'W', tooltip: 'Tydzień ISO {week}' },
-    day: { off: 'Dzień wolny · {name}', work: 'Dzień pracy (odpracowanie)' },
+    week: { header: 'W', tooltip: 'Tydzień ISO {week}' },
+    openPeriodic: {
+      daily: 'Double-click to open the daily note',
+      weekly: 'Double-click to open the weekly note',
+      monthly: 'Double-click to open the monthly note',
+      quarterly: 'Double-click to open the quarterly note',
+      yearly: 'Double-click to open the yearly note',
+    },
+    day: { off: 'Dzień wolny · {name}', work: 'Dzień pracy (odpracowanie)', offShort: 'D', workShort: 'P' },
     lunar: { tooltip: 'Kalendarz księżycowy: {value}' },
     selectedDay: {
       open: 'Otwórz szczegóły dnia {date}',

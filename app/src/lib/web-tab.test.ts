@@ -88,7 +88,7 @@ test('host preference round-trips and frame is the implicit default', () => {
 
 test('corrupt preference storage degrades to defaults', () => {
   mem.clear();
-  mem.set('solomd.webTabs.v1', '{not json');
+  mem.set('xiaoyuan-note.webTabs.v1', '{not json');
   assert.deepEqual(readHostPrefs(), {});
   assert.equal(hostPreference('example.com'), 'frame');
 });

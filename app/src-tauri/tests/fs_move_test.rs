@@ -15,7 +15,7 @@ use std::path::Path;
 /// `fs_move_inner` report "target already exists".
 fn tmp(name: &str) -> tempfile::TempDir {
     tempfile::Builder::new()
-        .prefix(&format!("solomd-move-{name}-"))
+        .prefix(&format!("xiaoyuan-note-move-{name}-"))
         .tempdir()
         .unwrap()
 }

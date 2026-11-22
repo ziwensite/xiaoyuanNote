@@ -1,4 +1,4 @@
-SoloMD, iPad için hafif ve dikkat dağıtmayan bir Markdown editörüdür. Tek dosya. Tek pencere. Sadece yazın.
+xiaoyuanNote, iPad için hafif ve dikkat dağıtmayan bir Markdown editörüdür. Tek dosya. Tek pencere. Sadece yazın.
 
 Sıfırdan odaklı bir yazı aracı olarak tasarlandı — hesap yok, bulut yok, telemetri yok, abonelik yok. Notlarınız iPad'inizde düz `.md` ve `.txt` dosyaları olarak kalır; her platformdaki her editörle okunabilir — bugün de, on yıl sonra da.
 
@@ -59,8 +59,8 @@ DIŞA AKTARMA
 ÖNCE GİZLİLİK
 ━━━━━━━━━━━━━━━━━━
 
-SoloMD hiçbir kişisel veri toplamaz. Hesap yok. Analitik yok. Reklam yok. İzleme yok. Tüm notlarınız size ait dosyalarda, cihazınızda durur.
+xiaoyuanNote hiçbir kişisel veri toplamaz. Hesap yok. Analitik yok. Reklam yok. İzleme yok. Tüm notlarınız size ait dosyalarda, cihazınızda durur.
 
-SoloMD açık kaynaklıdır (MIT). Kaynak: github.com/zhitongblog/solomd
+xiaoyuanNote açık kaynaklıdır (MIT). Kaynak: github.com/zhitongblog/xiaoyuan-note
 
-SoloMD'yi sevdiniz mi? Depoya ⭐ verin veya solomd.app üzerinden geliştirmeye destek olun
+xiaoyuanNote'yi sevdiniz mi? Depoya ⭐ verin veya xiaoyuannote.app üzerinden geliştirmeye destek olun

@@ -1,7 +1,7 @@
 //! Quick capture — a global hotkey that takes a thought without switching apps.
 //!
 //! The idea arrives while you are in a browser, a terminal, a chat window.
-//! Bringing SoloMD forward, waiting for it to paint, finding the right folder
+//! Bringing xiaoyuanNote forward, waiting for it to paint, finding the right folder
 //! and making a note is enough friction that the thought is usually gone. This
 //! is the shortest path that still ends in a real file: press the chord
 //! anywhere, a small always-on-top box appears, type, press Enter, the box
@@ -28,8 +28,8 @@ use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 use super::capture_endpoint::{self, capture_write_inner};
 
 /// Fixed label so a second press focuses the existing box instead of stacking
-/// windows. Matches the `solomd-*` capability pattern.
-pub const CAPTURE_LABEL: &str = "solomd-quick-capture";
+/// windows. Matches the `xiaoyuan-note-*` capability pattern.
+pub const CAPTURE_LABEL: &str = "xiaoyuan-note-quick-capture";
 
 /// Quick capture is a desktop idea: a global chord and a floating box over
 /// whatever else you are doing. Neither exists on a phone.
@@ -61,7 +61,7 @@ pub fn quick_capture_open(app: AppHandle) -> Result<(), String> {
             win.show().map_err(|e| e.to_string())?;
             win.set_focus().map_err(|e| e.to_string())?;
             // The box remembers nothing between uses; tell the webview to clear.
-            let _ = win.emit("solomd://quick-capture-reset", ());
+            let _ = win.emit("xiaoyuan-note://quick-capture-reset", ());
             return Ok(());
         }
 
@@ -70,7 +70,7 @@ pub fn quick_capture_open(app: AppHandle) -> Result<(), String> {
             CAPTURE_LABEL,
             WebviewUrl::App("index.html#quickCapture=1".into()),
         )
-        .title("SoloMD — Quick Capture")
+        .title("xiaoyuanNote — Quick Capture")
         .inner_size(560.0, 180.0)
         .resizable(false)
         .decorations(false)
@@ -137,7 +137,7 @@ pub fn quick_capture_write(
 
     // The main window's file tree is showing a directory that just gained a
     // file; without this the note is invisible until something else refreshes.
-    let _ = app.emit("solomd://capture-written", path.clone());
+    let _ = app.emit("xiaoyuan-note://capture-written", path.clone());
     Ok(path)
 }
 

@@ -4,12 +4,12 @@
  *
  * Center-pane overlay (same App.vue swap convention as BasesView): replaces
  * TileRoot in `.content` while `inboxViewOpen` is true. Opened via the
- * `solomd:open-inbox` window CustomEvent (see useInboxView.ts).
+ * `xiaoyuan-note:open-inbox` window CustomEvent (see useInboxView.ts).
  *
  * Surface:
  *   - sticky header: back button, heading, Week / Month / All period pills
  *     with live counts (driven off the workspace index ⇒ updates on
- *     `solomd://index-updated` for free).
+ *     `xiaoyuan-note://index-updated` for free).
  *   - a scrollable, keyboard-navigable list of inbox notes built from the
  *     design-system `DsListRow`: title, captured-date (relative + absolute),
  *     advisory link count, and up to two front-matter property chips.

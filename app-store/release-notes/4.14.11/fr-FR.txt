@@ -1,4 +1,4 @@
-SoloMD 4.14.11 corrige des problèmes relevés lors d’une série de tests complète. Certains pouvaient modifier ou faire perdre du texte : nous recommandons donc la mise à jour.
+xiaoyuanNote 4.14.11 corrige des problèmes relevés lors d’une série de tests complète. Certains pouvaient modifier ou faire perdre du texte : nous recommandons donc la mise à jour.
 
 • La relecture CJK ne considère plus les noms de fichiers (文档.md, 压缩包.tar.gz) ni les points de suspension comme des fautes de ponctuation, et « Tout appliquer » ne peut plus les réécrire.
 • L’import d’un document Word garde le gras à sa place et récupère les listes numérotées, les listes de tâches et les liens. L’export Word marque les tâches avec [ ] / [x].

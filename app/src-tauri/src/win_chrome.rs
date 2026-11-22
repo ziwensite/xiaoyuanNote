@@ -17,7 +17,7 @@
 //! maximize` on the button, the runtime maps that region to HTMAXBUTTON and
 //! forwards the resulting non-client messages to this top-level window,
 //! where the subclass:
-//!   * emits `solomd://maxbtn-hover` (bool) on hover changes so the HTML
+//!   * emits `xiaoyuan-note://maxbtn-hover` (bool) on hover changes so the HTML
 //!     button can style itself (DOM hover no longer fires there), and
 //!   * turns the click into `WM_SYSCOMMAND` maximize/restore (posted, not
 //!     sent, to avoid re-entering the window proc).
@@ -93,7 +93,7 @@ fn in_max_button(hwnd: HWND, lparam: LPARAM) -> bool {
 
 fn set_hover(app: &tauri::AppHandle, on: bool) {
     if HOVERED.swap(on, Ordering::Relaxed) != on {
-        let _ = app.emit("solomd://maxbtn-hover", on);
+        let _ = app.emit("xiaoyuan-note://maxbtn-hover", on);
     }
 }
 

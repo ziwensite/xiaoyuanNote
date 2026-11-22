@@ -5,10 +5,10 @@ const R = checks();
 const { unzipSync, strFromU8 } = await import('/node_modules/fflate/esm/browser.js');
 async function exportDocx(rel, out) {
   await open(rel);
-  window.__solomdSavePathOverride = path(out);
+  window.__xiaoyuanNoteSavePathOverride = path(out);
   act('export.docx');
   const ok = await waitFor(async () => { try { return (await readBytes(out)).length > 1000; } catch { return false; } }, 15000, 200);
-  delete window.__solomdSavePathOverride;
+  delete window.__xiaoyuanNoteSavePathOverride;
   return ok;
 }
 // 1) Round trip of the docx fixture

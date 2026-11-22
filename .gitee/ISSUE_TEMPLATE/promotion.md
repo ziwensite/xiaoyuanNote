@@ -1,6 +1,6 @@
 ---
 name: 📣 推广登记
-about: 写了文章、录了视频或推荐了 SoloMD？在这里登记，加入致谢名单。规则：https://solomd.app/zh/promote
+about: 写了文章、录了视频或推荐了 xiaoyuanNote？在这里登记，加入致谢名单。规则：https://xiaoyuannote.app/zh/promote
 title: "📣 推广登记："
 ---
 

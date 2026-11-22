@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
-  <title id="title">SoloMD document icon</title>
-  <desc id="desc">A warm paper document carrying the SoloMD Markdown Portal mark.</desc>
+  <title id="title">xiaoyuanNote document icon</title>
+  <desc id="desc">A warm paper document carrying the xiaoyuanNote Markdown Portal mark.</desc>
   <path d="M218 116H676L852 292V914Q852 952 814 952H218Q180 952 180 914V154Q180 116 218 116Z" fill="#151413" opacity="0.22"/>
   <g>
     <path d="M208 92H666L842 268V890Q842 928 804 928H208Q170 928 170 890V130Q170 92 208 92Z" fill="#FFF9EF" stroke="#191817" stroke-width="22" stroke-linejoin="round"/>

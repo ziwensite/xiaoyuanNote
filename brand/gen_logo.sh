@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate SoloMD logo concepts using Gemini 2.5 Flash Image
+# Generate xiaoyuanNote logo concepts using Gemini 2.5 Flash Image
 # Usage: GEMINI_API_KEY=xxx ./gen_logo.sh
 
 set -e
@@ -46,7 +46,7 @@ gen_logo() {
 
 # Concept D: Minimal dot + underline
 gen_logo "concept_d_dot" \
-"A minimalist tech product logo for an app called 'SoloMD', a lightweight markdown text editor. \
+"A minimalist tech product logo for an app called 'xiaoyuanNote', a lightweight markdown text editor. \
 The logo is a single small filled circle (representing a text cursor blink) sitting just above a short horizontal underline. \
 Pure geometric, ultra minimal, like Linear or Vercel branding. \
 Solid pure black on a clean pure white background. Centered. No text, no letters, no words. \
@@ -54,7 +54,7 @@ Vector style, sharp edges, perfectly balanced composition. Square 1024x1024."
 
 # Concept A: Letter S with cursor
 gen_logo "concept_a_s_cursor" \
-"A minimalist monogram logo for a lightweight markdown editor app called 'SoloMD'. \
+"A minimalist monogram logo for a lightweight markdown editor app called 'xiaoyuanNote'. \
 The logo is a single bold geometric letter S, with a tiny vertical cursor bar '|' integrated inside the negative space of the S. \
 Modern sans-serif, very clean, no decoration. \
 Solid pure black on pure white background. Centered. No other text, no words. \
@@ -62,7 +62,7 @@ Tech startup branding style like Stripe or Notion. Square 1024x1024."
 
 # Concept B: Hash mark variation
 gen_logo "concept_b_hash" \
-"A minimalist geometric logo for a markdown editor app called 'SoloMD'. \
+"A minimalist geometric logo for a markdown editor app called 'xiaoyuanNote'. \
 The logo is the markdown heading symbol '#' (hash sign) but stylized: one of its strokes morphs subtly into the digit '1' or letter 'S' to convey 'solo / single'. \
 Strict geometric, monoline, equal stroke width. \
 Solid pure black on pure white background. Centered. No surrounding text or words. \

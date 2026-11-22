@@ -2,9 +2,9 @@
 
 ## 软件信息
 
-**Name**: SoloMD
+**Name**: xiaoyuanNote
 
-**Website**: https://solomd.app
+**Website**: https://xiaoyuannote.app
 
 **One-line description**:
 ```
@@ -13,7 +13,7 @@ A lightweight Markdown editor with live preview, only 15MB
 
 **Full description**:
 ```
-SoloMD is a lightweight, cross-platform Markdown editor designed for focused writing.
+xiaoyuanNote is a lightweight, cross-platform Markdown editor designed for focused writing.
 
 Key Features:
 - Live preview editing (Markdown syntax hides when cursor leaves)

@@ -28,7 +28,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
-        android:theme="@style/Theme.solomd"
+        android:theme="@style/Theme.xiaoyuanNote"
         android:usesCleartextTraffic="${usesCleartextTraffic}">
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
@@ -44,7 +44,7 @@
             </intent-filter>
 
             <!-- File association: open .md / .markdown / .mdown / .mkd / .txt
-                 from a file manager ("Open with SoloMD"). The deep-link
+                 from a file manager ("Open with xiaoyuanNote"). The deep-link
                  plugin picks these up the same way iOS uses
                  CFBundleDocumentTypes / LSSupportsOpeningDocumentsInPlace. -->
             <intent-filter>
@@ -72,7 +72,7 @@
             </intent-filter>
 
             <!-- Share target: other apps can share text or .md files to
-                 SoloMD (Share sheet → "SoloMD"). Mirrors the iOS Share
+                 xiaoyuanNote (Share sheet → "xiaoyuanNote"). Mirrors the iOS Share
                  Extension hookup; the frontend listens for the deep-link
                  event and spawns a new tab with the shared payload. -->
             <intent-filter>

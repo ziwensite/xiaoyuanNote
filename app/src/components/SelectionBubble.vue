@@ -3,7 +3,7 @@
  * 5.0 selection bubble (docs/v5-ui-spec.md §5) — the floating format bar over
  * a text selection, as in Apple's own text-formatting popovers.
  *
- * Editor-agnostic on purpose: SoloMD has two editors on Windows (CodeMirror
+ * Editor-agnostic on purpose: xiaoyuanNote has two editors on Windows (CodeMirror
  * and the native textarea one), and a feature written against one of them is
  * silently dead in the other. Editor.vue hands this component two readers —
  * `read` (the selection, as text) and `rect` (where it is on screen) — for
@@ -257,6 +257,17 @@ function onFocusOut() {
 function onWindowBlur() {
   hide();
 }
+// Outside-click dismissal for the bubble itself: a mousedown (left OR right)
+// anywhere other than the bubble closes it, so it can never sit on top of
+// another popup (e.g. a right-click menu over the same selection). The bubble
+// has no such guard by default — it only hid on a press *inside the editor
+// host*, so pressing elsewhere (or right-clicking) left it on screen.
+function onDocDownSelBubble(e: MouseEvent) {
+  if (!visible.value) return;
+  const t = e.target as Node | null;
+  if (t && barEl.value && barEl.value.contains(t)) return;
+  hide();
+}
 /** Back to the window with the selection still there: offer the bar again. */
 function onWindowFocus() {
   const a = document.activeElement;
@@ -278,6 +289,7 @@ function bind(host: HTMLElement | null) {
   host.addEventListener('scroll', onScroll, true);
   host.addEventListener('focusout', onFocusOut, true);
   document.addEventListener('selectionchange', onDocSelectionChange);
+  document.addEventListener('mousedown', onDocDownSelBubble, true);
   window.addEventListener('pointerup', onWindowPointerUp, true);
   window.addEventListener('blur', onWindowBlur);
   window.addEventListener('focus', onWindowFocus);
@@ -296,6 +308,7 @@ function unbind() {
   host.removeEventListener('scroll', onScroll, true);
   host.removeEventListener('focusout', onFocusOut, true);
   document.removeEventListener('selectionchange', onDocSelectionChange);
+  document.removeEventListener('mousedown', onDocDownSelBubble, true);
   window.removeEventListener('pointerup', onWindowPointerUp, true);
   window.removeEventListener('blur', onWindowBlur);
   window.removeEventListener('focus', onWindowFocus);
@@ -327,7 +340,7 @@ function aiRewrite() {
   hide();
   // Toolbar.vue owns AI rewrite (reads the selection from either editor and
   // opens the overlay); this is the same event the menu bar uses.
-  window.dispatchEvent(new CustomEvent('solomd:toolbar-ai-rewrite'));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:toolbar-ai-rewrite'));
 }
 
 const style = computed(() =>

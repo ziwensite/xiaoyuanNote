@@ -1,7 +1,7 @@
 //! v4.0 pillar 1 — in-process agent tool registry (C3.1).
 //!
 //! The Inline Agent Panel calls these from the Tauri Rust side directly —
-//! NOT via the external `solomd-mcp` binary. Each tool wraps existing app
+//! NOT via the external `xiaoyuan-note-mcp` binary. Each tool wraps existing app
 //! logic (`workspace_index`, `search`, `git_history`, `commands` for fs).
 //! This avoids a JSON-RPC / subprocess hop, decouples the panel from the
 //! external MCP binary's wire format (which P4/Federation evolves
@@ -374,9 +374,9 @@ fn resolve_in_workspace(workspace: &Path, arg_path: &str) -> Result<PathBuf, Str
 /// Validate a user-supplied agent-run identifier.
 ///
 /// `read_agent_trace` joins `run_id` directly into a filesystem path
-/// (`<workspace>/.solomd/agent-runs/<run_id>/trace.jsonl`). Without this
+/// (`<workspace>/.xiaoyuan-note/agent-runs/<run_id>/trace.jsonl`). Without this
 /// check, an LLM could pass `run_id: "../../etc/passwd"` and read
-/// arbitrary files (the `.solomd/agent-runs/` prefix only bounds *which*
+/// arbitrary files (the `.xiaoyuan-note/agent-runs/` prefix only bounds *which*
 /// dir we start from — `..` walks above it).
 ///
 /// We require the canonical shape used by the run writer:
@@ -1082,10 +1082,10 @@ fn tool_read_agent_trace(workspace: &Path, args: &Value) -> Result<Value, String
         .ok_or("run_id: required")?;
     // SECURITY: refuse anything that isn't the canonical run_id shape —
     // `run_id` is interpolated directly into the filesystem path below, so
-    // an unvalidated `../../etc` would walk above `.solomd/agent-runs/`.
+    // an unvalidated `../../etc` would walk above `.xiaoyuan-note/agent-runs/`.
     let run_id = validate_run_id(run_id_raw)?;
     let path = workspace
-        .join(".solomd")
+        .join(".xiaoyuanNote")
         .join("agent-runs")
         .join(run_id)
         .join("trace.jsonl");
@@ -1193,7 +1193,7 @@ agent_tool_cmd!(agent_tool_write_note, "write_note");
 agent_tool_cmd!(agent_tool_append_to_note, "append_to_note");
 agent_tool_cmd!(agent_tool_read_agent_trace, "read_agent_trace");
 
-/// List recent agent runs by reading `<workspace>/.solomd/agent-runs/`.
+/// List recent agent runs by reading `<workspace>/.xiaoyuan-note/agent-runs/`.
 /// Returns each run's meta.json (sorted by started_at desc). Used by the
 /// AI Settings "recent runs" section.
 #[tauri::command]
@@ -1204,7 +1204,7 @@ pub async fn agent_list_runs(workspace: String) -> Result<Vec<Value>, String> {
 }
 
 fn agent_list_runs_inner(workspace: String) -> Result<Vec<Value>, String> {
-    let dir = PathBuf::from(&workspace).join(".solomd").join("agent-runs");
+    let dir = PathBuf::from(&workspace).join(".xiaoyuanNote").join("agent-runs");
     if !dir.exists() {
         return Ok(vec![]);
     }
@@ -1256,7 +1256,7 @@ mod tests {
     use std::fs;
 
     fn make_workspace() -> PathBuf {
-        let id = format!("solomd-tools-{}", std::process::id());
+        let id = format!("xiaoyuan-note-tools-{}", std::process::id());
         let stamp = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
             .map(|d| d.as_nanos())

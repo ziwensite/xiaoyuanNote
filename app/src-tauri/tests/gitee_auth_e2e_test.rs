@@ -5,8 +5,8 @@
 //! credential callback now authenticates there.
 //!
 //! `#[ignore]`d — needs network + a Gitee account. Run with:
-//!   SOLOMD_GITEE_URL=https://gitee.com/<user>/<repo>.git \
-//!   SOLOMD_GITEE_TOKEN=<token> \
+//!   XIAOYUAN_NOTE_GITEE_URL=https://gitee.com/<user>/<repo>.git \
+//!   XIAOYUAN_NOTE_GITEE_TOKEN=<token> \
 //!   cargo test --test gitee_auth_e2e_test -- --ignored --nocapture
 
 use std::fs;
@@ -19,15 +19,15 @@ fn env(name: &str) -> Option<String> {
 #[test]
 #[ignore]
 fn push_to_gitee_authenticates() {
-    let (url, token) = match (env("SOLOMD_GITEE_URL"), env("SOLOMD_GITEE_TOKEN")) {
+    let (url, token) = match (env("XIAOYUAN_NOTE_GITEE_URL"), env("XIAOYUAN_NOTE_GITEE_TOKEN")) {
         (Some(u), Some(t)) => (u, t),
         _ => {
-            eprintln!("skipped: set SOLOMD_GITEE_URL and SOLOMD_GITEE_TOKEN");
+            eprintln!("skipped: set XIAOYUAN_NOTE_GITEE_URL and XIAOYUAN_NOTE_GITEE_TOKEN");
             return;
         }
     };
 
-    let ws = std::env::temp_dir().join(format!("solomd-gitee-e2e-{}", std::process::id()));
+    let ws = std::env::temp_dir().join(format!("xiaoyuan-note-gitee-e2e-{}", std::process::id()));
     let _ = fs::remove_dir_all(&ws);
     fs::create_dir_all(&ws).unwrap();
     fs::write(ws.join("note.md"), "# from the gitee auth e2e test\n").unwrap();

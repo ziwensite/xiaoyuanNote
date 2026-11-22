@@ -13,11 +13,11 @@
  * Daily totals are kept in the same store so the WritingGoals popover and
  * the optional status-bar "Today: …" segment share one source of truth.
  *
- * Persisted to `localStorage['solomd.writingSession.v1']`.
+ * Persisted to `localStorage['xiaoyuan-note.writingSession.v1']`.
  */
 import { defineStore } from 'pinia';
 
-const LS_KEY = 'solomd.writingSession.v1';
+const LS_KEY = 'xiaoyuan-note.writingSession.v1';
 
 export interface SessionEntry {
   /** ISO-ish timestamp of the first observation in this open. */

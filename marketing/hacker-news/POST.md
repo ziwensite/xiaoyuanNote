@@ -3,13 +3,13 @@
 ## Title (80 chars max)
 
 ```
-Show HN: SoloMD – A 15 MB Markdown editor built with Tauri 2 and Rust
+Show HN: xiaoyuanNote – A 15 MB Markdown editor built with Tauri 2 and Rust
 ```
 
 ## URL
 
 ```
-https://solomd.app
+https://xiaoyuannote.app
 ```
 
 ## Text (for Show HN, leave URL empty and paste this)
@@ -21,7 +21,7 @@ I built a Markdown editor because I wanted something that:
 - Works fully offline with zero telemetry
 - Doesn't require an account or subscription
 
-SoloMD is the result. It's ~15 MB installed (vs Typora 80 MB / Obsidian 250 MB).
+xiaoyuanNote is the result. It's ~15 MB installed (vs Typora 80 MB / Obsidian 250 MB).
 
 **What makes it different:**
 
@@ -33,7 +33,7 @@ SoloMD is the result. It's ~15 MB installed (vs Typora 80 MB / Obsidian 250 MB).
 
 **Tech stack:** Tauri 2 + Vue 3 + CodeMirror 6 + Rust backend
 
-MIT licensed, fully open source: https://github.com/zhitongblog/solomd
+MIT licensed, fully open source: https://github.com/zhitongblog/xiaoyuan-note
 
 I'd love feedback on the editor experience. What features would make you switch from your current Markdown tool?
 ```
@@ -58,12 +58,12 @@ Tauri lets us use the system webview instead of bundling Chromium. On macOS that
 
 ### On "Why not VS Code?"
 ```
-VS Code is great if you already live in it. SoloMD is for when you want to open a single .md file, write, and close – without loading an entire IDE. Think Notepad, but with Markdown rendering.
+VS Code is great if you already live in it. xiaoyuanNote is for when you want to open a single .md file, write, and close – without loading an entire IDE. Think Notepad, but with Markdown rendering.
 ```
 
 ### On "What about Obsidian?"
 ```
-Obsidian is excellent for knowledge management and linking notes. SoloMD is intentionally simpler – it's a single-file editor, not a vault system. Different tools for different workflows.
+Obsidian is excellent for knowledge management and linking notes. xiaoyuanNote is intentionally simpler – it's a single-file editor, not a vault system. Different tools for different workflows.
 ```
 
 ## Attached Images

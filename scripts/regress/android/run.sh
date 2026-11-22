@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SoloMD Android regression suite (checklist column A rows L8/L9 + the 5.0
+# xiaoyuanNote Android regression suite (checklist column A rows L8/L9 + the 5.0
 # phone shell). Drives a RELEASE build on an emulator or phone with adb only:
 # input tap/text/keyevent, `uiautomator dump` for element bounds, screencap.
 #
@@ -9,14 +9,14 @@
 #                          (e.g. `run.sh A01 saf`); A00 (install) always runs
 #   --apk PATH             APK to install (default: the newest universal or
 #                          arm64 release APK under gen/android/app/build/outputs)
-#   --no-install           test whatever app.solomd is installed (skips A00's
+#   --no-install           test whatever app.xiaoyuanNote is installed (skips A00's
 #                          md5 / time-chain proof — results say so)
 #   --avd NAME             start this AVD if no device is attached and stop it
 #                          again at the end (default: Pixel7)
 #   --keep-emulator        leave an emulator this script started running
 #   --serial SERIAL        device to use (default: the only attached one)
 #
-# Environment: OUT_DIR (default /tmp/solomd-regress-android/<timestamp>),
+# Environment: OUT_DIR (default /tmp/xiaoyuan-note-regress-android/<timestamp>),
 #              RG_REMOTE_DIR (default /sdcard/Documents/SoloRegress).
 #
 # Output: PASS/FAIL table on stdout, $OUT_DIR/results.json, screenshots in
@@ -31,7 +31,7 @@ set -uo pipefail
 SUITE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SUITE/../../.." && pwd)"
 TS="$(date +%Y%m%d-%H%M%S)"
-OUT="${OUT_DIR:-/tmp/solomd-regress-android/$TS}"
+OUT="${OUT_DIR:-/tmp/xiaoyuan-note-regress-android/$TS}"
 REMOTE_DIR="${RG_REMOTE_DIR:-/sdcard/Documents/SoloRegress}"
 APK=""; INSTALL=1; AVD="Pixel7"; KEEP_EMU=0; SERIAL="${SERIAL:-}"
 FILTERS=()

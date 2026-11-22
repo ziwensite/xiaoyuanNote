@@ -148,7 +148,7 @@ export const CODEMIRROR_SAFE_WEBVIEW2_MAJOR = 154;
 /** The webview version main.ts read at startup (Windows only), or null. */
 export function currentWebviewVersion(): string | null {
   if (typeof window === 'undefined') return null;
-  const v = (window as unknown as { __SOLOMD_WEBVIEW_VERSION__?: unknown }).__SOLOMD_WEBVIEW_VERSION__;
+  const v = (window as unknown as { __XIAOYUAN_NOTE_WEBVIEW_VERSION__?: unknown }).__XIAOYUAN_NOTE_WEBVIEW_VERSION__;
   return typeof v === 'string' && v ? v : null;
 }
 

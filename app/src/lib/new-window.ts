@@ -2,11 +2,11 @@ import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { windowChromeOptions } from './window-chrome-options';
 
 /**
- * #280 — open a second SoloMD window.
+ * #280 — open a second xiaoyuanNote window.
  *
  * There are two ways in: the native menu (File → New Window) and the command
  * palette. They used to be separate implementations — the palette built a
- * `WebviewWindow`, while the menu dispatched a `solomd:new-window` event that
+ * `WebviewWindow`, while the menu dispatched a `xiaoyuan-note:new-window` event that
  * nothing had ever listened for, so the menu item was silently dead from the
  * day the native menu landed (47bfce1, 2026-04-08). Both entry points now call
  * this, so a working palette can no longer imply a working menu.
@@ -16,12 +16,12 @@ import { windowChromeOptions } from './window-chrome-options';
  */
 export function openNewWindow(): Promise<void> {
   return new Promise((resolve, reject) => {
-    const label = `solomd-${Date.now()}`;
+    const label = `xiaoyuan-note-${Date.now()}`;
     let win: WebviewWindow;
     try {
       win = new WebviewWindow(label, {
         url: '/',
-        title: 'SoloMD',
+        title: 'xiaoyuanNote',
         width: 1000,
         height: 700,
         ...windowChromeOptions(),

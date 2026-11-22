@@ -1,4 +1,4 @@
-/* SoloMD 5.0 — ONE menu style (docs/v5-ui-spec.md §6).
+/* xiaoyuanNote 5.0 — ONE menu style (docs/v5-ui-spec.md §6).
  *
  * Every dropdown, context menu and popover in the app reads the same:
  *   surface  --bg-pop, radius 10, padding 4, --sh-pop + hairline border
@@ -45,6 +45,7 @@
   .dropdown__menu,
   .ds-dropdown__menu,
   .ds-popover__panel,
+  .prop-date-menu,
   .ctx-menu,
   .tab-menu,
   .sidebar-ctx,
@@ -472,7 +473,7 @@
 
 /* ── CodeMirror popups ────────────────────────────────────────────────── */
 /* Autocomplete (wiki-links, tags, emoji shortcodes…): CM's base theme draws
-   a grey box with a blue selection — make it a SoloMD menu. */
+   a grey box with a blue selection — make it a xiaoyuanNote menu. */
 :root:not(#_) .cm-tooltip.cm-tooltip-autocomplete {
   background: var(--bg-pop);
   border: var(--bd-hair);

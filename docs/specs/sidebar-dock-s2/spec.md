@@ -11,7 +11,7 @@
 | D2/标签模型 | 每个 Dock = 活动栏（Rail，32px）+ 标签头（Tabs，可见面板 ≥2 时）+ 面板体（只渲染 active） | 与 plan §2.1 一致 |
 | D4 | 有标签头后，**去掉面板自带的重复标题文字**，保留右上角操作按钮（含 × 与面板功能按钮） | plan D4 原写「保留 PanelHeader 不动」；以用户决策为准 |
 | D6 | 新安装：左侧 Dock 预设 **Outlined（大纲）**（文件树仍在 `Sidebar.vue`），右侧预设 **Calendar（默认激活，未实现）+ Agent** | plan D6 原写「全部归右侧、左侧零面板」；以用户决策为准 |
-| 迁移 | 沿用 `solomd.settings.v1`，新增 `v510SidebarDockMigrated`；老栈所有面板按 `outlineSide` 落到同一侧，另一侧为空 | 与 plan §4.2 一致 |
+| 迁移 | 沿用 `xiaoyuan-note.settings.v1`，新增 `v510SidebarDockMigrated`；老栈所有面板按 `outlineSide` 落到同一侧，另一侧为空 | 与 plan §4.2 一致 |
 | S2 范围 | 不做拖拽（S3）、不做溢出/键盘/窄屏完善（S4）；但数据结构保留 `panes[]` 顺序 + `side` 供 S3 使用 | 与用户要求一致 |
 
 ## 2. 数据模型

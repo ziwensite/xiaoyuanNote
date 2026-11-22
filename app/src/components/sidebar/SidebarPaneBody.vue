@@ -10,6 +10,7 @@
  */
 import { defineAsyncComponent } from 'vue';
 import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
+import { useDailyNotes } from '../../composables/useDailyNotes';
 import Outline from '../Outline.vue';
 import BacklinksPanel from '../BacklinksPanel.vue';
 import Sidebar from '../Sidebar.vue';
@@ -36,6 +37,18 @@ const emit = defineEmits<{
   openSettings: [section?: string];
   openQuickSwitcher: [];
 }>();
+
+const daily = useDailyNotes();
+function wallDate(value: string): Date {
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function openDailyNote(date: string): void {
+  void daily.openPeriodic('daily', wallDate(date));
+}
+function openWeeklyNote(date: string): void {
+  void daily.openPeriodic('weekly', wallDate(date));
+}
 </script>
 
 <template>
@@ -62,5 +75,10 @@ const emit = defineEmits<{
     v-if="props.id === 'agent'"
     @open-settings="(section?: string) => emit('openSettings', section ?? 'integrations')"
   />
-  <CalendarPanel v-if="props.id === 'calendar'" :preview="true" />
+  <CalendarPanel
+    v-if="props.id === 'calendar'"
+    :preview="true"
+    @open-daily="openDailyNote"
+    @open-weekly="openWeeklyNote"
+  />
 </template>

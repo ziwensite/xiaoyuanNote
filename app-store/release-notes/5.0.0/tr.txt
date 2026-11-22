@@ -1,4 +1,4 @@
-SoloMD 5.0 — yazmak için daha sakin bir yer.
+xiaoyuanNote 5.0 — yazmak için daha sakin bir yer.
 
 • Yeniden tasarlanan pencere: Canlı / Kaynak / Bölünmüş / Önizleme arasında tek dokunuşla geçilen sade bir üst bar, klasörleriniz ve notlarınız için bir kenar çubuğu, hap biçimli sekmeler ve durum çubuğu yerine küçük bir kelime sayacı.
 • iPhone: notlar için bir ana ekran, altta arama ve yeni not düğmesi, tam ekran düzenleyici.

@@ -73,7 +73,7 @@ export function useProperties() {
   /**
    * Apply a rewritten file (returned by the Rust command) into the open tab so
    * the editor reflows and the tab is marked clean (it was just written to
-   * disk). After the write the index will refresh off `solomd://index-updated`.
+   * disk). After the write the index will refresh off `xiaoyuan-note://index-updated`.
    */
   function applyRewritten(next: string) {
     const id = tabs.activeId;

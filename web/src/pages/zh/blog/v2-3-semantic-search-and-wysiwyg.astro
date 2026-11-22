@@ -8,7 +8,7 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD v2.3 — 语义搜索、WYSIWYG 实时编辑、Windows 便携版"
+  title="xiaoyuanNote v2.3 — 语义搜索、WYSIWYG 实时编辑、Windows 便携版"
   description="按意思而非关键词搜索笔记 —— 100% 本地,不下模型文件。Typora 风 WYSIWYG 实时所见即所得模式,Windows 文件树 10× 提速,新增便携版 .zip,以及一个内部用的 MCP 自测桥。"
   lang={lang}
 >
@@ -43,7 +43,7 @@ const lang = 'zh' as const;
           默认关闭。设置 → 语义搜索 启用。关闭时零开销,不扫描、不建索引。
         </li>
         <li>
-          索引存在 <code>&lt;workspace&gt;/.solomd/embeddings.sqlite</code>,
+          索引存在 <code>&lt;workspace&gt;/.xiaoyuan-note/embeddings.sqlite</code>,
           就是普通 SQLite,可以用 <code>sqlite3 .schema</code> 直接看。AutoGit
           打开时自动加进 .gitignore。
         </li>
@@ -90,10 +90,10 @@ const lang = 'zh' as const;
 
       <h2>📦 Windows 便携版 .zip</h2>
       <p>
-        来自 <a href="https://github.com/zhitongblog/solomd/issues/27" rel="external">issue #27</a>
+        来自 <a href="https://github.com/zhitongblog/xiaoyuan-note/issues/27" rel="external">issue #27</a>
         的请求:无需安装的 Windows 版本。从这个版本开始,每次发布会同时产生一个
-        <code>SoloMD_&lt;version&gt;_x64-portable.zip</code>,跟现有的 .msi /
-        .exe 并列。解压跑 <code>SoloMD.exe</code> 即可 —— 不要管理员权限,不写
+        <code>XIAOYUAN_NOTE_&lt;version&gt;_x64-portable.zip</code>,跟现有的 .msi /
+        .exe 并列。解压跑 <code>xiaoyuan-note.exe</code> 即可 —— 不要管理员权限,不写
         注册表,可以放 U 盘里跑。
       </p>
       <p>
@@ -105,14 +105,14 @@ const lang = 'zh' as const;
       <ul>
         <li>
           <strong>Win11 切换文件树时闪退</strong>
-          (<a href="https://github.com/zhitongblog/solomd/issues/25" rel="external">#25</a>)
+          (<a href="https://github.com/zhitongblog/xiaoyuan-note/issues/25" rel="external">#25</a>)
           —— v2.2.1 修了。根因是 <code>list_dir</code> 是同步 Tauri 命令,在慢盘
           (OneDrive 占位符、网盘、杀软)上堵主线程,Win11 把进程当无响应杀掉。
           现在 async + spawn_blocking。
         </li>
         <li>
           <strong>Windows 本地图片不显示</strong>
-          (<a href="https://github.com/zhitongblog/solomd/issues/22" rel="external">#22</a>)
+          (<a href="https://github.com/zhitongblog/xiaoyuan-note/issues/22" rel="external">#22</a>)
           —— v2.0 就修了;混斜杠路径现在过 <code>normalizePath</code> 才到
           <code>convertFileSrc</code>。
         </li>
@@ -121,7 +121,7 @@ const lang = 'zh' as const;
       <h2>🤖 工程笔记:dev-bridge</h2>
       <p>
         v2.3 内部新增的一块基础设施 —— 不直接面向用户,但值得说一下。在 v2.3 之前,
-        我们有 <code>solomd-dev-mcp</code> 这个内部 MCP 服务,可以驱动 Tauri IPC
+        我们有 <code>xiaoyuan-note-dev-mcp</code> 这个内部 MCP 服务,可以驱动 Tauri IPC
         之下的所有逻辑(设置、工作区状态、AutoGit、文件读写),但**不能**驱动
         实际 Vue UI(点击、读 DOM、派发事件),因为 macOS 上 Tauri 的 WKWebView
         没有原生 Chrome DevTools Protocol。
@@ -130,22 +130,22 @@ const lang = 'zh' as const;
         v2.3 加了一个 <code>#[cfg(debug_assertions)]</code> 严格 gate 的本地
         JSON-RPC 桥,**只在 dev 构建里启动**。Bearer token 鉴权,只绑 127.0.0.1,
         端口和 token 写到
-        <code>~/Library/Application Support/app.solomd/dev-bridge.&#123;port,token&#125;</code>。
-        dev-mcp 多了 6 个新工具:<code>solomd_dev_eval / click / text /
+        <code>~/Library/Application Support/app.xiaoyuan-note/dev-bridge.&#123;port,token&#125;</code>。
+        dev-mcp 多了 6 个新工具:<code>XIAOYUAN_NOTE_dev_eval / click / text /
         dispatch / url / wait_for</code>。Release 二进制里完全没痕迹
         (<code>nm | grep dev_bridge</code> 0 匹配)。
       </p>
       <p>
         这填上了我们全局规则"每个客户端项目都标配 CLI + MCP 自测"的最后一块缺口。
-        Claude 现在能点你 SoloMD 的按钮、读你的 DOM、派发键盘事件 —— 跟真用户
+        Claude 现在能点你 xiaoyuanNote 的按钮、读你的 DOM、派发键盘事件 —— 跟真用户
         一模一样的回路,只是从外面驱动的。
       </p>
 
       <h2>📥 下载</h2>
       <p>
-        <a class="btn btn--primary" href="https://github.com/zhitongblog/solomd/releases/latest">下载最新版 →</a>
+        <a class="btn btn--primary" href="https://github.com/zhitongblog/xiaoyuan-note/releases/latest">下载最新版 →</a>
         &nbsp;
-        <a class="btn" href="https://github.com/zhitongblog/solomd/releases">所有版本</a>
+        <a class="btn" href="https://github.com/zhitongblog/xiaoyuan-note/releases">所有版本</a>
       </p>
 
       <h2>下一步</h2>

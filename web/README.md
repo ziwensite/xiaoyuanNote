@@ -1,6 +1,6 @@
-# SoloMD landing page
+# xiaoyuanNote landing page
 
-The official website at https://solomd.app
+The official website at https://xiaoyuannote.app
 
 Built with [Astro 5](https://astro.build), zero JS by default, deploys to Cloudflare Pages.
 
@@ -25,19 +25,19 @@ Translations live in `src/i18n/translations.ts`.
 
 1. Go to https://dash.cloudflare.com → Workers & Pages → Create
 2. Choose **Pages** → **Connect to Git**
-3. Select repo `zhitongblog/solomd`
+3. Select repo `zhitongblog/xiaoyuan-note`
 4. Build settings:
    - **Framework preset**: Astro
    - **Build command**: `cd web && pnpm install --frozen-lockfile && pnpm build`
    - **Build output directory**: `web/dist`
    - **Root directory**: leave empty (repo root)
 5. Save and deploy
-6. Custom domain: Pages → Custom domains → add `solomd.app`
+6. Custom domain: Pages → Custom domains → add `xiaoyuannote.app`
    (DNS auto-configures because the domain is registered with Cloudflare)
 
 ## Updating
 
 Push to `main` → Cloudflare Pages auto-rebuilds and deploys.
 
-To update download links after a new SoloMD release, edit the `VERSION`
+To update download links after a new xiaoyuanNote release, edit the `VERSION`
 constant in `src/components/Download.astro`.

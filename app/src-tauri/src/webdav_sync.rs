@@ -18,9 +18,9 @@ pub struct WebdavSyncResult {
     pub message: String,
 }
 
-const VAULT_MANIFEST_NAME: &str = "solomd-vault.json";
+const VAULT_MANIFEST_NAME: &str = "xiaoyuan-note-vault.json";
 const VAULT_PROBE_AAD: &str = "encryption.probe";
-const VAULT_PROBE_PLAIN: &[u8] = b"SoloMD probe v1";
+const VAULT_PROBE_PLAIN: &[u8] = b"xiaoyuanNote probe v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloudVaultManifest {
@@ -70,7 +70,7 @@ fn unlock_vault_manifest(
 fn build_client() -> Result<reqwest::Client, String> {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(45))
-        .user_agent("SoloMD-WebDAV/5.0")
+        .user_agent("xiaoyuan-note-WebDAV/5.0")
         .build()
         .map_err(|e| format!("Failed to create HTTP client: {e}"))
 }
@@ -387,7 +387,7 @@ pub async fn webdav_push_workspace(
         let key = if existing_resp.status().is_success() {
             let text = existing_resp.text().await.unwrap_or_default();
             let manifest: CloudVaultManifest = serde_json::from_str(&text)
-                .map_err(|e| format!("Invalid remote solomd-vault.json: {e}"))?;
+                .map_err(|e| format!("Invalid remote xiaoyuan-note-vault.json: {e}"))?;
             unlock_vault_manifest(&manifest, &pass_str)?
         } else {
             let (manifest, k) = create_vault_manifest(&pass_str)?;
@@ -402,7 +402,7 @@ pub async fn webdav_push_workspace(
                 .map_err(|e| format!("Failed to upload vault manifest: {e}"))?;
             if !put_resp.status().is_success() {
                 return Err(format!(
-                    "Failed to upload solomd-vault.json (HTTP {})",
+                    "Failed to upload xiaoyuan-note-vault.json (HTTP {})",
                     put_resp.status()
                 ));
             }
@@ -489,7 +489,7 @@ pub async fn webdav_pull_workspace(
     let client = build_client()?;
     let pass_str = passphrase.unwrap_or_default();
 
-    // Check if the remote folder has a `solomd-vault.json` encrypted manifest.
+    // Check if the remote folder has a `xiaoyuan-note-vault.json` encrypted manifest.
     let manifest_url = build_target_url(&url, &remote_path, VAULT_MANIFEST_NAME);
     let manifest_resp = client
         .get(&manifest_url)
@@ -503,7 +503,7 @@ pub async fn webdav_pull_workspace(
             if let Ok(manifest) = serde_json::from_str::<CloudVaultManifest>(&text) {
                 Some(unlock_vault_manifest(&manifest, &pass_str)?)
             } else if encrypted.unwrap_or(false) {
-                return Err("远程网盘未找到有效的加密元数据 solomd-vault.json".into());
+                return Err("远程网盘未找到有效的加密元数据 xiaoyuan-note-vault.json".into());
             } else {
                 None
             }
@@ -667,13 +667,13 @@ pub fn cloud_vault_push_inner(
         let raw = std::fs::read_to_string(&manifest_path)
             .map_err(|e| format!("读取网盘加密元数据失败: {e}"))?;
         let manifest: CloudVaultManifest = serde_json::from_str(&raw)
-            .map_err(|e| format!("解析 solomd-vault.json 失败: {e}"))?;
+            .map_err(|e| format!("解析 xiaoyuan-note-vault.json 失败: {e}"))?;
         unlock_vault_manifest(&manifest, passphrase)?
     } else {
         let (manifest, k) = create_vault_manifest(passphrase)?;
         let raw = serde_json::to_string_pretty(&manifest).map_err(|e| e.to_string())?;
         std::fs::write(&manifest_path, raw)
-            .map_err(|e| format!("写入 solomd-vault.json 失败: {e}"))?;
+            .map_err(|e| format!("写入 xiaoyuan-note-vault.json 失败: {e}"))?;
         k
     };
 
@@ -756,12 +756,12 @@ pub fn cloud_vault_pull_inner(
     }
     let manifest_path = vault_dir.join(VAULT_MANIFEST_NAME);
     if !manifest_path.exists() {
-        return Err("该网盘目录中未找到加密库元数据 solomd-vault.json，请先执行一次加密备份".into());
+        return Err("该网盘目录中未找到加密库元数据 xiaoyuan-note-vault.json，请先执行一次加密备份".into());
     }
     let raw = std::fs::read_to_string(&manifest_path)
-        .map_err(|e| format!("读取 solomd-vault.json 失败: {e}"))?;
+        .map_err(|e| format!("读取 xiaoyuan-note-vault.json 失败: {e}"))?;
     let manifest: CloudVaultManifest = serde_json::from_str(&raw)
-        .map_err(|e| format!("解析 solomd-vault.json 失败: {e}"))?;
+        .map_err(|e| format!("解析 xiaoyuan-note-vault.json 失败: {e}"))?;
     let key = unlock_vault_manifest(&manifest, passphrase)?;
 
     let mut enc_files = Vec::new();
@@ -842,13 +842,13 @@ pub async fn cloud_vault_pull_workspace(
 // ─────────────────────────────────────────────────────────────────────────────
 // Solution 3: Direct Personal Cloud Drive OpenAPI (百度网盘 / 阿里云盘 / OneDrive / Dropbox)
 // Packs all workspace files into a compressed ZIP archive and encrypts the entire
-// archive with Argon2id + XChaCha20-Poly1305 (`solomd-vault.enc`), so even
+// archive with Argon2id + XChaCha20-Poly1305 (`xiaoyuan-note-vault.enc`), so even
 // filenames and directory structure remain 100% hidden from the cloud provider.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BUNDLE_MAGIC: &[u8; 5] = b"SLMB\x01";
-const BUNDLE_AAD: &str = "solomd-cloud-bundle-v1";
-const BUNDLE_FILENAME: &str = "solomd-vault.enc";
+const BUNDLE_AAD: &str = "xiaoyuan-note-cloud-bundle-v1";
+const BUNDLE_FILENAME: &str = "xiaoyuan-note-vault.enc";
 
 pub fn pack_encrypted_vault_bundle(
     workspace: &Path,
@@ -907,7 +907,7 @@ pub fn unpack_encrypted_vault_bundle(
         return Err("网盘加密包数据损坏或格式无效 (Invalid encrypted vault bundle)".into());
     }
     if &bundle_bytes[..BUNDLE_MAGIC.len()] != BUNDLE_MAGIC {
-        return Err("不是有效的 SoloMD 加密网盘备份包 (Unrecognized bundle magic)".into());
+        return Err("不是有效的 xiaoyuanNote 加密网盘备份包 (Unrecognized bundle magic)".into());
     }
     let len_offset = BUNDLE_MAGIC.len();
     let manifest_len = u32::from_le_bytes([
@@ -1197,9 +1197,9 @@ fn build_cloud_remote_file_path(provider: &str, remote_dir: &str) -> (String, St
     let trimmed = cleaned.trim_matches('/');
     let dir = if trimmed.is_empty() {
         if provider == "baidu" {
-            "/apps/SoloMD".to_string()
+            "/apps/xiaoyuanNote".to_string()
         } else {
-            "/SoloMD".to_string()
+            "/xiaoyuanNote".to_string()
         }
     } else if provider == "baidu" && !trimmed.starts_with("apps/") {
         format!("/apps/{trimmed}")
@@ -1389,7 +1389,7 @@ async fn alipan_ensure_folder(
         .filter(|s| !s.is_empty() && *s != ".")
         .collect();
     let target_segs = if segs.is_empty() {
-        vec!["SoloMD"]
+        vec!["xiaoyuanNote"]
     } else {
         segs
     };
@@ -1771,7 +1771,7 @@ mod tests {
         // 1. Device A pushes encrypted backup to cloud drive folder
         let push_res = cloud_vault_push_inner(&dev_a, &cloud_drive, "solar-rain-secret").unwrap();
         assert_eq!(push_res.uploaded, 2);
-        assert!(cloud_drive.join("solomd-vault.json").exists());
+        assert!(cloud_drive.join("xiaoyuan-note-vault.json").exists());
         assert!(cloud_drive.join("hello.md.enc").exists());
         assert!(cloud_drive.join(" subfolder/nested.md.enc").exists());
 

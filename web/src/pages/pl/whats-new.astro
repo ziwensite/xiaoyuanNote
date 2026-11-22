@@ -6,11 +6,11 @@ import Giscus from '../../components/Giscus.astro';
 
 const lang = 'pl' as const;
 const VERSION = '4.1.0';
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 ---
 
 <Layout
-  title="Aktualizacja SoloMD v4.0 — edytor, w którym mieszkają agenty"
+  title="Aktualizacja xiaoyuanNote v4.0 — edytor, w którym mieszkają agenty"
   description="v4.0 to duże wydanie agent-native author. Pięć filarów: zintegrowany panel Agent (strumieniowy chat-with-vault), zaplanowane recipes (cron / on-save / on-commit, sandbox branchy AutoGit + accept/reject), odtwarzalny widok Trace, federacja MCP multi-vault, Ollama pierwszoklasowo. Plus: lokalne REST API, licznik kosztów BYOK, 11 szablonów Recipe, wizard pierwszego uruchomienia, lokalizacja wielojęzyczna."
   lang={lang}
 >
@@ -36,9 +36,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
       </p>
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>⬇ Pobierz v{VERSION} (Mac)</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>Pobierz (Windows)</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>Wszystkie platformy →</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>⬇ Pobierz v{VERSION} (Mac)</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>Pobierz (Windows)</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>Wszystkie platformy →</a>
       </div>
 
       <section>
@@ -61,7 +61,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
               Przyciski <strong>Wstaw</strong> i <strong>Kopiuj</strong> wrzucają
               cały akapit do bieżącego edytora — z zaznaczeniem zastępują, bez zaznaczenia
               wstawiają w pozycji kursora. Historia uruchomień
-              zapisuje się jako zwykły markdown w <code>.solomd/agent-runs/</code>,
+              zapisuje się jako zwykły markdown w <code>.xiaoyuan-note/agent-runs/</code>,
               można grepować, można śledzić w git.
             </p>
           </div>
@@ -69,7 +69,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             <h3>2 · Recipes Agent / uruchomienia z harmonogramu</h3>
             <p>
               Deklaratywne zadania agenta, pliki YAML w
-              <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>.
+              <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>.
               Wyzwalacze: <code>schedule</code> (cron), <code>on-save</code>,
               <code>on-commit</code>, <code>on-tag-add</code>, ręcznie.
               <strong>Bezkompromisowe mechanizmy bezpieczeństwa</strong>: każde
@@ -103,7 +103,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           <div class="pillar">
             <h3>4 · Federacja MCP multi-vault</h3>
             <p>
-              <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+              <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
               —— jedna sesja MCP, wiele vaultów. Sygnatury narzędzi zyskały
               opcjonalny parametr <code>workspace</code>, domyślnie = pierwszy podany
               (w pełni back-compat z klientami MCP single-vault). Branch AutoGit
@@ -218,7 +218,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           </li>
           <li>
             <strong>UX startu na macOS.</strong> Timing aktywacji przy starcie naprawiony
-            —— SoloMD przy zimnym starcie naprawdę wychodzi na pierwszy plan, nie chowa się
+            —— xiaoyuanNote przy zimnym starcie naprawdę wychodzi na pierwszy plan, nie chowa się
             już za Finderem. Przywracanie pozycji okna zawsze trafia w obszar
             roboczy bieżącego ekranu; przywracanie ze złego cache’a po
             odłączeniu drugiego monitora samo się centruje, zamiast otwierać poza ekranem.
@@ -277,7 +277,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             pod <em>Integracjami</em>. Pozycje istniejących ustawień bez zmian.
           </li>
           <li>
-            <strong>Serwer MCP (<code>solomd-mcp</code>) zyskał nowy parametr
+            <strong>Serwer MCP (<code>xiaoyuan-note-mcp</code>) zyskał nowy parametr
             <code>--workspace</code></strong> (powtarzalny).
             Istniejący klienci MCP single-workspace nadal działają;
             zachowanie federacji jest opt-in.
@@ -290,10 +290,10 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
         <p>
           5 głównych filarów + pasek jakości to główna zawartość tym razem. <em>Otwarte
           kierunki dla v4.x i dalej</em> są wszystkie w
-          <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmapie</a>:
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmapie</a>:
           sandboxowane API skryptowe, CLI v2 (rewrite / commit / wyszukiwanie semantyczne /
           wyzwalanie Recipe w terminalu) oraz wiecznie odkładane pytanie
-          <em>„czy SoloMD powinien stać się produktem komercyjnym?”</em>
+          <em>„czy xiaoyuanNote powinien stać się produktem komercyjnym?”</em>
           (płatny sync — stare pytanie z ery v3.0, wciąż bez odpowiedzi,
           dopóki nie zapadnie decyzja, w tym obszarze nie będzie żadnej inżynierii).
         </p>

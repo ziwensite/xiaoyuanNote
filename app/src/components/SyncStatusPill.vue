@@ -149,7 +149,7 @@ async function onClick() {
       // in the right-side sidebar. Dispatching this event lets the
       // sidebar host (App.vue) bring it into focus without us depending
       // on the exact sidebar API here.
-      window.dispatchEvent(new CustomEvent('solomd:open-history-panel'));
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-history-panel'));
       break;
     case 'busy':
       // Click during an in-flight op is intentionally ignored — let it

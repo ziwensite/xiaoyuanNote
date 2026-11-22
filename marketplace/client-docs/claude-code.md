@@ -1,4 +1,4 @@
-# `solomd-mcp` in Claude Code
+# `xiaoyuan-note-mcp` in Claude Code
 
 [Claude Code](https://docs.anthropic.com/claude/docs/claude-code) reads
 MCP server config from `~/.claude.json` (user scope — written by
@@ -7,15 +7,15 @@ MCP server config from `~/.claude.json` (user scope — written by
 ## Install the server
 
 ```bash
-# macOS — bundled in SoloMD.app, or install standalone:
-cargo install solomd-mcp
+# macOS — bundled in xiaoyuannote.app, or install standalone:
+cargo install xiaoyuan-note-mcp
 
 # Linux x64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-x64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-x64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Linux arm64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-arm64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-arm64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Windows (x64 / arm64) — extract from the zip and put on PATH.
@@ -27,7 +27,7 @@ Register it with the CLI rather than hand-editing `~/.claude.json` (that file
 also holds unrelated Claude Code state):
 
 ```bash
-claude mcp add --scope user solomd -- solomd-mcp --workspace /Users/you/notes
+claude mcp add --scope user xiaoyuanNote -- xiaoyuan-note-mcp --workspace /Users/you/notes
 ```
 
 Which is equivalent to this entry under `mcpServers`:
@@ -35,8 +35,8 @@ Which is equivalent to this entry under `mcpServers`:
 ```json
 {
   "mcpServers": {
-    "solomd": {
-      "command": "solomd-mcp",
+    "xiaoyuanNote": {
+      "command": "xiaoyuan-note-mcp",
       "args": ["--workspace", "/Users/you/notes"]
     }
   }
@@ -48,8 +48,8 @@ Which is equivalent to this entry under `mcpServers`:
 ```json
 {
   "mcpServers": {
-    "solomd": {
-      "command": "solomd-mcp",
+    "xiaoyuanNote": {
+      "command": "xiaoyuan-note-mcp",
       "args": [
         "--workspace", "notes=./notes",
         "--workspace", "design=./design-docs"
@@ -72,7 +72,7 @@ Add `--allow-write` to the `args` array to enable `write_note`,
 
 ```
 > /mcp
-# Should list "solomd" with 16 tools (15 by default).
+# Should list "xiaoyuanNote" with 16 tools (15 by default).
 
 > Read my notes about the LRU cache design and summarise the open questions
   into a new note at design/lru-open-questions.md.
@@ -81,16 +81,16 @@ Add `--allow-write` to the `args` array to enable `write_note`,
 ## Pairs especially well with
 
 - **Codex CLI** — same MCP wire protocol; just point at the same binary.
-- **The SoloMD app** — open the editor on the same vault Claude Code is
+- **The xiaoyuanNote app** — open the editor on the same vault Claude Code is
   driving. Watch agent writes land as pending branches; accept / reject
   from the GUI; tool-call cards show inline in the Agent panel.
 
-## About SoloMD
+## About xiaoyuanNote
 
-[**SoloMD**](https://solomd.app) is a free, MIT Markdown + plaintext editor.
+[**xiaoyuanNote**](https://xiaoyuannote.app) is a free, MIT Markdown + plaintext editor.
 Same `.md` files; the editor adds a Wiki-link + backlink graph, semantic
 search, per-note AutoGit history, a streamed Agent panel that cites notes
-with `[[wikilinks]]`, and the same `solomd-mcp` server you just installed —
+with `[[wikilinks]]`, and the same `xiaoyuan-note-mcp` server you just installed —
 pre-wired.
 
-[📥 Download SoloMD for macOS / Windows / Linux](https://github.com/zhitongblog/solomd/releases/latest)
+[📥 Download xiaoyuanNote for macOS / Windows / Linux](https://github.com/zhitongblog/xiaoyuan-note/releases/latest)

@@ -1,6 +1,6 @@
 # macOS regression suite
 
-Drives a real SoloMD dev build through the dev bridge and checks the rows of
+Drives a real xiaoyuanNote dev build through the dev bridge and checks the rows of
 `docs/regression-checklist.md` that can be driven without a human. Run it
 before every release.
 
@@ -18,11 +18,11 @@ The dev log is in `out/tauri-dev.log`.
 ## What it does
 
 1. Starts `pnpm tauri dev --no-watch` from `app/` with its own identifier
-   (`app.solomd.regress`, vite on :1450, override with `REGRESS_VITE_PORT`). It
+   (`app.xiaoyuan-note.regress`, vite on :1450, override with `REGRESS_VITE_PORT`). It
    runs in its own process group, and only that group is stopped at the end.
    `--no-watch` means an edit under `src-tauri/` during the run does not
    rebuild and restart the app.
-2. Deletes `~/Library/Application Support/app.solomd.regress` first, then
+2. Deletes `~/Library/Application Support/app.xiaoyuan-note.regress` first, then
    waits for `dev-bridge.port`. A cold cargo build can take many minutes
    (`REGRESS_BOOT_TIMEOUT`, default 1500 s).
 3. Builds a fresh fixture vault in a temp dir (`lib/make_fixture.py`). It uses
@@ -61,7 +61,7 @@ it returns `{next: carry, …}` and the runner calls it again with `PHASE` + 1 a
 ## Not covered (drive by hand)
 
 - Native open/save dialogs. The underlying functions are tested instead
-  (`setFolder` and `openPath`; `__solomdSavePathOverride` for exports).
+  (`setFolder` and `openPath`; `__xiaoyuanNoteSavePathOverride` for exports).
 - IME composition (B14).
 - Real mouse drags (tree move, splitter).
 - The slideshow window.

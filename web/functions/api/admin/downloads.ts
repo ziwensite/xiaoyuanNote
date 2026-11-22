@@ -25,7 +25,7 @@ interface Env {
   GITHUB_TOKEN?: string;
 }
 
-const REPO = 'zhitongblog/solomd';
+const REPO = 'zhitongblog/xiaoyuan-note';
 const DAILY_CHANNELS = new Set<string>(STORE_CHANNELS);
 const TOTAL_CHANNELS = new Set(['github', 'chocolatey']);
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -124,7 +124,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   // GitHub live (the stored snapshot is at most a day old; the dashboard
   // shows the live figure and falls back to the snapshot).
-  const headers: Record<string, string> = { 'User-Agent': 'SoloMD-admin', Accept: 'application/vnd.github+json' };
+  const headers: Record<string, string> = { 'User-Agent': 'xiaoyuan-note-admin', Accept: 'application/vnd.github+json' };
   if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
   let github = null as Awaited<ReturnType<typeof fetchGithubDownloads>>;
   try {

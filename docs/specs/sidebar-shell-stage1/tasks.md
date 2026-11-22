@@ -63,7 +63,7 @@
 
 - `pnpm install --frozen-lockfile --node-linker=hoisted --package-import-method=copy`：成功（本机 isolated 模式的 junction 失效，见 P0）。
 - `pnpm test`：981 / 981 pass / 0 fail（P2 后）；`pnpm build`：29.94s 成功。
-- `cargo test --lib -j 1`：259 passed；`cargo test --bin SoloMD -j 1`：267 passed。
+- `cargo test --lib -j 1`：259 passed；`cargo test --bin xiaoyuanNote -j 1`：267 passed。
 
 ### 人工目视核对清单（推断，未实测）
 

@@ -4,7 +4,7 @@ const R = checks();
 await open('README.md');
 const v = V();
 v.dispatch({ selection: { anchor: 5 } }); v.focus();
-const ls = () => JSON.parse(localStorage.getItem('solomd.settings.v1') || '{}');
+const ls = () => JSON.parse(localStorage.getItem('xiaoyuan-note.settings.v1') || '{}');
 const cases = [
   ['view.toggleFocusMode', 'focusMode', () => $$('.cm-line-dimmed').length > 0],
   ['view.toggleTypewriter', 'typewriterMode', null],

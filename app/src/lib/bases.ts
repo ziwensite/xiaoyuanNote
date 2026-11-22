@@ -130,7 +130,7 @@ export interface SavedView {
   filters: Filter[];
   /**
    * Optional recursive filter tree. Serializable plain object; round-trips
-   * to/from `.solomd/views/*.yml`. When set, evaluate via
+   * to/from `.xiaoyuan-note/views/*.yml`. When set, evaluate via
    * {@link applyFilterGroup}; `filters` is the flat-fallback projection.
    */
   filterGroup?: FilterGroup;
@@ -595,7 +595,7 @@ export function matchesGroup(
  *   - null/undefined/garbage        → empty `all` group
  *
  * Leaves accept either `column` or `key` for the field id (the latter is the
- * shape F5's `.solomd/views/*.yml` may use); output always uses `column`.
+ * shape F5's `.xiaoyuan-note/views/*.yml` may use); output always uses `column`.
  * Always returns plain serializable objects.
  */
 export function normalizeFilterGroup(raw: unknown): FilterGroup {
@@ -760,7 +760,7 @@ export function applySort(
 
 // ---------- saved views ----------
 
-export const SAVED_VIEWS_KEY = 'solomd.basesViews.v1';
+export const SAVED_VIEWS_KEY = 'xiaoyuan-note.basesViews.v1';
 
 export function loadSavedViews(): SavedView[] {
   try {

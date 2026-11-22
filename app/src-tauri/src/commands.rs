@@ -302,7 +302,7 @@ pub async fn fetch_image_bytes(url: String) -> Result<Vec<u8>, String> {
     }
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(30))
-        .user_agent(concat!("SoloMD/", env!("CARGO_PKG_VERSION")))
+        .user_agent(concat!("xiaoyuan-note/", env!("CARGO_PKG_VERSION")))
         .build()
         .map_err(|e| format!("client: {e}"))?;
     let resp = client
@@ -549,7 +549,7 @@ pub async fn print_webview_to_pdf(
 #[cfg(target_os = "android")]
 #[tauri::command]
 pub async fn print_webview(_window: tauri::WebviewWindow) -> Result<(), String> {
-    super::saf_android::android_print_webview("SoloMD")?;
+    super::saf_android::android_print_webview("xiaoyuanNote")?;
     tauri::async_runtime::spawn_blocking(|| {
         let start = std::time::Instant::now();
         while start.elapsed() < std::time::Duration::from_secs(300) {
@@ -584,7 +584,7 @@ mod ios_print {
         unsafe impl ClassType for PrintDelegate {
             type Super = NSObject;
             type Mutability = mutability::InteriorMutable;
-            const NAME: &'static str = "SoloMDPrintDelegate";
+            const NAME: &'static str = "XiaoyuanNotePrintDelegate";
         }
 
         impl DeclaredClass for PrintDelegate {}
@@ -1588,7 +1588,7 @@ pub fn list_dir_with(path: String, show_hidden: bool, with_times: bool) -> Resul
         // second IPC call. The frontend filters this entry by its
         // distinctive name + is_dir=false signature.
         entries.push(DirEntry {
-            name: "__solomd_truncated__".into(),
+            name: "__XIAOYUAN_NOTE_truncated__".into(),
             path: String::new(),
             is_dir: false,
             modified: None,
@@ -2021,27 +2021,27 @@ pub struct UpdateProgressPayload {
 fn installer_asset_name(clean_ver: &str) -> Option<String> {
     #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
     {
-        return Some(format!("SoloMD_{clean_ver}_arm64_en-US.msi"));
+        return Some(format!("XIAOYUAN_NOTE_{clean_ver}_arm64_en-US.msi"));
     }
     #[cfg(all(target_os = "windows", not(target_arch = "aarch64")))]
     {
-        return Some(format!("SoloMD_{clean_ver}_x64_en-US.msi"));
+        return Some(format!("XIAOYUAN_NOTE_{clean_ver}_x64_en-US.msi"));
     }
     #[cfg(target_os = "macos")]
     {
-        return Some(format!("SoloMD_{clean_ver}_universal.dmg"));
+        return Some(format!("XIAOYUAN_NOTE_{clean_ver}_universal.dmg"));
     }
     #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
     {
-        return Some(format!("SoloMD_{clean_ver}_aarch64.AppImage"));
+        return Some(format!("XIAOYUAN_NOTE_{clean_ver}_aarch64.AppImage"));
     }
     #[cfg(all(target_os = "linux", not(target_arch = "aarch64")))]
     {
-        return Some(format!("SoloMD_{clean_ver}_amd64.AppImage"));
+        return Some(format!("XIAOYUAN_NOTE_{clean_ver}_amd64.AppImage"));
     }
     #[cfg(target_os = "android")]
     {
-        return Some(format!("SoloMD_{clean_ver}_arm64-v8a.apk"));
+        return Some(format!("XIAOYUAN_NOTE_{clean_ver}_arm64-v8a.apk"));
     }
     #[allow(unreachable_code)]
     None
@@ -2049,7 +2049,7 @@ fn installer_asset_name(clean_ver: &str) -> Option<String> {
 
 async fn probe_is_china_network(client: &reqwest::Client) -> bool {
     for trace_url in [
-        "https://solomd.app/cdn-cgi/trace",
+        "https://xiaoyuannote.app/cdn-cgi/trace",
         "https://www.cloudflare.com/cdn-cgi/trace",
     ] {
         if let Ok(resp) = client
@@ -2076,7 +2076,7 @@ async fn resolve_gitee_asset_url(
     tag: &str,
     asset_name: &str,
 ) -> Option<String> {
-    let api_url = format!("https://gitee.com/api/v5/repos/zhitong45/solomd/releases/tags/{tag}");
+    let api_url = format!("https://gitee.com/api/v5/repos/zhitong45/xiaoyuan-note/releases/tags/{tag}");
     let resp = client
         .get(&api_url)
         .timeout(std::time::Duration::from_secs(6))
@@ -2123,7 +2123,7 @@ pub async fn download_and_install_update(
         .ok_or_else(|| "direct update installer not supported on this platform".to_string())?;
 
     let client = reqwest::Client::builder()
-        .user_agent(format!("SoloMD-Updater/{clean_ver}"))
+        .user_agent(format!("xiaoyuan-note-Updater/{clean_ver}"))
         .connect_timeout(std::time::Duration::from_secs(10))
         .build()
         .map_err(|e| format!("http client build failed: {e}"))?;
@@ -2136,10 +2136,10 @@ pub async fn download_and_install_update(
 
     let mut candidates: Vec<(&'static str, String)> = Vec::new();
     let github_url = format!(
-        "https://github.com/zhitongblog/solomd/releases/download/{tag}/{asset_name}"
+        "https://github.com/zhitongblog/xiaoyuan-note/releases/download/{tag}/{asset_name}"
     );
     let gitee_direct_url = format!(
-        "https://gitee.com/zhitong45/solomd/releases/download/{tag}/{asset_name}"
+        "https://gitee.com/zhitong45/xiaoyuan-note/releases/download/{tag}/{asset_name}"
     );
 
     if is_cn {
@@ -2218,7 +2218,7 @@ pub async fn download_and_install_update(
                             }
                         });
                         let _ = app.emit(
-                            "solomd://update-progress",
+                            "xiaoyuan-note://update-progress",
                             UpdateProgressPayload {
                                 version: clean_ver.clone(),
                                 downloaded,
@@ -2257,7 +2257,7 @@ pub async fn download_and_install_update(
             .map_err(|e| format!("finalize installer file failed: {e}"))?;
 
         let _ = app.emit(
-            "solomd://update-progress",
+            "xiaoyuan-note://update-progress",
             UpdateProgressPayload {
                 version: clean_ver.clone(),
                 downloaded,

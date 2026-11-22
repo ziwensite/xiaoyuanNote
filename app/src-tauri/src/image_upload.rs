@@ -1,4 +1,4 @@
-//! Image-bed (图床) upload backend for the SoloMD editor.
+//! Image-bed (图床) upload backend for the xiaoyuanNote editor.
 //!
 //! Exposes a single async Tauri command, [`upload_image`], that takes a
 //! tagged [`UploaderConfig`] (chosen + filled out in Settings → Image Bed on
@@ -26,7 +26,7 @@ type HmacSha256 = Hmac<Sha256>;
 
 /// User-Agent sent on outbound requests. sm.ms and GitHub both reject requests
 /// without a sane UA, so we always set one.
-const USER_AGENT: &str = "SoloMD/1.0";
+const USER_AGENT: &str = "xiaoyuan-note/1.0";
 
 /// The image-bed backend selected by the user, deserialized from the JS
 /// `config` object. Internally tagged on `kind` (`picgo` / `command` /
@@ -678,7 +678,7 @@ async fn upload_github(
     let filename = basename(path);
 
     let body = serde_json::json!({
-        "message": format!("Upload {filename} via SoloMD"),
+        "message": format!("Upload {filename} via xiaoyuanNote"),
         "content": content_b64,
         "branch": branch,
     });
@@ -688,7 +688,7 @@ async fn upload_github(
         .put(&api_url)
         .header("Authorization", format!("Bearer {token}"))
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "SoloMD")
+        .header("User-Agent", "xiaoyuanNote")
         .json(&body)
         .send()
         .await
@@ -722,7 +722,7 @@ mod tests {
 
     fn write_tmp(name: &str, body: &[u8]) -> std::path::PathBuf {
         let mut p = std::env::temp_dir();
-        p.push(format!("solomd-svg-guard-{}-{name}", std::process::id()));
+        p.push(format!("xiaoyuan-note-svg-guard-{}-{name}", std::process::id()));
         let mut f = std::fs::File::create(&p).unwrap();
         f.write_all(body).unwrap();
         p

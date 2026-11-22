@@ -4,7 +4,7 @@
  *
  * The reported bug: a note exported to HTML showed its figures as broken
  * images, because the export rewrote local paths into `http://asset.localhost/…`
- * — a URL only SoloMD's own webview can resolve. The fix embeds the bytes.
+ * — a URL only xiaoyuanNote’s own webview can resolve. The fix embeds the bytes.
  *
  * A web page cannot read the note off disk, so the caller hands the note and
  * its images over as base64:
@@ -54,7 +54,7 @@ function base64ToBytes(base64: string): Uint8Array {
 }
 
 /**
- * Attribute value. The leading whitespace matters: `data-solomd-local-src` must
+ * Attribute value. The leading whitespace matters: `data-xiaoyuan-note-local-src` must
  * not be able to answer for `src`.
  */
 const attr = (tag: string, name: string): string | null =>

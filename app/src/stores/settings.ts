@@ -42,7 +42,7 @@ import {
   type PeriodicConfig,
 } from '../lib/periodic-notes';
 
-const LS_KEY = 'solomd.settings.v1';
+const LS_KEY = 'xiaoyuan-note.settings.v1';
 
 /**
  * How a web tab is rendered. The DOM iframe is the only shipped engine.
@@ -97,6 +97,8 @@ interface Settings {
   fontSize: number;
   fontFamily: string;
   wordWrap: boolean;
+  // Frontmatter properties card: collapsed when a note opens (default true).
+  frontmatterDefaultCollapsed: boolean;
   showLineNumbers: boolean;
   // #193 — non-blinking (solid) caret in the editor.
   solidCursor: boolean;
@@ -110,7 +112,7 @@ interface Settings {
   highlightCurrentLine: boolean;
   /** Use the document's first non-empty line as the tab title instead of the
    *  on-disk filename (off by default). Useful when a 3rd-party tool opens
-   *  temporary/UUID-named files in SoloMD. */
+   *  temporary/UUID-named files in xiaoyuan-note. */
   tabTitleFromFirstLine: boolean;
   /** Before saving an existing file path, check whether the file still exists
    *  on disk; if missing (e.g. a 3rd-party app cleaned up its temporary file),
@@ -147,7 +149,7 @@ interface Settings {
   // isn't squeezed into an unreadable sliver.
   v491MobileLayoutMigrated: boolean;
   /** v4.6 F5 — show the Saved Views panel (left sidebar, below the file tree).
-   *  Lists persistent filtered note lists from `.solomd/views/*.yml`. Default
+   *  Lists persistent filtered note lists from `.xiaoyuan-note/views/*.yml`. Default
    *  off so the panel only appears once the user opts in / creates a view. */
   showViewsPanel: boolean;
   /** Calendar overlays — holidays (corner mark + festival text), the lunar
@@ -244,7 +246,7 @@ interface Settings {
   // don't clobber one shared tab blob. Unsaved + untitled tabs always follow
   // the user across workspaces so no in-progress work is lost.
   perWorkspaceTabs: boolean;
-  // When a file watched by SoloMD is modified by another program (other
+  // When a file watched by xiaoyuanNote is modified by another program (other
   // editor, git checkout, sync client), reload the buffer automatically
   // if the tab has no unsaved changes. Default on. Dirty tabs always
   // show the reload/overwrite/cancel dialog regardless of this setting —
@@ -366,7 +368,7 @@ interface Settings {
    *  splitter the touched panes get explicit pixel heights. */
   rightSidebarPaneHeights: Record<string, number>;
   // v2.3: Local RAG / semantic search. Off by default — when on, the
-  // workspace is scanned + embedded into <workspace>/.solomd/embeddings.sqlite.
+  // workspace is scanned + embedded into <workspace>/.xiaoyuan-note/embeddings.sqlite.
   ragEnabled: boolean;
   // v2.4: when on, opening any tab on iPad / iPhone snaps view mode to
   // `reading` (no editor chrome — just the rendered prose). Defaults to
@@ -424,7 +426,7 @@ interface Settings {
   // the keyboard interception.
   slashCommandsEnabled: boolean;
   fenceLanguageSuggestions: boolean;
-  // v3.6: PNG export — show "Created with SoloMD · solomd.app" footer
+  // v3.6: PNG export — show "Created with xiaoyuanNote · xiaoyuannote.app" footer
   // under the rendered note. Default ON (mild self-promotion is fine
   // for a free MIT app), but explicitly toggleable in Settings → Export
   // for users who don't want the watermark on screenshots they share.
@@ -568,7 +570,7 @@ interface Settings {
   // is a pane id (outline / backlinks / tags / history / agent).
   // Default matches the pre-v4.3.0 hardcoded order. Panes not in the list
   // (newly added in a future release) get appended to the end so the user's
-  // saved layout isn't blown away by a SoloMD update. Issue #57b.
+  // saved layout isn't blown away by a xiaoyuanNote update. Issue #57b.
   rsPaneOrder: string[];
   // v4.3.0: preview-pane font size (px). Decoupled from editor `fontSize`
   // so users can tune editor density and preview readability separately
@@ -595,6 +597,9 @@ interface Settings {
   // only when attachmentMode is 'shared'; per-file mode always uses
   // `<stem>.assets/`. Empty string falls back to `_assets`.
   assetsDirName: string;
+  // v5.0 — folder (relative to workspace) holding reference-based component
+  // notes (`cmp_<id>.md`). Empty string falls back to `_components`.
+  componentsDirName: string;
   // ── Image upload / 图床 (external image hosting) ───────────────────────────
   // Like Typora / MarkText: instead of (or alongside) copying a pasted/dropped
   // image into the local attachments folder, upload it to an image host and
@@ -737,6 +742,7 @@ function defaults(): Settings {
     fontSize: 16,
     fontFamily: DEFAULT_EDITOR_FONT,
     wordWrap: true,
+    frontmatterDefaultCollapsed: true,
     showLineNumbers: false,
     solidCursor: false,
     selectionBubble: true,
@@ -875,7 +881,7 @@ function defaults(): Settings {
     webdavUrl: '',
     webdavUsername: '',
     webdavPassword: '',
-    webdavRemotePath: '/SoloMD',
+    webdavRemotePath: '/xiaoyuanNote',
     webdavEncrypted: false,
     webdavPassphrase: '',
     webdavAutoSync: false,
@@ -886,7 +892,7 @@ function defaults(): Settings {
     cloudApiToken: '',
     cloudApiClientId: '',
     cloudApiClientSecret: '',
-    cloudApiRemotePath: '/apps/SoloMD',
+    cloudApiRemotePath: '/apps/xiaoyuanNote',
     cloudApiPassphrase: '',
     cloudApiAutoSync: false,
     showWritingStats: true,
@@ -940,6 +946,7 @@ function defaults(): Settings {
     attachmentMode: 'shared',
     defaultExportDir: '',
     assetsDirName: '_assets',
+    componentsDirName: '_components',
     attachmentCustomPath: './images/${filename}/',
     imageUploader: 'none',
     imageUploadOnPaste: true,
@@ -1032,7 +1039,7 @@ function stringList(v: unknown): string[] {
 }
 
 /** Fired after any LanguageTool setting changes, so open editors re-check. */
-export const LT_SETTINGS_CHANGED_EVENT = 'solomd:languagetool-settings-changed';
+export const LT_SETTINGS_CHANGED_EVENT = 'xiaoyuan-note:languagetool-settings-changed';
 
 function load(): Settings {
   try {
@@ -1381,6 +1388,10 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleWordWrap() {
       this.wordWrap = !this.wordWrap;
+      this.persist();
+    },
+    toggleFrontmatterDefaultCollapsed() {
+      this.frontmatterDefaultCollapsed = !this.frontmatterDefaultCollapsed;
       this.persist();
     },
     setPreviewMaxWidth(n: number) {
@@ -2234,6 +2245,13 @@ export const useSettingsStore = defineStore('settings', {
       // back to the default when empty.
       const cleaned = (name || '').replace(/[\\/]/g, '').trim();
       this.assetsDirName = cleaned || '_assets';
+      this.persist();
+    },
+    // v5.0 — component-note folder; strip separators to stay inside the
+    // workspace (component IDs are file-safe, the folder must be too).
+    setComponentsDirName(name: string) {
+      const cleaned = (name || '').replace(/[\\/]/g, '').trim();
+      this.componentsDirName = cleaned || '_components';
       this.persist();
     },
     /** Image-upload / 图床 config. One generic patch action — the Settings

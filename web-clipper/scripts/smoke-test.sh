@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# smoke-test.sh — end-to-end verification for the SoloMD web clipper.
+# smoke-test.sh — end-to-end verification for the xiaoyuanNote web clipper.
 #
 # 1. Builds the desktop `capture_drive` example (the same code path the
 #    desktop app's Settings → Integrations toggle wires up, but as a
@@ -15,7 +15,7 @@
 #
 # This is the "build the verification harness first" route required by
 # rule #2 — without this, the extension would only be testable against
-# a fully-built SoloMD desktop app on someone else's machine.
+# a fully-built xiaoyuanNote desktop app on someone else's machine.
 #
 # Usage:
 #     web-clipper/scripts/smoke-test.sh
@@ -35,7 +35,7 @@ ENV_FILE="$ENV_DIR/.env"
 
 # Random-ish stable token so we can stuff it into .env before the server
 # even starts.
-TOKEN="${SOLOMD_CAPTURE_TOKEN:-smoketest-$(date +%s)-$$abcdef}"
+TOKEN="${XIAOYUAN_NOTE_CAPTURE_TOKEN:-smoketest-$(date +%s)-$$abcdef}"
 
 # Pre-create dirs.
 rm -rf "$VAULT" "$ENV_DIR"
@@ -58,7 +58,7 @@ fi
 # ---------------------------------------------------------------------------
 DRIVE_LOG="$ENV_DIR/capture_drive.log"
 echo "[smoke] starting capture endpoint against $VAULT..."
-SOLOMD_CAPTURE_TOKEN="$TOKEN" "$DRIVE_BIN" "$VAULT" >"$DRIVE_LOG" 2>&1 &
+XIAOYUAN_NOTE_CAPTURE_TOKEN="$TOKEN" "$DRIVE_BIN" "$VAULT" >"$DRIVE_LOG" 2>&1 &
 DRIVE_PID=$!
 
 cleanup() {
@@ -88,9 +88,9 @@ echo "[smoke] endpoint up: http://127.0.0.1:$PORT  token=${DRIVE_TOKEN:0:8}..."
 # would read these. The extension itself doesn't read .env (it can't), but
 # we keep it here so a human can re-run any of these requests via curl.
 cat >"$ENV_FILE" <<EOF
-SOLOMD_CAPTURE_ENDPOINT=http://127.0.0.1:$PORT
-SOLOMD_CAPTURE_TOKEN=$DRIVE_TOKEN
-SOLOMD_TEST_VAULT=$VAULT
+XIAOYUAN_NOTE_CAPTURE_ENDPOINT=http://127.0.0.1:$PORT
+XIAOYUAN_NOTE_CAPTURE_TOKEN=$DRIVE_TOKEN
+XIAOYUAN_NOTE_TEST_VAULT=$VAULT
 EOF
 
 # ---------------------------------------------------------------------------

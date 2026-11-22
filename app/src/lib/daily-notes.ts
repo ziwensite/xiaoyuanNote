@@ -59,7 +59,7 @@ export function isoWeekNumber(date: Date): number {
 }
 
 /** Longest first, so `dddd` is never shadowed by `ddd`. */
-const FILENAME_TOKENS = ['YYYY', 'dddd', 'ddd', 'WW', 'MM', 'DD', 'Q'] as const;
+const FILENAME_TOKENS = ['YYYY', 'dddd', 'ddd', 'WW', 'MM', 'DD', 'HH', 'mm', 'ss', 'Q'] as const;
 
 function tokenValue(token: (typeof FILENAME_TOKENS)[number], date: Date): string {
   switch (token) {
@@ -69,6 +69,12 @@ function tokenValue(token: (typeof FILENAME_TOKENS)[number], date: Date): string
       return pad2(date.getMonth() + 1);
     case 'DD':
       return pad2(date.getDate());
+    case 'HH':
+      return pad2(date.getHours());
+    case 'mm':
+      return pad2(date.getMinutes());
+    case 'ss':
+      return pad2(date.getSeconds());
     case 'dddd':
       return FULL_WEEKDAYS[date.getDay()];
     case 'ddd':

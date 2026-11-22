@@ -8,23 +8,23 @@ import CompareFaq from '../../components/CompareFaq.astro';
 const lang = 'en' as const;
 const FAQ = [
   {
-    q: 'How do I install the solomd CLI?',
-    a: 'macOS / Linux: curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash — it drops the solomd binary into /usr/local/bin. On Windows, download solomd.exe from the GitHub releases page and add it to PATH.',
+    q: 'How do I install the xiaoyuanNote CLI?',
+    a: 'macOS / Linux: curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash — it drops the xiaoyuanNote binary into /usr/local/bin. On Windows, download xiaoyuan-note.exe from the GitHub releases page and add it to PATH.',
   },
   {
     q: 'What can the CLI do?',
-    a: 'Open a note in the app (fuzzy title match), create a note, list files, grep the vault, and print a note to stdout: solomd open / new / list / search / cat. It exercises the same domain functions as the GUI and is built for shell pipelines and cron jobs.',
+    a: 'Open a note in the app (fuzzy title match), create a note, list files, grep the vault, and print a note to stdout: xiaoyuanNote open / new / list / search / cat. It exercises the same domain functions as the GUI and is built for shell pipelines and cron jobs.',
   },
   {
     q: 'Can I pipe notes into other tools?',
-    a: 'Yes — solomd cat prints raw Markdown to stdout, so it composes with pandoc, fzf, grep, or anything else in a pipeline.',
+    a: 'Yes — xiaoyuanNote cat prints raw Markdown to stdout, so it composes with pandoc, fzf, grep, or anything else in a pipeline.',
   },
 ];
 ---
 
 <Layout
-  title="SoloMD CLI — Open, Search, Write Your Notes from the Terminal"
-  description="The solomd CLI lets you create notes, search the vault, and pipe Markdown around without leaving the shell."
+  title="xiaoyuanNote CLI — Open, Search, Write Your Notes from the Terminal"
+  description="The xiaoyuanNote CLI lets you create notes, search the vault, and pipe Markdown around without leaving the shell."
   lang={lang}
 >
   <Header lang={lang} />
@@ -34,9 +34,9 @@ const FAQ = [
         <a href="/">Home</a> / <a href="/docs/">Docs</a> / <span>CLI</span>
       </nav>
 
-      <h1>SoloMD CLI</h1>
+      <h1>xiaoyuanNote CLI</h1>
       <p class="lead">
-        <code>solomd</code> is a small binary that exercises the same domain
+        <code>xiaoyuanNote</code> is a small binary that exercises the same domain
         functions as the GUI — open a note, create one, search the vault, list
         files, print to stdout. Built for shell pipelines, cron jobs, and
         muscle-memory ops.
@@ -46,11 +46,11 @@ const FAQ = [
       <p>
         macOS / Linux — paste this in your terminal:
       </p>
-      <pre class="code"><code>curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash</code></pre>
+      <pre class="code"><code>curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash</code></pre>
       <p>
-        It drops a <code>solomd</code> binary into <code>/usr/local/bin</code>.
-        Windows users can grab the standalone <code>solomd.exe</code> from
-        <a href="https://github.com/zhitongblog/solomd/releases" rel="external">the releases page</a>
+        It drops a <code>xiaoyuanNote</code> binary into <code>/usr/local/bin</code>.
+        Windows users can grab the standalone <code>xiaoyuan-note.exe</code> from
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/releases" rel="external">the releases page</a>
         and add it to <code>%PATH%</code>.
       </p>
 
@@ -58,42 +58,42 @@ const FAQ = [
       <table class="kb-table">
         <thead><tr><th>Command</th><th>What it does</th></tr></thead>
         <tbody>
-          <tr><th><code>solomd open &lt;title|path&gt;</code></th><td>Open a note in SoloMD. Title-as-arg uses fuzzy match against the vault.</td></tr>
-          <tr><th><code>solomd new &lt;title&gt; [text]</code></th><td>Create a new note with the given title and optional body, then open it.</td></tr>
-          <tr><th><code>solomd list [folder]</code></th><td>List Markdown files in the workspace (or a sub-folder).</td></tr>
-          <tr><th><code>solomd search &lt;query&gt;</code></th><td>Grep your notes. Returns paths + matching lines.</td></tr>
-          <tr><th><code>solomd cat &lt;title|path&gt;</code></th><td>Print a note to stdout — pipe into <code>pandoc</code>, <code>fzf</code>, anything.</td></tr>
-          <tr><th><code>solomd help</code></th><td>Show the full subcommand list.</td></tr>
+          <tr><th><code>xiaoyuanNote open &lt;title|path&gt;</code></th><td>Open a note in xiaoyuan-note. Title-as-arg uses fuzzy match against the vault.</td></tr>
+          <tr><th><code>xiaoyuanNote new &lt;title&gt; [text]</code></th><td>Create a new note with the given title and optional body, then open it.</td></tr>
+          <tr><th><code>xiaoyuanNote list [folder]</code></th><td>List Markdown files in the workspace (or a sub-folder).</td></tr>
+          <tr><th><code>xiaoyuanNote search &lt;query&gt;</code></th><td>Grep your notes. Returns paths + matching lines.</td></tr>
+          <tr><th><code>xiaoyuanNote cat &lt;title|path&gt;</code></th><td>Print a note to stdout — pipe into <code>pandoc</code>, <code>fzf</code>, anything.</td></tr>
+          <tr><th><code>xiaoyuanNote help</code></th><td>Show the full subcommand list.</td></tr>
         </tbody>
       </table>
 
       <h2>Examples</h2>
       <pre class="code"><code>{`# Quick capture from anywhere
-solomd new "standup 2026-04-26" "$(pbpaste)"
+xiaoyuanNote new "standup 2026-04-26" "$(pbpaste)"
 
 # Find every note that mentions "rust"
-solomd search rust
+xiaoyuanNote search rust
 
 # Pipe a note through pandoc
-solomd cat "weekly-review" | pandoc -t docx -o weekly-review.docx
+xiaoyuanNote cat "weekly-review" | pandoc -t docx -o weekly-review.docx
 
 # Cron: append a daily journal stub each morning
-solomd new "$(date +%F)" "## $(date +%A)\n\n- [ ] "`}</code></pre>
+xiaoyuanNote new "$(date +%F)" "## $(date +%A)\n\n- [ ] "`}</code></pre>
 
       <h2>How it finds your vault</h2>
       <p>
-        The CLI reads the same <code>solomd-language</code> /
-        <code>solomd-workspace</code> preference files the GUI writes. If
-        you've opened a folder in SoloMD recently, the CLI will use that as
-        its workspace. To override, set <code>SOLOMD_WORKSPACE</code>:
+        The CLI reads the same <code>xiaoyuan-note-language</code> /
+        <code>xiaoyuan-note-workspace</code> preference files the GUI writes. If
+        you've opened a folder in xiaoyuanNote recently, the CLI will use that as
+        its workspace. To override, set <code>XIAOYUAN_NOTE_WORKSPACE</code>:
       </p>
-      <pre class="code"><code>SOLOMD_WORKSPACE=/path/to/notes solomd list</code></pre>
+      <pre class="code"><code>XIAOYUAN_NOTE_WORKSPACE=/path/to/notes xiaoyuanNote list</code></pre>
 
       <h2>Combined with the MCP server</h2>
       <p>
-        The CLI is what the user types; <code>solomd-mcp</code> is what the AI
+        The CLI is what the user types; <code>xiaoyuan-note-mcp</code> is what the AI
         calls. They share the same workspace state, so a model can write a new
-        note via MCP and you can immediately <code>solomd open</code> it from
+        note via MCP and you can immediately <code>xiaoyuanNote open</code> it from
         the terminal — no reload, no race.
       </p>
       <p>
@@ -102,7 +102,7 @@ solomd new "$(date +%F)" "## $(date +%A)\n\n- [ ] "`}</code></pre>
 
       <p class="docs-footer">
         Bug or missing subcommand? Open an issue on
-        <a href="https://github.com/zhitongblog/solomd/issues" rel="external">GitHub</a>.
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/issues" rel="external">GitHub</a>.
       </p>
 
       <CompareFaq heading="Frequently asked questions" items={FAQ} />

@@ -6,13 +6,13 @@ key ctrl+w
 img=$(shot_when "Unsaved Changes" prompt)
 expect "unsaved prompt shown (OCR 'Unsaved Changes')" ocr_has "Unsaved Changes" "$img"
 expect "prompt names the file and asks 'Save changes?'" ocr_has "Save changes" "$img"
-expect "tab still open while prompting" wait_title '^plain\.md — SoloMD$' 2
+expect "tab still open while prompting" wait_title '^plain\.md — xiaoyuanNote$' 2
 key Escape; sleep 0.8
 shot cancelled >/dev/null
-expect "Esc (Cancel) keeps the tab" wait_title '^plain\.md — SoloMD$' 2
+expect "Esc (Cancel) keeps the tab" wait_title '^plain\.md — xiaoyuanNote$' 2
 key ctrl+w; sleep 1.2
 key n; sleep 1.2
 shot discarded >/dev/null
-expect "N (Don't Save) closes the tab" bash -c "! (xdotool search --onlyvisible --name '^plain\.md — SoloMD$' | grep -q .)"
+expect "N (Don't Save) closes the tab" bash -c "! (xdotool search --onlyvisible --name '^plain\.md — xiaoyuanNote$' | grep -q .)"
 expect "file on disk unchanged" test "$(md5sum <"$VAULT/plain.md")" = "$before"
 finish "unsaved prompt works"

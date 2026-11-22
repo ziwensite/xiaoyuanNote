@@ -6,12 +6,12 @@
  * index (via `useProperties`) and writes back through the Rust round-trip
  * command so the body stays byte-identical and key order is preserved. Type is
  * inferred at render time (`inferDisplayMode`) with user overrides persisted
- * out-of-band in `.solomd/properties.json` (the properties store) — never in
+ * out-of-band in `.xiaoyuan-note/properties.json` (the properties store) — never in
  * the note.
  *
  * Sections, in order: pinned properties → the rest of the frontmatter → a small
  * fixed set of suggested slots (Status / Date / URL) the note hasn't set yet →
- * the "+ Add property" affordance. (SoloMD has no Type system, so Tolaria's
+ * the "+ Add property" affordance. (xiaoyuanNote has no Type system, so Tolaria's
  * type-derived rows + Type/Workspace selectors are intentionally dropped.)
  */
 import { ref, computed } from 'vue';

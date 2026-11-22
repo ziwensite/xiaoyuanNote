@@ -11,7 +11,7 @@ const w = await waitFor(async () => (await getAllWebviewWindows()).find((x) => !
 if (!R.t(!!w, 'second window created (' + (w && w.label) + ')')) return R.done();
 await sleep(2500);
 R.t(await w.isVisible(), 'second window visible');
-R.t(/SoloMD/.test(await w.title()), 'title ' + (await w.title()));
+R.t(/xiaoyuan-note/.test(await w.title()), 'title ' + (await w.title()));
 await w.close();
 await sleep(500);
 R.t(!(await getAllWebviewWindows()).some((x) => x.label === w.label), 'second window closed');

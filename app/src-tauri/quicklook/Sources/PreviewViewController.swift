@@ -1,5 +1,5 @@
 // Quick Look preview for Markdown files: Finder's space-bar preview shows the
-// note rendered, the way SoloMD's preview does, instead of plain text (#351).
+// note rendered, the way xiaoyuanNote’s preview does, instead of plain text (#351).
 //
 // Data-based preview (macOS 12+): we hand Quick Look a self-contained HTML
 // document and it draws it in its own sandboxed web view. Rendering happens

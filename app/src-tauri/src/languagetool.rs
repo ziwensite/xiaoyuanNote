@@ -225,10 +225,10 @@ pub fn parse_check_response(body: &str) -> Result<CheckResponse, String> {
 // Endpoint resolution
 // ---------------------------------------------------------------------------
 
-/// Base URL (no trailing slash, no `/v2`) for a config. `SOLOMD_LT_BASE_URL`
+/// Base URL (no trailing slash, no `/v2`) for a config. `XIAOYUAN_NOTE_LT_BASE_URL`
 /// overrides every mode — the hook the tests use to point at a fixture.
 pub fn base_url(cfg: &LtConfig) -> String {
-    if let Ok(v) = std::env::var("SOLOMD_LT_BASE_URL") {
+    if let Ok(v) = std::env::var("XIAOYUAN_NOTE_LT_BASE_URL") {
         if !v.trim().is_empty() {
             return normalize_base(&v);
         }
@@ -267,7 +267,7 @@ static CLIENT: Lazy<Result<reqwest::Client, String>> = Lazy::new(|| {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .connect_timeout(Duration::from_secs(5))
-        .user_agent(concat!("SoloMD/", env!("CARGO_PKG_VERSION")))
+        .user_agent(concat!("xiaoyuan-note/", env!("CARGO_PKG_VERSION")))
         .build()
         .map_err(|e| format!("http client init failed: {e}"))
 });
@@ -370,7 +370,7 @@ pub async fn check(req: CheckRequest) -> Result<CheckResponse, String> {
         return Ok(CheckResponse { matches: Vec::new(), language: String::new() });
     }
     let creds = if cfg.mode == "premium" { Some(premium_credentials(cfg)?) } else { None };
-    if cfg.mode == "public" && std::env::var("SOLOMD_LT_BASE_URL").is_err() {
+    if cfg.mode == "public" && std::env::var("XIAOYUAN_NOTE_LT_BASE_URL").is_err() {
         let mut w = PUBLIC_WINDOW.lock().map_err(|e| e.to_string())?;
         if take_public_slot(Instant::now(), &mut w).is_err() {
             return Err("lt:rate-limited".into());
@@ -581,7 +581,7 @@ mod tests {
 
     #[test]
     fn parses_word_list() {
-        assert_eq!(parse_words(r#"{"words":["Fehlr","SoloMD"]}"#).unwrap(), vec!["Fehlr", "SoloMD"]);
+        assert_eq!(parse_words(r#"{"words":["Fehlr","xiaoyuanNote"]}"#).unwrap(), vec!["Fehlr", "xiaoyuanNote"]);
         assert!(parse_words("nope").is_err());
     }
 
@@ -629,7 +629,7 @@ mod tests {
         assert_eq!(normalize_base("localhost:8081"), "http://localhost:8081");
         assert_eq!(normalize_base("http://lt.lan:8010/v2/"), "http://lt.lan:8010");
         assert_eq!(normalize_base("  "), DEFAULT_LOCAL_URL);
-        if std::env::var("SOLOMD_LT_BASE_URL").is_err() {
+        if std::env::var("XIAOYUAN_NOTE_LT_BASE_URL").is_err() {
             assert_eq!(base_url(&cfg("premium")), PREMIUM_URL);
             assert_eq!(base_url(&cfg("public")), PUBLIC_URL);
             assert_eq!(base_url(&cfg("local")), DEFAULT_LOCAL_URL);

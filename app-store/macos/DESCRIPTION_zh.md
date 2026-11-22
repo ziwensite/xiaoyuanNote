@@ -1,4 +1,4 @@
-SoloMD 是一款 macOS 上的轻量级 Markdown 编辑器。一个文件，一个窗口，专心写作。
+xiaoyuanNote 是一款 macOS 上的轻量级 Markdown 编辑器。一个文件，一个窗口，专心写作。
 
 从零开始，只为"好好写字"而生——不需要账号，不走云端，不发遥测，不做订阅。所有笔记都保存在 Mac 本地的 `.md` 与 `.txt` 纯文本文件里，任何编辑器都能打开，十年之后依然可读。
 
@@ -59,8 +59,8 @@ macOS 原生体验
 隐私优先
 ━━━━━━━━━━━━━━━━━━
 
-SoloMD 不收集任何个人数据。没有账号、没有统计、没有广告、没有跟踪。你的笔记完全保存在你自己的文件里。
+xiaoyuanNote 不收集任何个人数据。没有账号、没有统计、没有广告、没有跟踪。你的笔记完全保存在你自己的文件里。
 
-SoloMD 是 MIT 协议下的开源项目。源码：github.com/zhitongblog/solomd
+xiaoyuanNote 是 MIT 协议下的开源项目。源码：github.com/zhitongblog/xiaoyuan-note
 
-觉得好用？去 GitHub 给颗 ⭐ 或在 solomd.app 赞助开发者。
+觉得好用？去 GitHub 给颗 ⭐ 或在 xiaoyuannote.app 赞助开发者。

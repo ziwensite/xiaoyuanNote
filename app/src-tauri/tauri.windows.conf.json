@@ -3,7 +3,7 @@
   "app": {
     "windows": [
       {
-        "title": "SoloMD",
+        "title": "xiaoyuanNote",
         "width": 1200,
         "height": 800,
         "minWidth": 480,

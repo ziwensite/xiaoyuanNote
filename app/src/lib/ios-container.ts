@@ -25,7 +25,7 @@ export function reanchorStorage(storage: Storage, currentUuid: string): number {
   const keys: string[] = [];
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i);
-    if (k && k.startsWith('solomd.')) keys.push(k);
+    if (k && k.startsWith('xiaoyuan-note.')) keys.push(k);
   }
   let changed = 0;
   for (const key of keys) {
@@ -50,14 +50,14 @@ export function reanchorStorage(storage: Storage, currentUuid: string): number {
 /** The old and current container paths now coincide — drop the duplicates
  *  from the recent lists (the folder switcher showed "Documents" twice). */
 function dedupeRecents(storage: Storage) {
-  const raw = storage.getItem('solomd.workspace.v1');
+  const raw = storage.getItem('xiaoyuan-note.workspace.v1');
   if (!raw) return;
   try {
     const ws = JSON.parse(raw);
     for (const k of ['recentFolders', 'recentFiles']) {
       if (Array.isArray(ws[k])) ws[k] = [...new Set(ws[k])];
     }
-    storage.setItem('solomd.workspace.v1', JSON.stringify(ws));
+    storage.setItem('xiaoyuan-note.workspace.v1', JSON.stringify(ws));
   } catch {
     /* unparseable — the store falls back to defaults on its own */
   }

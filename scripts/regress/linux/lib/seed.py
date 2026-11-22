@@ -36,16 +36,16 @@ settings.update(over)
 
 today = time.strftime("%Y-%m-%d")
 seed = {
-    "solomd.settings.v1": settings,
-    "solomd.workspace.v1": {
+    "xiaoyuan-note.settings.v1": settings,
+    "xiaoyuan-note.workspace.v1": {
         "recentFiles": [],
         "recentFolders": [vault] if vault else [],
         "currentFolder": vault or None,
         "safTreeUri": None,
         "safName": None,
     },
-    "solomd.starPrompt": {"first": "2020-01-01", "days": [today], "shown": True},
-    "solomd.update.last-check": str(int(time.time() * 1000)),
+    "xiaoyuan-note.starPrompt": {"first": "2020-01-01", "days": [today], "shown": True},
+    "xiaoyuan-note.update.last-check": str(int(time.time() * 1000)),
 }
 for k, v in extra.items():
     if v is None:

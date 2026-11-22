@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Build SoloMDQuickLook.appex: the Finder Quick Look preview for Markdown (#351).
+# Build xiaoyuanNoteQuickLook.appex: the Finder Quick Look preview for Markdown (#351).
 #
 #   app/src-tauri/quicklook/build.sh <version> <out-dir> [signing-identity] [entitlements]
 #
-# Produces <out-dir>/SoloMDQuickLook.appex (universal arm64 + x86_64, macOS 12+).
+# Produces <out-dir>/xiaoyuanNoteQuickLook.appex (universal arm64 + x86_64, macOS 12+).
 # With a signing identity it is signed (hardened runtime, timestamp, sandbox
 # entitlements by default). The caller copies it into
-# SoloMD.app/Contents/PlugIns/ BEFORE signing the app itself, so the app's
+# xiaoyuannote.app/Contents/PlugIns/ BEFORE signing the app itself, so the app's
 # signature seals it; see scripts/build-mac.sh and scripts/build-mas.sh.
 #
 # Plain swiftc, no Xcode project: an app extension is an ordinary bundle whose
@@ -25,7 +25,7 @@ mkdir -p "$OUT"
 OUT="$(cd "$OUT" && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
-APPEX="$OUT/SoloMDQuickLook.appex"
+APPEX="$OUT/xiaoyuanNoteQuickLook.appex"
 rm -rf "$APPEX"
 mkdir -p "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources"
 
@@ -41,14 +41,14 @@ echo "==> Quick Look: compiling (arm64 + x86_64)"
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
 for arch in arm64 x86_64; do
   xcrun swiftc -O -sdk "$SDK" -target "$arch-apple-macos12.0" \
-    -module-name SoloMDQuickLook -application-extension \
+    -module-name xiaoyuanNoteQuickLook -application-extension \
     -framework Cocoa -framework Quartz -framework JavaScriptCore \
     -Xlinker -e -Xlinker _NSExtensionMain \
     "$HERE/Sources/PreviewViewController.swift" \
-    -o "$WORK/SoloMDQuickLook-$arch"
+    -o "$WORK/xiaoyuanNoteQuickLook-$arch"
 done
-lipo -create "$WORK/SoloMDQuickLook-arm64" "$WORK/SoloMDQuickLook-x86_64" \
-  -output "$APPEX/Contents/MacOS/SoloMDQuickLook"
+lipo -create "$WORK/xiaoyuanNoteQuickLook-arm64" "$WORK/xiaoyuanNoteQuickLook-x86_64" \
+  -output "$APPEX/Contents/MacOS/xiaoyuanNoteQuickLook"
 
 sed "s/__VERSION__/$VER/g" "$HERE/Info.plist" > "$APPEX/Contents/Info.plist"
 plutil -lint "$APPEX/Contents/Info.plist" >/dev/null

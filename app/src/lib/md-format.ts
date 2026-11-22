@@ -1,7 +1,7 @@
 /**
  * Markdown formatting commands (#296, #274) — bold, italic, headings, lists…
  *
- * Pure text in, one edit out. SoloMD is three editors (CodeMirror, the plain
+ * Pure text in, one edit out. xiaoyuanNote is three editors (CodeMirror, the plain
  * block editor, the plain flat editor — see `onTransformCase` in Editor.vue),
  * and a formatting command written against any one of them is dead in the
  * other two. So *what* changes is decided here, from a string and a

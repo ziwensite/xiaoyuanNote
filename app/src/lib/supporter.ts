@@ -24,7 +24,7 @@ export const SUPPORTER_BADGE = {
 
 export const TIP_TIERS: readonly TipTierSpec[] = [
   {
-    productId: 'app.solomd.tip.coffee',
+    productId: 'app.xiaoyuan-note.tip.coffee',
     tier: 'coffee',
     icon: '☕',
     titleZh: '请喝杯咖啡',
@@ -35,23 +35,23 @@ export const TIP_TIERS: readonly TipTierSpec[] = [
     defaultPriceEn: '$0.99',
   },
   {
-    productId: 'app.solomd.tip.meal',
+    productId: 'app.xiaoyuan-note.tip.meal',
     tier: 'meal',
     icon: '🍜',
     titleZh: '请吃顿工作餐',
     titleEn: 'Buy a Lunch',
-    descZh: '支持 SoloMD 持续打磨五端体验，点亮「支持者」徽章。',
+    descZh: '支持 xiaoyuanNote 持续打磨五端体验，点亮「支持者」徽章。',
     descEn: 'Support cross-platform polish and unlock the Supporter badge.',
     defaultPriceZh: '¥28',
     defaultPriceEn: '$2.99',
   },
   {
-    productId: 'app.solomd.tip.feast',
+    productId: 'app.xiaoyuan-note.tip.feast',
     tier: 'feast',
     icon: '🚀',
     titleZh: '强力支持',
     titleEn: 'Generous Support',
-    descZh: '支持 SoloMD 保持免费开源与独立开发，点亮「支持者」徽章。',
+    descZh: '支持 xiaoyuanNote 保持免费开源与独立开发，点亮「支持者」徽章。',
     descEn: 'Champion free, open-source independent development and unlock the Supporter badge.',
     defaultPriceZh: '¥68',
     defaultPriceEn: '$9.99',
@@ -84,12 +84,12 @@ interface BackendPurchaseResult {
   purchasedIds: string[];
 }
 
-const STORAGE_KEY = 'solomd.supporter.v1';
+const STORAGE_KEY = 'xiaoyuan-note.supporter.v1';
 
 export function tierFromProductId(productId: string): SupporterTier | null {
-  if (productId === 'app.solomd.tip.feast' || productId === 'feast') return 'feast';
-  if (productId === 'app.solomd.tip.meal' || productId === 'meal') return 'meal';
-  if (productId === 'app.solomd.tip.coffee' || productId === 'coffee') return 'coffee';
+  if (productId === 'app.xiaoyuan-note.tip.feast' || productId === 'feast') return 'feast';
+  if (productId === 'app.xiaoyuan-note.tip.meal' || productId === 'meal') return 'meal';
+  if (productId === 'app.xiaoyuan-note.tip.coffee' || productId === 'coffee') return 'coffee';
   return null;
 }
 
@@ -237,7 +237,7 @@ export async function restoreSupporterPurchases(): Promise<SupporterRecord> {
   return supporterRecord.value;
 }
 
-export function activateSupporterBadgeLocally(productId = 'app.solomd.tip.coffee'): SupporterRecord {
+export function activateSupporterBadgeLocally(productId = 'app.xiaoyuan-note.tip.coffee'): SupporterRecord {
   const merged = mergeSupporterRecord(supporterRecord.value, [productId], true);
   supporterRecord.value = merged;
   writeStoredRecord(merged);

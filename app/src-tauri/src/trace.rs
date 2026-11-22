@@ -1,6 +1,6 @@
 //! v4.0 Pillar 3 — `trace.jsonl` emitter + reader.
 //!
-//! This is the **canonical** trace utility for SoloMD agent runs. P1 (panel
+//! This is the **canonical** trace utility for xiaoyuanNote agent runs. P1 (panel
 //! agent) and P2 (recipe runner) both adopt this module; the helper
 //! signatures are intentionally typed (no raw `serde_json::Value` at call
 //! sites) so trace lines are well-formed by construction.
@@ -14,7 +14,7 @@
 //!
 //! ### What this module does NOT own
 //!
-//! - **Run-directory layout** (`<workspace>/.solomd/agent-runs/<run_id>/`)
+//! - **Run-directory layout** (`<workspace>/.xiaoyuan-note/agent-runs/<run_id>/`)
 //!   — that's `agent_run.rs` (P1). This module takes the run dir as an input
 //!   and only manipulates `trace.jsonl` inside it.
 //! - **`meta.json` lifecycle** — also P1. The `Emitter` neither creates nor
@@ -543,7 +543,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = std::env::temp_dir().join(format!("solomd-trace-{label}-{nanos}"));
+        let dir = std::env::temp_dir().join(format!("xiaoyuan-note-trace-{label}-{nanos}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

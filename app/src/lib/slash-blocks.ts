@@ -141,6 +141,20 @@ export const SLASH_BLOCKS: SlashBlock[] = [
     keywords: ['table', 'grid', 'rows', 'columns'],
   },
 
+  // -------- Embedded query / multi-dim table --------
+  {
+    id: 'query',
+    icon: '▦',
+    label: '查询表',
+    hint: 'embedded query / table',
+    // A starter ```query fence (capped at 10 rows). Open the saved-view builder
+    // (sidebar Views "+") to visually design conditions, then "插入到笔记"
+    // drops this block in.
+    snippet:
+      '```query\nfrom: notes\nrender: table\nlimit: 10\nfilters:\n  combinator: all\n  children: []\n```\n${cursor}',
+    keywords: ['query', 'table', 'base', 'database', '多维表', '查询', '筛选', 'dataview'],
+  },
+
   // -------- Math + diagrams --------
   {
     id: 'math_block',

@@ -13,7 +13,7 @@ const act = (id) => APP.dispatchMenuAction(id);
 const V = () => {
   const tiles = st('tiles');
   const pane = tiles.focusedPaneId && document.querySelector(`[data-pane-id="${tiles.focusedPaneId}"] .cm-content`);
-  return (pane && pane.cmTile && pane.cmTile.view) || window.__solomdActiveView ||
+  return (pane && pane.cmTile && pane.cmTile.view) || window.__xiaoyuanNoteActiveView ||
     document.querySelector('.cm-content')?.cmTile?.view;
 };
 const allViews = () => [...document.querySelectorAll('.cm-content')].map((e) => e.cmTile?.view).filter(Boolean);

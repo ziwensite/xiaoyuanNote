@@ -2,7 +2,7 @@
  * v2.6 — auto-push + auto-pull glue.
  *
  * Runs alongside `useAutoCommit`:
- *   - On `solomd:saved` (after AutoGit has committed), if the workspace is
+ *   - On `xiaoyuan-note:saved` (after AutoGit has committed), if the workspace is
  *     linked AND `auto_push` is on, push to GitHub.
  *   - On a fixed interval (`auto_pull_minutes`), pull.
  *
@@ -82,7 +82,7 @@ export function useGithubSync() {
           url: settings.webdavUrl,
           username: settings.webdavUsername,
           password: settings.webdavPassword,
-          remotePath: settings.webdavRemotePath || '/SoloMD',
+          remotePath: settings.webdavRemotePath || '/xiaoyuanNote',
           encrypted: settings.webdavEncrypted,
           passphrase: settings.webdavPassphrase,
         });
@@ -117,7 +117,7 @@ export function useGithubSync() {
           workspace: folder,
           provider: settings.cloudApiProvider,
           accessToken: settings.cloudApiToken,
-          remotePath: settings.cloudApiRemotePath || '/apps/SoloMD',
+          remotePath: settings.cloudApiRemotePath || '/apps/xiaoyuanNote',
           passphrase: settings.cloudApiPassphrase,
         });
       } catch (e) {
@@ -164,7 +164,7 @@ export function useGithubSync() {
         toasts.success(t(syncToast('pulledToast')));
         // Notify the rest of the app that files changed under us so the
         // workspace index, file tree, and active editor reload from disk.
-        window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+        window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
       } else if (r.kind === 'conflicts') {
         toasts.warning(t('githubSync.pullConflicts', { n: String(r.conflicts.length) }));
         // The conflict panel surfaces in the History panel when
@@ -192,7 +192,7 @@ export function useGithubSync() {
   function start(): void {
     if (listening) return;
     listening = true;
-    window.addEventListener('solomd:saved', onSaved as EventListener);
+    window.addEventListener('xiaoyuan-note:saved', onSaved as EventListener);
 
     // #230 — no libgit2 in the Android binary, so git push/pull is desktop/iOS
     // only; WebDAV & Cloud Vault auto-sync above still run on all platforms.
@@ -223,7 +223,7 @@ export function useGithubSync() {
   function stop(): void {
     if (!listening) return;
     listening = false;
-    window.removeEventListener('solomd:saved', onSaved as EventListener);
+    window.removeEventListener('xiaoyuan-note:saved', onSaved as EventListener);
     if (pulltimer) {
       clearInterval(pulltimer);
       pulltimer = null;

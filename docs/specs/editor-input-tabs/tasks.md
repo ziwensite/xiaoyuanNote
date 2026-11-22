@@ -36,7 +36,7 @@
 - [x] `useFiles.closeTabSafe`：非文件标签直接 `tabs.closeTab`，不进未保存对话框
 - [x] `PaneTabBar`「关闭已保存」排除虚拟标签
 - [x] `tabs.ts#closeTab`：`closedTabs` 记录扩展 `kind/input/title`；`reopenClosedTab` 支持虚拟标签
-- [x] `openInput` 派发 `solomd:leave-center-overlay`
+- [x] `openInput` 派发 `xiaoyuan-note:leave-center-overlay`
 
 ### T0.4 持久化
 
@@ -101,7 +101,7 @@
 
 ### T2.3 验证
 
-- [x] 四处入口（工具栏 / 菜单 / 命令面板 / `solomd:open-settings`）均可打开并定位分类
+- [x] 四处入口（工具栏 / 菜单 / 命令面板 / `xiaoyuan-note:open-settings`）均可打开并定位分类
 - [x] 设置内搜索、快捷键录制、主题预览、更新检查等原有交互正常
 - [x] Esc 只清空搜索词，不误关编辑器/窗口
 - [x] 关闭后回到之前标签；再次打开仍只有一个设置标签
@@ -122,7 +122,7 @@
 ### T3.2 标签视图
 
 - [x] 新增 `app/src/components/tabs/SearchResultsTab.vue`：查询框（预填 `args.query`）+ 分组列表 + ↑↓/↵/Esc
-- [x] 点击命中：`files.openPath` → 120ms 后 `solomd:outline-goto`（复用现有路径）
+- [x] 点击命中：`files.openPath` → 120ms 后 `xiaoyuan-note:outline-goto`（复用现有路径）
 - [x] 打开命中**不关闭**结果标签
 - [x] 单例：再次搜索更新 `query` 并刷新
 - [x] `persist: 'never'`
@@ -144,7 +144,7 @@
 
 ### T4.1 URL 与策略
 
-- [x] 新增 `app/src/lib/web-tab.ts`：`normalizeUrl`（仅 https）、`hostOf`、`isKnownFrameBlocker(host)`、每 host 偏好读写 `solomd.webTabs.v1`
+- [x] 新增 `app/src/lib/web-tab.ts`：`normalizeUrl`（仅 https）、`hostOf`、`isKnownFrameBlocker(host)`、每 host 偏好读写 `xiaoyuan-note.webTabs.v1`
 - [x] 新增 `app/src/lib/web-tab.test.ts`：协议拒绝、大小写/尾部斜杠归一、黑名单命中、偏好往返
 
 ### T4.2 组件
@@ -196,6 +196,6 @@
 
 - [x] `pnpm test` — 2026-11-11 实测 981 / 981 pass / 0 fail（P2 新增 3 例）
 - [x] `pnpm build`（含 `vue-tsc --noEmit`）— 29.94s 成功
-- [x] 涉及 Rust 时 `cargo test -j 1` — `--lib` 259、`--bin SoloMD` 267 全过
+- [x] 涉及 Rust 时 `cargo test -j 1` — `--lib` 259、`--bin xiaoyuanNote` 267 全过
 - [ ] 手工回归清单（见 spec §6）— 已落到 `docs/regression-checklist.md` O1–O9，待真机 GUI 执行后勾选
 - [x] 不 push、不改版本号、不新增依赖

@@ -7,8 +7,8 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="安全机制 — SoloMD 如何保护你的数据"
-  description="SoloMD 是一款纯客户端、本地优先的 Markdown 编辑器。笔记永远在你的硬盘上，API key 存在系统钥匙串里，AI 调用直连厂商 —— 没有中转服务器，没有云端，MIT 开源可审计。"
+  title="安全机制 — xiaoyuanNote 如何保护你的数据"
+  description="xiaoyuanNote 是一款纯客户端、本地优先的 Markdown 编辑器。笔记永远在你的硬盘上，API key 存在系统钥匙串里，AI 调用直连厂商 —— 没有中转服务器，没有云端，MIT 开源可审计。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -18,8 +18,8 @@ const lang = 'zh' as const;
       <p class="updated">最后更新:2026-04-25 · v2.2</p>
 
       <p class="lead">
-        SoloMD 是<strong>纯客户端</strong>桌面 / 移动应用。没有 SoloMD 服务器,
-        没有 SoloMD 账号,没有 SoloMD 云端。下面把产品里所有可能涉及数据的地方
+        xiaoyuanNote 是<strong>纯客户端</strong>桌面 / 移动应用。没有 xiaoyuanNote 服务器,
+        没有 xiaoyuanNote 账号,没有 xiaoyuanNote 云端。下面把产品里所有可能涉及数据的地方
         和我们的保护机制全部讲清楚。
       </p>
 
@@ -30,7 +30,7 @@ const lang = 'zh' as const;
           数据库,没有不透明的二进制格式。
         </li>
         <li>
-          就算卸载 SoloMD,你的文件还在原地,Obsidian / VS Code / 记事本 /
+          就算卸载 xiaoyuanNote,你的文件还在原地,Obsidian / VS Code / 记事本 /
           <code>cat</code> 全都能打开,完全不锁定。
         </li>
         <li>
@@ -75,7 +75,7 @@ const lang = 'zh' as const;
           上下文段落,也不带任何笔记元信息。
         </li>
         <li>
-          请求<strong>直接</strong>从你的电脑发到你选的厂商 — 没有 SoloMD 中转,
+          请求<strong>直接</strong>从你的电脑发到你选的厂商 — 没有 xiaoyuanNote 中转,
           没有日志,没有拦截。我们看不到内容,因为它根本不经过我们。
         </li>
         <li>
@@ -86,7 +86,7 @@ const lang = 'zh' as const;
       <h2>4. MCP Server — 默认只读,带路径穿越防护</h2>
       <ul>
         <li>
-          自带的 <code>solomd-mcp</code> 二进制默认只暴露 6 个只读工具:
+          自带的 <code>xiaoyuan-note-mcp</code> 二进制默认只暴露 6 个只读工具:
           <code>list_notes</code>、<code>read_note</code>、<code>search</code>、
           <code>get_backlinks</code>、<code>list_tags</code>、
           <code>get_outline</code>。
@@ -108,7 +108,7 @@ const lang = 'zh' as const;
       <h2>5. 本地 RAG / 语义搜索 —— 数据从不离开磁盘</h2>
       <ul>
         <li>
-          v2.3 新增了语义搜索面板（⌘⇧F）。和 SoloMD 里其他功能一样，
+          v2.3 新增了语义搜索面板（⌘⇧F）。和 xiaoyuanNote 里其他功能一样，
           <strong>默认关闭</strong>。在「设置 → 启用语义搜索」开启后才会建立索引；
           关闭状态下不扫描、不生成索引文件、零开销。
         </li>
@@ -116,7 +116,7 @@ const lang = 'zh' as const;
           开启后，笔记会按段落切块，使用一个完全在 Rust 进程里运行的
           哈希三元组嵌入器生成向量。<strong>不会下载任何模型文件</strong> ——
           自带嵌入器无需权重、无需联网。向量存放在
-          <code>&lt;workspace&gt;/.solomd/embeddings.sqlite</code>，
+          <code>&lt;workspace&gt;/.xiaoyuan-note/embeddings.sqlite</code>，
           就是一个普通 SQLite 文件，可以用 <code>sqlite3 &lt;file&gt; .schema</code>
           直接查看结构。
         </li>
@@ -125,7 +125,7 @@ const lang = 'zh' as const;
           没有任何远程 API 调用，没有查询日志，没有网络流量。
         </li>
         <li>
-          索引目录 <code>.solomd/</code> 会被自动加到工作区的
+          索引目录 <code>.xiaoyuan-note/</code> 会被自动加到工作区的
           <code>.gitignore</code>，AutoGit 不会把嵌入索引提交进版本历史。
         </li>
         <li>
@@ -163,7 +163,7 @@ const lang = 'zh' as const;
         </li>
         <li>
           想看到底发了什么?打开 DevTools 执行
-          <code>localStorage.setItem('solomd.telemetryDebug', '1')</code>,
+          <code>localStorage.setItem('xiaoyuan-note.telemetryDebug', '1')</code>,
           所有事件会原样打印到控制台。
         </li>
       </ul>
@@ -193,19 +193,19 @@ const lang = 'zh' as const;
       <ul>
         <li>
           想验证钥匙串处理?读
-          <a href="https://github.com/zhitongblog/solomd/blob/main/app/src-tauri/src/ai_proxy.rs" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/app/src-tauri/src/ai_proxy.rs" rel="external">
             <code>app/src-tauri/src/ai_proxy.rs</code>
           </a>
         </li>
         <li>
           想验证 MCP 路径校验?读
-          <a href="https://github.com/zhitongblog/solomd/blob/main/mcp-server/src/main.rs" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/mcp-server/src/main.rs" rel="external">
             <code>mcp-server/src/main.rs</code>
           </a>
         </li>
         <li>
           想验证遥测里没有笔记内容?在仓库里搜
-          <a href="https://github.com/zhitongblog/solomd/search?q=trackEvent" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/search?q=trackEvent" rel="external">
             <code>trackEvent</code>
           </a>
         </li>

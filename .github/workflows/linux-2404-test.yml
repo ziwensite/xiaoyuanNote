@@ -79,7 +79,7 @@ jobs:
       - name: Install frontend dependencies
         run: cd app && pnpm install --frozen-lockfile
 
-      - name: Pre-build solomd-mcp sidecar
+      - name: Pre-build xiaoyuan-note-mcp sidecar
         shell: bash
         run: |
           set -euo pipefail
@@ -109,7 +109,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: solomd-linux-x64-ubuntu2404
+          name: xiaoyuan-note-linux-x64-ubuntu2404
           if-no-files-found: error
           path: |
             app/src-tauri/target/release/bundle/appimage/*.AppImage

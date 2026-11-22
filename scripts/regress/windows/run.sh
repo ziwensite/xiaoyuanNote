@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# SoloMD Windows regression suite — drives the Win11-ARM VM from the Mac. See README.md.
+# xiaoyuanNote Windows regression suite — drives the Win11-ARM VM from the Mac. See README.md.
 #
-#   scripts/regress/windows/run.sh <SoloMD_*_arm64*.msi> [filter...]
+#   scripts/regress/windows/run.sh <XIAOYUAN_NOTE_*_arm64*.msi> [filter...]
 #       install the MSI, move the user's profile aside, build two golden test profiles
 #       (CodeMirror + native engine), run every check (or those whose id contains a filter word),
 #       restore the user's profile, print a PASS/FAIL table, write results.json.
@@ -10,16 +10,16 @@
 #   run.sh --one <steps> [engine] [save-as-golden]
 #                                       debug one steps file (engine: cm | native | fresh); leaves the profile aside
 #
-# Env: REGRESS_WIN_HOST (zhitong@192.168.64.3)  REGRESS_WIN_KEY (~/.ssh/solomd_win11_vm)
+# Env: REGRESS_WIN_HOST (zhitong@192.168.64.3)  REGRESS_WIN_KEY (~/.ssh/XIAOYUAN_NOTE_win11_vm)
 #      REGRESS_WIN_OUT (default: <this dir>/out/<timestamp>)   REGRESS_WIN_KEEP_PROFILE=1 (don't restore)
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOST="${REGRESS_WIN_HOST:-zhitong@192.168.64.3}"
-KEY="${REGRESS_WIN_KEY:-$HOME/.ssh/solomd_win11_vm}"
+KEY="${REGRESS_WIN_KEY:-$HOME/.ssh/XIAOYUAN_NOTE_win11_vm}"
 SSHO=(-o ConnectTimeout=10 -o BatchMode=yes -o ServerAliveInterval=15 -i "$KEY")
 RD='C:\Users\Public\regress'                 # work dir in the VM
 VAULT='C:\Users\zhitong\Desktop\regress-vault' # fixture vault (Desktop: the folder picker starts there)
-EXE='C:\Program Files\SoloMD\SoloMD.exe'
+EXE='C:\Program Files\xiaoyuanNote\xiaoyuan-note.exe'
 STAMP="$(date +%Y%m%d-%H%M%S)"
 OUT="${REGRESS_WIN_OUT:-$HERE/out/$STAMP}"
 say() { printf '[win-regress %s] %s\n' "$(date +%H:%M:%S)" "$*" >&2; }
@@ -36,8 +36,8 @@ restore_profile() {
 \$st = '$RD\profile-state.txt'
 if (-not (Test-Path \$st)) { 'no saved profile state - nothing to restore'; return }
 \$suffix = (Get-Content \$st -Raw).Trim()
-Get-Process SoloMD -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 2
-foreach (\$base in @("\$env:LOCALAPPDATA\app.solomd", "\$env:APPDATA\app.solomd")) {
+Get-Process xiaoyuanNote -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 2
+foreach (\$base in @("\$env:LOCALAPPDATA\app.xiaoyuanNote", "\$env:APPDATA\app.xiaoyuanNote")) {
   if (Test-Path \$base) { Remove-Item -Recurse -Force \$base -EA SilentlyContinue }
   if (Test-Path "\$base.\$suffix") { Rename-Item "\$base.\$suffix" \$base; "restored \$base" } }
 Remove-Item \$st
@@ -78,9 +78,9 @@ elif [[ $INSTALL == 1 ]]; then
   say "installing $(basename "$MSI") ($(shasum -a 256 "$MSI" | cut -c1-12)…)"
   put "$MSI" "C:/Users/Public/regress/under-test.msi"
   inst=$(vm <<PS
-Get-Process SoloMD -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 1
+Get-Process xiaoyuanNote -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 1
 \$keys = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*','HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
-foreach (\$k in (Get-ItemProperty \$keys -EA SilentlyContinue | ? { \$_.DisplayName -eq 'SoloMD' -and \$_.PSChildName -match '^\{' })) {
+foreach (\$k in (Get-ItemProperty \$keys -EA SilentlyContinue | ? { \$_.DisplayName -eq 'xiaoyuanNote' -and \$_.PSChildName -match '^\{' })) {
   \$p = Start-Process msiexec.exe -ArgumentList "/x \$(\$k.PSChildName) /qn /norestart" -Wait -PassThru; "uninstalled \$(\$k.DisplayVersion) exit=\$(\$p.ExitCode)" }
 \$p = Start-Process msiexec.exe -ArgumentList '/i "$RD\under-test.msi" /qn /norestart /l*v "$RD\msi.log"' -Wait -PassThru; "install exit=\$(\$p.ExitCode)"
 if (Test-Path '$EXE') { \$f = Get-Item '$EXE'; "EXE \$(\$f.VersionInfo.FileVersion) \$(\$f.LastWriteTime.ToString('s')) sha256=\$((Get-FileHash '$EXE').Hash.Substring(0,16))" } else { 'EXE MISSING' }
@@ -100,12 +100,12 @@ say "$EXEINFO"
 # ---------- move the user's profile aside ----------
 vm <<PS | sed 's/^/    /' >&2
 \$st = '$RD\profile-state.txt'
-Get-Process SoloMD -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 2
+Get-Process xiaoyuanNote -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 2
 if (Test-Path \$st) { "profile already aside (suffix \$((Get-Content \$st -Raw).Trim())) - keeping it" } else {
   \$suffix = 'regressbak-$STAMP'; Set-Content \$st \$suffix
   # the IME check switches the default input method to Microsoft Pinyin — remember the user's choice
   Set-Content '$RD\ime-override.txt' ([string](Get-ItemProperty 'HKCU:\Control Panel\International\User Profile' -EA SilentlyContinue).InputMethodOverride)
-  foreach (\$base in @("\$env:LOCALAPPDATA\app.solomd", "\$env:APPDATA\app.solomd")) { if (Test-Path \$base) { Rename-Item \$base "\$base.\$suffix"; "moved \$base -> .\$suffix" } } }
+  foreach (\$base in @("\$env:LOCALAPPDATA\app.xiaoyuanNote", "\$env:APPDATA\app.xiaoyuanNote")) { if (Test-Path \$base) { Rename-Item \$base "\$base.\$suffix"; "moved \$base -> .\$suffix" } } }
 PS
 on_exit() { [[ -n "${RESTORED:-}" ]] && return; RESTORED=1; say "restoring the user profile"; restore_profile | sed "s/^/    /" >&2; }
 if [[ "${REGRESS_WIN_KEEP_PROFILE:-0}" != 1 ]]; then trap on_exit EXIT; fi
@@ -128,8 +128,8 @@ Remove-Item '$o*' -EA SilentlyContinue
 \$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File "$RD\driver.ps1" -StepsFile "$RD\\$id.steps" -Out "$o" -Vault "$VAULT" -Engine $eng'
 \$pr = New-ScheduledTaskPrincipal -UserId 'zhitong' -LogonType Interactive
 \$set = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-Register-ScheduledTask -TaskName 'solomd-regress' -Action \$a -Principal \$pr -Settings \$set -Force | Out-Null
-Start-ScheduledTask -TaskName 'solomd-regress'
+Register-ScheduledTask -TaskName 'xiaoyuan-note-regress' -Action \$a -Principal \$pr -Settings \$set -Force | Out-Null
+Start-ScheduledTask -TaskName 'xiaoyuan-note-regress'
 PS
   local t0=$SECONDS got=0
   while (( SECONDS - t0 < to )); do sleep 4
@@ -140,7 +140,7 @@ PS
   done
   if [[ $got == 0 ]]; then
     vm >/dev/null <<PS
-Stop-ScheduledTask -TaskName 'solomd-regress' -EA SilentlyContinue
+Stop-ScheduledTask -TaskName 'xiaoyuan-note-regress' -EA SilentlyContinue
 if (Test-Path '$o.partial') { Copy-Item '$o.partial' '$o.txt' }
 PS
   fi
@@ -155,13 +155,13 @@ PS
 # restore a golden profile (or none) + a pristine vault before every check
 prep() { local engine="$1"
   vm >/dev/null <<PS
-Get-Process SoloMD -EA SilentlyContinue | Stop-Process -Force
-Get-CimInstance Win32_Process -Filter "Name='msedgewebview2.exe'" | ? { \$_.CommandLine -match 'solomd' } | % { Stop-Process -Id \$_.ProcessId -Force -EA SilentlyContinue }
+Get-Process xiaoyuanNote -EA SilentlyContinue | Stop-Process -Force
+Get-CimInstance Win32_Process -Filter "Name='msedgewebview2.exe'" | ? { \$_.CommandLine -match 'xiaoyuanNote' } | % { Stop-Process -Id \$_.ProcessId -Force -EA SilentlyContinue }
 Start-Sleep 1
-foreach (\$p in @("\$env:LOCALAPPDATA\app.solomd", "\$env:APPDATA\app.solomd")) { if (Test-Path \$p) { Remove-Item -Recurse -Force \$p -EA SilentlyContinue } }
+foreach (\$p in @("\$env:LOCALAPPDATA\app.xiaoyuanNote", "\$env:APPDATA\app.xiaoyuanNote")) { if (Test-Path \$p) { Remove-Item -Recurse -Force \$p -EA SilentlyContinue } }
 if ('$engine' -ne 'fresh') {
-  robocopy "$RD\golden-$engine\local" "\$env:LOCALAPPDATA\app.solomd" /E /NFL /NDL /NJH /NJS /NP | Out-Null
-  robocopy "$RD\golden-$engine\roaming" "\$env:APPDATA\app.solomd" /E /NFL /NDL /NJH /NJS /NP | Out-Null }
+  robocopy "$RD\golden-$engine\local" "\$env:LOCALAPPDATA\app.xiaoyuanNote" /E /NFL /NDL /NJH /NJS /NP | Out-Null
+  robocopy "$RD\golden-$engine\roaming" "\$env:APPDATA\app.xiaoyuanNote" /E /NFL /NDL /NJH /NJS /NP | Out-Null }
 Remove-Item -Recurse -Force '$VAULT' -EA SilentlyContinue
 Copy-Item -Recurse '$RD\pristine' '$VAULT'
 Get-ChildItem '$VAULT' -Recurse -File | % { \$_.LastWriteTime = (Get-Date).AddMinutes(-5) }
@@ -169,10 +169,10 @@ PS
 }
 snapshot() { local engine="$1"
   vm <<PS
-Get-Process SoloMD -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 2
+Get-Process xiaoyuanNote -EA SilentlyContinue | Stop-Process -Force; Start-Sleep 2
 Remove-Item -Recurse -Force '$RD\golden-$engine' -EA SilentlyContinue
-robocopy "\$env:LOCALAPPDATA\app.solomd" "$RD\golden-$engine\local" /E /NFL /NDL /NJH /NJS /NP /XD Crashpad GrShaderCache ShaderCache GPUCache 'Code Cache' | Out-Null
-robocopy "\$env:APPDATA\app.solomd" "$RD\golden-$engine\roaming" /E /NFL /NDL /NJH /NJS /NP | Out-Null
+robocopy "\$env:LOCALAPPDATA\app.xiaoyuanNote" "$RD\golden-$engine\local" /E /NFL /NDL /NJH /NJS /NP /XD Crashpad GrShaderCache ShaderCache GPUCache 'Code Cache' | Out-Null
+robocopy "\$env:APPDATA\app.xiaoyuanNote" "$RD\golden-$engine\roaming" /E /NFL /NDL /NJH /NJS /NP | Out-Null
 "golden-$engine: \$([int]((Get-ChildItem -Recurse '$RD\golden-$engine' -File | Measure-Object Length -Sum).Sum/1KB)) KB"
 PS
 }

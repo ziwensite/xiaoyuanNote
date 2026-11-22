@@ -42,10 +42,10 @@
 
 | 事实 | 位置 |
 | --- | --- |
-| 按工作区分桶 `solomd.tabs.v1::<folder>`（主窗口无后缀；辅助窗口再加 `::win::<label>`） | `app/src/stores/tabs.ts#L12-L45`、`#L105-L108` |
+| 按工作区分桶 `xiaoyuan-note.tabs.v1::<folder>`（主窗口无后缀；辅助窗口再加 `::win::<label>`） | `app/src/stores/tabs.ts#L12-L45`、`#L105-L108` |
 | 持久化整份 `Tab[]`（**含正文**） | `tabs.ts#L613-L620`、`#L637-L646` |
 | 加载时补 CRLF 归一、`restoreSession` 开关、旧全局桶迁移 | `tabs.ts#L128-L176` |
-| 分屏树 `solomd.tiles.v1` + `validate()` 修正悬空 `activeTabId` | `app/src/stores/tiles.ts#L272-L300` |
+| 分屏树 `xiaoyuan-note.tiles.v1` + `validate()` 修正悬空 `activeTabId` | `app/src/stores/tiles.ts#L272-L300` |
 | 工作区切换：脏标签随人走，其余取新工作区桶 | `tabs.ts#L651-L705` |
 
 ### 1.4 脏标记与关闭确认
@@ -70,7 +70,7 @@
 
 ### 1.6 已有的「中心区覆盖层」先例
 
-`BasesView` / `InboxView` / `TypeLensView` / `ViewNoteList` 直接替换整个 `.content`（`app/src/App.vue#L2398-L2405`），互斥靠 `solomd:leave-center-overlay` 事件（`App.vue#L1739-L1744`、`#L1757`），而该事件由任意标签激活时派发（`tabs.ts#L264-L266`、`#L293-L295`、`#L326-L328`、`#L479-L481`）。
+`BasesView` / `InboxView` / `TypeLensView` / `ViewNoteList` 直接替换整个 `.content`（`app/src/App.vue#L2398-L2405`），互斥靠 `xiaoyuan-note:leave-center-overlay` 事件（`App.vue#L1739-L1744`、`#L1757`），而该事件由任意标签激活时派发（`tabs.ts#L264-L266`、`#L293-L295`、`#L326-L328`、`#L479-L481`）。
 
 结论：这批覆盖层是「全编辑区替换」，**不适合**作为多类型标签的基座；新方案应走 `PaneContent` 内部按 tab 分发，才能同时满足拆分与多标签。
 
@@ -255,7 +255,7 @@ openInput(kind: Exclude<TabKind,'file'>, args: unknown, opts?: { title?: string 
 2. 单例：按 `singleton(args)` 算出 key，在 `tabs.tabs` 中找 `kind === kind` 且 `input` 等价的标签 → 命中则**更新 `input` 并激活**（不新建）。
 3. 非单例：按 `serialize` 后的 JSON 去重（网页标签同 URL 只开一个），命中则激活。
 4. 新建 `Tab`：`ephemeral: true`、`kind`、`input`、`title`、空的文件字段。
-5. `this.activeId = id`；`recordMruVisit(id)`；`window.dispatchEvent('solomd:leave-center-overlay')`。
+5. `this.activeId = id`；`recordMruVisit(id)`；`window.dispatchEvent('xiaoyuan-note:leave-center-overlay')`。
 6. 调用方负责 `tiles.setActiveTab(tiles.focusedPaneId, id)`（沿用现有「先建后聚焦」惯例）。
 
 ### 2.6 正文分发（`PaneContent.vue`）
@@ -368,7 +368,7 @@ function toPersisted(t: Tab) {
 - 迷你月点任意日期 → 编辑区打开/聚焦日历标签，月视图落在该日期；视图切换（月/日/周）与标签参数同步。
 - 拆分视图下日历标签可拖入新 pane；两个 pane 共享 `focusDate`（预期，见 §6.1）。
 - 关闭日历标签后侧栏迷你月、任务面板、提醒均正常。
-- 重启恢复会话：日历标签按 `solomd.calendar.v1::<folder>` 的 `focusDate/view` 恢复。
+- 重启恢复会话：日历标签按 `xiaoyuan-note.calendar.v1::<folder>` 的 `focusDate/view` 恢复。
 
 ### 3.2 设置（P2）
 
@@ -388,12 +388,12 @@ function toPersisted(t: Tab) {
 - 单例：再次调用 `openSettingsAt('integrations')` 只更新参数并激活既有标签，不新开第二个。
 - `splittable: false`：设置页不应同时出现在两个 pane（两份表单绑定同一 store，容易互相覆盖）。
 - 设置标签 `persist: 'never'`：重启不自动打开设置，避免每次启动多一个标签。
-- 深链事件 `solomd:open-settings`（监听注册在 `App.vue#L1758`）走同一个 `openSettingsAt`，行为不变。
+- 深链事件 `xiaoyuan-note:open-settings`（监听注册在 `App.vue#L1758`）走同一个 `openSettingsAt`，行为不变。
 - 手机/平板保留弹窗：编辑区在手机上是全屏页，标签语义弱；这里属于**产品决策 D2**。
 
 **验收**
 
-- 工具栏齿轮、命令面板、菜单、`solomd:open-settings` 四处入口都能打开/聚焦设置标签，并落到指定分类。
+- 工具栏齿轮、命令面板、菜单、`xiaoyuan-note:open-settings` 四处入口都能打开/聚焦设置标签，并落到指定分类。
 - 设置标签内搜索、录制快捷键、主题预览等原有交互全部可用；按 Esc 不误关整个应用或编辑器。
 - 关闭设置标签回到之前的标签；再次打开只有一个设置标签。
 - 手机/平板行为与现在一致。
@@ -405,7 +405,7 @@ function toPersisted(t: Tab) {
 | 文件 | 改动 |
 | --- | --- |
 | `lib/search-results.ts`（新） | 纯函数 `groupHits(hits)` + `flattenGroups`，附单测；现在 `GlobalSearch.vue#L86-L93` 与 `HeaderSearchBox` 各写一份 |
-| `components/tabs/SearchResultsTab.vue`（新） | 查询框 + 分组结果 + ↑↓/↵/Esc；点击命中 → `files.openPath` + 120ms 后 `solomd:outline-goto` |
+| `components/tabs/SearchResultsTab.vue`（新） | 查询框 + 分组结果 + ↑↓/↵/Esc；点击命中 → `files.openPath` + 120ms 后 `xiaoyuan-note:outline-goto` |
 | `HeaderSearchBox.vue` | 下拉底部新增「在编辑区打开全部结果」；快捷键建议 `⌘⇧↵`（不改变现有 Enter 行为） |
 | `GlobalSearch.vue` | 复用 `groupHits`，行为不变 |
 | i18n | `editorTab.search`、按钮与空态 |
@@ -429,7 +429,7 @@ function toPersisted(t: Tab) {
 | 文件 | 改动 |
 | --- | --- |
 | `components/tabs/WebTab.vue`（新） | 地址栏 + 刷新 + 「用系统浏览器打开」+ iframe + 阻塞兜底卡片 |
-| `lib/web-tab.ts`（新） | URL 规范化（仅 https）、host 提取、反嵌黑名单、每 host 偏好（`solomd.webTabs.v1`） |
+| `lib/web-tab.ts`（新） | URL 规范化（仅 https）、host 提取、反嵌黑名单、每 host 偏好（`xiaoyuan-note.webTabs.v1`） |
 | 命令面板 / 菜单 | 「打开网页…」URL 输入（复用现有 `DsModal` 或 `imageUrlDialog` 的输入形态） |
 | i18n | `editorTab.web`、被反嵌提示、外部打开按钮 |
 
@@ -499,7 +499,7 @@ function toPersisted(t: Tab) {
 **第一期：iframe + 三级降级，不做子 webview。**
 
 1. **默认**：https 地址用 iframe 打开，顶部固定一条 chrome：地址、刷新、复制链接、「用系统浏览器打开」。
-2. **已知反嵌站点**（Google / GitHub / X / Facebook / Instagram / LinkedIn / Notion / 微信公众号等）：不尝试 iframe，直接显示占位卡片 + 「用系统浏览器打开」，并记住该 host 的选择（`solomd.webTabs.v1`）。
+2. **已知反嵌站点**（Google / GitHub / X / Facebook / Instagram / LinkedIn / Notion / 微信公众号等）：不尝试 iframe，直接显示占位卡片 + 「用系统浏览器打开」，并记住该 host 的选择（`xiaoyuan-note.webTabs.v1`）。
 3. **未知站点加载 6 秒仍未就绪**（用一个轻量 `load` + 计时判断，配合「页面空白？」提示）：显示非阻断提示条，用户可一键切到系统浏览器；不自动跳转，避免误判。
 
 **第二期（独立实验，不阻塞本方案）**：以 `settings.webTabEngine: 'iframe' | 'webview'` 形式接入子 webview，仅桌面端，验证层级与坐标后再决定是否默认。若实现，坐标同步必须抽成独立 composable（`useChildWebviewBounds`），并强制在所有 popover 打开时隐藏。
@@ -543,7 +543,7 @@ function toPersisted(t: Tab) {
 - 未知 kind / 反序列化失败 → 丢弃该条，不影响整份会话。
 - `settings` / `search` 不落盘；`calendar` / `web` 跟工作区桶走。
 - 工作区切换：虚拟标签必须**显式**加入「随人走」集合（`isDirty(t) || !isFileTab(t)`），否则会被现有 `carried = tabs.filter(isDirty)` 丢掉；同时按 `singletonKey` 去重。
-- `solomd.tiles.v1` 里的 `activeTabId` 若指向被丢弃的虚拟标签，`validate()` 会落到第一个标签。
+- `xiaoyuan-note.tiles.v1` 里的 `activeTabId` 若指向被丢弃的虚拟标签，`validate()` 会落到第一个标签。
 
 ### 5.4 脏标记（虚拟文档恒 false）
 
@@ -572,7 +572,7 @@ function toPersisted(t: Tab) {
 
 ### 5.8 中心覆盖层互斥
 
-- `BasesView` / `InboxView` / `TypeLensView` / `ViewNoteList` 仍会整体替换 `.content`。`openInput` 必须与 `tabs.activate` 一样派发 `solomd:leave-center-overlay`，否则打开日历标签时可能仍看到 Bases 视图。
+- `BasesView` / `InboxView` / `TypeLensView` / `ViewNoteList` 仍会整体替换 `.content`。`openInput` 必须与 `tabs.activate` 一样派发 `xiaoyuan-note:leave-center-overlay`，否则打开日历标签时可能仍看到 Bases 视图。
 - 反向：从这些覆盖层打开虚拟标签后，覆盖层应关闭（由上述事件保证）。
 
 ### 5.9 快捷键与状态栏

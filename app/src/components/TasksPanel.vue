@@ -119,7 +119,7 @@ async function openTask(task: WorkspaceTask) {
   // land; the outline panel's jump has the same shape.
   setTimeout(() => {
     window.dispatchEvent(
-      new CustomEvent('solomd:outline-goto', {
+      new CustomEvent('xiaoyuan-note:outline-goto', {
         detail: { line: task.line, paneId: tiles.focusedPaneId },
       }),
     );

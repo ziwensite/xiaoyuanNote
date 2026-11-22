@@ -6,11 +6,11 @@ import Giscus from '../../components/Giscus.astro';
 
 const lang = 'sv' as const;
 const VERSION = '4.1.0';
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 ---
 
 <Layout
-  title="SoloMD v4.0-uppdatering — Editorn där agenter bor"
+  title="xiaoyuanNote v4.0-uppdatering — Editorn där agenter bor"
   description="v4.0 är den stora agent-native author-releasen. Fem pelare: integrerad Agent-panel (streamad chatta-med-vault), schemalagda recipes (cron / on-save / on-commit, AutoGit branch-sandbox + accept/reject), repeterbar Trace-vy, multi-vault MCP-federation, förstklassig Ollama. Plus: lokalt REST-API, BYOK-kostnadsräknare, 11 Recipe-mallar, förstkörningsguide, flerspråkig lokalisering."
   lang={lang}
 >
@@ -35,9 +35,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
       </p>
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>⬇ Ladda ner v{VERSION} (Mac)</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>Ladda ner (Windows)</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>Alla plattformar →</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>⬇ Ladda ner v{VERSION} (Mac)</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>Ladda ner (Windows)</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>Alla plattformar →</a>
       </div>
 
       <section>
@@ -60,7 +60,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
               Knapparna <strong>Infoga</strong> och <strong>Kopiera</strong>
               lägger hela stycket i den aktuella editorn — ersätter markering om
               den finns, infogar annars vid markörens position. Körningshistorik
-              sparas som vanlig markdown under <code>.solomd/agent-runs/</code>,
+              sparas som vanlig markdown under <code>.xiaoyuan-note/agent-runs/</code>,
               grep-bar, git-spårbar.
             </p>
           </div>
@@ -68,7 +68,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             <h3>2 · Agent-recipes / schemalagd körning</h3>
             <p>
               Deklarativa agent-jobb, YAML-filer under
-              <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>.
+              <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>.
               Triggers: <code>schedule</code> (cron), <code>on-save</code>,
               <code>on-commit</code>, <code>on-tag-add</code>, manuell.
               <strong>Icke förhandlingsbara säkerhetsspärrar</strong>: varje
@@ -103,7 +103,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           <div class="pillar">
             <h3>4 · Multi-vault MCP-federation</h3>
             <p>
-              <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+              <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
               —— en MCP-session, flera vault. Verktygssignaturer har fått en
               valfri <code>workspace</code>-parameter, default = den första
               som passerades (helt bakåtkompatibel med single-vault MCP-klienter).
@@ -217,7 +217,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           </li>
           <li>
             <strong>macOS-uppstarts-UX.</strong> Aktiveringstajmingen vid uppstart
-            är fixad —— SoloMDs kall-uppstart kommer faktiskt fram till förgrunden,
+            är fixad —— xiaoyuanNote’s kall-uppstart kommer faktiskt fram till förgrunden,
             gömmer sig inte längre bakom Finder. Återställning av fönsterposition
             landar alltid i workspacet på den aktuella skärmen; återställning från
             dålig cache efter att en sekundär skärm kopplats bort centreras automatiskt
@@ -277,7 +277,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             under <em>Integrationer</em>. Befintliga inställningspositioner är oförändrade.
           </li>
           <li>
-            <strong>MCP-servern (<code>solomd-mcp</code>) har fått en ny
+            <strong>MCP-servern (<code>xiaoyuan-note-mcp</code>) har fått en ny
             <code>--workspace</code>-parameter</strong> (upprepningsbar).
             Befintliga single-workspace MCP-klienter fortsätter fungera;
             federationsbeteendet är opt-in.
@@ -290,10 +290,10 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
         <p>
           5 huvudpelare + kvalitetsribba är huvudinnehållet den här gången. <em>De
           öppna riktningarna för v4.x och vidare</em> finns alla i
-          <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmappen</a>:
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmappen</a>:
           sandboxat skript-API, CLI v2 (rewrite / commit / semantisk sökning /
           Recipe-trigger i terminalen), och den ständigt uppskjutna frågan
-          <em>"borde SoloMD bli en kommersiell produkt?"</em>
+          <em>"borde xiaoyuanNote bli en kommersiell produkt?"</em>
           (betal-sync — gammal fråga från v3.0-eran, fortfarande utan svar,
           tills den är beslutad utförs ingen ingenjörsarbete på det området).
         </p>

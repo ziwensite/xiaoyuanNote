@@ -11,7 +11,7 @@ use encoding_rs::{Encoding, BIG5, EUC_KR, GBK, SHIFT_JIS};
 use std::fs;
 
 fn write_raw(name: &str, bytes: &[u8]) -> String {
-    let dir = std::env::temp_dir().join("solomd_encoding_tests");
+    let dir = std::env::temp_dir().join("XIAOYUAN_NOTE_encoding_tests");
     fs::create_dir_all(&dir).unwrap();
     let p = dir.join(name);
     fs::write(&p, bytes).unwrap();

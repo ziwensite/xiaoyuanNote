@@ -87,7 +87,7 @@ async function openHit(hit: RagHit) {
   // Best-effort: scroll to the chunk's char offset. PaneContent listens
   // for this event and seeks the editor cursor.
   window.dispatchEvent(
-    new CustomEvent('solomd:rag-goto', {
+    new CustomEvent('xiaoyuan-note:rag-goto', {
       detail: { path: hit.path, charStart: hit.char_start, charEnd: hit.char_end },
     })
   );

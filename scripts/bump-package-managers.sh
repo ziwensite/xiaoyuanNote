@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Point the package managers at a published SoloMD release.
+# Point the package managers at a published xiaoyuanNote release.
 #
 #   scripts/bump-package-managers.sh <X.Y.Z> [brew|choco|winget|scoop ...]
 #
@@ -13,12 +13,12 @@
 # an installer we stopped shipping, and winget never got in at all (every PR
 # closed as stale on an unsigned CLA).
 #
-#   brew    zhitongblog/homebrew-solomd, Casks/solomd.rb — committed directly.
-#   choco   community.chocolatey.org package `solomd` — packed and pushed here;
+#   brew    zhitongblog/homebrew-xiaoyuanNote, Casks/xiaoyuan-note.rb — committed directly.
+#   choco   community.chocolatey.org package `xiaoyuanNote` — packed and pushed here;
 #           each version then waits in Chocolatey's moderation queue.
-#   winget  microsoft/winget-pkgs, package zhitongblog.SoloMD — a PR opened by
+#   winget  microsoft/winget-pkgs, package zhitongblog.xiaoyuanNote — a PR opened by
 #           komac (brew install komac); the winget bot validates and merges.
-#   scoop   ScoopInstaller/Extras bucket/solomd.json — nothing to do per
+#   scoop   ScoopInstaller/Extras bucket/xiaoyuan-note.json — nothing to do per
 #           release: its Excavator bot follows GitHub releases by itself, as
 #           long as the autoupdate URL names an asset we still publish. This
 #           step only checks that the bucket has caught up and warns if not.
@@ -38,7 +38,7 @@ shift
 CHANNELS=("$@")
 [ ${#CHANNELS[@]} -eq 0 ] && CHANNELS=(brew choco winget scoop)
 
-REPO=zhitongblog/solomd
+REPO=zhitongblog/xiaoyuan-note
 TAG="v$VER"
 DL="https://github.com/$REPO/releases/download/$TAG"
 
@@ -75,14 +75,14 @@ sha_of() {
 }
 
 bump_brew() {
-  local tap=zhitongblog/homebrew-solomd path=Casks/solomd.rb sha tmp blob
-  sha="$(sha_of "SoloMD_${VER}_universal.dmg")"
+  local tap=zhitongblog/homebrew-xiaoyuanNote path=Casks/xiaoyuan-note.rb sha tmp blob
+  sha="$(sha_of "XIAOYUAN_NOTE_${VER}_universal.dmg")"
   tmp="$(mktemp -d)"
   gh_retry api "repos/$tap/contents/$path" > "$tmp/cur.json"
   blob="$(python3 -c 'import sys,json;print(json.load(open(sys.argv[1]))["sha"])' "$tmp/cur.json")"
   # A function replacement, not a template string: an earlier f-string version
   # wrote `version \"4.14.2\"` into the cask and broke it for every user.
-  VER="$VER" SHA="$sha" python3 - "$tmp/cur.json" "$tmp/solomd.rb" <<'PY'
+  VER="$VER" SHA="$sha" python3 - "$tmp/cur.json" "$tmp/xiaoyuan-note.rb" <<'PY'
 import base64, json, os, re, sys
 ver, sha = os.environ["VER"], os.environ["SHA"]
 src = base64.b64decode(json.load(open(sys.argv[1]))["content"]).decode()
@@ -92,14 +92,14 @@ src, n2 = re.subn(r'^(\s*sha256 )\\?"[0-9a-f]+\\?"', lambda m: m.group(1) + q + 
 assert n1 == 1 and n2 == 1, "cask layout changed"
 open(sys.argv[2], "w").write(src)
 PY
-  ruby -c "$tmp/solomd.rb" >/dev/null || { echo "brew     generated cask does not parse" >&2; return 1; }
-  if cmp -s "$tmp/solomd.rb" <(python3 -c 'import sys,json,base64;sys.stdout.write(base64.b64decode(json.load(open(sys.argv[1]))["content"]).decode())' "$tmp/cur.json"); then
+  ruby -c "$tmp/xiaoyuan-note.rb" >/dev/null || { echo "brew     generated cask does not parse" >&2; return 1; }
+  if cmp -s "$tmp/xiaoyuan-note.rb" <(python3 -c 'import sys,json,base64;sys.stdout.write(base64.b64decode(json.load(open(sys.argv[1]))["content"]).decode())' "$tmp/cur.json"); then
     echo "brew     already $VER"
     return 0
   fi
   gh_retry api -X PUT "repos/$tap/contents/$path" \
-    -f message="solomd $VER" \
-    -f content="$(base64 < "$tmp/solomd.rb")" \
+    -f message="xiaoyuanNote $VER" \
+    -f content="$(base64 < "$tmp/xiaoyuan-note.rb")" \
     -f sha="$blob" --jq .commit.sha >/dev/null
   echo "brew     $tap -> $VER ($sha)"
 }
@@ -107,17 +107,17 @@ PY
 bump_choco() {
   local src=distribution/manifests/chocolatey sha tmp nupkg
   : "${CHOCOLATEY_API_KEY:?CHOCOLATEY_API_KEY missing (.env.local)}"
-  if [ "$(curl -s --max-time 30 "https://community.chocolatey.org/api/v2/Packages(Id='solomd',Version='$VER')" -o /dev/null -w '%{http_code}')" = 200 ]; then
+  if [ "$(curl -s --max-time 30 "https://community.chocolatey.org/api/v2/Packages(Id='xiaoyuanNote',Version='$VER')" -o /dev/null -w '%{http_code}')" = 200 ]; then
     echo "choco    already has $VER (it may still be in moderation)"
     return 0
   fi
-  sha="$(sha_of "SoloMD_${VER}_x64_en-US.msi")"
+  sha="$(sha_of "XIAOYUAN_NOTE_${VER}_x64_en-US.msi")"
   tmp="$(mktemp -d)"
   cp -R "$src"/. "$tmp"/
   find "$tmp" -type f \( -name '*.nuspec' -o -name '*.ps1' \) -exec \
     sed -i '' -e "s/{{VERSION}}/$VER/g" -e "s/{{SHA64}}/$sha/g" {} +
   if grep -rq '{{' "$tmp"; then echo "choco    unfilled placeholder" >&2; return 1; fi
-  nupkg="$(mktemp -d)/solomd.$VER.nupkg"
+  nupkg="$(mktemp -d)/xiaoyuan-note.$VER.nupkg"
   python3 scripts/lib/pack_nupkg.py "$tmp" "$nupkg" >/dev/null
   # NuGet's v2 push: a multipart PUT with the key in a header.
   local code
@@ -128,22 +128,22 @@ bump_choco() {
     200|201|202) ;;
     *) echo "choco    push failed: HTTP $code $(head -c 300 "$tmp/push.out")" >&2; return 1 ;;
   esac
-  echo "choco    pushed $VER ($sha) — now in moderation: https://community.chocolatey.org/packages/solomd/$VER"
+  echo "choco    pushed $VER ($sha) — now in moderation: https://community.chocolatey.org/packages/xiaoyuan-note/$VER"
 }
 
 bump_winget() {
-  # komac update needs the package to already exist in winget-pkgs (zhitong.SoloMD,
+  # komac update needs the package to already exist in winget-pkgs (zhitong.xiaoyuanNote,
   # first merged via PR #440523). It downloads both MSIs to read ProductCode etc.
   command -v komac >/dev/null || { echo "winget   komac missing: brew install komac" >&2; return 1; }
-  if gh api "repos/microsoft/winget-pkgs/contents/manifests/z/zhitong/SoloMD/$VER" >/dev/null 2>&1; then
+  if gh api "repos/microsoft/winget-pkgs/contents/manifests/z/zhitong/xiaoyuan-note/$VER" >/dev/null 2>&1; then
     echo "winget   already has $VER"
     return 0
   fi
   # Until the first PR merges the package doesn't exist upstream and komac fails;
   # judge by komac's own output, not by reaching the end of this function.
   local out
-  out="$(GITHUB_TOKEN="$(gh auth token)" komac update zhitong.SoloMD --version "$VER" \
-    --urls "$DL/SoloMD_${VER}_x64_en-US.msi" "$DL/SoloMD_${VER}_arm64_en-US.msi" \
+  out="$(GITHUB_TOKEN="$(gh auth token)" komac update zhitong.xiaoyuanNote --version "$VER" \
+    --urls "$DL/XIAOYUAN_NOTE_${VER}_x64_en-US.msi" "$DL/XIAOYUAN_NOTE_${VER}_arm64_en-US.msi" \
     --release-notes-url "https://github.com/$REPO/releases/tag/$TAG" \
     --submit < /dev/null 2>&1)" || true
   if grep -q "pull/" <<<"$out"; then
@@ -159,7 +159,7 @@ check_scoop() {
   # Nothing to push: ScoopInstaller/Extras' Excavator bot reads GitHub releases
   # and SHA256SUMS.txt on its own, usually within a few hours. Just report.
   local v
-  v="$(gh_retry api repos/ScoopInstaller/Extras/contents/bucket/solomd.json --jq .content | base64 -d \
+  v="$(gh_retry api repos/ScoopInstaller/Extras/contents/bucket/xiaoyuan-note.json --jq .content | base64 -d \
        | python3 -c 'import sys,json;print(json.load(sys.stdin)["version"])')"
   if [ "$v" = "$VER" ]; then
     echo "scoop    Extras is on $VER"

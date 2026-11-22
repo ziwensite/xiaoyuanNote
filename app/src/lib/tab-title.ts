@@ -2,7 +2,7 @@
  * Derive a human-readable tab title from the document's first non-empty line
  * when `tabTitleFromFirstLine` is enabled in Settings.
  *
- * Useful when SoloMD is launched as an external editor by third-party tools
+ * Useful when xiaoyuanNote is launched as an external editor by third-party tools
  * that pass temporary / UUID / hash filenames (`a8f3c91b-4d2e.md`).
  */
 

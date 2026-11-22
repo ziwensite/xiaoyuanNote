@@ -15,7 +15,7 @@
 //!       …
 //!
 //! The frontend fetches the curator manifest at
-//! `https://solomd.app/themes/index.json` and downloads individual `.css`
+//! `https://xiaoyuannote.app/themes/index.json` and downloads individual `.css`
 //! files via `fetch()` (Tauri 2's CSP allows arbitrary HTTPS for the bundled
 //! webview). The Rust side here only deals with the *local* filesystem —
 //! writing, listing, removing. Network is intentionally kept on the JS side

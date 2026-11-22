@@ -59,8 +59,8 @@
 # release, leaving MainActivity with just its lifecycle overrides. Symptom:
 # "Java exception was raised during method invocation" on any SAF invoke in
 # 4.9.2/4.9.3 release builds (debug builds unaffected — minify off).
--keep class app.solomd.MainActivity { *; }
--keep class app.solomd.MainActivity$Companion { *; }
+-keep class app.xiaoyuan-note.MainActivity { *; }
+-keep class app.xiaoyuan-note.MainActivity$Companion { *; }
 
 # Keep AndroidX EdgeToEdge entrypoints and parameter types un-obfuscated so
 # Google Play Console's static analyzer recognizes enableEdgeToEdge() in

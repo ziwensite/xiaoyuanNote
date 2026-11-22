@@ -7,17 +7,17 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD Agent —— 写自己的 Recipe (v4)"
-  description="SoloMD v4 的 Agent 能力面:内置 Agent 面板、定时 Recipe、可重放 Trace、跨 vault Federation、Ollama 一等公民。五大支柱详细介绍,加上把自动写入变得「可审」的安全模型。"
+  title="xiaoyuanNote Agent —— 写自己的 Recipe (v4)"
+  description="xiaoyuanNote v4 的 Agent 能力面:内置 Agent 面板、定时 Recipe、可重放 Trace、跨 vault Federation、Ollama 一等公民。五大支柱详细介绍,加上把自动写入变得「可审」的安全模型。"
   lang={lang}
 >
   <Header lang={lang} />
   <main id="main">
     <article class="container agents-page">
       <p class="eyebrow">v4.0 · 让 Agent 住进编辑器</p>
-      <h1>Agent in SoloMD</h1>
+      <h1>Agent in xiaoyuanNote</h1>
       <p class="lead">
-        SoloMD v4.0 把工作区从"按需调用 AI"变成"Agent <em>持续在场</em>工作"
+        xiaoyuanNote v4.0 把工作区从"按需调用 AI"变成"Agent <em>持续在场</em>工作"
         的地方。五大支柱,全部跑在你早就拥有的纯 Markdown 文件上。
         每一次自动写入都先进 AutoGit 分支沙箱,你 Accept 或 Reject 后才会落到 main。
       </p>
@@ -43,7 +43,7 @@ const lang = 'zh' as const;
         </p>
         <p>
           运行历史以纯 markdown 持久化在
-          <code>&lt;workspace&gt;/.solomd/agent-runs/&lt;ts&gt;.md</code>。
+          <code>&lt;workspace&gt;/.xiaoyuan-note/agent-runs/&lt;ts&gt;.md</code>。
           可 grep,可 git。这是黑盒的反面。
         </p>
         <ul>
@@ -64,7 +64,7 @@ const lang = 'zh' as const;
         <h2>2. 定时 Recipe</h2>
         <p>
           一个 Recipe 就是一个 YAML 文件,放在
-          <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>。无构建步骤,
+          <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>。无构建步骤,
           无插件清单。改、保存、跑。五种触发模式:
         </p>
         <table class="recipe-triggers">
@@ -100,7 +100,7 @@ provider: claude`}</code></pre>
         <h2>3. Trace 视图 + 重放</h2>
         <p>
           每次运行 (Panel 对话或 Recipe) 都吐
-          <code>&lt;workspace&gt;/.solomd/agent-runs/&lt;run-id&gt;/trace.jsonl</code>
+          <code>&lt;workspace&gt;/.xiaoyuan-note/agent-runs/&lt;run-id&gt;/trace.jsonl</code>
           —— 行分隔的 JSON Lines,长任务可以边跑边 <code>tail -f</code>。
           schema:每步一个 JSON 对象,kind 包括 <code>run_started</code> ·
           <code>prompt</code> · <code>model_call</code> ·
@@ -127,10 +127,10 @@ provider: claude`}</code></pre>
       <section id="federation">
         <h2>4. 多 vault Federation</h2>
         <p>
-          内置的 <code>solomd-mcp</code> 在 v4 长出了多工作区模式。
+          内置的 <code>xiaoyuan-note-mcp</code> 在 v4 长出了多工作区模式。
           通过任意多个 <code>--workspace</code> 标志在一个 MCP 会话里桥接多个 vault:
         </p>
-        <pre class="code-block"><code>{`solomd-mcp \\
+        <pre class="code-block"><code>{`xiaoyuan-note-mcp \\
   --workspace ~/Vaults/personal \\
   --workspace ~/Vaults/work \\
   --workspace ~/Vaults/research`}</code></pre>
@@ -164,7 +164,7 @@ provider: claude`}</code></pre>
         <h2>11 个起步 Recipe</h2>
         <p>
           打开 设置 → Recipes → <strong>浏览菜谱</strong>就能装下面任何一个。
-          YAML 会复制到 <code>.solomd/agents/</code> 并打开编辑。
+          YAML 会复制到 <code>.xiaoyuan-note/agents/</code> 并打开编辑。
           可重复装 (自动加后缀)。
         </p>
         <ul class="cookbook-list">
@@ -210,13 +210,13 @@ provider: claude`}</code></pre>
           全在仓库的 <code>docs/agents.md</code> 里:
         </p>
         <p>
-          <a class="cta" href="https://github.com/zhitongblog/solomd/blob/main/docs/agents.md" rel="external">
+          <a class="cta" href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/agents.md" rel="external">
             阅读 docs/agents.md →
           </a>
         </p>
         <p>
           Schema 的源头是
-          <a href="https://github.com/zhitongblog/solomd/blob/main/app/src-tauri/src/recipes.rs" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/app/src-tauri/src/recipes.rs" rel="external">
             <code>app/src-tauri/src/recipes.rs</code>
           </a> —— Rust 类型,不是纸面规范。
         </p>

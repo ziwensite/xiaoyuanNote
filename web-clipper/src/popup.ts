@@ -50,7 +50,7 @@ function bindActions(): void {
       try {
         await browser.runtime.sendMessage({ kind: 'capture', mode });
       } catch (e) {
-        console.warn('[solomd-clipper popup] sendMessage failed', e);
+        console.warn('[xiaoyuan-note-clipper popup] sendMessage failed', e);
       } finally {
         // Close immediately — the background worker shows the toast/notification
         // for both success and failure. Keeping the popup open longer feels

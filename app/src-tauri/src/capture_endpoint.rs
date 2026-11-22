@@ -349,7 +349,7 @@ async fn handle_conn(mut stream: TcpStream, _app: AppHandle) -> Result<(), Strin
             &mut stream,
             200,
             "OK",
-            "{\"ok\":true,\"server\":\"solomd-capture\"}",
+            "{\"ok\":true,\"server\":\"xiaoyuan-note-capture\"}",
         )
         .await;
         return Ok(());
@@ -359,7 +359,7 @@ async fn handle_conn(mut stream: TcpStream, _app: AppHandle) -> Result<(), Strin
     // to verify URL + token without writing a note. Token-gated so we never
     // reveal anything (workspace path included) to a probe lacking the
     // bearer header. Returns the workspace path so the user can sanity-check
-    // they paired the extension with the *right* SoloMD instance.
+    // they paired the extension with the *right* xiaoyuanNote instance.
     if req.method == "GET" && req.path == "/capture/health" {
         let (token, workspace, inbox_folder) = {
             let s = STATE.lock().expect("capture state lock");
@@ -416,7 +416,7 @@ async fn handle_conn(mut stream: TcpStream, _app: AppHandle) -> Result<(), Strin
                     &mut stream,
                     503,
                     "Service Unavailable",
-                    "{\"ok\":false,\"error\":\"no workspace folder open in SoloMD; open a folder first\"}",
+                    "{\"ok\":false,\"error\":\"no workspace folder open in xiaoyuanNote; open a folder first\"}",
                 )
                 .await;
             }

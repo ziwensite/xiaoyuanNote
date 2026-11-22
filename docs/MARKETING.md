@@ -1,10 +1,10 @@
-# SoloMD 推广计划
+# xiaoyuanNote 推广计划
 
 ## 目标用户画像
 
 ### Tier 1：最容易转化（痛点明确）
 
-| 人群 | 为什么选 SoloMD | 去哪找他们 |
+| 人群 | 为什么选 xiaoyuanNote | 去哪找他们 |
 |---|---|---|
 | **MarkText 难民** | MarkText 停更，找替代 | GitHub MarkText issues、Reddit r/markdown |
 | **Typora 免费版怀念者** | Typora 2021 收费后大批流失 | 知乎"Typora 替代品"、V2EX |
@@ -47,7 +47,7 @@
 
 | # | 行动 | 说明 |
 |---|---|---|
-| 6 | **写一篇"为什么我做了 SoloMD"** | 少数派 (sspai.com) / 掘金 / 微信公众号，讲故事比讲功能有效 10x |
+| 6 | **写一篇"为什么我做了 xiaoyuanNote"** | 少数派 (sspai.com) / 掘金 / 微信公众号，讲故事比讲功能有效 10x |
 | 7 | **小众软件 (appinn.com) 投稿** | 中国最大的软件发现平台之一 |
 | 8 | **知乎回答** | "最好的免费 Markdown 编辑器" / "Typora 有什么替代品" 长尾 SEO |
 | 9 | **Twitter/X 发布推文** | 英文 + #markdown #tauri #opensource |
@@ -58,7 +58,7 @@
 | # | 行动 | 说明 |
 |---|---|---|
 | 11 | **录一个 2 分钟 demo 视频** | YouTube + Bilibili，视觉冲击力强 |
-| 12 | **写对比文章** | "SoloMD vs Typora" / "SoloMD vs MarkText" / "SoloMD vs Obsidian" |
+| 12 | **写对比文章** | "xiaoyuanNote vs Typora" / "xiaoyuanNote vs MarkText" / "xiaoyuanNote vs Obsidian" |
 | 13 | **提交到包管理器** | Homebrew formula / AUR / winget / Scoop |
 | 14 | **GitHub Discussions 开放** | 让用户交流 + 收集反馈 |
 
@@ -68,7 +68,7 @@
 
 ### 话术 1：中文圈（V2EX / 知乎 / 少数派）
 
-> **SoloMD：一个为中文用户设计的轻量 Markdown 编辑器**
+> **xiaoyuanNote：一个为中文用户设计的轻量 Markdown 编辑器**
 >
 > 安装包只有 15 MB（Typora 的 1/5），免费开源，MIT 协议。
 >
@@ -78,13 +78,13 @@
 > 3. **一键清除 AI 对话垃圾** — 粘贴 ChatGPT 内容不再有 `[cite_start]`
 >
 > 🍎 macOS 已 notarize | 🪟 Windows | 🐧 Linux
-> 下载: https://solomd.app
+> 下载: https://xiaoyuannote.app
 
 ### 话术 2：国际圈（Hacker News / Reddit）
 
-> **Show HN: SoloMD — A 15 MB Markdown editor built with Tauri 2 + Rust**
+> **Show HN: xiaoyuanNote — A 15 MB Markdown editor built with Tauri 2 + Rust**
 >
-> I wanted a Markdown editor that starts instantly, doesn't bundle Chromium, and doesn't require an account. SoloMD is what I ended up building.
+> I wanted a Markdown editor that starts instantly, doesn't bundle Chromium, and doesn't require an account. xiaoyuanNote is what I ended up building.
 >
 > - Live preview (markers hide when you leave a line)
 > - KaTeX, Mermaid, image paste, focus mode
@@ -93,15 +93,15 @@
 > - ~15 MB installed (vs Typora 70 MB / Obsidian 110 MB)
 > - MIT licensed, notes never leave your device, works fully offline
 >
-> https://solomd.app | https://github.com/zhitongblog/solomd
+> https://xiaoyuannote.app | https://github.com/zhitongblog/xiaoyuan-note
 
 ### 话术 3：AI 内容圈（即刻 / 小红书 / Twitter）
 
 > **每天从 AI 对话框里复制内容？受够了 `[cite_start]` 和弯引号？**
 >
-> SoloMD 有个"一键清除 AI 格式"按钮——把 Gemini/ChatGPT/Perplexity 的引用标记、零宽空格、弯引号全部干掉，只留干净的文字。
+> xiaoyuanNote 有个"一键清除 AI 格式"按钮——把 Gemini/ChatGPT/Perplexity 的引用标记、零宽空格、弯引号全部干掉，只留干净的文字。
 >
-> 免费的，15 MB，三平台。 https://solomd.app
+> 免费的，15 MB，三平台。 https://xiaoyuannote.app
 
 ---
 
@@ -142,7 +142,7 @@
 
 ## 工具
 
-- **下载量追踪**: GitHub Releases 自带统计（`gh api repos/zhitongblog/solomd/releases -q '.[].assets[].download_count'`）
+- **下载量追踪**: GitHub Releases 自带统计（`gh api repos/zhitongblog/xiaoyuan-note/releases -q '.[].assets[].download_count'`）
 - **网站分析**: Cloudflare Web Analytics（免费，已内置）
-- **Star 历史**: https://star-history.com/#zhitongblog/solomd
-- **社交监控**: 搜 "SoloMD" 在 Twitter / Reddit / HN / V2EX
+- **Star 历史**: https://star-history.com/#zhitongblog/xiaoyuan-note
+- **社交监控**: 搜 "xiaoyuanNote" 在 Twitter / Reddit / HN / V2EX

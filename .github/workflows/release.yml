@@ -1,4 +1,4 @@
-name: Release SoloMD
+name: Release xiaoyuanNote
 
 # Trigger: push a tag that starts with `v`, e.g.
 #   git tag v0.1.0 && git push --tags
@@ -100,7 +100,7 @@ jobs:
       # after the rust build. Pre-build the sidecar for this matrix's
       # rust triple, matching what tauri-action's TAURI_ENV_TARGET_TRIPLE
       # will be.
-      - name: Pre-build solomd-mcp sidecar
+      - name: Pre-build xiaoyuan-note-mcp sidecar
         shell: bash
         run: |
           set -euo pipefail
@@ -118,22 +118,22 @@ jobs:
         with:
           projectPath: app
           tagName: ${{ github.ref_name }}
-          releaseName: 'SoloMD ${{ github.ref_name }}'
+          releaseName: 'xiaoyuanNote ${{ github.ref_name }}'
           releaseBody: |
-            ## SoloMD ${{ github.ref_name }}
+            ## xiaoyuanNote ${{ github.ref_name }}
 
-            > ⭐ **Like SoloMD? [Star it on GitHub](https://github.com/zhitongblog/solomd)** — it's free, made by one developer, and stars are how other people find it.
-            > 觉得好用？请[去 GitHub 点个 Star](https://github.com/zhitongblog/solomd) —— 免费开源、一个人维护，Star 能让更多人发现它。
+            > ⭐ **Like xiaoyuanNote? [Star it on GitHub](https://github.com/zhitongblog/xiaoyuan-note)** — it's free, made by one developer, and stars are how other people find it.
+            > 觉得好用？请[去 GitHub 点个 Star](https://github.com/zhitongblog/xiaoyuan-note) —— 免费开源、一个人维护，Star 能让更多人发现它。
             >
-            > 📣 Wrote about SoloMD or recommended it? [Get listed as a promoter](https://solomd.app/promote) · 写过、推荐过 SoloMD？[登记成为推广者](https://solomd.app/zh/promote)
+            > 📣 Wrote about xiaoyuanNote or recommended it? [Get listed as a promoter](https://xiaoyuannote.app/promote) · 写过、推荐过 xiaoyuanNote？[登记成为推广者](https://xiaoyuannote.app/zh/promote)
 
             ### What's new / 更新内容
 
-            https://solomd.app/whats-new · [中文](https://solomd.app/zh/whats-new)
+            https://xiaoyuannote.app/whats-new · [中文](https://xiaoyuannote.app/zh/whats-new)
 
             ### Install / 安装
 
-            - **macOS**: download `.dmg`, drag SoloMD to `/Applications`
+            - **macOS**: download `.dmg`, drag xiaoyuanNote to `/Applications`
             - **Windows**: download `.msi`. On first launch you may see "Windows protected your PC" → click **More info** → **Run anyway** (one-time, until SmartScreen reputation builds). 首次运行点 "更多信息" → "仍要运行" 即可
             - **Linux**: download `.AppImage` (`chmod +x` and run) or `.deb` / `.rpm`
 
@@ -157,7 +157,7 @@ jobs:
       #
       # v4.11.20's x64 MSI shipped tripping `Trojan:Script/Sabsik.EN.A!ml` — a
       # machine-learning false positive that hits only the MSI (the identical
-      # SoloMD.exe scans clean on its own, as does the arm64 MSI). Windows
+      # xiaoyuan-note.exe scans clean on its own, as does the arm64 MSI). Windows
       # deleted the download mid-flight and the first we heard of it was a
       # user asking why Chrome said "virus detected". Scan what we just built,
       # here, so the next one fails in CI instead of in front of users.
@@ -191,8 +191,8 @@ jobs:
 
           $targets = @()
           $targets += Get-ChildItem "app/src-tauri/target/release/bundle/msi" -Filter *.msi -ErrorAction SilentlyContinue
-          $targets += Get-ChildItem "app/src-tauri/target/release/SoloMD.exe" -ErrorAction SilentlyContinue
-          $targets += Get-ChildItem "mcp-server/target" -Recurse -Filter "solomd-mcp.exe" -ErrorAction SilentlyContinue |
+          $targets += Get-ChildItem "app/src-tauri/target/release/xiaoyuan-note.exe" -ErrorAction SilentlyContinue
+          $targets += Get-ChildItem "mcp-server/target" -Recurse -Filter "xiaoyuan-note-mcp.exe" -ErrorAction SilentlyContinue |
                       Where-Object { $_.FullName -match "\\release\\" } | Select-Object -First 1
           if (-Not $targets) {
             Write-Error "Nothing to scan — the bundle layout moved and this gate is now blind"
@@ -220,7 +220,7 @@ jobs:
           Write-Host "Defender gate passed."
 
       # ----------------------------------------------------------------------
-      # v2.4: solomd-mcp standalone tarballs.
+      # v2.4: xiaoyuan-note-mcp standalone tarballs.
       #
       # `tauri-action` already ran `scripts/build-mcp-sidecar.sh` (via
       # `beforeBundleCommand` in tauri.conf.json) and embedded the binary
@@ -229,9 +229,9 @@ jobs:
       # desktop app (e.g. running a headless MCP server on a homelab box)
       # can `curl install-mcp.sh | bash` and get the matched build.
       #
-      # Linux x64:    solomd-mcp-linux-x64.tar.gz
-      # Linux arm64:  solomd-mcp-linux-arm64.tar.gz
-      # Windows x64:  solomd-mcp-win-x64.zip
+      # Linux x64:    xiaoyuan-note-mcp-linux-x64.tar.gz
+      # Linux arm64:  xiaoyuan-note-mcp-linux-arm64.tar.gz
+      # Windows x64:  xiaoyuan-note-mcp-win-x64.zip
       # macOS:        produced locally via scripts/build-mac.sh, since
       #               macOS isn't in this matrix anymore.
       # ----------------------------------------------------------------------
@@ -239,8 +239,8 @@ jobs:
       # #291 — tauri-bundler writes the AppImage's `.DirIcon` as an ABSOLUTE
       # symlink into the build directory it happened to run in:
       #
-      #   .DirIcon -> /home/runner/work/solomd/solomd/app/src-tauri/target/\
-      #               release/bundle/appimage/SoloMD.AppDir/SoloMD.png
+      #   .DirIcon -> /home/runner/work/xiaoyuan-note/xiaoyuan-note/app/src-tauri/target/\
+      #               release/bundle/appimage/xiaoyuannote.appDir/xiaoyuan-note.png
       #
       # Launching the AppImage never touches it, so this shipped unnoticed for
       # every Linux release so far — but installers that unpack the AppDir
@@ -270,7 +270,7 @@ jobs:
             gh release upload "${{ github.ref_name }}" "$img" --clobber
           done
 
-      - name: Pack solomd-mcp tarball (Linux)
+      - name: Pack xiaoyuan-note-mcp tarball (Linux)
         if: startsWith(matrix.platform, 'ubuntu-')
         shell: bash
         env:
@@ -283,20 +283,20 @@ jobs:
             ubuntu-22.04)     ARCH="x64" ;;
             *) echo "unknown linux runner: ${{ matrix.platform }}"; exit 1 ;;
           esac
-          ASSET="solomd-mcp-linux-${ARCH}.tar.gz"
+          ASSET="xiaoyuan-note-mcp-linux-${ARCH}.tar.gz"
           # Tauri's externalBin produced the binary under
-          # mcp-server/target/<triple>/release/solomd-mcp via our pre-bundle
+          # mcp-server/target/<triple>/release/xiaoyuan-note-mcp via our pre-bundle
           # script. Find it portably without hardcoding the triple.
-          BIN="$(find mcp-server/target -type f -name solomd-mcp -path '*/release/*' | head -1)"
+          BIN="$(find mcp-server/target -type f -name xiaoyuan-note-mcp -path '*/release/*' | head -1)"
           if [[ -z "$BIN" || ! -x "$BIN" ]]; then
-            echo "Missing solomd-mcp release binary — beforeBundleCommand didn't run"
+            echo "Missing xiaoyuan-note-mcp release binary — beforeBundleCommand didn't run"
             ls -la mcp-server/target || true
             exit 1
           fi
           STAGE="$(mktemp -d)"
-          cp "$BIN" "$STAGE/solomd-mcp"
-          chmod +x "$STAGE/solomd-mcp"
-          tar -C "$STAGE" -czf "$ASSET" solomd-mcp
+          cp "$BIN" "$STAGE/xiaoyuan-note-mcp"
+          chmod +x "$STAGE/xiaoyuan-note-mcp"
+          tar -C "$STAGE" -czf "$ASSET" xiaoyuan-note-mcp
           gh release upload "${{ github.ref_name }}" "$ASSET" --clobber
 
       # ----------------------------------------------------------------------
@@ -305,7 +305,7 @@ jobs:
       # has WebView2; users without it see a runtime prompt the first time.
       # Skipped on non-Windows runners. Uploaded to the same draft release.
       #
-      # Also packs solomd-mcp.exe into a separate `.zip` for `install-mcp.sh`.
+      # Also packs xiaoyuan-note-mcp.exe into a separate `.zip` for `install-mcp.sh`.
       # ----------------------------------------------------------------------
       - name: Build Windows portable .zip
         if: matrix.platform == 'windows-latest' || matrix.platform == 'windows-11-arm'
@@ -317,30 +317,30 @@ jobs:
           # names (x64 vs arm64). install-mcp.sh expects the matching mcp zip.
           $arch = if ("${{ matrix.platform }}" -eq "windows-11-arm") { "arm64" } else { "x64" }
           $version = (Get-Content app/package.json -Raw | ConvertFrom-Json).version
-          $exe = "app/src-tauri/target/release/SoloMD.exe"
+          $exe = "app/src-tauri/target/release/xiaoyuan-note.exe"
           if (-Not (Test-Path $exe)) {
             Write-Error "Missing $exe — Tauri build did not run as expected"
             exit 1
           }
-          # Locate the solomd-mcp.exe Tauri's externalBin built before the bundle.
-          $mcpExe = Get-ChildItem -Path "mcp-server/target" -Recurse -Filter "solomd-mcp.exe" |
+          # Locate the xiaoyuan-note-mcp.exe Tauri's externalBin built before the bundle.
+          $mcpExe = Get-ChildItem -Path "mcp-server/target" -Recurse -Filter "xiaoyuan-note-mcp.exe" |
                     Where-Object { $_.FullName -match "\\release\\" } |
                     Select-Object -First 1
-          $stage = "SoloMD_${version}_${arch}-portable"
+          $stage = "XIAOYUAN_NOTE_${version}_${arch}-portable"
           New-Item -ItemType Directory -Force -Path $stage | Out-Null
-          Copy-Item $exe -Destination "$stage/SoloMD.exe"
-          if ($mcpExe) { Copy-Item $mcpExe.FullName -Destination "$stage/solomd-mcp.exe" }
+          Copy-Item $exe -Destination "$stage/xiaoyuan-note.exe"
+          if ($mcpExe) { Copy-Item $mcpExe.FullName -Destination "$stage/xiaoyuan-note-mcp.exe" }
           # Tiny README the user finds inside the zip.
           @"
-          SoloMD ${version} — portable build (${arch})
+          xiaoyuanNote ${version} — portable build (${arch})
 
-          Just run SoloMD.exe. No installation required.
+          Just run xiaoyuan-note.exe. No installation required.
 
           Settings are stored in your Windows profile by default. To keep them
-          next to SoloMD.exe instead (so copying this folder to another PC
+          next to xiaoyuan-note.exe instead (so copying this folder to another PC
           carries them along), create an empty folder named "data" here, next
-          to SoloMD.exe, before starting it. On the first start with "data",
-          SoloMD copies your existing settings into it. API keys stay in
+          to xiaoyuan-note.exe, before starting it. On the first start with "data",
+          xiaoyuanNote copies your existing settings into it. API keys stay in
           Windows Credential Manager and must be entered again on a new PC.
           (Scoop users: don't create "data" — Scoop manages this folder.)
 
@@ -348,16 +348,16 @@ jobs:
           If launch fails with a WebView2 missing error, install from
           https://go.microsoft.com/fwlink/p/?LinkId=2124703
           "@ | Set-Content -Path "$stage/README.txt" -Encoding UTF8
-          $zip = "SoloMD_${version}_${arch}-portable.zip"
+          $zip = "XIAOYUAN_NOTE_${version}_${arch}-portable.zip"
           Compress-Archive -Path "$stage/*" -DestinationPath $zip -Force
           gh release upload "${{ github.ref_name }}" $zip --clobber
 
-          # solomd-mcp standalone .zip (install-mcp.sh on Windows expects this).
+          # xiaoyuan-note-mcp standalone .zip (install-mcp.sh on Windows expects this).
           if ($mcpExe) {
-            $mcpStage = "solomd-mcp-win-${arch}"
+            $mcpStage = "xiaoyuan-note-mcp-win-${arch}"
             New-Item -ItemType Directory -Force -Path $mcpStage | Out-Null
-            Copy-Item $mcpExe.FullName -Destination "$mcpStage/solomd-mcp.exe"
-            $mcpZip = "solomd-mcp-win-${arch}.zip"
+            Copy-Item $mcpExe.FullName -Destination "$mcpStage/xiaoyuan-note-mcp.exe"
+            $mcpZip = "xiaoyuan-note-mcp-win-${arch}.zip"
             Compress-Archive -Path "$mcpStage/*" -DestinationPath $mcpZip -Force
             gh release upload "${{ github.ref_name }}" $mcpZip --clobber
           }
@@ -378,7 +378,7 @@ jobs:
             ubuntu-22.04-arm) ARCH="arm64" ;;
             ubuntu-22.04)     ARCH="x64" ;;
           esac
-          ASSET="solomd-mcp-linux-${ARCH}.tar.gz"
+          ASSET="xiaoyuan-note-mcp-linux-${ARCH}.tar.gz"
           export LOCAL_TARBALL="$PWD/$ASSET"
           if [[ ! -f "$LOCAL_TARBALL" ]]; then
             echo "tarball missing at $LOCAL_TARBALL"; ls -la; exit 1
@@ -386,7 +386,7 @@ jobs:
           export VERSION="${{ github.ref_name }}"
           export INSTALL_DIR="$RUNNER_TEMP/mcp-self-test/bin"
           bash scripts/install-mcp.sh
-          "$INSTALL_DIR/solomd-mcp" --version
+          "$INSTALL_DIR/xiaoyuan-note-mcp" --version
           echo "self-test ok"
 
   # ---------------------------------------------------------------------------
@@ -433,18 +433,18 @@ jobs:
       - name: Rename for release
         working-directory: web-clipper/dist
         run: |
-          cp chrome.zip solomd-clipper-chrome.zip
-          cp firefox.zip solomd-clipper-firefox.zip
-          cp source.zip solomd-clipper-source.zip
+          cp chrome.zip xiaoyuan-note-clipper-chrome.zip
+          cp firefox.zip xiaoyuan-note-clipper-firefox.zip
+          cp source.zip xiaoyuan-note-clipper-source.zip
 
       - name: Upload to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ github.ref_name }}" \
-            web-clipper/dist/solomd-clipper-chrome.zip \
-            web-clipper/dist/solomd-clipper-firefox.zip \
-            web-clipper/dist/solomd-clipper-source.zip \
+            web-clipper/dist/xiaoyuan-note-clipper-chrome.zip \
+            web-clipper/dist/xiaoyuan-note-clipper-firefox.zip \
+            web-clipper/dist/xiaoyuan-note-clipper-source.zip \
             --clobber
 
   # ---------------------------------------------------------------------------

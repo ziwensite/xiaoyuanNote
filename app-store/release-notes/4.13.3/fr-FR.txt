@@ -8,6 +8,6 @@ Un thème qui semble ne rien changer s'explique maintenant : un thème du market
 
 L'application démarre plus vite. Tout était compilé avant la première image — le moteur de diagrammes, les deux dictionnaires chinois, les exports PDF et Word, le diaporama. Ils se chargent maintenant à la demande, et le premier affichage est environ 30 % plus rapide.
 
-Un fichier modifié dans un autre éditeur — ou pendant que SoloMD était fermé — est désormais détecté, au démarrage et à chaque retour de la fenêtre. Les modifications non enregistrées ne sont jamais écrasées.
+Un fichier modifié dans un autre éditeur — ou pendant que xiaoyuanNote était fermé — est désormais détecté, au démarrage et à chaque retour de la fenêtre. Les modifications non enregistrées ne sont jamais écrasées.
 
 Le bouton de la barre latérale droite fait toujours quelque chose.

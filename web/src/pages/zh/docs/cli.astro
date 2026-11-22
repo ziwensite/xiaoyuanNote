@@ -8,23 +8,23 @@ import CompareFaq from '../../../components/CompareFaq.astro';
 const lang = 'zh' as const;
 const FAQ = [
   {
-    q: '怎么安装 solomd 命令行?',
-    a: 'macOS / Linux 一行命令:curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash,会把 solomd 二进制装到 /usr/local/bin。Windows 从 GitHub releases 下载 solomd.exe 加进 PATH。',
+    q: '怎么安装 xiaoyuanNote 命令行?',
+    a: 'macOS / Linux 一行命令:curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash,会把 xiaoyuanNote 二进制装到 /usr/local/bin。Windows 从 GitHub releases 下载 xiaoyuan-note.exe 加进 PATH。',
   },
   {
     q: 'CLI 能做什么?',
-    a: '在应用里打开笔记(标题模糊匹配)、新建笔记、列出文件、全库搜索、把笔记打印到 stdout:solomd open / new / list / search / cat。和 GUI 调用同一套领域函数,为 shell 管道和 cron 任务设计。',
+    a: '在应用里打开笔记(标题模糊匹配)、新建笔记、列出文件、全库搜索、把笔记打印到 stdout:xiaoyuanNote open / new / list / search / cat。和 GUI 调用同一套领域函数,为 shell 管道和 cron 任务设计。',
   },
   {
     q: '能把笔记接进其他工具吗?',
-    a: '能 —— solomd cat 输出原始 Markdown 到 stdout,可以直接接 pandoc、fzf、grep 或任何管道下游。',
+    a: '能 —— xiaoyuanNote cat 输出原始 Markdown 到 stdout,可以直接接 pandoc、fzf、grep 或任何管道下游。',
   },
 ];
 ---
 
 <Layout
-  title="SoloMD 命令行 — 在终端打开、搜索、写入你的笔记"
-  description="solomd 命令行工具暴露和 GUI 一致的核心操作 —— 打开、新建、搜索、列出、cat —— 适合脚本与终端工作流。"
+  title="xiaoyuanNote 命令行 — 在终端打开、搜索、写入你的笔记"
+  description="xiaoyuanNote 命令行工具暴露和 GUI 一致的核心操作 —— 打开、新建、搜索、列出、cat —— 适合脚本与终端工作流。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -34,9 +34,9 @@ const FAQ = [
         <a href="/zh/">首页</a> / <a href="/zh/docs/">文档</a> / <span>命令行</span>
       </nav>
 
-      <h1>SoloMD 命令行</h1>
+      <h1>xiaoyuanNote 命令行</h1>
       <p class="lead">
-        <code>solomd</code> 是一个小巧的命令行二进制，暴露和 GUI 同一套核心操作 ——
+        <code>xiaoyuanNote</code> 是一个小巧的命令行二进制，暴露和 GUI 同一套核心操作 ——
         打开笔记、新建笔记、搜索仓库、列出文件、把笔记 cat 到 stdout。
         为 Shell 流水线、cron 任务和肌肉记忆而生。
       </p>
@@ -45,51 +45,51 @@ const FAQ = [
       <p>
         macOS / Linux —— 在终端粘贴：
       </p>
-      <pre class="code"><code>curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash</code></pre>
+      <pre class="code"><code>curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash</code></pre>
       <p>
-        脚本会把 <code>solomd</code> 安装到 <code>/usr/local/bin</code>。
-        Windows 用户请到 <a href="https://github.com/zhitongblog/solomd/releases" rel="external">发布页</a>
-        下载 <code>solomd.exe</code>，加进 <code>%PATH%</code> 即可。
+        脚本会把 <code>xiaoyuanNote</code> 安装到 <code>/usr/local/bin</code>。
+        Windows 用户请到 <a href="https://github.com/zhitongblog/xiaoyuan-note/releases" rel="external">发布页</a>
+        下载 <code>xiaoyuan-note.exe</code>，加进 <code>%PATH%</code> 即可。
       </p>
 
       <h2>子命令</h2>
       <table class="kb-table">
         <thead><tr><th>命令</th><th>作用</th></tr></thead>
         <tbody>
-          <tr><th><code>solomd open &lt;标题|路径&gt;</code></th><td>在 SoloMD 中打开。传标题时按模糊匹配在仓库里查找。</td></tr>
-          <tr><th><code>solomd new &lt;标题&gt; [正文]</code></th><td>新建一篇笔记，写入可选正文，并打开它。</td></tr>
-          <tr><th><code>solomd list [子目录]</code></th><td>列出工作区（或指定子目录）的 Markdown 文件。</td></tr>
-          <tr><th><code>solomd search &lt;查询&gt;</code></th><td>grep 整个仓库，返回路径与匹配行。</td></tr>
-          <tr><th><code>solomd cat &lt;标题|路径&gt;</code></th><td>把笔记内容打到 stdout —— 可管道到 <code>pandoc</code>、<code>fzf</code> 等。</td></tr>
-          <tr><th><code>solomd help</code></th><td>显示完整的子命令列表。</td></tr>
+          <tr><th><code>xiaoyuanNote open &lt;标题|路径&gt;</code></th><td>在 xiaoyuanNote 中打开。传标题时按模糊匹配在仓库里查找。</td></tr>
+          <tr><th><code>xiaoyuanNote new &lt;标题&gt; [正文]</code></th><td>新建一篇笔记，写入可选正文，并打开它。</td></tr>
+          <tr><th><code>xiaoyuanNote list [子目录]</code></th><td>列出工作区（或指定子目录）的 Markdown 文件。</td></tr>
+          <tr><th><code>xiaoyuanNote search &lt;查询&gt;</code></th><td>grep 整个仓库，返回路径与匹配行。</td></tr>
+          <tr><th><code>xiaoyuanNote cat &lt;标题|路径&gt;</code></th><td>把笔记内容打到 stdout —— 可管道到 <code>pandoc</code>、<code>fzf</code> 等。</td></tr>
+          <tr><th><code>xiaoyuanNote help</code></th><td>显示完整的子命令列表。</td></tr>
         </tbody>
       </table>
 
       <h2>常用例子</h2>
       <pre class="code"><code>{`# 即时捕获 —— 从剪贴板新建一条笔记
-solomd new "standup 2026-04-26" "$(pbpaste)"
+xiaoyuanNote new "standup 2026-04-26" "$(pbpaste)"
 
 # 找出所有提到 "rust" 的笔记
-solomd search rust
+xiaoyuanNote search rust
 
 # 把一篇笔记走 pandoc 转成 docx
-solomd cat "weekly-review" | pandoc -t docx -o weekly-review.docx
+xiaoyuanNote cat "weekly-review" | pandoc -t docx -o weekly-review.docx
 
 # cron：每天早上自动起一篇当日日记
-solomd new "$(date +%F)" "## $(date +%A)\n\n- [ ] "`}</code></pre>
+xiaoyuanNote new "$(date +%F)" "## $(date +%A)\n\n- [ ] "`}</code></pre>
 
       <h2>它怎么找到你的仓库</h2>
       <p>
-        命令行读取和 GUI 同一份偏好文件（<code>solomd-language</code> /
-        <code>solomd-workspace</code>）。如果你最近在 SoloMD 里打开过某个文件夹，
+        命令行读取和 GUI 同一份偏好文件（<code>xiaoyuan-note-language</code> /
+        <code>xiaoyuan-note-workspace</code>）。如果你最近在 xiaoyuanNote 里打开过某个文件夹，
         CLI 会沿用。临时切换可以用环境变量：
       </p>
-      <pre class="code"><code>SOLOMD_WORKSPACE=/path/to/notes solomd list</code></pre>
+      <pre class="code"><code>XIAOYUAN_NOTE_WORKSPACE=/path/to/notes xiaoyuanNote list</code></pre>
 
       <h2>和 MCP 服务搭配</h2>
       <p>
-        命令行是「你打的字」，<code>solomd-mcp</code> 是「AI 调的接口」。两者共享同一份
-        工作区状态，因此 AI 通过 MCP 写完一篇新笔记后，你立刻就能 <code>solomd open</code>
+        命令行是「你打的字」，<code>xiaoyuan-note-mcp</code> 是「AI 调的接口」。两者共享同一份
+        工作区状态，因此 AI 通过 MCP 写完一篇新笔记后，你立刻就能 <code>xiaoyuanNote open</code>
         打开它 —— 不用重载，不会竞争。
       </p>
       <p>
@@ -98,7 +98,7 @@ solomd new "$(date +%F)" "## $(date +%A)\n\n- [ ] "`}</code></pre>
 
       <p class="docs-footer">
         发现 bug 或缺哪个子命令？欢迎到
-        <a href="https://github.com/zhitongblog/solomd/issues" rel="external">GitHub</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/issues" rel="external">GitHub</a>
         提 issue。
       </p>
 

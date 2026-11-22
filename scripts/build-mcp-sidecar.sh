@@ -2,14 +2,14 @@
 #
 # build-mcp-sidecar.sh — v2.4
 #
-# Builds the `solomd-mcp` crate (./mcp-server) for the current Rust target
+# Builds the `xiaoyuan-note-mcp` crate (./mcp-server) for the current Rust target
 # and copies the resulting binary into `app/src-tauri/binaries/` under the
 # Tauri "externalBin" naming convention:
 #
-#     binaries/solomd-mcp-<rust-target-triple>[.exe]
+#     binaries/xiaoyuan-note-mcp-<rust-target-triple>[.exe]
 #
 # This is the file Tauri's bundler picks up when it sees
-# `bundle.externalBin: ["binaries/solomd-mcp"]` in tauri.conf.json. It gets
+# `bundle.externalBin: ["binaries/xiaoyuan-note-mcp"]` in tauri.conf.json. It gets
 # embedded inside the .app/.exe/.AppImage and dropped next to the main
 # executable at install time, so we always ship a matched MCP server with
 # every desktop release.
@@ -49,7 +49,7 @@ fi
 # ---------------------------------------------------------------------------
 # Build (release profile from mcp-server/Cargo.toml — opt-level z + LTO).
 # ---------------------------------------------------------------------------
-echo "build-mcp-sidecar: building solomd-mcp for $TARGET"
+echo "build-mcp-sidecar: building xiaoyuan-note-mcp for $TARGET"
 (
     cd "$MCP_CRATE"
     cargo build --release --target "$TARGET"
@@ -61,7 +61,7 @@ case "$TARGET" in
     *windows*) EXE=".exe" ;;
 esac
 
-SRC_BIN="$MCP_CRATE/target/$TARGET/release/solomd-mcp$EXE"
+SRC_BIN="$MCP_CRATE/target/$TARGET/release/xiaoyuan-note-mcp$EXE"
 if [[ ! -f "$SRC_BIN" ]]; then
     echo "build-mcp-sidecar: expected $SRC_BIN but it doesn't exist" >&2
     exit 1
@@ -70,11 +70,18 @@ fi
 # ---------------------------------------------------------------------------
 # Copy into Tauri's externalBin staging dir, named per Tauri's convention
 # (`<base>-<triple>[.exe]`). Tauri's bundler will rename it back to
-# `solomd-mcp` at install time.
+# `xiaoyuan-note-mcp` at install time.
 # ---------------------------------------------------------------------------
 mkdir -p "$OUT_DIR"
-DEST="$OUT_DIR/solomd-mcp-$TARGET$EXE"
+DEST="$OUT_DIR/xiaoyuan-note-mcp-$TARGET$EXE"
 cp -f "$SRC_BIN" "$DEST"
 chmod +x "$DEST"
 
+# Compatibility alias: existing MCP clients may still launch `solomd-mcp`.
+# Ship both names so old configs keep working after the brand migration.
+LEGACY_DEST="$OUT_DIR/solomd-mcp-$TARGET$EXE"
+cp -f "$SRC_BIN" "$LEGACY_DEST"
+chmod +x "$LEGACY_DEST"
+
 echo "build-mcp-sidecar: -> $DEST"
+echo "build-mcp-sidecar: legacy alias -> $LEGACY_DEST"

@@ -29,7 +29,7 @@ if (!g.navigator) g.navigator = { userAgent: 'node', language: 'en-US', platform
 
 const { createPinia, setActivePinia } = await import('pinia');
 const { useSettingsStore } = await import('./settings');
-const LS_KEY = 'solomd.settings.v1';
+const LS_KEY = 'xiaoyuan-note.settings.v1';
 
 function flipOs(toDark: boolean) {
   dark = toDark;

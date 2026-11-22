@@ -7,27 +7,27 @@ import CompareFaq from '../../../components/CompareFaq.astro';
 const lang = 'zh' as const;
 const FAQ = [
   {
-    q: 'SoloMD 真的免费吗?有没有隐藏收费?',
-    a: 'SoloMD 永久 $0:MIT 开源、无付费版、无订阅、无内购、无广告。Typora 15 天试用后收费 $14.99。源码公开在 github.com/zhitongblog/solomd。',
+    q: 'xiaoyuanNote 真的免费吗?有没有隐藏收费?',
+    a: 'xiaoyuanNote 永久 $0:MIT 开源、无付费版、无订阅、无内购、无广告。Typora 15 天试用后收费 $14.99。源码公开在 github.com/zhitongblog/xiaoyuan-note。',
   },
   {
-    q: 'SoloMD 有和 Typora 一样的实时预览(所见即所得)吗?',
-    a: '有。SoloMD 的实时编辑是 Typora 式的:光标离开当前行后 Markdown 标记淡出,标题按实际大小渲染。另外还有源码、分栏、阅读三种视图。Windows 上实时编辑跑在原生 textarea 块上,中文输入法(搜狗等)输入稳定。',
+    q: 'xiaoyuanNote 有和 Typora 一样的实时预览(所见即所得)吗?',
+    a: '有。xiaoyuanNote 的实时编辑是 Typora 式的:光标离开当前行后 Markdown 标记淡出,标题按实际大小渲染。另外还有源码、分栏、阅读三种视图。Windows 上实时编辑跑在原生 textarea 块上,中文输入法(搜狗等)输入稳定。',
   },
   {
-    q: '手机上能用 SoloMD 吗?',
-    a: '能 —— SoloMD 有原生 iOS 和 Android 应用,加上 macOS、Windows、Linux 共 5 个平台。Typora 只有桌面端。',
+    q: '手机上能用 xiaoyuanNote 吗?',
+    a: '能 —— xiaoyuanNote 有原生 iOS 和 Android 应用,加上 macOS、Windows、Linux 共 5 个平台。Typora 只有桌面端。',
   },
   {
-    q: 'SoloMD 有哪些 Typora 没有的功能?',
+    q: 'xiaoyuanNote 有哪些 Typora 没有的功能?',
     a: '内置 AI(14 个自带 Key 的提供商)、本地语义搜索(RAG)、每次保存自动 Git 快照的版本历史、给 Claude Desktop / Cursor 用的 MCP 服务器、tldraw 白板、带关系图的类型化笔记关系,以及手机端。Typora 的优势是单一 WYSIWYG 模式的打磨程度。',
   },
 ];
 ---
 
 <Layout
-  title="SoloMD vs Typora —— 轻量 Markdown 编辑器对比 2026"
-  description="SoloMD 和 Typora 两款 Markdown 编辑器的详细对比：价格、体积、功能、跨平台支持，以及免费开源的意义。"
+  title="xiaoyuanNote vs Typora —— 轻量 Markdown 编辑器对比 2026"
+  description="xiaoyuanNote 和 Typora 两款 Markdown 编辑器的详细对比：价格、体积、功能、跨平台支持，以及免费开源的意义。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -37,18 +37,18 @@ const FAQ = [
         <a href="/zh/">首页</a> / <a href="/zh/compare/">对比</a> / <span>vs Typora</span>
       </nav>
 
-      <h1>SoloMD vs Typora：选哪个？</h1>
+      <h1>xiaoyuanNote vs Typora：选哪个？</h1>
       <p class="lead">
-        对比基于 <strong>SoloMD v5.0</strong> 与 <strong>Typora 1.13</strong>（2026 年中）。
+        对比基于 <strong>xiaoyuanNote v5.0</strong> 与 <strong>Typora 1.13</strong>（2026 年中）。
         想要一个开源编辑器、Agent 是一等公民（chat-with-vault 面板、定时 recipe、AutoGit
-        分支沙箱使写入可审），SoloMD；想要最完整的<strong>单一 WYSIWYG</strong>
+        分支沙箱使写入可审），xiaoyuanNote；想要最完整的<strong>单一 WYSIWYG</strong>
         体验、不需要 AI / 同步 / 版本历史 / agent 在核心，Typora 仍是好选择。
       </p>
 
       <h2>30 秒速览</h2>
       <table class="compare-detail">
         <thead>
-          <tr><th>&nbsp;</th><th>SoloMD v5.0</th><th>Typora 1.13</th></tr>
+          <tr><th>&nbsp;</th><th>xiaoyuanNote v5.0</th><th>Typora 1.13</th></tr>
         </thead>
         <tbody>
           <tr><th>价格</th><td><strong>免费</strong>（MIT）</td><td>$14.99 美元（买断，3 设备）</td></tr>
@@ -64,12 +64,12 @@ const FAQ = [
           <tr><th>Ollama 一等公民</th><td>✅ <strong>v4.0</strong> · 自动检测 · 3 个模型预设 · recipe 用 <code>provider: local</code></td><td>❌</td></tr>
           <tr><th>本地 REST API（localhost + token 鉴权）</th><td>✅ <strong>v4.0</strong> · 和 MCP 同套接口给非 MCP 客户端</td><td>❌</td></tr>
           <tr><th>BYOK 成本计</th><td>✅ <strong>v4.0</strong> · 按 provider 累计 token 数, opt-in</td><td>❌</td></tr>
-          <tr><th>内置 MCP server</th><td>✅ <strong>v3.1</strong> · 13 工具，5 个 SoloMD 独家（autogit/sync/share）</td><td>❌</td></tr>
-          <tr><th><code>solomd agent</code> CLI</th><td>✅ <strong>v3.1</strong> · 把 prompt 接给 Claude Code / Codex，MCP 已预连</td><td>❌</td></tr>
+          <tr><th>内置 MCP server</th><td>✅ <strong>v3.1</strong> · 13 工具，5 个 xiaoyuanNote 独家（autogit/sync/share）</td><td>❌</td></tr>
+          <tr><th><code>xiaoyuanNote agent</code> CLI</th><td>✅ <strong>v3.1</strong> · 把 prompt 接给 Claude Code / Codex，MCP 已预连</td><td>❌</td></tr>
           <tr><th>GitHub 同步（自己的库）</th><td>✅ <strong>v3.0</strong> · libgit2 + 系统钥匙串</td><td>❌</td></tr>
           <tr><th>端到端加密</th><td>✅ <strong>v3.0</strong> · Argon2id + XChaCha20-Poly1305</td><td>❌</td></tr>
           <tr><th>云盘联动（iCloud / Dropbox / OneDrive）</th><td>✅ <strong>v3.0</strong> · 自动识别 + 跨设备会话恢复</td><td>❌</td></tr>
-          <tr><th>公开只读分享</th><td>✅ <strong>v3.0</strong> · <code>solomd.app/share/</code></td><td>❌</td></tr>
+          <tr><th>公开只读分享</th><td>✅ <strong>v3.0</strong> · <code>xiaoyuannote.app/share/</code></td><td>❌</td></tr>
           <tr><th>AutoGit 版本历史</th><td>✅ <strong>v2.2</strong> · 每次保存快照，侧栏一键回滚</td><td>❌</td></tr>
           <tr><th>本地语义搜索</th><td>✅ <strong>v2.3</strong> · ⌘⇧F · 不下模型</td><td>❌</td></tr>
           <tr><th>演讲 / 幻灯片模式</th><td>✅ <strong>v3.5：完整 reveal.js</strong> · 背景图 / 转场 / fragments / 纵向子页</td><td>❌</td></tr>
@@ -86,7 +86,7 @@ const FAQ = [
           <tr><th>中文标点校对</th><td>✅ <strong>v2.5</strong></td><td>❌</td></tr>
           <tr><th>Vim 模式</th><td>✅</td><td>❌</td></tr>
           <tr><th>VS Code / Cursor 集成</th><td>✅ 通过自带 MCP server（LLM 直接驱动 vault）</td><td>✅ "Open in Typora" 扩展</td></tr>
-          <tr><th>CLI 命令行工具</th><td>✅ <code>solomd</code></td><td>❌</td></tr>
+          <tr><th>CLI 命令行工具</th><td>✅ <code>xiaoyuanNote</code></td><td>❌</td></tr>
           <tr><th>Markdown 格式化（Prettier）</th><td>✅ <code>⌘⌥L</code></td><td>❌</td></tr>
           <tr><th>欢迎教程</th><td>✅</td><td>❌</td></tr>
           <tr><th>自定义 CSS 主题</th><td>✅ 任意 .css</td><td>✅</td></tr>
@@ -95,25 +95,25 @@ const FAQ = [
         </tbody>
       </table>
 
-      <h2>选 SoloMD 的情况</h2>
+      <h2>选 xiaoyuanNote 的情况</h2>
       <ul>
         <li>想要<strong>永久免费开源</strong>，没有 license key，没有弹窗。</li>
         <li>电脑资源紧张。Tauri 原生 webview 比 Electron 省一半内存。</li>
         <li>编辑 CJK / 旧版文本文件，需要自动识别 GBK / Big5 / Shift-JIS 等编码。</li>
         <li>喜欢分屏 —— 左边源码、右边实时预览，滚动同步。</li>
         <li>想用 Vim 快捷键写 Markdown。</li>
-        <li>在 iPad 上写作（SoloMD 有 iPad App Store 版，Typora 没有）。</li>
+        <li>在 iPad 上写作（xiaoyuanNote 有 iPad App Store 版，Typora 没有）。</li>
       </ul>
 
       <h2>选 Typora 的情况</h2>
       <ul>
         <li>已经熟悉 Typora 的快捷键，不想重新学。</li>
-        <li>你想要单一的"始终 WYSIWYG"视图,不要视图切换器（SoloMD 在 v2.3 加了 WYSIWYG 实时编辑模式,但和源码 / 分屏 / 预览并列,需要你显式切换）。</li>
+        <li>你想要单一的"始终 WYSIWYG"视图,不要视图切换器（xiaoyuanNote 在 v2.3 加了 WYSIWYG 实时编辑模式,但和源码 / 分屏 / 预览并列,需要你显式切换）。</li>
       </ul>
 
       <h2>体积和内存 —— 为什么重要</h2>
       <p>
-        Typora 基于 Electron，每个安装都自带一份 Chromium（~70 MB）。SoloMD 用
+        Typora 基于 Electron，每个安装都自带一份 Chromium（~70 MB）。xiaoyuanNote 用
         Tauri 2，直接调用操作系统原生 webview（Mac 的 WKWebView、Win 的 WebView2、
         Linux 的 WebKitGTK），二进制只有 Rust 内核 + 前端 bundle。
         结果：**体积小 4 倍，内存省一半**。
@@ -122,19 +122,19 @@ const FAQ = [
       <h2>功能深度</h2>
       <h3>实时预览</h3>
       <p>
-        两者都支持边写边渲染。Typora 总是隐藏原始标记符；SoloMD 只在光标不在的行隐藏，
+        两者都支持边写边渲染。Typora 总是隐藏原始标记符；xiaoyuanNote 只在光标不在的行隐藏，
         且保留图片链接括号和行内代码反引号，让结构始终可见。
       </p>
 
       <h3>导出</h3>
-      <p>两者都支持 PDF、DOCX、HTML、PNG。SoloMD 额外有：</p>
+      <p>两者都支持 PDF、DOCX、HTML、PNG。xiaoyuanNote 额外有：</p>
       <ul>
         <li><strong>复制为富文本 HTML</strong> —— 带样式粘贴到微信公众号 / Notion / 语雀。</li>
         <li><strong>系统打印对话框</strong> —— Mac 用 NSPrintOperation、Win 用 WebView2 原生。</li>
         <li><strong>复制为图片</strong> —— 截图样式的 PNG。</li>
       </ul>
 
-      <h3>SoloMD 独有功能</h3>
+      <h3>xiaoyuanNote 独有功能</h3>
       <ul>
         <li>多标签（一个窗口多个文件）</li>
         <li>分屏（拖标签到侧边分屏）</li>
@@ -147,15 +147,15 @@ const FAQ = [
         <li>多编码自动识别</li>
       </ul>
 
-      <h2>Typora 社区自己最想要的功能 —— SoloMD 已全部交付</h2>
+      <h2>Typora 社区自己最想要的功能 —— xiaoyuanNote 已全部交付</h2>
       <p>
         以下是 Typora 官方反馈区（<a href="https://github.com/typora/typora-issues/issues" rel="external">typora/typora-issues</a>）
-        里点赞最高、至今仍未实现的请求，有些从 2016–2018 年开着到现在。SoloMD
+        里点赞最高、至今仍未实现的请求，有些从 2016–2018 年开着到现在。xiaoyuanNote
         早已全部交付 —— 免费，且全平台：
       </p>
       <table class="compare-detail">
         <thead>
-          <tr><th>Typora 社区长期请求</th><th>SoloMD</th></tr>
+          <tr><th>Typora 社区长期请求</th><th>xiaoyuanNote</th></tr>
         </thead>
         <tbody>
           <tr><td>Windows / Linux 上的多标签（2017 年至今）</td><td>✅ 全平台多标签</td></tr>
@@ -170,7 +170,7 @@ const FAQ = [
         </tbody>
       </table>
       <p style="font-size:0.95rem;color:var(--text-muted);">
-        你现有的 Typora 笔记原样打开：SoloMD 读 Typora 的
+        你现有的 Typora 笔记原样打开：xiaoyuanNote 读 Typora 的
         <code>./images/&lt;笔记名&gt;/</code> 附件布局（设置 → 写作 → 附件模式里选），
         中文 / 带空格的目录名下图片也能正常渲染。不转换、不锁定 —— 仍是你文件夹里的纯
         <code>.md</code>。
@@ -187,25 +187,25 @@ const FAQ = [
 
       <h2>价格</h2>
       <p>
-        SoloMD 免费 + MIT 许可 —— 克隆仓库自己编译，或
+        xiaoyuanNote 免费 + MIT 许可 —— 克隆仓库自己编译，或
         <a href="/zh/#download">下载安装包</a>，不用注册账号、不用订阅，默认不收集任何数据
         （可选的匿名使用计数，设置里一键关闭）。
       </p>
       <p>Typora：$14.99 美元买断，每账号最多 3 台设备。自 v1.0（2021）起没有免费版。</p>
 
-      <h2>从 Typora 迁移到 SoloMD</h2>
+      <h2>从 Typora 迁移到 xiaoyuanNote</h2>
       <p>
-        你的 <code>.md</code> 文件就是纯文本；两者读同一格式，"迁移" = 装 SoloMD + 打开文件夹。注意事项：
+        你的 <code>.md</code> 文件就是纯文本；两者读同一格式，"迁移" = 装 xiaoyuanNote + 打开文件夹。注意事项：
       </p>
       <ul>
-        <li>Typora 特有的扩展语法 <code>==高亮==</code>、<code>^上标^</code>、<code>~下标~</code> 还没在 SoloMD 里支持。标准 CommonMark + GFM 完全兼容。</li>
-        <li>Typora 的"图片自动复制到 assets 目录"功能，SoloMD 有一样的 —— 粘贴或拖图片，自动保存到当前文档旁的 <code>./_assets/</code>。</li>
+        <li>Typora 特有的扩展语法 <code>==高亮==</code>、<code>^上标^</code>、<code>~下标~</code> 还没在 xiaoyuanNote 里支持。标准 CommonMark + GFM 完全兼容。</li>
+        <li>Typora 的"图片自动复制到 assets 目录"功能，xiaoyuanNote 有一样的 —— 粘贴或拖图片，自动保存到当前文档旁的 <code>./_assets/</code>。</li>
       </ul>
 
       <h2>FAQ</h2>
-      <h3>SoloMD 真的免费吗？</h3>
+      <h3>xiaoyuanNote 真的免费吗？</h3>
       <p>是。MIT 许可，无广告。源码见
-        <a href="https://github.com/zhitongblog/solomd" rel="external">GitHub</a>。</p>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note" rel="external">GitHub</a>。</p>
 
       <h3>公司电脑能装吗？</h3>
       <p>能。Mac 版 Apple 公证，Windows 版 SmartScreen 刚上线可能会弹一次"未知发布者"，点
@@ -213,13 +213,13 @@ const FAQ = [
         按发行版惯例不签名。</p>
 
       <h3>支持 Typora 主题吗？</h3>
-      <p>主题 CSS 选择器不完全兼容，但 SoloMD 支持在「设置 → 自定义 CSS」里选任意 .css 文件覆盖默认样式。</p>
+      <p>主题 CSS 选择器不完全兼容，但 xiaoyuanNote 支持在「设置 → 自定义 CSS」里选任意 .css 文件覆盖默认样式。</p>
 
       <CompareFaq heading="常见问题" items={FAQ} />
 
       <div class="compare-cta">
-        <a href="/zh/#download" class="btn btn--primary">下载 SoloMD</a>
-        <a href="https://github.com/zhitongblog/solomd" class="btn btn--secondary" rel="external">GitHub</a>
+        <a href="/zh/#download" class="btn btn--primary">下载 xiaoyuanNote</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note" class="btn btn--secondary" rel="external">GitHub</a>
       </div>
     </article>
   </main>

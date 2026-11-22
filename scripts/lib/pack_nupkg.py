@@ -7,7 +7,7 @@
 
 Why not `nuget pack`: NuGet 7 refuses a nuspec that carries Chocolatey's own
 metadata (projectSourceUrl, docsUrl, bugTrackerUrl, packageSourceUrl) with
-"The schema version of 'solomd' is incompatible", and `choco` itself does not
+"The schema version of 'xiaoyuanNote' is incompatible", and `choco` itself does not
 run on macOS. A .nupkg is an OPC zip: the nuspec at the root, the payload,
 [Content_Types].xml, _rels/.rels and a core-properties part. This writes the
 same layout `choco pack` produces.

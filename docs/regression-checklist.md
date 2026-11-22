@@ -210,7 +210,7 @@ allowed to lag behind the code on purpose — see `mcp-server/README.md`.
 | R1 | version bump dry run | every version source named in the test moves together; the consistency test passes after a bump | yes |
 | R2 | `server.json` refresh | after publishing, version / identifier / `fileSha256` all point at the new .mcpb; sha matches the uploaded bytes | no |
 | R3 | distribution manifests | winget / scoop / homebrew installer URLs return 200 and their checksums match the published artifacts | no |
-| R4 | MCP runtime | `solomd-mcp --version` equals the app version; `tools/list` is 15 without the Node backend and 16 with it; all 4 write tools reject calls without `--allow-write` | no |
+| R4 | MCP runtime | `xiaoyuan-note-mcp --version` equals the app version; `tools/list` is 15 without the Node backend and 16 with it; all 4 write tools reject calls without `--allow-write` | no |
 | R5 | website downloads | installer filenames and `softwareVersion` match the new release; 15 locale badges show the new version | no |
 | R6 | listing copy | Smithery / marketplace / llms descriptions say 16 tools (15 listed by default) | yes |
 
@@ -226,7 +226,7 @@ red — both came from Rust's Windows `canonicalize()` returning `\\?\C:\…`:
   smuggle a traversal past the guard. The test now builds the path with
   `MAIN_SEPARATOR` (using `PathBuf::join("..")` normalises it away) and also
   asserts `a..b.md` is still a legal file name.
-- `app/scripts/solomd-export.mjs`: `normalizePath` strips the `//?/`
+- `app/scripts/xiaoyuan-note-export.mjs`: `normalizePath` strips the `//?/`
   verbatim prefix before its segment walk. Without that, relative images
   resolved to `/?/C:/…` and docx exports silently lost every image
   (`export_test.rs` caught it).

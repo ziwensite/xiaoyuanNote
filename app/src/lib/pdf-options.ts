@@ -419,9 +419,9 @@ export function buildPrintStyle(opts: ResolvedPdfOptions): string {
   const size = `${pageSizeMm.width}mm ${pageSizeMm.height}mm`;
   // Quote font family if it contains whitespace and isn't already quoted.
   const fontDecl = fontFamily.trim()
-    ? `body, .preview-content, .solomd-print-content { font-family: ${quoteFontFamily(fontFamily)}, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important; }`
+    ? `body, .preview-content, .xiaoyuan-note-print-content { font-family: ${quoteFontFamily(fontFamily)}, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important; }`
     : '';
-  const fontSizeDecl = `body, .preview-content, .solomd-print-content { font-size: ${fontSizePt}pt !important; }`;
+  const fontSizeDecl = `body, .preview-content, .xiaoyuan-note-print-content { font-size: ${fontSizePt}pt !important; }`;
   const codeThemeDecl = codeTheme === 'light'
     ? `pre, code { background: #f6f8fa !important; color: #1f2328 !important; }`
     : codeTheme === 'dark'
@@ -475,7 +475,7 @@ export function buildWindowsPrintFrameStyle(opts: ResolvedPdfOptions): string {
   return `
 @page { margin: 0 !important; @bottom-center { content: none; } }
 @media print {
-  body.solomd-printing #solomd-print-overlay {
+  body.xiaoyuan-note-printing #xiaoyuan-note-print-overlay {
     padding: ${m.top}mm ${m.right}mm ${m.bottom}mm ${m.left}mm !important;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;

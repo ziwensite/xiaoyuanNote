@@ -34,7 +34,7 @@ async function resolve(file: string, choice: 'local' | 'remote' | 'both') {
     toasts.success(t('githubSync.conflictResolvedToast', { file }));
     // If that was the last one, signal the editor to reload from disk —
     // the file content may have changed under any open tab.
-    window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
   } catch (e) {
     toasts.error(`${t('githubSync.conflictResolveFailed')}: ${e}`);
   } finally {

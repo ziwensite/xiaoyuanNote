@@ -4,6 +4,6 @@ Grassetto, corsivo, barrato e codice su più paragrafi ora formattano ogni parag
 
 Menu: Trova e sostituisci nel menu Modifica, i comandi di zoom nel sottomenu Vista › Zoom, e il menu Aiuto elenca separatamente la guida rapida Markdown, le scorciatoie da tastiera e la riga di comando. Il menu Inserisci aggiunge i titoli 4–6.
 
-I link nelle note si aprono sempre nel browser, mai dentro SoloMD.
+I link nelle note si aprono sempre nel browser, mai dentro xiaoyuan-note.
 
-Dopo qualche giorno di utilizzo, SoloMD chiede una volta — una sola — se vuoi mettergli una stella su GitHub.
+Dopo qualche giorno di utilizzo, xiaoyuanNote chiede una volta — una sola — se vuoi mettergli una stella su GitHub.

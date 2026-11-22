@@ -1,4 +1,4 @@
-# SoloMD product roadmap
+# xiaoyuanNote product roadmap
 
 Last updated: 2026-04-29 · Owner: solo · Status: working draft
 
@@ -8,7 +8,7 @@ This document is the source of truth for what we're building, in what order, and
 
 ## Strategic principles (the lens for every "yes / no" decision)
 
-1. **One window, one writer.** SoloMD is a tool for the *single* author at the keyboard. We don't pivot to teams (CRDT collab) or to community (forums, social). When in doubt, we make the writer's day better, not the team's.
+1. **One window, one writer.** xiaoyuanNote is a tool for the *single* author at the keyboard. We don't pivot to teams (CRDT collab) or to community (forums, social). When in doubt, we make the writer's day better, not the team's.
 2. **Local-first, plain `.md`.** Files stay yours. No proprietary database, no required cloud, no lock-in. Sync is opt-in (and a paid tier candidate later); the core experience never depends on it.
 3. **Cross-platform is the moat.** Most credible competitors (Tolaria, Moraya, Bear, MiaoYan, iA Writer) are Mac-only or Mac+Linux. We ship Mac + Windows + Linux x64/ARM64 + iPad. **Don't sacrifice this for any feature.**
 4. **CJK first-class.** Encoding auto-detect, simplified↔traditional, pinyin export, multi-language UI. SiYuan dominates simplified-Chinese power users; we own writer/academic Chinese, plus Japanese/Korean/Traditional which SiYuan does less well.
@@ -48,8 +48,8 @@ Shipped foundation (any v4.0 work assumes this is in place):
 
 - **Editor.** WYSIWYG live-edit (incl. image+table widgets in v3.6), tabs+splits, KaTeX+Mermaid, image paste to `_assets/`, slideshow (`⌘⌥P`), Vim mode, Hunspell+CJK proofread, semantic search (`⌘⇧F`), wikilinks+backlinks, Pandoc export, CJK encoding auto-detect (GBK / Big5 / Shift-JIS).
 - **AI.** 14 BYOK providers — OpenAI · Claude · Gemini · DeepSeek · Qwen · GLM · Kimi · Doubao · SiliconFlow · OpenRouter · Mistral · Groq · xAI · **Ollama**. Per-document rewrite, AI Settings + Toolbar AI button, real verified model lineups.
-- **Sync.** GitHub-backed push-on-save, optional E2EE (Argon2id + XChaCha20-Poly1305), GitLab/Gitea/any HTTPS git URL, public read-only share at `solomd.app/share/?repo=…&path=…`.
-- **Agent endpoint.** `solomd-mcp` bundled (13 tools, 5 SoloMD-only: `autogit_log` / `autogit_diff` / `autogit_rollback` / `sync_status` / `share_url`); `solomd agent <prompt>` CLI handoff to claude / codex.
+- **Sync.** GitHub-backed push-on-save, optional E2EE (Argon2id + XChaCha20-Poly1305), GitLab/Gitea/any HTTPS git URL, public read-only share at `xiaoyuannote.app/share/?repo=…&path=…`.
+- **Agent endpoint.** `xiaoyuan-note-mcp` bundled (13 tools, 5 xiaoyuan-note-only: `autogit_log` / `autogit_diff` / `autogit_rollback` / `sync_status` / `share_url`); `xiaoyuanNote agent <prompt>` CLI handoff to claude / codex.
 - **AutoGit.** Per-note libgit2 commits inside the workspace, `vendored-libgit2` (no system git needed), History panel + diff + rollback.
 - **Capture.** HTTP localhost endpoint (token auth, 127.0.0.1 only), browser web clipper (Chrome MV3 + Firefox MV2), iOS Shortcuts integration on iPad.
 - **Polish.** ⌘P quick switcher, word goals + writing stats, Pomodoro/Zen, theme marketplace, slash commands (20-block catalog), reading mode, recent-edits store, file-tree right-click + inline rename.
@@ -59,19 +59,19 @@ Shipped foundation (any v4.0 work assumes this is in place):
 
 ## v4.0 — "Agent-native author" · NEXT MAJOR · target Q3 2026
 
-**Theme.** SoloMD has the strongest agent surface of any local-first markdown editor (5 SoloMD-only MCP tools nobody else has). v4.0 brings that capability **inside** the app and turns the workspace into a place where agents work **continuously**, not just on-demand. Brand evolves from *"the editor + the MCP endpoint"* to ***"the editor where agents live."***
+**Theme.** xiaoyuanNote has the strongest agent surface of any local-first markdown editor (5 xiaoyuan-note-only MCP tools nobody else has). v4.0 brings that capability **inside** the app and turns the workspace into a place where agents work **continuously**, not just on-demand. Brand evolves from *"the editor + the MCP endpoint"* to ***"the editor where agents live."***
 
 ### The 5 pillars
 
 #### 1. Inline Agent Panel · ~2 weeks · branch `feat/v4-panel`
 
-Right-side first-class panel (peer to Outline / Backlinks). Streamed chat-with-vault routed through in-process `solomd-mcp` + the existing 14-provider AI stack. Citations resolve to `[[note]]` deep links. Tool-call cards (Cursor-style) show every MCP read/write inline, expandable for full args + result. Run history persists as plain markdown in `<workspace>/.solomd/agent-runs/<ts>.md` — grep-able, git-trackable.
+Right-side first-class panel (peer to Outline / Backlinks). Streamed chat-with-vault routed through in-process `xiaoyuan-note-mcp` + the existing 14-provider AI stack. Citations resolve to `[[note]]` deep links. Tool-call cards (Cursor-style) show every MCP read/write inline, expandable for full args + result. Run history persists as plain markdown in `<workspace>/.xiaoyuan-note/agent-runs/<ts>.md` — grep-able, git-trackable.
 
 **Why:** today users either run external Claude Code (lose vault UI context) or per-document rewrite (too narrow). Vault chat is the missing middle.
 
 #### 2. Agent Recipes / Scheduled Runs · ~2.5 weeks · branch `feat/v4-recipes`
 
-Declarative agent jobs as YAML in vault: `<workspace>/.solomd/agents/*.yml`.
+Declarative agent jobs as YAML in vault: `<workspace>/.xiaoyuan-note/agents/*.yml`.
 
 ```yaml
 name: Weekly review
@@ -97,7 +97,7 @@ Triggers: `schedule` (cron) · `on-save` · `on-commit` · `on-tag-add` · comma
 
 #### 3. Agent Trace View · ~1 week · branch `feat/v4-trace`
 
-Every run (Panel chat OR Recipe) emits `<workspace>/.solomd/agent-runs/<run-id>/trace.jsonl` — line-delimited so live-tail-able during long runs. Schema: step kind (`prompt` / `model_call` / `tool_call` / `tool_result` / `git_commit` / `done`), timestamps, tool args, truncated results, token counts, cost estimate, AutoGit branch refs.
+Every run (Panel chat OR Recipe) emits `<workspace>/.xiaoyuan-note/agent-runs/<run-id>/trace.jsonl` — line-delimited so live-tail-able during long runs. Schema: step kind (`prompt` / `model_call` / `tool_call` / `tool_result` / `git_commit` / `done`), timestamps, tool args, truncated results, token counts, cost estimate, AutoGit branch refs.
 
 UI: collapsible step cards (Panel inline + Settings → Recipes history), step-detail drawer, replay-from-step button, cost breakdown per-step. New MCP tool `read_agent_trace(run_id)` — traces become introspectable by other agents → opens the door to self-correcting recipes.
 
@@ -105,7 +105,7 @@ UI: collapsible step cards (Panel inline + Settings → Recipes history), step-d
 
 #### 4. Workspace Federation · ~1.5 weeks · branch `feat/v4-federation`
 
-`solomd-mcp --workspace path1 --workspace path2 --workspace path3` (multi-workspace MCP session). Tool signatures gain optional `workspace` param; default = first-passed (back-compat). AutoGit branches isolated per workspace. Settings → Integrations adds **MCP profiles** — named workspace bundles with one-click "copy Claude Desktop config" buttons.
+`xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3` (multi-workspace MCP session). Tool signatures gain optional `workspace` param; default = first-passed (back-compat). AutoGit branches isolated per workspace. Settings → Integrations adds **MCP profiles** — named workspace bundles with one-click "copy Claude Desktop config" buttons.
 
 **Why:** natural evolution of *"the LLM only sees what you point the workspace at"* — now point at multiple, explicitly. Today users open multiple Claude Code sessions to bridge two vaults; v4.0 makes one session enough.
 
@@ -133,7 +133,7 @@ The "save the announce" arc. New users meet v4.0 through these surfaces, not the
 - **First-run wizard** — new install sees Panel within 60s; guides BYOK or Ollama setup. ~3 days.
 - **Recipe Cookbook** — vault ships with 10+ ready-to-edit recipes (weekly review / 日志整理 / TODO 抽取 / 翻译 / 引用清理 / CJK proofread agent / …). ~3 days.
 - **`docs/agents.md`** — write-your-own-recipe guide + prompt template cheatsheet. ~2 days.
-- **Website rewrite** — `solomd.app` homepage shifts to agent-first narrative + embedded demo video. ~1 week.
+- **Website rewrite** — `xiaoyuannote.app` homepage shifts to agent-first narrative + embedded demo video. ~1 week.
 - **2-week beta channel** — v4.0-rc.1 → rc.2 → tag. Telegram + WeChat groups notified. (Process, not engineering time.)
 - **Localization** — ja / ko translations for README + iPad app metadata (queued in Continuous list). ~3 days.
 
@@ -184,7 +184,7 @@ The "save the announce" arc. New users meet v4.0 through these surfaces, not the
 
 - **"Open the platform"** — sandboxed scripting API (JS in webview, capability-scoped), public REST surface evolution. Trilium-style "I want to script my workflow." Effort: L. Decision deferred until v4.0 lands and we know which extension shape users actually need.
 - **CLI v2** — extends to AI rewrite / commit / semantic search / recipe-trigger from terminal. M.
-- **Sync as paid tier** — original v3.0 question, still unanswered. SoloMD Sync (CRDT, E2EE, $30/yr challenger to Obsidian Sync $96). **XL** — billing + ops + support + regulatory. **Pre-decision required:** *"do we want to be a business?"* Don't start engineering until that's answered.
+- **Sync as paid tier** — original v3.0 question, still unanswered. xiaoyuanNote Sync (CRDT, E2EE, $30/yr challenger to Obsidian Sync $96). **XL** — billing + ops + support + regulatory. **Pre-decision required:** *"do we want to be a business?"* Don't start engineering until that's answered.
 - **Plugin runtime** (Wasm / V8 with capability scopes) — defer until we see whether the v4.x scripting API covers 80% of demand.
 - **Android** — reconsider when iPad MAU > 5k.
 
@@ -195,7 +195,7 @@ The "save the announce" arc. New users meet v4.0 through these surfaces, not the
 - README + bilingual whats-new updates per release (in quiet phase: per *patch* and per *dev log*).
 - App Store presence — MAS resubmission tracking, iPad app metadata localizations (en/zh shipped; **ja/ko slated for v4.0 quality bar**; fr/de queued).
 - Community surfaces — closing 80% of issues within 7 days, PR contributors named in release notes.
-- Comparative `/compare/vs-X` pages on solomd.app — currently: Typora, Obsidian, MarkText, Tolaria. Queued: SiYuan, Moraya, Heynote, AFFiNE.
+- Comparative `/compare/vs-X` pages on xiaoyuannote.app — currently: Typora, Obsidian, MarkText, Tolaria. Queued: SiYuan, Moraya, Heynote, AFFiNE.
 - **In quiet phase:** monthly dev log to Telegram / V2EX / 小报童 / WeChat instead of release-driven posts. v3.6.x patches still get short notes.
 - Issue triage: P0 (data loss / crash) within 4h; P1 (broken feature) within 48h; P2 within next minor (= v4.0 in current phase).
 
@@ -219,8 +219,8 @@ The "save the announce" arc. New users meet v4.0 through these surfaces, not the
 | **Copilot-style ghost-text autocomplete** | Different brand from "writer first." |
 | **Card / grid file browser + density presets** | MarKing's answer to "browse notes visually." Bases (table over properties) and saved views already cover browsing-as-data, and nobody has asked for cards in our tracker. Revisit only if a real request arrives. |
 | **One-click vault migration** | Moving a folder is a job Finder / Explorer already do with progress, conflict handling and undo; a recursive cross-device move inside a text editor is real risk for a once-in-a-lifetime action. The half worth having — not breaking afterwards — shipped instead: the tree now says when the workspace folder is gone and offers to relocate it. |
-| **Wikidata / Wikipedia entries** | Tried and lost. `Q140892885` (SoloMD), `Q140904452` (the developer item) and the Commons logo were created 2026-08-06 and **deleted 2026-08-07** — "Does not meet the notability policy". Both projects want the same thing first: two or three pieces of independent, reliable coverage. Re-creating before that reads as evading the deletion and risks getting the title salted. Earn the coverage, then revisit. |
-| **"Lightweight mode" (fast double-click open without the sidebar)** | Solves a problem we do not have. MarKing needs files imported into a library first (their #80 / #64 are literally "let me open a file without importing it"); SoloMD opens any `.md` directly from Finder, drag-drop or CLI. Startup time is a separate, real question — measure before inventing a mode for it. |
+| **Wikidata / Wikipedia entries** | Tried and lost. `Q140892885` (xiaoyuanNote), `Q140904452` (the developer item) and the Commons logo were created 2026-08-06 and **deleted 2026-08-07** — "Does not meet the notability policy". Both projects want the same thing first: two or three pieces of independent, reliable coverage. Re-creating before that reads as evading the deletion and risks getting the title salted. Earn the coverage, then revisit. |
+| **"Lightweight mode" (fast double-click open without the sidebar)** | Solves a problem we do not have. MarKing needs files imported into a library first (their #80 / #64 are literally "let me open a file without importing it"); xiaoyuanNote opens any `.md` directly from Finder, drag-drop or CLI. Startup time is a separate, real question — measure before inventing a mode for it. |
 
 ---
 

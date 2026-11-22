@@ -10,15 +10,15 @@ import re
 from pathlib import Path
 
 DOCS = [
-    ('Docs: https://solomd.app/docs/getting-started/', 'dist/docs/getting-started/index.html'),
-    ('Docs: https://solomd.app/docs/editor/', 'dist/docs/editor/index.html'),
-    ('Docs: https://solomd.app/docs/workspace/', 'dist/docs/workspace/index.html'),
-    ('Docs: https://solomd.app/docs/sync/', 'dist/docs/sync/index.html'),
-    ('Docs: https://solomd.app/docs/ai/', 'dist/docs/ai/index.html'),
-    ('Docs: https://solomd.app/docs/settings/', 'dist/docs/settings/index.html'),
+    ('Docs: https://xiaoyuannote.app/docs/getting-started/', 'dist/docs/getting-started/index.html'),
+    ('Docs: https://xiaoyuannote.app/docs/editor/', 'dist/docs/editor/index.html'),
+    ('Docs: https://xiaoyuannote.app/docs/workspace/', 'dist/docs/workspace/index.html'),
+    ('Docs: https://xiaoyuannote.app/docs/sync/', 'dist/docs/sync/index.html'),
+    ('Docs: https://xiaoyuannote.app/docs/ai/', 'dist/docs/ai/index.html'),
+    ('Docs: https://xiaoyuannote.app/docs/settings/', 'dist/docs/settings/index.html'),
     ('Images & attachments (paste destination)', 'dist/docs/images/index.html'),
     ('Keyboard shortcuts', 'dist/docs/shortcuts/index.html'),
-    ('CLI (`solomd` command)', 'dist/docs/cli/index.html'),
+    ('CLI (`xiaoyuanNote` command)', 'dist/docs/cli/index.html'),
     ('MCP server setup', 'dist/docs/mcp/index.html'),
     ('Markdown syntax reference', 'dist/docs/markdown-syntax/index.html'),
     ('Export (Pandoc)', 'dist/docs/export/index.html'),
@@ -64,7 +64,7 @@ def main() -> None:
     out = [
         base,
         '\n---\n\n# Full documentation\n\nThe sections below are the full text of the docs pages on '
-        'https://solomd.app, concatenated for deep context (llms-full.txt convention).\n',
+        'https://xiaoyuannote.app, concatenated for deep context (llms-full.txt convention).\n',
     ]
     for title, p in DOCS:
         if not Path(p).exists():

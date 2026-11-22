@@ -9,7 +9,7 @@
 //! Each entry is parsed once via `recipes::parse_recipe` so we can surface
 //! `name` / `trigger` / `provider` / `match_glob` / `allow_write` to the UI
 //! without re-implementing the schema. Install copies the raw YAML verbatim
-//! into `<workspace>/.solomd/agents/<slug>.yml` (or `<slug>-N.yml` if the
+//! into `<workspace>/.xiaoyuan-note/agents/<slug>.yml` (or `<slug>-N.yml` if the
 //! user already installed that recipe).
 
 use std::path::PathBuf;
@@ -175,7 +175,7 @@ pub fn cookbook_get(file_stem: String) -> Result<CookbookEntry, String> {
         .ok_or_else(|| format!("cookbook entry not found: {file_stem}"))
 }
 
-/// Install a cookbook entry into `<workspace>/.solomd/agents/<slug>.yml`.
+/// Install a cookbook entry into `<workspace>/.xiaoyuan-note/agents/<slug>.yml`.
 /// On filename collision we suffix with `-2`, `-3`, … so the user can
 /// install multiple variants without confirmation prompts. Returns the
 /// final on-disk path so the UI can reveal it.
@@ -194,7 +194,7 @@ pub fn cookbook_install(workspace: String, file_stem: String) -> Result<String, 
     if !ws.is_dir() {
         return Err(format!("workspace not found: {}", ws.display()));
     }
-    let dir = ws.join(".solomd").join("agents");
+    let dir = ws.join(".xiaoyuanNote").join("agents");
     std::fs::create_dir_all(&dir).map_err(|e| format!("mkdir {}: {e}", dir.display()))?;
 
     let mut candidate = dir.join(format!("{}.yml", parsed.slug));
@@ -247,7 +247,7 @@ mod tests {
     #[test]
     fn install_writes_to_workspace_agents_dir() {
         let tmp = std::env::temp_dir().join(format!(
-            "solomd-cookbook-test-{}",
+            "xiaoyuan-note-cookbook-test-{}",
             super::super::agent_run::mint_run_id()
         ));
         std::fs::create_dir_all(&tmp).unwrap();

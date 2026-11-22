@@ -6,11 +6,11 @@ import Giscus from '../../components/Giscus.astro';
 
 const lang = 'tr' as const;
 const VERSION = '4.1.0';
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 ---
 
 <Layout
-  title="SoloMD v4.0 güncellemesi — Agent'ların yaşadığı editör"
+  title="xiaoyuanNote v4.0 güncellemesi — Agent'ların yaşadığı editör"
   description="v4.0, agent-native author büyük sürümüdür. Beş sütun: entegre Agent paneli (akışlı vault ile sohbet), zamanlanmış recipe'ler (cron / on-save / on-commit, AutoGit branch sandbox'ı + accept/reject), tekrarlanabilir Trace görünümü, çoklu vault MCP federasyonu, birinci sınıf Ollama. Artı: REST API, BYOK maliyet sayacı, 11 Recipe şablonu, ilk çalıştırma sihirbazı, çok dilli yerelleştirme."
   lang={lang}
 >
@@ -35,9 +35,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
       </p>
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>⬇ v{VERSION} indir (Mac)</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>İndir (Windows)</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>Tüm platformlar →</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>⬇ v{VERSION} indir (Mac)</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>İndir (Windows)</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>Tüm platformlar →</a>
       </div>
 
       <section>
@@ -60,7 +60,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
               Her bitmiş yanıtın altındaki <strong>Ekle</strong> ve
               <strong>Kopyala</strong> düğmeleri tüm paragrafı geçerli editöre
               bırakır — seçim varsa onu değiştirir, yoksa imleç konumuna ekler.
-              Çalıştırma geçmişi <code>.solomd/agent-runs/</code> altında düz
+              Çalıştırma geçmişi <code>.xiaoyuan-note/agent-runs/</code> altında düz
               markdown olarak saklanır, grep edilebilir, git ile izlenebilir.
             </p>
           </div>
@@ -68,7 +68,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             <h3>2 · Agent Recipe / zamanlanmış çalıştırma</h3>
             <p>
               Bildirimsel agent işleri,
-              <code>&lt;workspace&gt;/.solomd/agents/*.yml</code> altında YAML
+              <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code> altında YAML
               dosyaları.
               Trigger'lar: <code>schedule</code> (cron), <code>on-save</code>,
               <code>on-commit</code>, <code>on-tag-add</code>, manuel.
@@ -105,7 +105,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           <div class="pillar">
             <h3>4 · Çoklu vault MCP federasyonu</h3>
             <p>
-              <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+              <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
               —— bir MCP oturumu, birden fazla vault. Araç imzaları opsiyonel
               <code>workspace</code> parametresi kazandı, varsayılan = ilk
               geçirilen (single-vault MCP istemcileriyle tamamen back-compat).
@@ -226,7 +226,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           </li>
           <li>
             <strong>macOS başlatma UX'i.</strong> Başlangıçta aktivasyon
-            zamanlaması düzeltildi —— SoloMD soğuk başlangıç gerçekten ön plana
+            zamanlaması düzeltildi —— xiaoyuanNote soğuk başlangıç gerçekten ön plana
             gelir, artık Finder'ın arkasında saklanmaz. Pencere konumu geri
             yükleme her zaman geçerli ekranın workspace'ine iner; ikincil ekran
             bağlantısı kesildikten sonra kötü cache'den geri yükleme, ekran
@@ -291,7 +291,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             <em>Entegrasyonlar</em> altında. Mevcut ayar konumları değişmedi.
           </li>
           <li>
-            <strong>MCP sunucusu (<code>solomd-mcp</code>) yeni bir
+            <strong>MCP sunucusu (<code>xiaoyuan-note-mcp</code>) yeni bir
             <code>--workspace</code> parametresi kazandı</strong> (tekrarlanabilir).
             Mevcut single-workspace MCP istemcileri çalışmaya devam eder;
             federasyon davranışı opt-in'dir.
@@ -304,10 +304,10 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
         <p>
           5 ana sütun + kalite çıtası bu seferki ana içerik. <em>v4.x ve
           ötesi için açık yönler</em> hepsi
-          <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">yol haritasında</a>:
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">yol haritasında</a>:
           sandbox'lı script API, CLI v2 (rewrite / commit / anlamsal arama /
           terminalden Recipe tetikleme) ve sürekli ertelenen soru
-          <em>"SoloMD ticari bir ürüne dönüşmeli mi?"</em>
+          <em>"xiaoyuanNote ticari bir ürüne dönüşmeli mi?"</em>
           (ücretli sync — eski v3.0 dönemi sorusu, hâlâ yanıtsız, karar
           verilene kadar bu alanda hiçbir mühendislik yapılmayacak).
         </p>

@@ -12,6 +12,6 @@ Elegir un tema y que no cambie nada ahora se explica: un tema del marketplace qu
 
 La aplicación arranca más rápido. Todo se compilaba antes del primer fotograma: el motor de diagramas, los dos diccionarios chinos, las exportaciones a PDF y Word, la presentación. Ahora se cargan cuando algo los pide y el primer dibujado es un 30% más rápido.
 
-Ahora se detecta un archivo modificado en otro editor, incluso mientras SoloMD estaba cerrado: al iniciar y cada vez que la ventana recupera el foco. Los cambios sin guardar nunca se sobrescriben.
+Ahora se detecta un archivo modificado en otro editor, incluso mientras xiaoyuanNote estaba cerrado: al iniciar y cada vez que la ventana recupera el foco. Los cambios sin guardar nunca se sobrescriben.
 
 El botón de la barra lateral derecha siempre hace algo.

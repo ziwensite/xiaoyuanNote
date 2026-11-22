@@ -1,7 +1,7 @@
 /**
  * tldraw-runtime.ts — THE single dynamic-import adapter for the tldraw board.
  *
- * tldraw is a React library (~1-2MB) and SoloMD is Vue3. To keep the rest of
+ * tldraw is a React library (~1-2MB) and xiaoyuanNote is Vue3. To keep the rest of
  * the app compiling and shipping WITHOUT the dep, every `tldraw` / `react` /
  * `react-dom` import in the whole codebase is confined to THIS file and is
  * performed via dynamic `import()` so the bundle stays code-split and the
@@ -40,7 +40,7 @@ export type { BoardThemeTokens };
 export interface MountBoardOptions {
   /** Initial snapshot JSON string ('{}' or '' = fresh empty board). */
   snapshot: string;
-  /** Theme/locale tokens read from SoloMD settings + styles/main.css. */
+  /** Theme/locale tokens read from xiaoyuanNote settings + styles/main.css. */
   theme: BoardThemeTokens;
   /** Read-only board (preview/thumbnail) — hides chrome, disables editing. */
   readOnly?: boolean;
@@ -94,13 +94,13 @@ async function loadMods(): Promise<any> {
 }
 
 /**
- * Compute tldraw user preferences from SoloMD theme tokens. tldraw wants an
+ * Compute tldraw user preferences from xiaoyuanNote theme tokens. tldraw wants an
  * id + colorScheme + locale; we keep a stable id per session so prefs persist
  * across remounts but don't leak between vaults.
  */
 function userPrefsFor(tldraw: any, theme: BoardThemeTokens): any {
   const prefs = {
-    id: 'solomd-board-user',
+    id: 'xiaoyuan-note-board-user',
     colorScheme: theme.colorScheme,
     locale: theme.locale,
     // Tauri/zoom: tldraw's animation easing reads the device pixel ratio; a
@@ -117,7 +117,7 @@ function userPrefsFor(tldraw: any, theme: BoardThemeTokens): any {
   try {
     const { createTLUser, atom } = tldraw;
     if (typeof createTLUser === 'function' && typeof atom === 'function') {
-      const prefsAtom = atom('solomd-board-prefs', prefs);
+      const prefsAtom = atom('xiaoyuan-note-board-prefs', prefs);
       return createTLUser({
         userPreferences: prefsAtom,
         setUserPreferences: (next: unknown) => prefsAtom.set(next),

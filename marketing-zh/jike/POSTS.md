@@ -25,7 +25,7 @@
 
 免费开源，MIT 协议。
 
-https://solomd.app
+https://xiaoyuannote.app
 
 反馈 bug 或建议欢迎直接回复 👇
 ```
@@ -38,7 +38,7 @@ https://solomd.app
 
 ### 版本更新
 ```
-SoloMD 更新了 [版本号]
+xiaoyuanNote 更新了 [版本号]
 
 新增：
 • xxx
@@ -47,7 +47,7 @@ SoloMD 更新了 [版本号]
 修复：
 • xxx
 
-下载：https://solomd.app
+下载：https://xiaoyuannote.app
 ```
 
 ### AI 功能相关
@@ -56,7 +56,7 @@ SoloMD 更新了 [版本号]
 
 做了个「一键清除 AI 格式」的功能，粘贴后一键清理干净。
 
-在 SoloMD 里：https://solomd.app
+在 xiaoyuanNote 里：https://xiaoyuannote.app
 ```
 
 ### 技术分享
@@ -68,7 +68,7 @@ SoloMD 更新了 [版本号]
 3. 但不同平台的 WebView 有差异，要适配
 4. Rust 学习曲线陡峭，但写完很爽
 
-代码开源：github.com/zhitongblog/solomd
+代码开源：github.com/zhitongblog/xiaoyuan-note
 ```
 
 ---

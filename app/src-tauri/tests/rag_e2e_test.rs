@@ -17,7 +17,7 @@ fn fresh_workspace(label: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-rag-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-rag-{label}-{nanos}"));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir
@@ -102,18 +102,18 @@ fn rag_full_flow_index_then_search_ranks_relevant_first() {
         weather_score
     );
 
-    // .gitignore should now contain `.solomd/` so AutoGit skips the index.
+    // .gitignore should now contain `.xiaoyuan-note/` so AutoGit skips the index.
     let gi = fs::read_to_string(ws.join(".gitignore")).unwrap_or_default();
     assert!(
-        gi.lines().any(|l| l.trim() == ".solomd/"),
-        "gitignore should mention .solomd/, got:\n{}",
+        gi.lines().any(|l| l.trim() == ".xiaoyuan-note/"),
+        "gitignore should mention .xiaoyuan-note/, got:\n{}",
         gi
     );
 
     // Sqlite index file should be where we promised.
     assert!(
-        ws.join(".solomd").join("embeddings.sqlite").exists(),
-        ".solomd/embeddings.sqlite should exist"
+        ws.join(".xiaoyuanNote").join("embeddings.sqlite").exists(),
+        ".xiaoyuan-note/embeddings.sqlite should exist"
     );
 
     let _ = fs::remove_dir_all(&ws);
@@ -159,8 +159,8 @@ fn rag_disabled_by_default_no_overhead() {
         "fresh workspace should not be ready before reindex"
     );
     assert!(
-        !ws.join(".solomd").exists(),
-        ".solomd should NOT exist before enable"
+        !ws.join(".xiaoyuanNote").exists(),
+        ".xiaoyuanNote should NOT exist before enable"
     );
 
     let _ = fs::remove_dir_all(&ws);

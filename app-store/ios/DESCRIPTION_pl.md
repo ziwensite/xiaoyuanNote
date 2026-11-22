@@ -1,4 +1,4 @@
-SoloMD to lekki, wolny od rozpraszaczy edytor Markdown na iPada. Jeden plik. Jedno okno. Po prostu pisz.
+xiaoyuanNote to lekki, wolny od rozpraszaczy edytor Markdown na iPada. Jeden plik. Jedno okno. Po prostu pisz.
 
 Stworzony od podstaw jako narzędzie do skupionego pisania — bez konta, bez chmury, bez telemetrii, bez subskrypcji. Twoje notatki pozostają w zwykłych plikach `.md` i `.txt` na Twoim iPadzie — czytelnych dla każdego edytora na każdej platformie, dziś i za dziesięć lat.
 
@@ -59,8 +59,8 @@ EKSPORT
 PRYWATNOŚĆ PRZEDE WSZYSTKIM
 ━━━━━━━━━━━━━━━━━━
 
-SoloMD nie zbiera żadnych danych osobowych. Bez konta. Bez analityki. Bez reklam. Bez śledzenia. Wszystkie notatki przechowywane są lokalnie, w plikach, które należą do Ciebie.
+xiaoyuanNote nie zbiera żadnych danych osobowych. Bez konta. Bez analityki. Bez reklam. Bez śledzenia. Wszystkie notatki przechowywane są lokalnie, w plikach, które należą do Ciebie.
 
-SoloMD jest open source (MIT). Kod źródłowy: github.com/zhitongblog/solomd
+xiaoyuanNote jest open source (MIT). Kod źródłowy: github.com/zhitongblog/xiaoyuan-note
 
-Podoba Ci się SoloMD? Zostaw ⭐ w repozytorium lub wesprzyj rozwój na solomd.app
+Podoba Ci się xiaoyuanNote? Zostaw ⭐ w repozytorium lub wesprzyj rozwój na xiaoyuannote.app

@@ -1,7 +1,7 @@
 /**
  * F2 — Frontmatter splice helpers for the Type-driven sidebar.
  *
- * SoloMD keeps "types" 100% Markdown-native (Tolaria-compatible): membership
+ * xiaoyuanNote keeps "types" 100% Markdown-native (Tolaria-compatible): membership
  * and type-definition metadata all live in a note's YAML frontmatter block.
  * Editing that metadata must NOT clobber the rest of the file — so instead of
  * re-serializing whole documents we splice ONLY the leading `---\n…\n---`
@@ -293,6 +293,17 @@ export function splitFrontmatter(text: string): SplitDoc {
 /** Serialize a frontmatter object into a `---\n…\n---` block (no trailing nl). */
 export function dumpFrontmatter(data: Record<string, unknown>): string {
   return dumpBlock(data, '\n');
+}
+
+/** Raw YAML between the fences, or `null` when there is no leading block.
+ *
+ *  Renderers use this instead of re-implementing the fence rules, so the
+ *  preview, the live editors and the patcher all agree on BOM, CRLF and the
+ *  `---` / `...` closing line. */
+export function extractFrontmatterYaml(text: string): string | null {
+  const layout = splitLayout(text);
+  if (!layout.hadBlock) return null;
+  return layout.lines.map((l) => l.text + l.eol).join('');
 }
 
 /**

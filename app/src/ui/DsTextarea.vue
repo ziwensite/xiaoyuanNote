@@ -54,7 +54,7 @@ function onInput(e: Event) {
 .ds-textarea:focus {
   outline: none;
   background: var(--bg);
-  box-shadow: var(--ring);
+  box-shadow: var(--ring-tight);
 }
 .ds-textarea:disabled {
   opacity: 0.5;

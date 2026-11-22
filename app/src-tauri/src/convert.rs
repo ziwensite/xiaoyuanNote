@@ -358,7 +358,7 @@ fn docx_xml_to_markdown_with_links(
                             let ordered =
                                 num_id.as_ref().is_some_and(|n| ordered_lists.contains(n));
                             let indent = "  ".repeat(ilvl);
-                            // A task item exported by SoloMD starts with a ballot box.
+                            // A task item exported by xiaoyuanNote starts with a ballot box.
                             let (task, body) = if let Some(rest) = line.strip_prefix('☐') {
                                 (Some(' '), rest.trim_start())
                             } else if let Some(rest) =

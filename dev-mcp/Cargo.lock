@@ -1357,7 +1357,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "solomd-dev-mcp"
+name = "xiaoyuan-note-dev-mcp"
 version = "0.1.0"
 dependencies = [
  "anyhow",

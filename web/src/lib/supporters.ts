@@ -20,7 +20,7 @@ export interface Promoter {
   platform: string;
   /** The article / video / post itself. */
   url: string;
-  /** Their referral code, as in solomd.app/?ref=<code>. */
+  /** Their referral code, as in xiaoyuannote.app/?ref=<code>. */
   ref?: string;
   github?: string;
   /** Shown as a card on the homepage, with `quote`. */
@@ -81,7 +81,7 @@ export const communityReporters: CommunityReporter[] = rawReporters.map((item) =
   }
   return {
     name: item.name,
-    url: item.github ? `https://github.com/${item.github}` : 'https://github.com/zhitongblog/solomd/issues',
+    url: item.github ? `https://github.com/${item.github}` : 'https://github.com/zhitongblog/xiaoyuan-note/issues',
     platform: 'github',
   };
 });
@@ -89,6 +89,6 @@ export const communityReporters: CommunityReporter[] = rawReporters.map((item) =
 export const featuredPromoters = promoters.filter((p) => p.featured && p.quote);
 
 export const PROMOTE_ISSUE_URL =
-  'https://github.com/zhitongblog/solomd/issues/new?template=promotion.yml';
-export const PROMOTE_GITEE_URL = 'https://gitee.com/zhitong45/solomd/issues/new';
+  'https://github.com/zhitongblog/xiaoyuan-note/issues/new?template=promotion.yml';
+export const PROMOTE_GITEE_URL = 'https://gitee.com/zhitong45/xiaoyuan-note/issues/new';
 export const PROMOTE_EMAIL = 'slushy@139.com';

@@ -4,6 +4,6 @@ Bold, italic, strikethrough and code over several paragraphs now format each par
 
 Menus: Find and Replace in the Edit menu, the zoom commands in a View › Zoom submenu, and the Help menu lists the Markdown cheatsheet, keyboard shortcuts and the command line separately. The Insert menu gains headings 4–6.
 
-Links in rendered notes always open in your browser, never inside SoloMD.
+Links in rendered notes always open in your browser, never inside xiaoyuan-note.
 
-After a few days of use, SoloMD asks once — and only once — whether you'd like to star it on GitHub.
+After a few days of use, xiaoyuanNote asks once — and only once — whether you'd like to star it on GitHub.

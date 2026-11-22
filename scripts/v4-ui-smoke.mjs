@@ -21,7 +21,7 @@
  *
  * Usage:
  *   1. Start `pnpm tauri dev` in another terminal.
- *   2. Open SoloMD, point the workspace at any folder.
+ *   2. Open xiaoyuanNote, point the workspace at any folder.
  *   3. node scripts/v4-ui-smoke.mjs
  *
  * Exit 0 = every check green; exit 1 = at least one failed.
@@ -46,10 +46,10 @@ function log(...a) {
 // ~/.config, Windows = %APPDATA%.
 const cfgDir =
   process.platform === 'darwin'
-    ? join(homedir(), 'Library/Application Support/app.solomd')
+    ? join(homedir(), 'Library/Application Support/app.xiaoyuanNote')
     : process.platform === 'win32'
-      ? join(process.env.APPDATA ?? '', 'app.solomd')
-      : join(homedir(), '.config/app.solomd');
+      ? join(process.env.APPDATA ?? '', 'app.xiaoyuanNote')
+      : join(homedir(), '.config/app.xiaoyuanNote');
 function cfgFile(name) {
   return readFileSync(join(cfgDir, name), 'utf8').trim();
 }
@@ -115,7 +115,7 @@ async function getWorkspace() {
 async function ensureSyntheticRun(workspace) {
   if (!workspace) return null;
   const runId = '20260501-130000-aaa111';
-  const runDir = `${workspace}/.solomd/agent-runs/${runId}`;
+  const runDir = `${workspace}/.xiaoyuan-note/agent-runs/${runId}`;
   if (existsSync(runDir)) return runId;
   try {
     mkdirSync(runDir, { recursive: true });
@@ -128,19 +128,19 @@ async function ensureSyntheticRun(workspace) {
       workspace,
       provider: 'claude',
       model: 'claude-sonnet-4-6',
-      recipe: { name: 'Smoke test', path: '.solomd/agents/smoke.yml', trigger: 'manual', branch: `agent/smoke/${runId}` },
+      recipe: { name: 'Smoke test', path: '.xiaoyuan-note/agents/smoke.yml', trigger: 'manual', branch: `agent/smoke/${runId}` },
       tokens: { input: 420, output: 85 },
       cost_usd_estimate: 0.0014,
       error: null,
     }, null, 2));
     const lines = [
-      { ts: 1746086400000, run_id: runId, seq: 1, kind: 'run_started', run_kind: 'recipe', provider: 'claude', model: 'claude-sonnet-4-6', recipe: { name: 'Smoke test', path: '.solomd/agents/smoke.yml', trigger: 'manual', branch: `agent/smoke/${runId}` } },
+      { ts: 1746086400000, run_id: runId, seq: 1, kind: 'run_started', run_kind: 'recipe', provider: 'claude', model: 'claude-sonnet-4-6', recipe: { name: 'Smoke test', path: '.xiaoyuan-note/agents/smoke.yml', trigger: 'manual', branch: `agent/smoke/${runId}` } },
       { ts: 1746086400500, run_id: runId, seq: 2, kind: 'prompt', text: 'Read welcome.md and summarize.' },
       { ts: 1746086401000, run_id: runId, seq: 3, kind: 'model_call', provider: 'claude', model: 'claude-sonnet-4-6' },
       { ts: 1746086402500, run_id: runId, seq: 4, kind: 'tool_call', tool: 'read_note', tool_call_id: 'call_1', args: { path: 'welcome.md' } },
       { ts: 1746086402800, run_id: runId, seq: 5, kind: 'tool_result', tool_call_id: 'call_1', result: 'welcome.md content here' },
       { ts: 1746086403200, run_id: runId, seq: 6, kind: 'model_call', provider: 'claude', model: 'claude-sonnet-4-6' },
-      { ts: 1746086405100, run_id: runId, seq: 7, kind: 'model_done', input_tokens: 420, output_tokens: 85, text: 'A SoloMD onboarding tutorial.' },
+      { ts: 1746086405100, run_id: runId, seq: 7, kind: 'model_done', input_tokens: 420, output_tokens: 85, text: 'A xiaoyuanNote onboarding tutorial.' },
       { ts: 1746086405200, run_id: runId, seq: 8, kind: 'run_ended', status: 'ok', input_tokens: 420, output_tokens: 85, cost_usd: 0.0014 },
     ];
     writeFileSync(`${runDir}/trace.jsonl`, lines.map(l => JSON.stringify(l)).join('\n') + '\n');
@@ -157,14 +157,14 @@ async function ensureSyntheticRun(workspace) {
 // ---------------------------------------------------------------------------
 
 console.log();
-console.log(`=== SoloMD v4.0 live UI smoke · ${new Date().toISOString()} ===`);
+console.log(`=== xiaoyuanNote v4.0 live UI smoke · ${new Date().toISOString()} ===`);
 console.log();
 
-// Workspace lives in localStorage (`solomd.workspace.v1`) rather than a
+// Workspace lives in localStorage (`xiaoyuan-note.workspace.v1`) rather than a
 // Tauri command — read it directly.
 const wsResultRaw = await devEval(`
   try {
-    const raw = localStorage.getItem('solomd.workspace.v1');
+    const raw = localStorage.getItem('xiaoyuan-note.workspace.v1');
     return { folder: raw ? (JSON.parse(raw).currentFolder || null) : null };
   } catch {
     return { folder: null };

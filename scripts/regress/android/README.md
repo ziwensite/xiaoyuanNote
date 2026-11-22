@@ -1,6 +1,6 @@
 # Android regression suite
 
-Drives a **release-signed** SoloMD APK on an emulator or phone using adb
+Drives a **release-signed** xiaoyuanNote APK on an emulator or phone using adb
 only: `input tap/text/keyevent`, `uiautomator dump` for element bounds,
 `screencap` for screenshots. It covers checklist column A rows L8/L9
 (`docs/regression-checklist.md`) and the 5.0 phone shell (`docs/v5-ui-spec.md` §8).
@@ -20,7 +20,7 @@ stops it again at the end. An emulator or phone that was already attached is lef
 alone. Exit code: 0 all passed, 1 a check failed, 2 setup failed. It prints a
 PASS/FAIL table and writes `results.json`, `shots/*.png` and the last
 `ui/<check>.xml` dump per check to `$OUT_DIR` (default
-`/tmp/solomd-regress-android/<timestamp>`).
+`/tmp/xiaoyuan-note-regress-android/<timestamp>`).
 
 **It wipes app data.** A00 uninstalls and installs, and A01 runs `pm clear` so
 the run starts from a first launch. Rotation, display density, font scale and

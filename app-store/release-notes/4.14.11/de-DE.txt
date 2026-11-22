@@ -1,4 +1,4 @@
-SoloMD 4.14.11 behebt Probleme, die bei einem vollständigen Testdurchlauf gefunden wurden. Einige davon konnten Text verändern oder verlieren lassen, daher empfehlen wir das Update.
+xiaoyuanNote 4.14.11 behebt Probleme, die bei einem vollständigen Testdurchlauf gefunden wurden. Einige davon konnten Text verändern oder verlieren lassen, daher empfehlen wir das Update.
 
 • Die CJK-Korrektur wertet Dateinamen (文档.md, 压缩包.tar.gz) und Auslassungspunkte nicht mehr als Satzzeichenfehler, sodass „Alle anwenden“ sie nicht mehr umschreiben kann.
 • Beim Import eines Word-Dokuments bleibt Fettschrift an ihrer Stelle, und nummerierte Listen, Aufgabenlisten und Links kommen wieder mit. Der Word-Export kennzeichnet Aufgaben mit [ ] / [x].

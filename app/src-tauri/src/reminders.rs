@@ -8,7 +8,7 @@
 //!      system clock jump or a laptop resume re-aligns instead of waiting out
 //!      the old timestamp),
 //!   2. sends a **system notification** through `tauri-plugin-notification`,
-//!   3. emits `solomd://calendar-reminder` so the UI can react,
+//!   3. emits `xiaoyuan-note://calendar-reminder` so the UI can react,
 //!   4. records that the id fired and persists those records so a restart
 //!      cannot replay a reminder that already happened.
 //!
@@ -41,7 +41,7 @@ const POLL_SECS: u64 = 60;
 /// replayed, and this keeps the file small.
 const KEEP_SECS: i64 = 7 * 24 * 60 * 60;
 
-const REMINDER_EVENT: &str = "solomd://calendar-reminder";
+const REMINDER_EVENT: &str = "xiaoyuan-note://calendar-reminder";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -284,7 +284,7 @@ fn fire(app: &AppHandle, state: &RemindersState, item: ReminderItem) {
         // Visible fallback signal. The frontend shows a warning toast; doing
         // nothing here is the silent degradation this milestone forbids.
         let _ = app.emit(
-            "solomd://calendar-reminder-error",
+            "xiaoyuan-note://calendar-reminder-error",
             serde_json::json!({ "id": item.id }),
         );
     }

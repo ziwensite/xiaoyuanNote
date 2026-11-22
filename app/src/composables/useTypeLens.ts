@@ -9,8 +9,8 @@
  * wires the listeners in a single block and we never touch an off-limits store.
  *
  * Events:
- *   - `solomd:open-type-lens`  (detail: { typeName }) → show TypeLensView
- *   - `solomd:close-type-lens`                        → back to the editor
+ *   - `xiaoyuan-note:open-type-lens`  (detail: { typeName }) → show TypeLensView
+ *   - `xiaoyuan-note:close-type-lens`                        → back to the editor
  */
 
 export interface UseTypeLens {
@@ -20,8 +20,8 @@ export interface UseTypeLens {
   closeTypeLens(): void;
 }
 
-export const TYPE_LENS_OPEN_EVENT = 'solomd:open-type-lens';
-export const TYPE_LENS_CLOSE_EVENT = 'solomd:close-type-lens';
+export const TYPE_LENS_OPEN_EVENT = 'xiaoyuan-note:open-type-lens';
+export const TYPE_LENS_CLOSE_EVENT = 'xiaoyuan-note:close-type-lens';
 
 export function useTypeLens(): UseTypeLens {
   function openTypeLens(typeName: string) {

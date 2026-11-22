@@ -20,7 +20,7 @@
  *     after every replacement and re-render. (For batch apply, we
  *     coalesce into one transaction by walking right-to-left so
  *     earlier offsets stay valid.)
- *   - We jump the editor via the existing `solomd:outline-goto`
+ *   - We jump the editor via the existing `xiaoyuan-note:outline-goto`
  *     event (same plumbing Backlinks uses). Highlight isn't
  *     persistent — placing the cursor at the issue is enough cue.
  */
@@ -171,7 +171,7 @@ function jumpTo(issue: Issue, idx: number) {
   // Reuse the outline-goto event (PaneContent listens for it). Pass
   // undefined paneId so the focused pane handles it.
   window.dispatchEvent(
-    new CustomEvent('solomd:outline-goto', {
+    new CustomEvent('xiaoyuan-note:outline-goto', {
       detail: { line: issue.line, paneId: tiles.focusedPaneId },
     }),
   );

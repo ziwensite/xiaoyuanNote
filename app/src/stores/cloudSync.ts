@@ -6,7 +6,7 @@
  * them together: when a workspace opens, we (a) probe the path to see if
  * it's already in iCloud / Dropbox / OneDrive / Google Drive, and (b)
  * write a session.<deviceId>.json + check sibling sessions in the
- * .solomd/ folder. Surfacing both as a single "current workspace cloud
+ * .xiaoyuan-note/ folder. Surfacing both as a single "current workspace cloud
  * status" object keeps the UI banner straightforward.
  */
 import { defineStore } from 'pinia';
@@ -59,7 +59,7 @@ export interface SiblingSession {
 interface State {
   deviceId: string | null;
   cloud: CloudFolderInfo;
-  /** Sibling sessions found in `.solomd/` of the current workspace, sorted
+  /** Sibling sessions found in `.xiaoyuan-note/` of the current workspace, sorted
    *  newest-first. Excludes our own. */
   siblings: SiblingSession[];
   /** True after we've shown the cross-device restore prompt for this

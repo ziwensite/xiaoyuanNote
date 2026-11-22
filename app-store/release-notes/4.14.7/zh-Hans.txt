@@ -1,6 +1,6 @@
 可以把「文件」App 里的任意文件夹设为工作文件夹——iCloud 云盘、我的 iPhone 或其他 App 的文件夹都行，下次打开仍然记得。
 
-SoloMD 自己的文件夹现在会出现在「文件」App 的「我的 iPhone › SoloMD」里。
+xiaoyuanNote 自己的文件夹现在会出现在「文件」App 的「我的 iPhone › xiaoyuanNote」里。
 
 从「文件」App 打开的笔记直接在原文件上编辑，保存时更新原文件，不再另存一份副本。
 

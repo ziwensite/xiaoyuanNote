@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interactive verification of the signed & notarized SoloMD 5.0.0 universal DMG.
+Interactive verification of the signed & notarized xiaoyuanNote 5.0.0 universal DMG.
 Mounts the DMG read-only, verifies Gatekeeper/signature/MCP versions,
 launches the app with a fixture note, reads the native menu bar via AX,
 and verifies clean startup and graceful shutdown.
@@ -15,7 +15,7 @@ import tempfile
 import time
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-DMG_PATH = REPO / '.local/v5-acceptance/2026-10-11/SoloMD_5.0.0_universal.dmg'
+DMG_PATH = REPO / '.local/v5-acceptance/2026-10-11/XIAOYUAN_NOTE_5.0.0_universal.dmg'
 DUMP_MENU = REPO / '.local/v5-acceptance/2026-10-10/dump-menu'
 OUT_JSON = REPO / '.local/v5-acceptance/2026-10-12/mac-signed-interaction.json'
 
@@ -31,7 +31,7 @@ results = {
     "passed": False,
 }
 
-mount_point = tempfile.mkdtemp(prefix="solomd-dmg-")
+mount_point = tempfile.mkdtemp(prefix="xiaoyuan-note-dmg-")
 print(f"==> Attaching DMG read-only at {mount_point}")
 attach = subprocess.run(
     ["hdiutil", "attach", str(DMG_PATH), "-mountpoint", mount_point, "-readonly", "-nobrowse"],
@@ -40,8 +40,8 @@ attach = subprocess.run(
 results["mount"] = mount_point
 
 try:
-    app_path = pathlib.Path(mount_point) / "SoloMD.app"
-    assert app_path.is_dir(), f"SoloMD.app not found in mounted DMG: {list(pathlib.Path(mount_point).iterdir())}"
+    app_path = pathlib.Path(mount_point) / "xiaoyuannote.app"
+    assert app_path.is_dir(), f"xiaoyuannote.app not found in mounted DMG: {list(pathlib.Path(mount_point).iterdir())}"
 
     # 1. Info.plist checks
     info = plistlib.loads((app_path / "Contents/Info.plist").read_bytes())
@@ -65,9 +65,9 @@ try:
 
     # 3. Universal binaries
     for bin_name, bin_rel in [
-        ("app", "Contents/MacOS/SoloMD"),
-        ("mcp", "Contents/MacOS/solomd-mcp"),
-        ("quicklook", "Contents/PlugIns/SoloMDQuickLook.appex/Contents/MacOS/SoloMDQuickLook"),
+        ("app", "Contents/MacOS/xiaoyuanNote"),
+        ("mcp", "Contents/MacOS/xiaoyuan-note-mcp"),
+        ("quicklook", "Contents/PlugIns/xiaoyuanNoteQuickLook.appex/Contents/MacOS/xiaoyuanNoteQuickLook"),
     ]:
         bp = app_path / bin_rel
         assert bp.is_file(), f"Binary missing: {bp}"
@@ -78,7 +78,7 @@ try:
         print(f"  ✓ {bin_name} universal ({archs})")
 
     # 4. MCP protocol response on both architectures
-    mcp_bin = app_path / "Contents/MacOS/solomd-mcp"
+    mcp_bin = app_path / "Contents/MacOS/xiaoyuan-note-mcp"
     init_req = json.dumps({
         "jsonrpc": "2.0",
         "id": 1,
@@ -113,8 +113,8 @@ try:
             "[https://example.com](https://target.invalid)\n"
         )
 
-        app_exec = app_path / "Contents/MacOS/SoloMD"
-        print(f"==> Launching mounted SoloMD with fixture: {test_file}")
+        app_exec = app_path / "Contents/MacOS/xiaoyuanNote"
+        print(f"==> Launching mounted xiaoyuanNote with fixture: {test_file}")
         proc = subprocess.Popen(
             [str(app_exec), str(test_file)],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -129,7 +129,7 @@ try:
                 # Check if process is still alive
                 if proc.poll() is not None:
                     out, err = proc.communicate()
-                    raise RuntimeError(f"SoloMD exited early with {proc.returncode}:\nstdout: {out}\nstderr: {err}")
+                    raise RuntimeError(f"xiaoyuanNote exited early with {proc.returncode}:\nstdout: {out}\nstderr: {err}")
                 p_menu = subprocess.run([str(DUMP_MENU), str(proc.pid)], capture_output=True, text=True)
                 if p_menu.returncode == 0 and len(p_menu.stdout.strip().splitlines()) > 50:
                     menu_text = p_menu.stdout
@@ -154,7 +154,7 @@ try:
             print("  ✓ Key accelerators verified (保存 ⌘S, 加粗 ⇧⌘B, 新建 ⌘N)")
 
             # Check About item is localized
-            assert not any(k.startswith("About SoloMD") for k in shortcuts), "About SoloMD was not localized"
+            assert not any(k.startswith("About xiaoyuanNote") for k in shortcuts), "About xiaoyuanNote was not localized"
             assert any("关于" in k for k in shortcuts), "Missing localized 关于 item in menu"
             print("  ✓ Localized About menu verified")
 
@@ -162,14 +162,14 @@ try:
             results["runtime_interaction"]["localized_about_verified"] = True
 
         finally:
-            print(f"==> Gracefully terminating SoloMD (pid {proc.pid})")
+            print(f"==> Gracefully terminating xiaoyuanNote (pid {proc.pid})")
             proc.terminate()
             try:
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
-            print("  ✓ SoloMD exited cleanly")
+            print("  ✓ xiaoyuanNote exited cleanly")
 
     results["passed"] = True
     print("==> ALL MAC SIGNED DMG INTERACTION CHECKS PASSED!")

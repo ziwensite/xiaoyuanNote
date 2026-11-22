@@ -14,8 +14,8 @@
 #   scripts/v4-self-test.sh --with-ollama  # also run live-Ollama smoke test
 #                                          # (requires localhost:11434 +
 #                                          # qwen2.5:1.5b pulled)
-#   scripts/v4-self-test.sh --with-release # also build --release for SoloMD,
-#                                          # solomd-mcp, and the frontend
+#   scripts/v4-self-test.sh --with-release # also build --release for xiaoyuanNote,
+#                                          # xiaoyuan-note-mcp, and the frontend
 #                                          # (catches debug-only-cfg slips
 #                                          # before macOS signing trips)
 #   scripts/v4-self-test.sh --with-ui      # also drive `pnpm tauri dev`
@@ -77,7 +77,7 @@ run_pillar() {
 cd "$APP" || exit 1
 
 echo
-echo "=== SoloMD v4.0 self-test · $(date +%FT%T%z) ==="
+echo "=== xiaoyuanNote v4.0 self-test · $(date +%FT%T%z) ==="
 echo
 
 # ------------------------------------------------------------------
@@ -110,7 +110,7 @@ run_pillar "Pillar 3 · Trace module unit tests" \
 
 # ------------------------------------------------------------------
 # Pillar 4 — Workspace Federation
-#   solomd-mcp multi-workspace mode: back-compat + alias resolution +
+#   xiaoyuan-note-mcp multi-workspace mode: back-compat + alias resolution +
 #   absolute-path targeting + unknown-alias errors.
 # ------------------------------------------------------------------
 run_pillar "Pillar 4 · Federation (multi_workspace)" \
@@ -138,7 +138,7 @@ fi
 # Pillar 1 / 4 depend on.
 # ------------------------------------------------------------------
 run_pillar "Cross · mcp-server unit tests" \
-    bash -c "cd '$MCP' && cargo test --quiet --bin solomd-mcp"
+    bash -c "cd '$MCP' && cargo test --quiet --bin xiaoyuan-note-mcp"
 
 # ------------------------------------------------------------------
 # Optional: release-build smoke test. Catches debug-only assumptions
@@ -147,9 +147,9 @@ run_pillar "Cross · mcp-server unit tests" \
 # (signing + notarize + dmg) is user-side — see scripts/build-mac.sh.
 # ------------------------------------------------------------------
 if [[ $WITH_RELEASE -eq 1 ]]; then
-    run_pillar "Release · cargo build --release (SoloMD)" \
-        cargo build --release --bin SoloMD
-    run_pillar "Release · cargo build --release (solomd-mcp)" \
+    run_pillar "Release · cargo build --release (xiaoyuanNote)" \
+        cargo build --release --bin xiaoyuanNote
+    run_pillar "Release · cargo build --release (xiaoyuan-note-mcp)" \
         bash -c "cd '$MCP' && cargo build --release"
     run_pillar "Release · pnpm build (frontend)" \
         bash -c "cd '$REPO_ROOT/app' && pnpm build"
@@ -189,7 +189,7 @@ if [[ ${#FAILED[@]} -eq 0 ]]; then
     echo "  · Pillar 4 — Workspace Federation            ✓"
     echo "  · Pillar 5 — Ollama first-class              ✓"
     if [[ $WITH_RELEASE -eq 1 ]]; then
-        echo "  · Release builds (SoloMD + mcp + frontend)   ✓"
+        echo "  · Release builds (xiaoyuanNote + mcp + frontend)   ✓"
     fi
     if [[ $WITH_UI -eq 1 ]]; then
         echo "  · Live UI surfaces (Tauri dev)               ✓"

@@ -24,7 +24,7 @@ export const WEB_TAB_SANDBOX =
  *  inherit the parent's policy instead of pinning the embedded page's. */
 export const WEB_TAB_PERMISSIONS = 'clipboard-read; clipboard-write';
 
-const PREFS_KEY = 'solomd.webTabs.v1';
+const PREFS_KEY = 'xiaoyuan-note.webTabs.v1';
 
 /** Hosts known to refuse embedding. Matched against the host and its
  *  subdomains (`www.` included). Not exhaustive — only a fast path. */

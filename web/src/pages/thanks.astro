@@ -42,8 +42,8 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
 ---
 
 <Layout
-  title="Thanks & Contributors — Sponsors, testers, contributors and supporters of SoloMD"
-  description="The complete SoloMD thank-you wall: honoring everyone who has sponsored, tipped, tested, contributed code/themes/packages, promoted, or reported bugs on GitHub and Gitee."
+  title="Thanks & Contributors — Sponsors, testers, contributors and supporters of xiaoyuanNote"
+  description="The complete xiaoyuanNote thank-you wall: honoring everyone who has sponsored, tipped, tested, contributed code/themes/packages, promoted, or reported bugs on GitHub and Gitee."
   lang={lang}
 >
   <Header lang={lang} />
@@ -51,9 +51,9 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
     <section class="container thanks-page">
       <div class="thanks-hero">
         <span class="thanks-pill">♥ Community Hall of Thanks</span>
-        <h1>Thank You to Everyone Making SoloMD Better</h1>
+        <h1>Thank You to Everyone Making xiaoyuanNote Better</h1>
         <p class="lead">
-          SoloMD is 100% free and open source. From a pull request, a community color theme, or a thorough cross-platform test session to an article, a detailed bug report, or a coffee tip — every contribution keeps SoloMD moving forward.
+          xiaoyuanNote is 100% free and open source. From a pull request, a community color theme, or a thorough cross-platform test session to an article, a detailed bug report, or a coffee tip — every contribution keeps xiaoyuanNote moving forward.
         </p>
 
         <div class="thanks-stats">
@@ -85,14 +85,14 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
         <div class="section-head">
           <h2>💵 Sponsors & Tips</h2>
           <p class="supporters__lead">
-            Thank you to everyone who financially supports SoloMD's independent development — funding Apple Developer membership renewals, code-signing certificates, domain costs, and AI R&D testing.
+            Thank you to everyone who financially supports xiaoyuanNote’s independent development — funding Apple Developer membership renewals, code-signing certificates, domain costs, and AI R&D testing.
           </p>
         </div>
 
         <div class="incomplete-notice">
           <strong>📌 Note on Incomplete Sponsor & Tip Records:</strong>
           <p>
-            The list below only includes supporters who explicitly left a display name or opted in — <strong>many more people have supported SoloMD anonymously</strong>. WeChat Pay and Alipay QR tips mask full names and provide no reply channel, and Mac App Store / iOS App Store / Google Play in-app tip jar purchases (✨ Supporter Badge) are processed completely anonymously by Apple and Google without sharing any user identity with the developer. Thank you equally to every named and anonymous supporter! If you've tipped or unlocked the Supporter Badge and would like your name and message added here, please open a <a href="https://github.com/zhitongblog/solomd/issues" target="_blank" rel="noopener">GitHub issue</a>, <a href="https://gitee.com/zhitong45/solomd/issues" target="_blank" rel="noopener">Gitee issue</a>, or email <a href="mailto:slushy@139.com">slushy@139.com</a> anytime.
+            The list below only includes supporters who explicitly left a display name or opted in — <strong>many more people have supported xiaoyuanNote anonymously</strong>. WeChat Pay and Alipay QR tips mask full names and provide no reply channel, and Mac App Store / iOS App Store / Google Play in-app tip jar purchases (✨ Supporter Badge) are processed completely anonymously by Apple and Google without sharing any user identity with the developer. Thank you equally to every named and anonymous supporter! If you've tipped or unlocked the Supporter Badge and would like your name and message added here, please open a <a href="https://github.com/zhitongblog/xiaoyuan-note/issues" target="_blank" rel="noopener">GitHub issue</a>, <a href="https://gitee.com/zhitong45/xiaoyuan-note/issues" target="_blank" rel="noopener">Gitee issue</a>, or email <a href="mailto:slushy@139.com">slushy@139.com</a> anytime.
           </p>
         </div>
 
@@ -148,7 +148,7 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
           <div class="section-head">
             <h2>🔍 Deep Testers ({testers.length})</h2>
             <p class="supporters__lead">
-              Community members who systematically test SoloMD across Windows, macOS, Linux, iPadOS, and Android, sending detailed reproduction steps and UX analysis — many of SoloMD's most important fixes started with them.
+              Community members who systematically test xiaoyuanNote across Windows, macOS, Linux, iPadOS, and Android, sending detailed reproduction steps and UX analysis — many of xiaoyuanNote’s most important fixes started with them.
             </p>
           </div>
           <div class="card-grid">
@@ -177,7 +177,7 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
           <div class="section-head">
             <h2>💻 Code, Theme & Packaging Contributors ({contributors.length})</h2>
             <p class="supporters__lead">
-              Open-source contributors who shipped pull requests, designed community themes, or maintain Linux distribution packages for SoloMD.
+              Open-source contributors who shipped pull requests, designed community themes, or maintain Linux distribution packages for xiaoyuan-note.
             </p>
           </div>
           <div class="card-grid">
@@ -217,7 +217,7 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
                       c.prs.map((pr) =>
                         pr.startsWith('#') ? (
                           <a
-                            href={`https://github.com/zhitongblog/solomd/pull/${pr.slice(1)}`}
+                            href={`https://github.com/zhitongblog/xiaoyuan-note/pull/${pr.slice(1)}`}
                             target="_blank"
                             rel="noopener"
                             class="pr-tag"
@@ -243,7 +243,7 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
           <h2>📣 Community Promoters ({promoters.length})</h2>
           <p
             class="supporters__lead"
-            set:html={'People who wrote reviews, recorded videos, shared SoloMD on social media, or published it in community app stores. <a href="/promote">How to become a promoter →</a>'}
+            set:html={'People who wrote reviews, recorded videos, shared xiaoyuanNote on social media, or published it in community app stores. <a href="/promote">How to become a promoter →</a>'}
           />
         </div>
         {promoters.length === 0 ? (
@@ -293,20 +293,20 @@ const kindBadge: Record<'code' | 'theme' | 'packaging', { icon: string; label: s
       <section class="support">
         <h2>Want to be listed here?</h2>
         <p>
-          Whether you support SoloMD with code, testing, promotion, or a coffee tip, we'd love to recognize you on this wall:
+          Whether you support xiaoyuanNote with code, testing, promotion, or a coffee tip, we'd love to recognize you on this wall:
         </p>
         <ul class="support-ways">
           <li>
-            <strong>☕ Sponsor or Tip</strong>: PayPal, WeChat Pay, Alipay, and the in-app "✨ Supporter Badge" are available in the <a href="/#sponsor">sponsor section on the home page</a>. After tipping, open a <a href="https://github.com/zhitongblog/solomd/issues" target="_blank" rel="noopener">GitHub issue</a> titled "Thanks list" with your preferred display name + optional message.
+            <strong>☕ Sponsor or Tip</strong>: PayPal, WeChat Pay, Alipay, and the in-app "✨ Supporter Badge" are available in the <a href="/#sponsor">sponsor section on the home page</a>. After tipping, open a <a href="https://github.com/zhitongblog/xiaoyuan-note/issues" target="_blank" rel="noopener">GitHub issue</a> titled "Thanks list" with your preferred display name + optional message.
           </li>
           <li>
             <strong>💻 Contribute Code or Themes</strong>: Submit a pull request or custom CSS theme on GitHub — merged contributors are added here automatically.
           </li>
           <li>
-            <strong>🔍 Test & Report Bugs</strong>: Spot a rendering edge case or platform quirk? Open an issue on GitHub or Gitee to help make SoloMD rock-solid for everyone.
+            <strong>🔍 Test & Report Bugs</strong>: Spot a rendering edge case or platform quirk? Open an issue on GitHub or Gitee to help make xiaoyuanNote rock-solid for everyone.
           </li>
           <li>
-            <strong>📣 Spread the Word</strong>: Write a post or video about SoloMD and submit your link on the <a href="/promote">Promoters page</a>.
+            <strong>📣 Spread the Word</strong>: Write a post or video about xiaoyuanNote and submit your link on the <a href="/promote">Promoters page</a>.
           </li>
         </ul>
         <p class="privacy-note">

@@ -5,6 +5,10 @@ import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 const props = withDefaults(
   defineProps<{
     align?: 'start' | 'end';
+    /** Extra class for the teleported panel — lets a caller opt into a
+     *  menu-style variant (e.g. tighter padding) without affecting other
+     *  DsPopover users. */
+    panelClass?: string;
   }>(),
   { align: 'start' },
 );
@@ -94,7 +98,7 @@ defineExpose({ close });
       <div
         v-if="open"
         ref="popRef"
-        class="ds-popover__panel"
+        :class="['ds-popover__panel', panelClass]"
         role="dialog"
         tabindex="-1"
         :style="{ top: `${pos.top}px`, left: `${pos.left}px`, maxHeight: pos.maxHeight === undefined ? undefined : `${pos.maxHeight}px` }"
@@ -121,10 +125,28 @@ defineExpose({ close });
 </style>
 
 <style>
-/* Teleported to <body>. Surface + motion come from styles/menus.css. */
+/* Teleported to <body>. The shared menu surface lives in styles/menus.css,
+   but unlike .ctx-menu (which re-declares its own surface in a scoped block)
+   this panel only had position/z-index here — so if the shared rule didn't
+   cascade onto it, the popover lost its background/border/radius/shadow/
+   animation while the right-click menus kept theirs. Declare the full surface
+   here too (same tokens as menus.css) so the date picker always reads like the
+   other pop-up menus. Specificity stays low (0,1,0); menus.css's :root:not(#_)
+   rule still wins where it applies, this is the fallback. */
 .ds-popover__panel {
   position: fixed;
   z-index: var(--z-pop);
+  background: var(--bg-pop);
+  color: var(--text);
+  border: var(--bd-hair);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-pop);
+  padding: var(--sp-1);
+  font-family: var(--font-ui, inherit);
+  font-size: 13px;
+  line-height: 1.3;
+  transform-origin: top left;
+  animation: sm-menu-in var(--dur-fast) var(--ease-out);
 }
 .ds-popover__panel:focus-visible {
   outline: none;

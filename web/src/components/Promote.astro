@@ -1,6 +1,6 @@
 ---
 /**
- * /promote and /zh/promote — the invitation to help spread SoloMD, and the
+ * /promote and /zh/promote — the invitation to help spread xiaoyuanNote, and the
  * rules that keep it honest. Promoters and sponsors are recognised the same
  * way: the /thanks wall, the app's About dialog and the README contributors
  * table, all read from public/sponsors.json (see lib/supporters.ts).
@@ -15,12 +15,12 @@ const thanksHref = zh ? '/zh/thanks' : '/thanks';
 
 const C = zh
   ? {
-      h1: '帮 SoloMD 推广',
-      lead: 'SoloMD 免费、开源，由一个人开发维护，没有广告预算，也不打算有。它能被更多人用上，靠的是用过的人愿意说一句「这个好用」。如果你有文章、视频、公众号、社群或任何能被看到的地方，这里是帮忙的方法——以及我们怎么感谢你。',
+      h1: '帮 xiaoyuanNote 推广',
+      lead: 'xiaoyuanNote 免费、开源，由一个人开发维护，没有广告预算，也不打算有。它能被更多人用上，靠的是用过的人愿意说一句「这个好用」。如果你有文章、视频、公众号、社群或任何能被看到的地方，这里是帮忙的方法——以及我们怎么感谢你。',
       getH: '你会得到什么',
       get: [
         ['官网感谢墙', '名字和你那篇文章或视频的链接，一起放在 <a href="/zh/thanks">鸣谢页</a> 上——这条回链会给你带去读者。'],
-        ['应用「关于」窗口', 'SoloMD 每一位用户打开「关于」都能看到你的名字。'],
+        ['应用「关于」窗口', 'xiaoyuanNote 每一位用户打开「关于」都能看到你的名字。'],
         ['GitHub 贡献者名单', '按 <a href="https://allcontributors.org" target="_blank" rel="noopener">All Contributors</a> 规范，以 📣「推广」身份出现在 README 的贡献者表格里，带头像。'],
         ['发版致谢', '新加入的推广者会在下一个版本的更新说明里被点名感谢。'],
         ['首页精选', '写得特别好的，会作为「大家怎么说」放到官网首页。'],
@@ -37,15 +37,15 @@ const C = zh
       ],
       notH: '什么不算——请不要这样做',
       not: [
-        ['应用商店评分和评论', 'Apple 和 Google 都禁止用任何好处换评分，这会危及 SoloMD 的上架。想评分请照常评，但它不计入推广。'],
+        ['应用商店评分和评论', 'Apple 和 Google 都禁止用任何好处换评分，这会危及 xiaoyuanNote 的上架。想评分请照常评，但它不计入推广。'],
         ['刷 Star、互换 Star', '违反 GitHub 的使用规则。'],
-        ['刷屏、批量转发、夸大或不实的描述', '这只会让人反感，也会连累 SoloMD 的名声。'],
+        ['刷屏、批量转发、夸大或不实的描述', '这只会让人反感，也会连累 xiaoyuanNote 的名声。'],
       ],
-      disclose: '不需要写得像广告。如果愿意，可以顺带提一句你在 SoloMD 的致谢名单上——坦诚比什么都有说服力。',
+      disclose: '不需要写得像广告。如果愿意，可以顺带提一句你在 xiaoyuanNote 的致谢名单上——坦诚比什么都有说服力。',
       howH: '怎么参与',
       how: [
         ['用一用，写你真实的感受', '优点缺点都可以写，真实的评价比夸奖更有用。'],
-        ['给链接加上你的专属代码', '把 <code>?ref=你的代码</code> 加在 SoloMD 链接后面（小写字母、数字或连字符，比如 <code>solomd.app/?ref=xiaoming</code>）。这样我们能看到你带来了多少访问和下载，不收集任何个人信息。'],
+        ['给链接加上你的专属代码', '把 <code>?ref=你的代码</code> 加在 xiaoyuanNote 链接后面（小写字母、数字或连字符，比如 <code>xiaoyuannote.app/?ref=xiaoming</code>）。这样我们能看到你带来了多少访问和下载，不收集任何个人信息。'],
         ['发布后来登记', '把链接告诉我们，一周内加入名单并回复你。'],
       ],
       regH: '登记方式',
@@ -56,18 +56,18 @@ const C = zh
       kitH: '推广素材',
       kitLead: '随意使用，不必注明出处。',
       blurbShortH: '一句话介绍',
-      blurbShort: 'SoloMD：免费开源的 Markdown 编辑器，Typora 能做的它都能做，还有 AI 改写、文件夹同步和原生 iOS / Android 应用。',
+      blurbShort: 'xiaoyuanNote：免费开源的 Markdown 编辑器，Typora 能做的它都能做，还有 AI 改写、文件夹同步和原生 iOS / Android 应用。',
       blurbLongH: '一段话介绍',
-      blurbLong: 'SoloMD 是一款免费、开源（MIT）的 Markdown 编辑器，支持 macOS、Windows、Linux、iOS 和 Android。所见即所得的实时预览、多标签、主题、PDF / Word 导出一应俱全，还内置 AI 改写（自带 Key 或本地 Ollama）、本地语义搜索、Git 自动版本和 MCP 服务器。无账号、无订阅、无广告，笔记就是你文件夹里的 .md 文件。官网：solomd.app',
+      blurbLong: 'xiaoyuanNote 是一款免费、开源（MIT）的 Markdown 编辑器，支持 macOS、Windows、Linux、iOS 和 Android。所见即所得的实时预览、多标签、主题、PDF / Word 导出一应俱全，还内置 AI 改写（自带 Key 或本地 Ollama）、本地语义搜索、Git 自动版本和 MCP 服务器。无账号、无订阅、无广告，笔记就是你文件夹里的 .md 文件。官网：xiaoyuannote.app',
       assets: [
         ['Logo（SVG）', '/favicon.svg'],
-        ['主界面截图', '/demo/solomd-hero.png'],
+        ['主界面截图', '/demo/xiaoyuan-note-hero.png'],
         ['分享图（中文）', '/og-image-zh.png'],
         ['完整产品资料（给 AI 也给人看）', '/llms.txt'],
       ],
       faqH: '常见问题',
       faq: [
-        ['有报酬吗？', '没有。SoloMD 没有付费版，我们能给的就是署名、回链和真诚的感谢。'],
+        ['有报酬吗？', '没有。xiaoyuanNote 没有付费版，我们能给的就是署名、回链和真诚的感谢。'],
         ['多久能加入名单？', '一周内。我们会打开你的链接确认，然后在 issue 或邮件里回复你。'],
         ['可以不公开名字，或者以后撤下吗？', '可以用昵称，也可以随时要求撤下，说一声就行。'],
         ['写了缺点也算吗？', '算。真实的评价本来就会有缺点。'],
@@ -79,12 +79,12 @@ const C = zh
       copied: '已复制',
     }
   : {
-      h1: 'Help spread SoloMD',
-      lead: 'SoloMD is free, open source and built by one developer. There is no ad budget and there will not be one. It reaches new people when someone who uses it says “this is good”. If you have a blog, a channel, a newsletter, a community — anywhere people listen to you — here is how to help, and how we thank you.',
+      h1: 'Help spread xiaoyuanNote',
+      lead: 'xiaoyuanNote is free, open source and built by one developer. There is no ad budget and there will not be one. It reaches new people when someone who uses it says “this is good”. If you have a blog, a channel, a newsletter, a community — anywhere people listen to you — here is how to help, and how we thank you.',
       getH: 'What you get',
       get: [
         ['The thank-you wall', 'Your name with a link to your article or video on the <a href="/thanks">thanks page</a> — a backlink that sends readers your way.'],
-        ['The app’s About dialog', 'Every SoloMD user who opens About sees your name.'],
+        ['The app’s About dialog', 'Every xiaoyuanNote user who opens About sees your name.'],
         ['GitHub contributors', 'Listed with 📣 Promotion in the README contributors table, avatar included, following the <a href="https://allcontributors.org" target="_blank" rel="noopener">All Contributors</a> spec.'],
         ['A thank-you in the release notes', 'New promoters are named in the next version’s notes.'],
         ['A spot on the homepage', 'The pieces people love most are featured under “What people are saying”.'],
@@ -101,15 +101,15 @@ const C = zh
       ],
       notH: 'What doesn’t — please don’t',
       not: [
-        ['App Store / Google Play ratings or reviews', 'Both stores forbid rewarding ratings in any way, and it would put SoloMD’s listing at risk. Rate it if you want to — it just doesn’t count here.'],
+        ['App Store / Google Play ratings or reviews', 'Both stores forbid rewarding ratings in any way, and it would put xiaoyuanNote’s listing at risk. Rate it if you want to — it just doesn’t count here.'],
         ['Buying or swapping GitHub stars', 'It breaks GitHub’s acceptable-use rules.'],
-        ['Spam, mass reposting, exaggerated or false claims', 'It annoys people and hurts SoloMD’s name.'],
+        ['Spam, mass reposting, exaggerated or false claims', 'It annoys people and hurts xiaoyuanNote’s name.'],
       ],
-      disclose: 'It doesn’t need to read like an ad. If you like, mention that you’re on SoloMD’s thank-you list — being upfront is more convincing than anything.',
+      disclose: 'It doesn’t need to read like an ad. If you like, mention that you’re on xiaoyuanNote’s thank-you list — being upfront is more convincing than anything.',
       howH: 'How to take part',
       how: [
         ['Use it, write what you really think', 'Pros and cons both — an honest review is worth more than praise.'],
-        ['Add your own code to the link', 'Put <code>?ref=your-code</code> after a SoloMD link (lowercase letters, digits or hyphens, e.g. <code>solomd.app/?ref=alex</code>). It shows us how many visits and downloads you brought; nothing personal is collected.'],
+        ['Add your own code to the link', 'Put <code>?ref=your-code</code> after a xiaoyuanNote link (lowercase letters, digits or hyphens, e.g. <code>xiaoyuannote.app/?ref=alex</code>). It shows us how many visits and downloads you brought; nothing personal is collected.'],
         ['Register it once it’s published', 'Send us the link and you’re on the list within a week.'],
       ],
       regH: 'Register',
@@ -120,18 +120,18 @@ const C = zh
       kitH: 'Press kit',
       kitLead: 'Use freely, no attribution needed.',
       blurbShortH: 'One line',
-      blurbShort: 'SoloMD: a free, open-source Markdown editor that does everything Typora does — plus AI rewrite, folder sync and native iOS & Android apps.',
+      blurbShort: 'xiaoyuan-note: a free, open-source Markdown editor that does everything Typora does — plus AI rewrite, folder sync and native iOS & Android apps.',
       blurbLongH: 'One paragraph',
-      blurbLong: 'SoloMD is a free, open-source (MIT) Markdown editor for macOS, Windows, Linux, iOS and Android. Live WYSIWYG preview, tabs, themes and PDF / Word export are all there, plus built-in AI rewrite (bring your own key or run Ollama locally), local semantic search, automatic Git history and an MCP server. No account, no subscription, no ads — your notes are plain .md files in your own folders. solomd.app',
+      blurbLong: 'xiaoyuanNote is a free, open-source (MIT) Markdown editor for macOS, Windows, Linux, iOS and Android. Live WYSIWYG preview, tabs, themes and PDF / Word export are all there, plus built-in AI rewrite (bring your own key or run Ollama locally), local semantic search, automatic Git history and an MCP server. No account, no subscription, no ads — your notes are plain .md files in your own folders. xiaoyuannote.app',
       assets: [
         ['Logo (SVG)', '/favicon.svg'],
-        ['Main screenshot', '/demo/solomd-hero.png'],
+        ['Main screenshot', '/demo/xiaoyuan-note-hero.png'],
         ['Share image', '/og-image.png'],
         ['Full product facts (for people and AI)', '/llms.txt'],
       ],
       faqH: 'FAQ',
       faq: [
-        ['Is it paid?', 'No. SoloMD has no paid tier; what we can give is credit, a backlink and a sincere thank-you.'],
+        ['Is it paid?', 'No. xiaoyuanNote has no paid tier; what we can give is credit, a backlink and a sincere thank-you.'],
         ['How long until I’m listed?', 'Within a week. We open your link, check it, and reply on the issue or by email.'],
         ['Can I use a nickname, or be removed later?', 'Yes to both — just ask.'],
         ['Does it count if I mention downsides?', 'Yes. Honest reviews have them.'],
@@ -184,7 +184,7 @@ const C = zh
   <div class="pp-register">
     <a class="btn btn--primary" href={PROMOTE_ISSUE_URL} target="_blank" rel="noopener">{C.regGh}</a>
     <a class="btn btn--secondary" href={PROMOTE_GITEE_URL} target="_blank" rel="noopener">{C.regGitee}</a>
-    <span class="pp-mail">{C.regMail} <a href={`mailto:${PROMOTE_EMAIL}?subject=${encodeURIComponent(zh ? 'SoloMD 推广登记' : 'SoloMD promotion')}`}>{PROMOTE_EMAIL}</a></span>
+    <span class="pp-mail">{C.regMail} <a href={`mailto:${PROMOTE_EMAIL}?subject=${encodeURIComponent(zh ? 'xiaoyuanNote 推广登记' : 'xiaoyuanNote promotion')}`}>{PROMOTE_EMAIL}</a></span>
   </div>
   <p class="pp-note">{C.regFields}</p>
 
@@ -217,7 +217,7 @@ const C = zh
       ))}
     </ul>
   )}
-  <p><a href={thanksHref}>{C.thanks}</a> · <a href={home}>solomd.app</a></p>
+  <p><a href={thanksHref}>{C.thanks}</a> · <a href={home}>xiaoyuannote.app</a></p>
 </section>
 
 <script is:inline>

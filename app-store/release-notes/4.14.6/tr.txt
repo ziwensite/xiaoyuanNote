@@ -4,6 +4,6 @@ Birden fazla paragrafta kalın, italik, üstü çizili ve kod artık her paragra
 
 Menüler: Düzen menüsünde Bul ve değiştir, yakınlaştırma komutları Görünüm › Yakınlaştırma alt menüsünde, Yardım menüsü Markdown hızlı başvurusunu, klavye kısayollarını ve komut satırını ayrı ayrı gösteriyor. Ekle menüsüne 4–6. düzey başlıklar eklendi.
 
-Notlardaki bağlantılar her zaman tarayıcıda açılır, asla SoloMD'nin içinde değil.
+Notlardaki bağlantılar her zaman tarayıcıda açılır, asla xiaoyuanNote'nin içinde değil.
 
-Birkaç günlük kullanımdan sonra SoloMD, GitHub'da yıldız vermek isteyip istemediğinizi bir kez — yalnızca bir kez — sorar.
+Birkaç günlük kullanımdan sonra xiaoyuanNote, GitHub'da yıldız vermek isteyip istemediğinizi bir kez — yalnızca bir kez — sorar.

@@ -2,7 +2,7 @@
 name: store-submit
 version: 1.0.0
 description: |
-  Publish a SoloMD release to the stores that have no usable submission API —
+  Publish a xiaoyuanNote release to the stores that have no usable submission API —
   Google Play Console and Microsoft Partner Center — by driving them through
   the local Unzoo Browser REST API. Covers upload, release notes, track and
   country selection, and submitting for review, plus the traps that have cost

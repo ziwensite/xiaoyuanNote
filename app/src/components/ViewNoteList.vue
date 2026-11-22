@@ -4,7 +4,7 @@
  *
  * Shown in the content area (in place of the editor / Bases table) when a view
  * is opened from the sidebar. Re-evaluates the view against the workspace index
- * on every `solomd://index-updated`, so editing a note's frontmatter on disk
+ * on every `xiaoyuan-note://index-updated`, so editing a note's frontmatter on disk
  * updates the list live. Row click opens the note via useFiles.openPath.
  *
  * Rows + chips use the design-system DsListRow / DsChip primitives.
@@ -63,7 +63,7 @@ function open(entry: IndexEntry) {
 let unlistenIndex: UnlistenFn | null = null;
 onMounted(async () => {
   try {
-    unlistenIndex = await listen('solomd://index-updated', () => { rev.value += 1; });
+    unlistenIndex = await listen('xiaoyuan-note://index-updated', () => { rev.value += 1; });
   } catch {}
 });
 onBeforeUnmount(() => {

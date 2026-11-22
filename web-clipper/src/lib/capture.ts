@@ -1,5 +1,5 @@
 /**
- * POST helper for the SoloMD capture endpoint.
+ * POST helper for the xiaoyuanNote capture endpoint.
  *
  * Single source of truth for the wire format — keep aligned with
  * `app/src-tauri/src/capture_endpoint.rs::CaptureBody`.
@@ -104,7 +104,7 @@ export async function postCapture(
   // accepts the bare filename + writes into <workspace>/<inbox_folder>/<file>;
   // we prepend a sub-folder by inlining it into the YAML — but the v2.4
   // endpoint doesn't yet take a sub-folder hint, so we just append it to
-  // the title via a `path:` front-matter line that SoloMD's inbox triage
+  // the title via a `path:` front-matter line that xiaoyuanNote’s inbox triage
   // reads. (Right now the server stores at the inbox root; sub-folder
   // routing is roadmap.)
   // → keep payload as-is for forward compat; document in README.

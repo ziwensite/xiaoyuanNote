@@ -9,7 +9,7 @@ No Electron. No bundled Chromium. No cloud accounts.
 
 Just a fast, lightweight editor that works offline.
 
-SoloMD: https://solomd.app
+xiaoyuan-note: https://xiaoyuannote.app
 
 • Live preview
 • KaTeX math
@@ -40,7 +40,7 @@ Why? Because existing options are either:
 - $15 (Typora)
 - Abandoned (MarkText)
 
-SoloMD is 15 MB, free, and open source.
+xiaoyuanNote is 15 MB, free, and open source.
 
 Here's what makes it different 🧵
 ```
@@ -103,8 +103,8 @@ Fully offline. Always.
 ```
 MIT licensed. Fully open source.
 
-Download: https://solomd.app
-GitHub: https://github.com/zhitongblog/solomd
+Download: https://xiaoyuannote.app
+GitHub: https://github.com/zhitongblog/xiaoyuan-note
 
 Available for macOS, Windows, and Linux.
 
@@ -121,18 +121,18 @@ If you try it, let me know what you think! 🙏
 ```
 Tired of [cite_start] and weird quotes when pasting from ChatGPT?
 
-SoloMD has a "Clean AI Artifacts" button that strips all that junk instantly.
+xiaoyuanNote has a "Clean AI Artifacts" button that strips all that junk instantly.
 
 Free, 15 MB, works offline.
 
-https://solomd.app
+https://xiaoyuannote.app
 ```
 
 ### For developers
 ```
 If you're curious about building desktop apps with Tauri 2:
 
-SoloMD is a real-world example.
+xiaoyuanNote is a real-world example.
 
 - Vue 3 + TypeScript frontend
 - Rust backend
@@ -140,21 +140,21 @@ SoloMD is a real-world example.
 - ~15 MB installed
 
 MIT licensed, fully open source:
-https://github.com/zhitongblog/solomd
+https://github.com/zhitongblog/xiaoyuan-note
 ```
 
 ### For privacy-conscious users
 ```
 Looking for a Markdown editor that doesn't phone home?
 
-SoloMD:
+xiaoyuan-note:
 ✓ Zero telemetry
 ✓ No accounts
 ✓ No cloud
 ✓ Fully offline
 ✓ MIT open source
 
-https://solomd.app
+https://xiaoyuannote.app
 ```
 
 ### MarkText migration
@@ -163,13 +163,13 @@ MarkText hasn't been updated in 2+ years.
 
 If you're looking for an alternative:
 
-SoloMD is actively maintained, 15 MB, and has similar features:
+xiaoyuanNote is actively maintained, 15 MB, and has similar features:
 - Live preview
 - KaTeX math
 - Mermaid diagrams
 - Multi-platform
 
-https://solomd.app
+https://xiaoyuannote.app
 ```
 
 ---
@@ -180,14 +180,14 @@ https://solomd.app
 ```
 Obsidian is great for knowledge management with linking and graphs.
 
-SoloMD is simpler – just a fast editor for single files. Different tools for different needs!
+xiaoyuanNote is simpler – just a fast editor for single files. Different tools for different needs!
 ```
 
 ### When someone reports a bug
 ```
 Thanks for the report! Could you open an issue on GitHub with details?
 
-https://github.com/zhitongblog/solomd/issues
+https://github.com/zhitongblog/xiaoyuan-note/issues
 
 I'll look into it ASAP.
 ```
@@ -196,7 +196,7 @@ I'll look into it ASAP.
 ```
 Great idea! Would you mind opening a feature request on GitHub?
 
-https://github.com/zhitongblog/solomd/issues
+https://github.com/zhitongblog/xiaoyuan-note/issues
 
 That helps me track and prioritize requests.
 ```
@@ -208,7 +208,7 @@ That helps me track and prioritize requests.
 1. **Best times:** Tue-Thu, 9am-12pm EST or 6pm-9pm EST
 2. **Attach images** – Tweets with images get 2x engagement
 3. **Reply to comments** – Engagement in first hour matters most
-4. **Don't overpost** – Max 2-3 tweets per day about SoloMD
+4. **Don't overpost** – Max 2-3 tweets per day about xiaoyuanNote
 5. **Engage genuinely** – Comment on others' posts too
 
 ## Attached Images

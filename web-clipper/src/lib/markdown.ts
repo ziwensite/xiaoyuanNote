@@ -1,5 +1,5 @@
 /**
- * HTML → Markdown conversion preset for the SoloMD clipper.
+ * HTML → Markdown conversion preset for the xiaoyuanNote clipper.
  *
  * Bias: be a faithful round-trip for the things we care about (headings,
  * lists, code, tables, blockquotes, links, images) and aggressively drop
@@ -96,7 +96,7 @@ function preclean(root: HTMLElement, baseUri: string, aggressive: boolean): void
 }
 
 /**
- * Build a TurndownService configured for SoloMD-style markdown:
+ * Build a TurndownService configured for xiaoyuan-note-style markdown:
  *   - ATX headings (`# foo`)
  *   - Hyphenated bullets
  *   - Fenced code blocks with language hint preserved from `<pre class="language-*">`

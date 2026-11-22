@@ -4,8 +4,8 @@
 //! callback, not the system git's helper).
 //!
 //! `#[ignore]`d — needs network + a Gitee repo you can push to. Run with:
-//!   SOLOMD_GITEE_URL=https://gitee.com/<user>/<repo>.git \
-//!   SOLOMD_GITEE_TOKEN=<token> \
+//!   XIAOYUAN_NOTE_GITEE_URL=https://gitee.com/<user>/<repo>.git \
+//!   XIAOYUAN_NOTE_GITEE_TOKEN=<token> \
 //!   cargo test --test gitee_roundtrip_e2e_test -- --ignored --nocapture
 
 use std::fs;
@@ -26,13 +26,13 @@ fn git(dir: &Path, args: &[&str]) {
 /// A workspace that tracks the remote's master, with `origin` set to the bare
 /// URL so later push/pull go through our credential callback.
 fn device(name: &str, url: &str, auth_url: &str) -> std::path::PathBuf {
-    let ws = std::env::temp_dir().join(format!("solomd-gitee-rt-{}-{}", name, std::process::id()));
+    let ws = std::env::temp_dir().join(format!("xiaoyuan-note-gitee-rt-{}-{}", name, std::process::id()));
     let _ = fs::remove_dir_all(&ws);
     let out = Command::new("git").args(["clone", "-q", auth_url, ws.to_str().unwrap()]).output().unwrap();
     assert!(out.status.success(), "clone failed: {}", String::from_utf8_lossy(&out.stderr));
     git(&ws, &["config", "user.email", "e2e@example.com"]);
     git(&ws, &["config", "user.name", name]);
-    // SoloMD syncs `main` (it renames a local master before the first push),
+    // xiaoyuanNote syncs `main` (it renames a local master before the first push),
     // so a second device starts from origin/main once one exists.
     let has_main = Command::new("git").args(["rev-parse", "--verify", "-q", "origin/main"])
         .current_dir(&ws).output().unwrap().status.success();
@@ -46,10 +46,10 @@ fn device(name: &str, url: &str, auth_url: &str) -> std::path::PathBuf {
 #[test]
 #[ignore]
 fn gitee_push_pull_roundtrip() {
-    let (url, token) = match (env("SOLOMD_GITEE_URL"), env("SOLOMD_GITEE_TOKEN")) {
+    let (url, token) = match (env("XIAOYUAN_NOTE_GITEE_URL"), env("XIAOYUAN_NOTE_GITEE_TOKEN")) {
         (Some(u), Some(t)) => (u, t),
         _ => {
-            eprintln!("skipped: set SOLOMD_GITEE_URL and SOLOMD_GITEE_TOKEN");
+            eprintln!("skipped: set XIAOYUAN_NOTE_GITEE_URL and XIAOYUAN_NOTE_GITEE_TOKEN");
             return;
         }
     };

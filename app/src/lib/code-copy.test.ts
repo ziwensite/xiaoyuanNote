@@ -40,12 +40,12 @@ test('#486 — tabCaretMemory preserves anchorPos and anchorViewportTop across t
 });
 
 test('#504 — bare stock ticker codes (00700.HK, 600519.SH, 000001.SZ) are not linkified as URLs', () => {
-  const html = renderMarkdown('持仓：00700.HK、600519.SH、000001.SZ，详见 https://solomd.app/docs');
+  const html = renderMarkdown('持仓：00700.HK、600519.SH、000001.SZ，详见 https://xiaoyuannote.app/docs');
   assert.ok(!html.includes('href="http://00700.HK"'), `unexpected 00700.HK link in: ${html}`);
   assert.ok(!html.includes('href="http://600519.SH"'), `unexpected 600519.SH link in: ${html}`);
   assert.ok(!html.includes('href="http://000001.SZ"'), `unexpected 000001.SZ link in: ${html}`);
   // Explicit protocol links are still auto-linked
-  assert.ok(html.includes('href="https://solomd.app/docs"'), `expected explicit https link in: ${html}`);
+  assert.ok(html.includes('href="https://xiaoyuannote.app/docs"'), `expected explicit https link in: ${html}`);
 });
 
 test('#493 — rendered markdown and sanitized HTML images include referrerpolicy="no-referrer"', () => {

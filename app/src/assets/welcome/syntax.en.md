@@ -1,4 +1,4 @@
-# Markdown syntax — the parts SoloMD renders
+# Markdown syntax — the parts xiaoyuanNote renders
 
 This is a working cheat sheet. Switch to **Preview** (`Ctrl+Shift+P` until you land on Preview) to see each block render.
 
@@ -20,7 +20,7 @@ Put `[TOC]` on a line by itself to generate a linked, nested list of the documen
 
 ## Inline
 
-**bold**, *italic*, ~~strikethrough~~, ==marked==, `inline code`, [link](https://solomd.app), and footnotes[^1].
+**bold**, *italic*, ~~strikethrough~~, ==marked==, `inline code`, [link](https://xiaoyuannote.app), and footnotes[^1].
 
 [^1]: Footnotes are auto-numbered.
 
@@ -87,7 +87,7 @@ imageRoot: ./images
 ---
 ```
 
-`imageRoot` is a SoloMD extension — pasted/dropped images are saved to that folder relative to the file.
+`imageRoot` is a xiaoyuanNote extension — pasted/dropped images are saved to that folder relative to the file.
 
 ## Horizontal rule = slide break
 

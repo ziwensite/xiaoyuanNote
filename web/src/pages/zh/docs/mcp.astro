@@ -9,7 +9,7 @@ const lang = 'zh' as const;
 const FAQ = [
   {
     q: '哪些 AI 客户端能连我的笔记库?',
-    a: 'Claude Desktop、Codex CLI、Cursor —— 以及任何支持 Model Context Protocol 的客户端。solomd-mcp 是随每个 SoloMD 版本一起发布的 sidecar 二进制,本地通过 stdio 通信。',
+    a: 'Claude Desktop、Codex CLI、Cursor —— 以及任何支持 Model Context Protocol 的客户端。xiaoyuan-note-mcp 是随每个 xiaoyuanNote 版本一起发布的 sidecar 二进制,本地通过 stdio 通信。',
   },
   {
     q: '模型能改我的笔记吗?',
@@ -17,7 +17,7 @@ const FAQ = [
   },
   {
     q: '笔记内容会离开我的电脑吗?',
-    a: 'MCP 服务器本身完全本地:读磁盘文件,通过 stdio 和你的 AI 客户端通信,中间没有任何 SoloMD 服务器。读到的文本会被怎么用,取决于你连接的客户端和你选的模型提供商。',
+    a: 'MCP 服务器本身完全本地:读磁盘文件,通过 stdio 和你的 AI 客户端通信,中间没有任何 xiaoyuanNote 服务器。读到的文本会被怎么用,取决于你连接的客户端和你选的模型提供商。',
   },
   {
     q: '配置要多久?',
@@ -27,8 +27,8 @@ const FAQ = [
 ---
 
 <Layout
-  title="SoloMD MCP 服务 — 让 Claude Desktop / Codex / Cursor 直接读写你的笔记"
-  description="SoloMD 自带 MCP（Model Context Protocol）边车进程，任何兼容 MCP 的 AI 客户端都能列出、搜索、读写你的笔记。"
+  title="xiaoyuanNote MCP 服务 — 让 Claude Desktop / Codex / Cursor 直接读写你的笔记"
+  description="xiaoyuanNote 自带 MCP（Model Context Protocol）边车进程，任何兼容 MCP 的 AI 客户端都能列出、搜索、读写你的笔记。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -38,9 +38,9 @@ const FAQ = [
         <a href="/zh/">首页</a> / <a href="/zh/docs/">文档</a> / <span>MCP 服务</span>
       </nav>
 
-      <h1>SoloMD MCP 服务</h1>
+      <h1>xiaoyuanNote MCP 服务</h1>
       <p class="lead">
-        每个 SoloMD 发行版都附带 <code>solomd-mcp</code> —— 一个支持
+        每个 xiaoyuanNote 发行版都附带 <code>xiaoyuan-note-mcp</code> —— 一个支持
         <a href="https://modelcontextprotocol.io" rel="external">Model Context Protocol</a>
         的边车二进制。把 Claude Desktop、Codex CLI、Cursor 等 MCP 客户端指向它，
         AI 就可以直接列出、搜索、读取、写入你的笔记仓库 —— 不必复制粘贴。
@@ -48,19 +48,19 @@ const FAQ = [
 
       <h2>为什么这件事重要</h2>
       <p>
-        大多数笔记工具把 AI 当作编辑器里的一个功能：粘贴一段、改写一段。SoloMD 反过来：
+        大多数笔记工具把 AI 当作编辑器里的一个功能：粘贴一段、改写一段。xiaoyuanNote 反过来：
         把你的整个仓库交给 AI 客户端，于是你可以让模型回答「帮我总结所有 Q2 规划相关的笔记」
         或「帮我接着上周会议的笔记起草一份后续邮件」—— 模型直接读真实文件。
       </p>
 
       <h2>快速接入 — Claude Desktop</h2>
       <ol>
-        <li>打开 SoloMD → <strong>设置 → 集成 → MCP 服务</strong>。</li>
+        <li>打开 xiaoyuanNote → <strong>设置 → 集成 → MCP 服务</strong>。</li>
         <li>点击 <strong>复制 Claude Desktop 配置</strong>。生成的 JSON 已经
           自带边车二进制路径和你当前打开的工作区目录。</li>
         <li>点击 <strong>打开 Claude Desktop 配置文件</strong>，粘贴进
           <code>"mcpServers"</code> 节，保存。</li>
-        <li>重启 Claude Desktop —— <code>solomd-vault</code> 出现在工具菜单里，搞定。</li>
+        <li>重启 Claude Desktop —— <code>xiaoyuan-note-vault</code> 出现在工具菜单里，搞定。</li>
       </ol>
 
       <h2>模型可以调用的工具</h2>
@@ -80,13 +80,13 @@ const FAQ = [
 
       <h2>默认只读</h2>
       <p>
-        <code>solomd-mcp</code> 只在加 <code>--allow-write</code> 启动时才暴露写入工具。
+        <code>xiaoyuan-note-mcp</code> 只在加 <code>--allow-write</code> 启动时才暴露写入工具。
         设置面板复制出来的默认配置是只读的。要打开写入权限，编辑 <code>args</code>：
       </p>
       <pre class="code"><code>{`{
   "mcpServers": {
-    "solomd-vault": {
-      "command": "/path/to/solomd-mcp",
+    "xiaoyuan-note-vault": {
+      "command": "/path/to/xiaoyuan-note-mcp",
       "args": ["--workspace", "/path/to/your/notes", "--allow-write"]
     }
   }
@@ -105,14 +105,14 @@ const FAQ = [
 
       <h2>二进制在哪儿</h2>
       <p>
-        macOS 上边车在 <code>SoloMD.app/Contents/MacOS/solomd-mcp</code> 里；
+        macOS 上边车在 <code>xiaoyuannote.app/Contents/MacOS/xiaoyuan-note-mcp</code> 里；
         Windows 和 Linux 上则在主程序旁边。设置面板里
         <strong>已捆绑于 …</strong> 一栏会显示绝对路径，不用自己找。
       </p>
 
       <p class="docs-footer">
         发现 bug 或想要新工具？欢迎到
-        <a href="https://github.com/zhitongblog/solomd/issues" rel="external">GitHub</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/issues" rel="external">GitHub</a>
         提 issue —— 写入相关的工具我们刻意保持小集合，但只要场景明确，加新的没问题。
       </p>
 

@@ -8,7 +8,7 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD v4.0 — 让 Agent 住进来的编辑器"
+  title="xiaoyuanNote v4.0 — 让 Agent 住进来的编辑器"
   description="v4.0 是 agent-native author 大版本。五大支柱:内置 Agent 面板（流式 chat-with-vault）、定时 Recipe（cron / on-save / on-commit, AutoGit 分支沙箱 + accept/reject）、可重放 Trace View、多 vault MCP Federation、Ollama 一等公民。同时:REST API、BYOK 成本计、11 个 Recipe 模板、首次启动向导。安全护栏不可妥协 —— 每次 agent 运行都要先评审才能合入 main。"
   lang={lang}
 >
@@ -21,7 +21,7 @@ const lang = 'zh' as const;
       <time>2026-05-03</time>
       <h1>v4.0 — 让 Agent 住进来的编辑器</h1>
       <p class="lead">
-        SoloMD 一直是同一份产品的两半:把纯 <code>.md</code>
+        xiaoyuanNote 一直是同一份产品的两半:把纯 <code>.md</code>
         写到磁盘上的编辑器,加上指向同一个 vault 的 MCP server。
         v4.0 加了第三半 —— <strong>编辑器内一等公民的 Agent
         面板</strong>,有完整的安全护栏 (AutoGit 分支沙箱、
@@ -64,14 +64,14 @@ const lang = 'zh' as const;
         参数和结果都看得见。回复太长?<strong>插入</strong>
         把整段塞进当前编辑器的光标处 (有选区就替换);
         <strong>复制</strong> 直接进剪贴板。运行历史以纯 markdown
-        形式存在 <code>.solomd/agent-runs/</code> 下 —— 可 grep、
+        形式存在 <code>.xiaoyuan-note/agent-runs/</code> 下 —— 可 grep、
         可被 git 追踪、几个月后还能审。
       </p>
 
       <h3>2. Agent Recipe / 定时运行</h3>
       <p>
         声明式 agent 任务,YAML 文件放在
-        <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>。触发器:
+        <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>。触发器:
         <code>schedule</code> (cron)、<code>on-save</code>、
         <code>on-commit</code>、<code>on-tag-add</code>、手动。
         <strong>安全护栏不可妥协</strong>:
@@ -123,7 +123,7 @@ const lang = 'zh' as const;
 
       <h3>4. 多 Vault MCP Federation</h3>
       <p>
-        <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+        <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
         —— 一个 MCP 会话,多个 vault。工具签名加了可选
         <code>workspace</code> 参数,默认 = 第一个传入的
         (单 vault 客户端继续工作不受影响)。AutoGit 分支按
@@ -190,7 +190,7 @@ const lang = 'zh' as const;
           <strong>macOS 启动 UX。</strong>启动激活时机错位
           —— 在 <code>setup</code> 里调
           <code>set_focus()</code> 时 NSApp 的 run loop
-          还没跑完启动流程,激活请求被吞了,SoloMD 启动后藏在
+          还没跑完启动流程,激活请求被吞了,xiaoyuanNote 启动后藏在
           前一个 frontmost app 后面。改成在
           <code>RunEvent::Ready</code> + 等 window-state plugin
           的第一次 restore 信号才激活,问题解决。
@@ -209,7 +209,7 @@ const lang = 'zh' as const;
         <li>
           <strong>"生成中..." 卡死无错误。</strong>Ollama
           模型名打错时 OpenAI-compat 层会返回 HTTP 404,
-          Rust 端正确发了 <code>solomd://ai-error</code>,
+          Rust 端正确发了 <code>xiaoyuan-note://ai-error</code>,
           但 JS 监听器靠 <code>currentRunId</code> 匹配,
           这个值是在 <code>await invoke()</code> resolve
           <em>之后</em> 才赋的 —— 而 404 太快,错误事件
@@ -292,11 +292,11 @@ const lang = 'zh' as const;
       <h2>接下来</h2>
       <p>
         <em>v4.x 及之后</em> 的开放方向都在
-        <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmap</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmap</a>
         上:沙盒化的脚本 API (capability-scoped,Trilium 那种
         "我想写脚本定制工作流")、CLI v2 (终端里 rewrite /
         commit / 语义搜索 / 触发 recipe)、以及一直拖着的
-        <em>"SoloMD 要不要做成商业产品?"</em> 问题
+        <em>"xiaoyuanNote 要不要做成商业产品?"</em> 问题
         —— v3.0 时代的老问题,还没答,这块的工程不会动。
       </p>
       <p>
@@ -310,7 +310,7 @@ const lang = 'zh' as const;
         感谢所有在静默期内跑 v4-beta build 的人。上面这些 bug
         能进 release notes 是因为 dogfood 把它们抓出来了;
         没进 release notes 的那些 bug,才是这一切能跑起来的
-        真正原因。Issue 反馈:<a href="https://github.com/zhitongblog/solomd/issues">GitHub</a>。
+        真正原因。Issue 反馈:<a href="https://github.com/zhitongblog/xiaoyuan-note/issues">GitHub</a>。
       </p>
     </article>
     <Giscus lang={lang} />

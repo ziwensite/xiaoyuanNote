@@ -8,6 +8,6 @@ Wybór motywu, po którym nic się nie zmienia, jest teraz wyjaśniany: motyw z 
 
 Aplikacja uruchamia się szybciej. Wszystko kompilowało się przed pierwszą klatką: silnik diagramów, oba słowniki chińskie, eksport do PDF i Worda, pokaz slajdów. Teraz ładują się na żądanie, a pierwsze wyświetlenie jest około 30% szybsze.
 
-Plik zmieniony w innym edytorze — także przy zamkniętym SoloMD — jest teraz wykrywany: przy starcie i za każdym powrotem okna. Niezapisane zmiany nigdy nie są nadpisywane.
+Plik zmieniony w innym edytorze — także przy zamkniętym xiaoyuanNote — jest teraz wykrywany: przy starcie i za każdym powrotem okna. Niezapisane zmiany nigdy nie są nadpisywane.
 
 Przycisk prawego panelu zawsze coś robi.

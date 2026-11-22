@@ -1,4 +1,4 @@
-# `solomd-mcp` in Cline (VS Code)
+# `xiaoyuan-note-mcp` in Cline (VS Code)
 
 [Cline](https://github.com/cline/cline) reads MCP server config from its
 `cline_mcp_settings.json` file. Access via:
@@ -13,14 +13,14 @@ Or just open Cline's MCP Servers tab and click "Edit settings".
 
 ```bash
 # macOS
-cargo install solomd-mcp
+cargo install xiaoyuan-note-mcp
 
 # Linux x64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-x64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-x64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Linux arm64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-arm64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-arm64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Windows — unzip and put on PATH.
@@ -31,8 +31,8 @@ curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mc
 ```json
 {
   "mcpServers": {
-    "solomd": {
-      "command": "solomd-mcp",
+    "xiaoyuanNote": {
+      "command": "xiaoyuan-note-mcp",
       "args": ["--workspace", "/Users/you/notes"],
       "disabled": false,
       "autoApprove": ["list_notes", "read_note", "search", "get_outline", "get_backlinks", "list_tags"]
@@ -44,7 +44,7 @@ curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mc
 **`autoApprove`** lets you skip the "Approve tool call?" prompt for read
 tools while keeping the write tools manual. Recommended.
 
-Restart Cline. The MCP Servers tab should show `solomd` with a green dot
+Restart Cline. The MCP Servers tab should show `xiaoyuanNote` with a green dot
 and 16 tools listed (15 by default).
 
 ## Try it
@@ -58,9 +58,9 @@ Add `--allow-write` to args. Add `"write_note"` and `"append_to_note"` to
 `autoApprove` only if you really want Cline writing without per-call
 confirmation (recommend leaving them manual).
 
-## About SoloMD
+## About xiaoyuanNote
 
-[**SoloMD**](https://solomd.app) is the Markdown editor that ships this MCP
+[**xiaoyuanNote**](https://xiaoyuannote.app) is the Markdown editor that ships this MCP
 server pre-wired. Get the desktop app for the Agent panel UI:
 
-[📥 Download SoloMD for macOS / Windows / Linux](https://github.com/zhitongblog/solomd/releases/latest)
+[📥 Download xiaoyuanNote for macOS / Windows / Linux](https://github.com/zhitongblog/xiaoyuan-note/releases/latest)

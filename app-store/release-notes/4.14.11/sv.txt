@@ -1,4 +1,4 @@
-SoloMD 4.14.11 rättar problem som hittades i en fullständig testomgång. Några av dem kunde ändra eller förlora text, så vi rekommenderar att du uppdaterar.
+xiaoyuanNote 4.14.11 rättar problem som hittades i en fullständig testomgång. Några av dem kunde ändra eller förlora text, så vi rekommenderar att du uppdaterar.
 
 • CJK-korrekturen räknar inte längre filnamn (文档.md, 压缩包.tar.gz) eller en ellips som skiljeteckenfel, så ”Tillämpa alla” kan inte skriva om dem.
 • När ett Word-dokument importeras stannar fetstil där den var, och numrerade listor, uppgiftslistor och länkar kommer tillbaka. Export till Word markerar uppgifter med [ ] / [x].

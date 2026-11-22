@@ -8,7 +8,7 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD v3.6 — Live-edit image/table widgets and 5 polish fixes"
+  title="xiaoyuanNote v3.6 — Live-edit image/table widgets and 5 polish fixes"
   description="The long-standing live-edit gap is closed: standalone image lines and GFM tables now render in place inside the editor, with the source coming back the moment the cursor enters. Plus AI button routing, image export crop-to-content, optional watermark, folder picker memory, and a Mac toolbar overflow fix."
   lang={lang}
 >
@@ -81,7 +81,7 @@ const lang = 'en' as const;
           the toolbar AI button when AI was disabled used to open the
           Settings panel on the default <em>Basics</em> tab — not where
           the AI toggle actually lives. The
-          <code>solomd:open-settings</code> event now carries an
+          <code>xiaoyuan-note:open-settings</code> event now carries an
           optional <code>detail.section</code>, and AI entry points
           (toolbar + AI rewrite overlay) pass <code>'integrations'</code>
           so users land directly on the AI block.
@@ -96,7 +96,7 @@ const lang = 'en' as const;
           the rendered DOM exactly.
         </li>
         <li>
-          <strong>"Created with SoloMD" watermark — now a setting.</strong>
+          <strong>"Created with xiaoyuanNote" watermark — now a setting.</strong>
           Previously hardcoded as a footer on every PNG export.
           Reasonable default for a free MIT app, but it should be
           opt-out, not forced. New setting <code>imageExportBranding</code>
@@ -109,7 +109,7 @@ const lang = 'en' as const;
           <code>useFiles.openFolder()</code> now passes
           <code>defaultPath: workspace.currentFolder</code> to the
           Tauri folder dialog. Without it, the OS picker reopened at
-          the system default each time, ignoring the workspace SoloMD
+          the system default each time, ignoring the workspace xiaoyuanNote
           already had loaded.
         </li>
         <li>
@@ -126,13 +126,13 @@ const lang = 'en' as const;
 
       <h2>📥 Download</h2>
       <p>
-        <a class="btn btn--primary" href="https://github.com/zhitongblog/solomd/releases/tag/v3.6.0">Download v3.6.0 →</a>
+        <a class="btn btn--primary" href="https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v3.6.0">Download v3.6.0 →</a>
         &nbsp;
-        <a class="btn" href="https://github.com/zhitongblog/solomd/releases">All releases</a>
+        <a class="btn" href="https://github.com/zhitongblog/xiaoyuan-note/releases">All releases</a>
       </p>
       <p>
         Existing v3.0.x+ users see the in-app update prompt within 24h.
-        On Mac, <code>brew upgrade --cask solomd</code> works too.
+        On Mac, <code>brew upgrade --cask xiaoyuanNote</code> works too.
         CLI / MCP server are bumped to 3.6.0 in lockstep.
       </p>
 
@@ -141,7 +141,7 @@ const lang = 'en' as const;
         iPad and Mac App Store resubmission gates are next on the
         list. Beyond that, v4 continues the agent-endpoint thrust
         (CLI + MCP + BYOK) — keep an eye on
-        <a href="https://github.com/zhitongblog/solomd/discussions">Discussions</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/discussions">Discussions</a>
         for direction.
       </p>
     </article>

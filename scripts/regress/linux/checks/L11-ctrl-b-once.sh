@@ -11,5 +11,5 @@ done
 note "tree after 0..4 presses: $states"
 expect "each press toggles once (shown hidden shown hidden shown)" test "$states" = "shown hidden shown hidden shown"
 app_quit 10 || app_kill
-expect "settings.showFileTree ends true" test "$(ls_json solomd.settings.v1 'v.get("showFileTree")')" = true
+expect "settings.showFileTree ends true" test "$(ls_json xiaoyuan-note.settings.v1 'v.get("showFileTree")')" = true
 finish "Ctrl+B toggles once per press"

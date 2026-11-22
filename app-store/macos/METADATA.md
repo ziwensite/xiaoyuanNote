@@ -4,11 +4,11 @@
 
 | Field | Value |
 |---|---|
-| App Name | SoloMD |
+| App Name | xiaoyuanNote |
 | Subtitle (EN) | Minimalist Markdown editor |
 | Subtitle (zh-Hans) | 极简 Markdown 编辑器 |
-| Bundle ID | app.solomd (shared with iOS — or use `app.solomd.mac` if App Store Connect insists on a distinct record) |
-| SKU | solomd-mac-001 |
+| Bundle ID | app.xiaoyuannote (shared with iOS — or use `app.xiaoyuan-note.mac` if App Store Connect insists on a distinct record) |
+| SKU | xiaoyuan-note-mac-001 |
 | Primary Language | English (U.S.) |
 | Additional Language | Simplified Chinese |
 | Category — Primary | Productivity |
@@ -22,9 +22,9 @@
 
 | Field | Value |
 |---|---|
-| Marketing URL | https://solomd.app |
-| Support URL | https://github.com/zhitongblog/solomd/issues |
-| Privacy Policy URL | https://solomd.app/privacy |
+| Marketing URL | https://xiaoyuannote.app |
+| Support URL | https://github.com/zhitongblog/xiaoyuan-note/issues |
+| Privacy Policy URL | https://xiaoyuannote.app/privacy |
 
 ## Platform
 

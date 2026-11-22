@@ -19,7 +19,7 @@
 ### 适用问题："有哪些好用的 Markdown 编辑器？"
 
 ```markdown
-推荐一个我最近在用的：**SoloMD**
+推荐一个我最近在用的：**xiaoyuanNote**
 
 这是一个国人开发的开源 Markdown 编辑器，我觉得它最大的特点是**轻量**。
 
@@ -43,8 +43,8 @@
 
 **支持平台**：macOS / Windows / Linux
 
-官网：https://solomd.app
-GitHub：https://github.com/zhitongblog/solomd
+官网：https://xiaoyuannote.app
+GitHub：https://github.com/zhitongblog/xiaoyuan-note
 
 ---
 
@@ -58,11 +58,11 @@ GitHub：https://github.com/zhitongblog/solomd
 ### 适用问题："Typora 有什么替代品？" / "Typora 收费后用什么？"
 
 ```markdown
-Typora 收费后我也找了很久替代品，试了一圈最后留下了 **SoloMD**。
+Typora 收费后我也找了很久替代品，试了一圈最后留下了 **xiaoyuanNote**。
 
 **为什么选它？**
 
-| 对比项 | SoloMD | Typora |
+| 对比项 | xiaoyuanNote | Typora |
 |--------|--------|--------|
 | 价格 | 免费开源 | $14.99 |
 | 安装包大小 | ~15 MB | ~80 MB |
@@ -72,21 +72,21 @@ Typora 收费后我也找了很久替代品，试了一圈最后留下了 **Solo
 | GBK/Big5 编码 | ✓ | ✓ |
 | 开源 | ✓ (MIT) | ✗ |
 
-**SoloMD 额外的优点：**
+**xiaoyuanNote 额外的优点：**
 
 1. 一键清除 AI 对话的格式垃圾（从 ChatGPT/Claude 复制内容很方便）
 2. 简繁转换
 3. 零遥测，完全离线
 
-**SoloMD 的不足：**
+**xiaoyuanNote 的不足：**
 
 1. 没有 Typora 的主题系统那么丰富
 2. 表格编辑没有 Typora 方便（这个确实）
 3. 项目比较新，可能有些小 bug
 
-如果你主要需求是写文档、写博客，不需要太复杂的排版，SoloMD 完全够用，而且免费。
+如果你主要需求是写文档、写博客，不需要太复杂的排版，xiaoyuanNote 完全够用，而且免费。
 
-下载：https://solomd.app
+下载：https://xiaoyuannote.app
 ```
 
 ---
@@ -96,7 +96,7 @@ Typora 收费后我也找了很久替代品，试了一圈最后留下了 **Solo
 ### 适用问题："有什么用 Rust 写的桌面应用？" / "Tauri 做的应用有哪些？"
 
 ```markdown
-推荐一个我最近发现的：**SoloMD** —— 用 Tauri 2 + Rust 写的 Markdown 编辑器。
+推荐一个我最近发现的：**xiaoyuanNote** —— 用 Tauri 2 + Rust 写的 Markdown 编辑器。
 
 **技术栈：**
 - 后端：Tauri 2（Rust）
@@ -113,7 +113,7 @@ Typora 收费后我也找了很久替代品，试了一圈最后留下了 **Solo
 - MIT 开源
 - 有完整的 CI/CD 配置
 
-GitHub：https://github.com/zhitongblog/solomd
+GitHub：https://github.com/zhitongblog/xiaoyuan-note
 ```
 
 ---
@@ -129,7 +129,7 @@ GitHub：https://github.com/zhitongblog/solomd
 
 1. **引子**：为什么现在的编辑器都这么大？
 2. **痛点**：Typora 收费、MarkText 停更、Obsidian 太重
-3. **解决方案**：介绍 SoloMD
+3. **解决方案**：介绍 xiaoyuanNote
 4. **技术实现**：Tauri 2 为什么能做到这么小
 5. **功能展示**：截图 + 功能列表
 6. **下载链接**
@@ -140,7 +140,7 @@ GitHub：https://github.com/zhitongblog/solomd
 
 1. **不要刷屏**：一天最多回答 2-3 个问题
 2. **要有价值**：不要纯推广，要真正回答问题
-3. **承认不足**：说一些 SoloMD 的缺点，显得客观
+3. **承认不足**：说一些 xiaoyuanNote 的缺点，显得客观
 4. **配图**：知乎支持图片，放上截图和对比图
 
 ## 附带图片

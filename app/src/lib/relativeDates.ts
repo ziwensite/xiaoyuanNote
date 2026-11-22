@@ -2,7 +2,7 @@
  * Relative-date tokens for Saved Views (F5).
  *
  * Tolaria's view filters accept natural relative expressions like `today`,
- * `this week`, `@7d`. SoloMD's `bases.ts` date operators (`before` / `after`
+ * `this week`, `@7d`. xiaoyuanNote’s `bases.ts` date operators (`before` / `after`
  * / `on`) compare against an epoch — they don't know about relative phrasing.
  * Rather than touch the read-only `bases.ts`, we resolve a relative token to a
  * concrete value *before* the filter reaches the engine, so the on-disk YAML

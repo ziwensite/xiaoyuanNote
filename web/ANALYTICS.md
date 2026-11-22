@@ -1,6 +1,6 @@
-# SoloMD self-hosted analytics
+# xiaoyuanNote self-hosted analytics
 
-The desktop app POSTs anonymous usage events to `solomd.app/api/track`.
+The desktop app POSTs anonymous usage events to `xiaoyuannote.app/api/track`.
 Storage is a Cloudflare D1 database; the only consumer is the `/admin`
 page on this site, gated by a bearer token.
 
@@ -58,7 +58,7 @@ dev (`wrangler pages dev`) only needs the local-mode steps.
 ```bash
 cd web
 pnpm exec wrangler login          # opens a browser; one-time auth
-pnpm exec wrangler d1 create solomd-analytics
+pnpm exec wrangler d1 create xiaoyuan-note-analytics
 ```
 
 The CLI prints something like:
@@ -66,7 +66,7 @@ The CLI prints something like:
 ```
 [[d1_databases]]
 binding = "DB"
-database_name = "solomd-analytics"
+database_name = "xiaoyuan-note-analytics"
 database_id = "abcd1234-..."
 ```
 
@@ -77,19 +77,19 @@ Paste the `database_id` into `web/wrangler.toml` (replace
 
 ```bash
 # Production:
-pnpm exec wrangler d1 execute solomd-analytics --remote --file=migrations/0001_init_events.sql
+pnpm exec wrangler d1 execute xiaoyuan-note-analytics --remote --file=migrations/0001_init_events.sql
 
 # Local dev (runs against a SQLite file in .wrangler/):
-pnpm exec wrangler d1 execute solomd-analytics --local --file=migrations/0001_init_events.sql
+pnpm exec wrangler d1 execute xiaoyuan-note-analytics --local --file=migrations/0001_init_events.sql
 ```
 
 ### 3. Bind D1 to the Pages project
 
 In the Cloudflare dashboard:
 
-  Workers & Pages → solomd-web → Settings → Bindings → Add D1 database
+  Workers & Pages → xiaoyuan-note-web → Settings → Bindings → Add D1 database
     Variable name: `DB`
-    D1 database:   `solomd-analytics`
+    D1 database:   `xiaoyuan-note-analytics`
 
 (`wrangler.toml` declares the binding, but Pages projects created
 before the wrangler.toml convention need this set in the dashboard
@@ -101,7 +101,7 @@ Pick a long random token (32+ bytes). Then:
 
 ```bash
 # Production secret (will prompt for the value):
-pnpm exec wrangler pages secret put ADMIN_TOKEN --project-name solomd-web
+pnpm exec wrangler pages secret put ADMIN_TOKEN --project-name xiaoyuan-note-web
 
 # Local dev: edit web/.dev.vars (gitignored) — already has a placeholder.
 ```
@@ -118,7 +118,7 @@ curl http://localhost:8788/api/admin/stats \
   -H "Authorization: Bearer dev-test-token"
 ```
 
-Production: open `https://solomd.app/admin/`, paste the token, expect
+Production: open `https://xiaoyuannote.app/admin/`, paste the token, expect
 the dashboard to render with the events you just POSTed.
 
 ## Free-tier limits (D1, as of 2025)
@@ -140,4 +140,4 @@ the request's IP or User-Agent. Cloudflare's edge logs may keep IPs in
 the access log per their default retention, but those logs are
 separate from the events table and are not queryable from the
 dashboard. If we ever need stricter guarantees we can disable Logpush
-on the `solomd-web` project entirely.
+on the `xiaoyuan-note-web` project entirely.

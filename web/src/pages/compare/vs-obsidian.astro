@@ -7,27 +7,27 @@ import CompareFaq from '../../components/CompareFaq.astro';
 const lang = 'en' as const;
 const FAQ = [
   {
-    q: 'Can SoloMD replace Obsidian?',
-    a: 'If your workflow is notes, wiki links, backlinks, daily writing and a knowledge graph, yes — SoloMD ships all of that in core, including typed relationships with automatic inverses, a per-note relationship graph, saved filtered views, and a properties inspector. If you depend on Obsidian’s community-plugin ecosystem, no: SoloMD deliberately has no plugin marketplace — every feature ships built in.',
+    q: 'Can xiaoyuanNote replace Obsidian?',
+    a: 'If your workflow is notes, wiki links, backlinks, daily writing and a knowledge graph, yes — xiaoyuanNote ships all of that in core, including typed relationships with automatic inverses, a per-note relationship graph, saved filtered views, and a properties inspector. If you depend on Obsidian’s community-plugin ecosystem, no: xiaoyuanNote deliberately has no plugin marketplace — every feature ships built in.',
   },
   {
-    q: 'Do [[wiki links]] and backlinks work in SoloMD?',
+    q: 'Do [[wiki links]] and backlinks work in xiaoyuanNote?',
     a: 'Yes. [[note]] wiki links with autocomplete, an outline panel, a backlinks panel, plus typed relationships (belongs_to / related_to / has in frontmatter) and a “Neighborhood” graph you can walk hop by hop. Everything is stored as plain .md and YAML — your notes stay portable.',
   },
   {
     q: 'How does sync work without a subscription?',
-    a: 'SoloMD is folder-based, so any file sync works for free: iCloud, Dropbox, OneDrive, Syncthing. It also has built-in GitHub sync (your own repo, libgit2, optional end-to-end encryption). There is no account and no paid sync tier; Obsidian Sync costs $5/month.',
+    a: 'xiaoyuanNote is folder-based, so any file sync works for free: iCloud, Dropbox, OneDrive, Syncthing. It also has built-in GitHub sync (your own repo, libgit2, optional end-to-end encryption). There is no account and no paid sync tier; Obsidian Sync costs $5/month.',
   },
   {
-    q: 'How much lighter is SoloMD than Obsidian?',
-    a: 'The installer is ~15 MB versus ~110 MB for Obsidian, and idle memory is roughly 80–150 MB. SoloMD is built on Tauri 2 with a Rust backend rather than Electron.',
+    q: 'How much lighter is xiaoyuanNote than Obsidian?',
+    a: 'The installer is ~15 MB versus ~110 MB for Obsidian, and idle memory is roughly 80–150 MB. xiaoyuanNote is built on Tauri 2 with a Rust backend rather than Electron.',
   },
 ];
 ---
 
 <Layout
-  title="SoloMD vs Obsidian — Simple Editor vs Knowledge Graph (2026)"
-  description="SoloMD ships local semantic search, AutoGit, MCP server, and 14 AI providers in core. Obsidian is a knowledge graph + plugin marketplace. Honest comparison of when each one wins."
+  title="xiaoyuanNote vs Obsidian — Simple Editor vs Knowledge Graph (2026)"
+  description="xiaoyuanNote ships local semantic search, AutoGit, MCP server, and 14 AI providers in core. Obsidian is a knowledge graph + plugin marketplace. Honest comparison of when each one wins."
   lang={lang}
 >
   <Header lang={lang} />
@@ -37,17 +37,17 @@ const FAQ = [
         <a href="/">Home</a> / <a href="/compare/">Compare</a> / <span>vs Obsidian</span>
       </nav>
 
-      <h1>SoloMD vs Obsidian: Editor or Second Brain?</h1>
+      <h1>xiaoyuanNote vs Obsidian: Editor or Second Brain?</h1>
       <p class="lead">
         They're not really competitors — pick by what you're doing.
-        <strong>SoloMD</strong> for writing individual Markdown files. <strong>Obsidian</strong>
+        <strong>xiaoyuanNote</strong> for writing individual Markdown files. <strong>Obsidian</strong>
         if you want a personal knowledge graph with backlinks, plugins, and a vault.
       </p>
 
       <h2>Quick verdict</h2>
       <table class="compare-detail">
         <thead>
-          <tr><th>&nbsp;</th><th>SoloMD v5.0</th><th>Obsidian 1.x</th></tr>
+          <tr><th>&nbsp;</th><th>xiaoyuanNote v5.0</th><th>Obsidian 1.x</th></tr>
         </thead>
         <tbody>
           <tr><th>Mental model</th><td>Document editor + agent surface + AI / search / history toolkit</td><td>Vault / knowledge base + plugin marketplace</td></tr>
@@ -77,7 +77,7 @@ const FAQ = [
           <tr><th>iPad / iOS / Android</th><td>✅ App Store (iPad/iOS) + Android</td><td>✅ App Store + Android</td></tr>
           <tr><th>Vim mode</th><td>✅</td><td>✅ core plugin</td></tr>
           <tr><th>Slideshow / presentation</th><td>✅ <code>⌘⌥P</code> built-in</td><td>🟡 Slides plugin</td></tr>
-          <tr><th>CLI tool</th><td>✅ <code>solomd</code></td><td>❌</td></tr>
+          <tr><th>CLI tool</th><td>✅ <code>xiaoyuanNote</code></td><td>❌</td></tr>
           <tr><th>Format Markdown (Prettier)</th><td>✅ <code>⌘⌥L</code></td><td>🟡 community plugin</td></tr>
           <tr><th>Welcome tour</th><td>✅</td><td>🟡 sample vault</td></tr>
           <tr><th>Export PDF / DOCX / EPUB / ODT / LaTeX</th><td>✅ Pandoc</td><td>PDF ✅ · DOCX via plugin · others ❌</td></tr>
@@ -87,14 +87,14 @@ const FAQ = [
         </tbody>
       </table>
 
-      <h2>Use SoloMD when</h2>
+      <h2>Use xiaoyuanNote when</h2>
       <ul>
         <li>You want <strong>local semantic search</strong> in core, with no extra plugin and no cloud round-trip. Obsidian has third-party plugins (Smart Connections, etc.) — most cost $5–10/mo and many call hosted embedding APIs.</li>
-        <li>You want <strong>per-save version history</strong> without configuring the Obsidian Git plugin and a cron schedule. SoloMD's AutoGit is one toggle.</li>
+        <li>You want <strong>per-save version history</strong> without configuring the Obsidian Git plugin and a cron schedule. xiaoyuanNote’s AutoGit is one toggle.</li>
         <li>You want an <strong>MCP server</strong> so Claude Desktop / Cursor / Codex CLI can read your notes — Obsidian doesn't ship one.</li>
         <li>You want <strong>14 AI providers in one BYOK panel</strong> instead of one or two per Obsidian AI plugin.</li>
         <li>Your docs live in a repo or sync folder and you want to double-click a .md file and have it open quickly.</li>
-        <li>You care about install size / RAM. SoloMD is ~4× smaller and uses ~2.5× less memory.</li>
+        <li>You care about install size / RAM. xiaoyuanNote is ~4× smaller and uses ~2.5× less memory.</li>
         <li>You're editing files with legacy encodings (CJK / GBK / Big5 / Shift-JIS). Obsidian requires UTF-8.</li>
         <li>You don't want to learn a new "vault" concept — just work with plain files in plain folders.</li>
       </ul>
@@ -110,15 +110,15 @@ const FAQ = [
 
       <h2>Can I use both?</h2>
       <p>
-        Yes, naturally. Obsidian vaults are just folders of Markdown files. SoloMD
-        reads and writes the same files. Open your vault folder in SoloMD for quick
+        Yes, naturally. Obsidian vaults are just folders of Markdown files. xiaoyuanNote
+        reads and writes the same files. Open your vault folder in xiaoyuanNote for quick
         edits; use Obsidian when you need the graph / backlinks. No conversion, no
         sync conflicts (if you close one before opening the other on the same file).
       </p>
 
-      <h2>What SoloMD doesn't try to do</h2>
+      <h2>What xiaoyuanNote doesn't try to do</h2>
       <p>
-        SoloMD doesn't have — and isn't trying to build — backlinks, wikilinks,
+        xiaoyuanNote doesn't have — and isn't trying to build — backlinks, wikilinks,
         a graph view, plugin marketplace, daily notes, or a vault sync. The
         positioning is "Notepad meets Markdown": open, write, close. If those
         features define your workflow, Obsidian is the right tool.
@@ -134,17 +134,17 @@ const FAQ = [
 
       <h2>Migration — either direction</h2>
       <p>
-        Your files stay the same. Key differences if you move from Obsidian to SoloMD:
+        Your files stay the same. Key differences if you move from Obsidian to xiaoyuan-note:
       </p>
       <ul>
-        <li><code>[[wikilinks]]</code> render as literal text in SoloMD (not broken links — they just aren't clickable).</li>
-        <li>Obsidian's <code>{'> [!note]'}</code> callouts render as regular blockquotes in SoloMD.</li>
+        <li><code>[[wikilinks]]</code> render as literal text in xiaoyuanNote (not broken links — they just aren't clickable).</li>
+        <li>Obsidian's <code>{'> [!note]'}</code> callouts render as regular blockquotes in xiaoyuan-note.</li>
         <li>Dataview queries become plain code blocks.</li>
       </ul>
 
       <h2>Pricing</h2>
       <p>
-        SoloMD: free, MIT, no commercial licence. Obsidian: free for personal use,
+        xiaoyuan-note: free, MIT, no commercial licence. Obsidian: free for personal use,
         <a href="https://obsidian.md/commercial-license" rel="external">$50/user/year</a>
         for commercial use in teams of ≥2.
       </p>
@@ -152,7 +152,7 @@ const FAQ = [
       <CompareFaq heading="Frequently asked questions" items={FAQ} />
 
       <div class="compare-cta">
-        <a href="/#download" class="btn btn--primary">Download SoloMD</a>
+        <a href="/#download" class="btn btn--primary">Download xiaoyuanNote</a>
         <a href="/compare/vs-typora/" class="btn btn--secondary">Compare vs Typora</a>
       </div>
     </article>

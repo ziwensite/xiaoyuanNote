@@ -6,11 +6,11 @@ import Giscus from '../../components/Giscus.astro';
 
 const lang = 'nl' as const;
 const VERSION = '4.1.0';
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 ---
 
 <Layout
-  title="SoloMD v4.0 update — De editor waar agents leven"
+  title="xiaoyuanNote v4.0 update — De editor waar agents leven"
   description="v4.0 is de major release voor agent-native author. Vijf pijlers: ingebouwd Agent-paneel (gestreamde chat-with-vault), geplande recipes (cron / on-save / on-commit, AutoGit branch-sandbox + accept/reject), reproduceerbare Trace-weergave, multi-vault MCP-federatie, eersteklas Ollama. Plus: lokale REST-API, BYOK kostenmeter, 11 Recipe-templates, first-run wizard, meertalige lokalisatie."
   lang={lang}
 >
@@ -36,9 +36,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
       </p>
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>⬇ Download v{VERSION} (Mac)</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>Download (Windows)</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>Alle platforms →</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>⬇ Download v{VERSION} (Mac)</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>Download (Windows)</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>Alle platforms →</a>
       </div>
 
       <section>
@@ -61,7 +61,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
               <strong>Insert</strong>- en <strong>Copy</strong>-knoppen droppen
               de hele paragraaf in de huidige editor — vervangt de selectie als die
               er is, voegt anders in op de cursorpositie. Run-geschiedenis blijft
-              bewaard als gewone markdown onder <code>.solomd/agent-runs/</code>,
+              bewaard als gewone markdown onder <code>.xiaoyuan-note/agent-runs/</code>,
               grep-baar, git-trackbaar.
             </p>
           </div>
@@ -69,7 +69,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             <h3>2 · Agent Recipe / geplande uitvoering</h3>
             <p>
               Declaratieve agent-jobs, YAML-bestanden onder
-              <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>.
+              <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>.
               Triggers: <code>schedule</code> (cron), <code>on-save</code>,
               <code>on-commit</code>, <code>on-tag-add</code>, handmatig.
               <strong>Niet-onderhandelbare veiligheidsguardrails</strong>: elke run
@@ -103,7 +103,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           <div class="pillar">
             <h3>4 · Multi-vault MCP-federatie</h3>
             <p>
-              <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+              <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
               —— één MCP-sessie, meerdere vaults. Tool-signatures kregen een
               optionele <code>workspace</code>-parameter, default = de eerste die
               wordt meegegeven (volledig back-compat met single-vault MCP-clients).
@@ -216,7 +216,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           </li>
           <li>
             <strong>macOS opstart-UX.</strong> Activatie-timing bij opstart gefixt
-            —— SoloMD koud opstarten brengt het echt naar de voorgrond, het verstopt
+            —— xiaoyuanNote koud opstarten brengt het echt naar de voorgrond, het verstopt
             zich niet meer achter Finder. Vensterpositie-herstel landt altijd
             in de workspace van het huidige scherm; herstel vanuit een slechte cache
             na het loskoppelen van een tweede scherm centreert zich automatisch opnieuw,
@@ -276,7 +276,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             onder <em>Integraties</em>. Bestaande instelling-locaties zijn ongewijzigd.
           </li>
           <li>
-            <strong>De MCP-server (<code>solomd-mcp</code>) heeft een nieuwe parameter
+            <strong>De MCP-server (<code>xiaoyuan-note-mcp</code>) heeft een nieuwe parameter
             <code>--workspace</code></strong> (herhaalbaar) gekregen.
             Bestaande single-workspace MCP-clients blijven werken;
             federatie-gedrag is opt-in.
@@ -289,10 +289,10 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
         <p>
           5 hoofdpijlers + quality bar zijn deze keer de hoofdcontent. <em>De
           openstaande richtingen voor v4.x en daarna</em> staan allemaal in de
-          <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmap</a>:
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmap</a>:
           gesandboxte script-API, CLI v2 (rewrite / commit / semantisch zoeken /
           Recipe-trigger in de terminal), en de altijd uitgestelde vraag
-          <em>"Moet SoloMD een commercieel product worden?"</em>
+          <em>"Moet xiaoyuanNote een commercieel product worden?"</em>
           (betaalde sync — oude vraag uit het v3.0-tijdperk, nog steeds niet beantwoord;
           totdat dat is besloten, wordt op dit terrein geen engineering verricht).
         </p>

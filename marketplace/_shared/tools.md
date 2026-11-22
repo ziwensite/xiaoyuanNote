@@ -1,11 +1,11 @@
 <!-- SHARED — paste into every market listing. Source of truth for the
-     `solomd-mcp` tool inventory. Update here, repaste downstream.
+     `xiaoyuan-note-mcp` tool inventory. Update here, repaste downstream.
      `mcp-server/tests/release_consistency.rs` checks the count and the
      static inventories against mcp-server/src/tools.rs. -->
 
 ## Tools
 
-`solomd-mcp` defines 16 JSON-RPC tools over stdio: 12 read tools and 4 write
+`xiaoyuan-note-mcp` defines 16 JSON-RPC tools over stdio: 12 read tools and 4 write
 tools. All 4 write tools are listed in `tools/list` but fail until the server
 is started with `--allow-write`. `export_note` is removed from the router when
 its Node export backend is unavailable, so a default install lists 15.
@@ -24,8 +24,8 @@ its Node export backend is unavailable, so a default install lists 15.
 | `autogit_log` | Per-note commit history (recent revisions, author/date, commit message). |
 | `autogit_diff` | Diff between two revisions of one note (or "current vs N commits ago"). |
 | `sync_status` | Current sync state with the upstream git remote (ahead/behind, conflicts, dirty files). |
-| `share_url` | Generate a `solomd.app/share/?repo=…&path=…` read-only link for a note in a public GitHub repo. |
-| `read_agent_trace` | Replay a previous agent recipe run from its `.solomd/agent-runs/<run-id>/trace.jsonl`. |
+| `share_url` | Generate a `xiaoyuannote.app/share/?repo=…&path=…` read-only link for a note in a public GitHub repo. |
+| `read_agent_trace` | Replay a previous agent recipe run from its `.xiaoyuan-note/agent-runs/<run-id>/trace.jsonl`. |
 
 ### Write tools (4, gated behind `--allow-write`)
 
@@ -38,12 +38,12 @@ its Node export backend is unavailable, so a default install lists 15.
 
 ### Workspace federation
 
-Every tool takes an optional `workspace` argument. Start `solomd-mcp` with
+Every tool takes an optional `workspace` argument. Start `xiaoyuan-note-mcp` with
 multiple `--workspace` flags to serve more than one vault in a single
 session:
 
 ```bash
-solomd-mcp --workspace work=/Users/me/notes --workspace home=/Users/me/diary
+xiaoyuan-note-mcp --workspace work=/Users/me/notes --workspace home=/Users/me/diary
 ```
 
 Then a tool call with `{"workspace": "home"}` resolves to the right vault.

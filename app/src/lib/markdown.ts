@@ -9,7 +9,7 @@ import frontMatter from 'markdown-it-front-matter';
 // @ts-ignore — no types shipped
 import mark from 'markdown-it-mark';
 import cjkFriendly from 'markdown-it-cjk-friendly';
-import yaml from 'js-yaml';
+import { renderFrontmatterHtml } from './frontmatter-render';
 import { numberEquations } from './equations';
 import { parseImageAltSize } from './md-image-url';
 import { sanitizeRenderedHtml } from './sanitize-html';
@@ -191,7 +191,7 @@ md.inline.ruler.before('link', 'wikilink', (state, silent) => {
 
 // ---- Image with a space in its path (#345) -----------------------------------
 // CommonMark doesn't allow a space in a bare link destination, so
-// `![](D:/Program Files/a.png)` renders as literal text. SoloMD used to write
+// `![](D:/Program Files/a.png)` renders as literal text. xiaoyuanNote used to write
 // exactly that when pasting into an image folder whose path had a space (it
 // now percent-encodes, see md-image-url.ts), so notes in the wild still carry
 // such links. Accept them as images — but only when the destination is a
@@ -436,7 +436,7 @@ function parseForToc(state: any, source: string): any[] {
   // capture with the full document's front matter.
   const savedFrontMatter = lastFrontMatterRaw;
   try {
-    return state.md.parse(source, { solomdTocScan: true });
+    return state.md.parse(source, { xiaoyuanNoteTocScan: true });
   } finally {
     lastFrontMatterRaw = savedFrontMatter;
   }
@@ -464,7 +464,7 @@ function tocListTokens(state: any, headings: TocHeading[]): any[] {
 
 md.core.ruler.before('source_line_map', 'table_of_contents', (state) => {
   const env = (state.env || {}) as Record<string, unknown>;
-  if (env.solomdTocScan === true) return;
+  if (env.xiaoyuanNoteTocScan === true) return;
 
   const sourceLines = state.src.split('\n');
   const markers: number[] = [];
@@ -487,7 +487,7 @@ md.core.ruler.before('source_line_map', 'table_of_contents', (state) => {
   }
   if (!markers.length) return;
 
-  const externalSource = env.solomdTocSource;
+  const externalSource = env.xiaoyuanNoteTocSource;
   const headingTokens =
     typeof externalSource === 'string' ? parseForToc(state, externalSource) : state.tokens;
   const headings = tocHeadingsFromTokens(headingTokens);
@@ -694,46 +694,6 @@ function escapeHtml(s: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function renderFrontMatterHtml(raw: string): string {
-  let parsed: unknown;
-  try {
-    parsed = yaml.load(raw);
-  } catch {
-    return `<pre class="md-frontmatter md-frontmatter--raw">${escapeHtml(
-      raw,
-    )}</pre>`;
-  }
-  if (
-    parsed === null ||
-    parsed === undefined ||
-    typeof parsed !== 'object' ||
-    Array.isArray(parsed)
-  ) {
-    // Not a key/value map — fall back to raw display.
-    return `<pre class="md-frontmatter md-frontmatter--raw">${escapeHtml(
-      raw,
-    )}</pre>`;
-  }
-  const entries = Object.entries(parsed as Record<string, unknown>);
-  if (entries.length === 0) {
-    return `<pre class="md-frontmatter md-frontmatter--raw">${escapeHtml(
-      raw,
-    )}</pre>`;
-  }
-  const rows = entries
-    .map(([k, v]) => {
-      const valueText =
-        v === null || v === undefined
-          ? ''
-          : typeof v === 'object'
-            ? JSON.stringify(v)
-            : String(v);
-      return `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(valueText)}</dd>`;
-    })
-    .join('');
-  return `<div class="md-frontmatter"><dl>${rows}</dl></div>`;
 }
 
 // Tags that markdown-it will treat as HTML blocks when they start at column 0
@@ -1419,13 +1379,13 @@ export function preprocessMarkdown(source: string): string {
 
 export function renderMarkdown(
   source: string,
-  options?: { breaks?: boolean; tocSource?: string },
+  options?: { breaks?: boolean; tocSource?: string; frontmatterEditable?: boolean },
 ): string {
   lastFrontMatterRaw = null;
   const normalized = preprocessMarkdown(source);
   const env: Record<string, unknown> = {};
   if (options?.tocSource !== undefined) {
-    env.solomdTocSource = preprocessMarkdown(options.tocSource);
+    env.xiaoyuanNoteTocSource = preprocessMarkdown(options.tocSource);
   }
   const prevBreaks = md.options.breaks;
   if (options?.breaks !== undefined) md.set({ breaks: options.breaks });
@@ -1435,15 +1395,18 @@ export function renderMarkdown(
   } finally {
     if (options?.breaks !== undefined) md.set({ breaks: prevBreaks });
   }
+  let fmHtml = '';
   if (lastFrontMatterRaw !== null) {
-    const fmHtml = renderFrontMatterHtml(lastFrontMatterRaw);
+    fmHtml = renderFrontmatterHtml(lastFrontMatterRaw, {
+      editable: options?.frontmatterEditable === true,
+    });
     lastFrontMatterRaw = null;
-    body = fmHtml + body;
   }
-  // #304 — single choke point. Every consumer of rendered markdown (preview,
-  // the live-block editor, slideshow, PDF/image/HTML export) goes through
-  // here, so sanitizing the return value covers all of them at once.
-  return sanitizeRenderedHtml(body);
+  // #304 — sanitize the Markdown BODY (it may contain user-authored HTML).
+  // The properties card is generated here from escaped YAML values, so it is
+  // prepended AFTER sanitizing: DOMPurify would otherwise strip the value
+  // controls and the preview / live editors would disagree.
+  return fmHtml + sanitizeRenderedHtml(body);
 }
 
 /**

@@ -4,6 +4,6 @@ Gras, italique, barré et code sur plusieurs paragraphes formatent désormais ch
 
 Menus : Rechercher et remplacer dans le menu Édition, les commandes de zoom dans le sous-menu Présentation › Zoom, et le menu Aide liste séparément l'aide-mémoire Markdown, les raccourcis clavier et la ligne de commande. Le menu Insérer propose les titres 4 à 6.
 
-Les liens des notes s'ouvrent toujours dans le navigateur, jamais dans SoloMD.
+Les liens des notes s'ouvrent toujours dans le navigateur, jamais dans xiaoyuan-note.
 
-Après quelques jours d'utilisation, SoloMD demande une fois — une seule — si vous voulez lui mettre une étoile sur GitHub.
+Après quelques jours d'utilisation, xiaoyuanNote demande une fois — une seule — si vous voulez lui mettre une étoile sur GitHub.

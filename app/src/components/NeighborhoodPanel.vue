@@ -102,7 +102,7 @@ const outgoing = computed<NeighborGroup[]>(() => {
   const focal = focalEntry.value;
   if (!focal) return [];
   // `idx.entries` is the identity token: Pinia replaces the array wholesale on
-  // every `solomd://index-updated`, so this recomputes exactly on index change
+  // every `xiaoyuan-note://index-updated`, so this recomputes exactly on index change
   // or focal change and is O(1) on every other reactive tick.
   return outgoingFor(focal, idx.byStem, idx.entries);
 });
@@ -221,7 +221,7 @@ async function openBacklink(e: MouseEvent, b: BacklinkRef) {
   await files.openPath(b.from_path, { bypassNewWindow: true });
   setTimeout(() => {
     window.dispatchEvent(
-      new CustomEvent('solomd:outline-goto', {
+      new CustomEvent('xiaoyuan-note:outline-goto', {
         detail: { line: b.line, paneId: tiles.focusedPaneId },
       }),
     );

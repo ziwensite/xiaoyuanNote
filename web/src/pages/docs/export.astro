@@ -13,7 +13,7 @@ const FAQ = [
   },
   {
     q: 'Do math equations, highlights, callouts, and diagrams survive DOCX export?',
-    a: 'Yes — SoloMD generates a true .docx file where KaTeX math becomes native editable Word equations (MathML), Mermaid and PlantUML diagrams are embedded as crisp images, and ==highlights==, sub/superscripts, callouts, task checkboxes (☐/☑), footnotes, and separate ordered list numbering runs are all preserved.',
+    a: 'Yes — xiaoyuanNote generates a true .docx file where KaTeX math becomes native editable Word equations (MathML), Mermaid and PlantUML diagrams are embedded as crisp images, and ==highlights==, sub/superscripts, callouts, task checkboxes (☐/☑), footnotes, and separate ordered list numbering runs are all preserved.',
   },
   {
     q: 'How do I paste styled content with equations into Microsoft Word, WPS, Notion, or WeChat?',
@@ -21,14 +21,14 @@ const FAQ = [
   },
   {
     q: 'Why does pasting from Excel or WPS produce a Markdown table instead of a screenshot?',
-    a: 'SoloMD inspects clipboard HTML <table> and TSV data first (including multi-line cells and colspan) and converts spreadsheet ranges directly into aligned Markdown tables rather than pasting the fallback bitmap image.',
+    a: 'xiaoyuanNote inspects clipboard HTML <table> and TSV data first (including multi-line cells and colspan) and converts spreadsheet ranges directly into aligned Markdown tables rather than pasting the fallback bitmap image.',
   },
 ];
 ---
 
 <Layout
-  title="Export & Copy in SoloMD — PDF, DOCX, HTML, Print, Copy as Word & Excel Paste"
-  description="How SoloMD exports Markdown to vector PDF, native Word (.docx), standalone HTML, and PNG, plus Copy as Word, Rich HTML copy, and pasting Excel/WPS tables into Markdown."
+  title="Export & Copy in xiaoyuanNote — PDF, DOCX, HTML, Print, Copy as Word & Excel Paste"
+  description="How xiaoyuanNote exports Markdown to vector PDF, native Word (.docx), standalone HTML, and PNG, plus Copy as Word, Rich HTML copy, and pasting Excel/WPS tables into Markdown."
   lang={lang}
 >
   <Header lang={lang} />
@@ -94,7 +94,7 @@ const FAQ = [
 
       <h2>Pasting &amp; importing from Excel, WPS, and Word</h2>
       <ul>
-        <li><strong>Excel / WPS spreadsheet cells → Markdown table</strong>: copy any multi-cell range in Excel, WPS, Numbers, or a web table and press <kbd>Ctrl/⌘ V</kbd> in SoloMD to insert a formatted Markdown table instead of a bitmap image.</li>
+        <li><strong>Excel / WPS spreadsheet cells → Markdown table</strong>: copy any multi-cell range in Excel, WPS, Numbers, or a web table and press <kbd>Ctrl/⌘ V</kbd> in xiaoyuanNote to insert a formatted Markdown table instead of a bitmap image.</li>
         <li><strong>Word multi-level lists → Markdown lists</strong>: pasting numbered or bulleted lists from Word or WPS converts them cleanly into Markdown list syntax.</li>
         <li><strong>Open .docx / .html files directly</strong>: opening a Word or HTML document from File → Open or the file tree imports it as clean Markdown.</li>
       </ul>
@@ -106,7 +106,7 @@ const FAQ = [
 
       <h2>CJK and legacy encodings</h2>
       <p>
-        SoloMD auto-detects UTF-8, UTF-16 (LE/BE), GBK / GB18030, Big5, Shift-JIS, and EUC-KR when reading files, and saves back in the source file’s original encoding by default.
+        xiaoyuanNote auto-detects UTF-8, UTF-16 (LE/BE), GBK / GB18030, Big5, Shift-JIS, and EUC-KR when reading files, and saves back in the source file’s original encoding by default.
       </p>
 
       <CompareFaq heading="Frequently asked questions" items={FAQ} />

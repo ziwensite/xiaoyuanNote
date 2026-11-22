@@ -9,7 +9,7 @@
   - [x] SubTask 2.2: 下拉 `Teleport to body` + `position: fixed` 锚定 + resize/scroll 重算 + 高层级 z-index
   - [x] SubTask 2.3: 键盘 ↑↓ / Enter / Esc（两段式）/ IME guard；⌘⇧F 聚焦由外部调用 focus + select
   - [x] SubTask 2.4: 状态文案（无文件夹 / 空输入 / 搜索中 / 无结果 / 命中数）；`data-no-drag`；`aria-label`、`role="combobox"`/`listbox`、`aria-activedescendant`
-  - [x] SubTask 2.5: 打开命中走 `files.openPath` + `solomd:outline-goto`（与 `GlobalSearch.vue` 一致），不重写搜索实现
+  - [x] SubTask 2.5: 打开命中走 `files.openPath` + `xiaoyuan-note:outline-goto`（与 `GlobalSearch.vue` 一致），不重写搜索实现
 
 - [x] Task 3: `Toolbar.vue` 接入并删除旧入口
   - [x] SubTask 3.1: titlebar 变体用 `HeaderSearchBox` 替换 `titlebar__title`，删除 `.titlebar__title` 样式；保留 BrandMark/menubar/win-controls 结构
@@ -22,11 +22,11 @@
   - [x] SubTask 4.2: `SidebarPaneBody.vue` 删除 `search` 分支与 `GlobalSearch` import
   - [x] SubTask 4.3: `Sidebar.vue` 对 `embedded` 隐藏 `sb__search-wrap`（`variant="phone"` 保留），`switcherChord` 随之仅在 phone 使用
   - [x] SubTask 4.4: `App.vue` 删除 `searchOpen`/`searchPrefill`/`toggleGlobalSearch`/`openGlobalSearchPane`/`onPaneClose` 的 search 分支/右键菜单 search 行；`onFilterTag` 改为 `requestHeaderSearch('#'+tag)`；手机 overlay 的 `GlobalSearch` 保持
-  - [x] SubTask 4.5: 复用现有 `solomd:open-global-search` 事件（命令/菜单）聚焦搜索框；新增监听 `solomd:open-rag-search`
+  - [x] SubTask 4.5: 复用现有 `xiaoyuan-note:open-global-search` 事件（命令/菜单）聚焦搜索框；新增监听 `xiaoyuan-note:open-rag-search`
 
 - [x] Task 5: 快捷键与命令面板对齐
   - [x] SubTask 5.1: `useShortcuts.ts` 的 `search.global` 一律走 `hooks.openGlobalSearch`（hook 改为聚焦搜索框），注释写明“聚焦框，不开右栏面板；RAG 走独立命令”
-  - [x] SubTask 5.2: `useCommands.ts` 的 `search.global` 继续派发 `solomd:open-global-search`（App 已把它接到搜索框）；新增 `search.semantic` 派发 `solomd:open-rag-search`
+  - [x] SubTask 5.2: `useCommands.ts` 的 `search.global` 继续派发 `xiaoyuan-note:open-global-search`（App 已把它接到搜索框）；新增 `search.semantic` 派发 `xiaoyuan-note:open-rag-search`
   - [x] SubTask 5.3: `app-menu.ts` 的 `search.global` 条目保持不变（命令仍在），确认 `app-menu.test.ts` 断言无需删除
 
 - [x] Task 6: 窗口标题路径确认

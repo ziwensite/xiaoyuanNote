@@ -53,7 +53,7 @@ function onInput(e: Event) {
 .ds-input:focus {
   outline: none;
   background: var(--bg);
-  box-shadow: var(--ring);
+  box-shadow: var(--ring-tight);
 }
 .ds-input:disabled {
   opacity: 0.5;

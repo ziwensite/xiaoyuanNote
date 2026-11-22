@@ -11,7 +11,7 @@
 ## 标题
 
 ```
-SoloMD：一个只有 15 MB 的 Markdown 编辑器，用 Tauri 2 + Rust 写的
+xiaoyuanNote：一个只有 15 MB 的 Markdown 编辑器，用 Tauri 2 + Rust 写的
 ```
 
 或者更吸引眼球的版本：
@@ -23,7 +23,7 @@ SoloMD：一个只有 15 MB 的 Markdown 编辑器，用 Tauri 2 + Rust 写的
 ## 正文
 
 ```markdown
-大家好，我做了一个 Markdown 编辑器叫 SoloMD，想来分享一下。
+大家好，我做了一个 Markdown 编辑器叫 xiaoyuanNote，想来分享一下。
 
 **为什么做这个？**
 
@@ -37,7 +37,7 @@ SoloMD：一个只有 15 MB 的 Markdown 编辑器，用 Tauri 2 + Rust 写的
 
 所以自己做了一个。
 
-**SoloMD 有什么特点？**
+**xiaoyuanNote 有什么特点？**
 
 1. **小** - 安装包只有 15 MB（Typora 80MB，Obsidian 250MB）
 2. **快** - 用的是系统 WebView，不打包 Chromium
@@ -54,8 +54,8 @@ SoloMD：一个只有 15 MB 的 Markdown 编辑器，用 Tauri 2 + Rust 写的
 
 **下载**
 
-- 官网：https://solomd.app
-- GitHub：https://github.com/zhitongblog/solomd
+- 官网：https://xiaoyuannote.app
+- GitHub：https://github.com/zhitongblog/xiaoyuan-note
 - 支持 macOS / Windows / Linux
 
 MIT 开源，免费使用。
@@ -78,17 +78,17 @@ MIT 开源，免费使用。
 
 ### "为什么不用 VS Code？"
 ```
-VS Code 确实强大，但我只是想打开一个 md 文件快速写点东西，不想启动整个 IDE。SoloMD 定位就是轻量记事本，不是 IDE。
+VS Code 确实强大，但我只是想打开一个 md 文件快速写点东西，不想启动整个 IDE。xiaoyuanNote 定位就是轻量记事本，不是 IDE。
 ```
 
 ### "为什么不用 Obsidian？"
 ```
-Obsidian 是知识库管理工具，有双链、图谱这些功能。SoloMD 就是个编辑器，打开文件、写、保存、关闭。不同定位，不冲突。
+Obsidian 是知识库管理工具，有双链、图谱这些功能。xiaoyuanNote 就是个编辑器，打开文件、写、保存、关闭。不同定位，不冲突。
 ```
 
 ### "Typora 不香吗？"
 ```
-Typora 确实好用，但收费了。SoloMD 免费开源，MIT 协议。而且体积更小（15MB vs 80MB）。
+Typora 确实好用，但收费了。xiaoyuanNote 免费开源，MIT 协议。而且体积更小（15MB vs 80MB）。
 ```
 
 ### "Tauri 成熟吗？"

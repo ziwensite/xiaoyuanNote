@@ -9,8 +9,8 @@
  * the listener in a single line.
  *
  * Events:
- *   - `solomd:open-bases`  → show BasesView
- *   - `solomd:close-bases` → hide BasesView (back to editor)
+ *   - `xiaoyuan-note:open-bases`  → show BasesView
+ *   - `xiaoyuan-note:close-bases` → hide BasesView (back to editor)
  *
  * Usage from a command:
  *   const { openBases } = useBasesView();
@@ -26,8 +26,8 @@ export interface UseBasesView {
   toggleBases(): void;
 }
 
-export const BASES_OPEN_EVENT = 'solomd:open-bases';
-export const BASES_CLOSE_EVENT = 'solomd:close-bases';
+export const BASES_OPEN_EVENT = 'xiaoyuan-note:open-bases';
+export const BASES_CLOSE_EVENT = 'xiaoyuan-note:close-bases';
 
 export function useBasesView(): UseBasesView {
   function openBases() {
@@ -40,7 +40,7 @@ export function useBasesView(): UseBasesView {
     // Convention: anyone listening should treat a re-dispatch of "open" as
     // a toggle if it's already open. We use a dedicated toggle event so the
     // listener can decide.
-    window.dispatchEvent(new CustomEvent('solomd:toggle-bases'));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:toggle-bases'));
   }
   return { openBases, closeBases, toggleBases };
 }

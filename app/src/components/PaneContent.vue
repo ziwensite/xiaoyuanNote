@@ -150,7 +150,7 @@ const editorPaneStyle = computed(() =>
 );
 
 function relayoutAfterResize() {
-  window.dispatchEvent(new CustomEvent('solomd:relayout'));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:relayout'));
 }
 
 // Ends the drag in progress, if any (also called on unmount).
@@ -577,6 +577,13 @@ watch(
     }
     // 100ms matches the existing settle window before bindScrollSync.
     await new Promise((r) => setTimeout(r, 100));
+    if (!fromEditor && toEditor) {
+      // Returning from preview: the editor was display:none and CodeMirror's
+      // ResizeObserver doesn't re-measure a display flip (width unchanged), so
+      // it draws nothing without an explicit relayout — looks like a blank pane
+      // until Ctrl+R. Fire it now that v-show has applied and DOM has settled.
+      relayoutAfterResize();
+    }
     if (!fromEditor && toEditor && !userScrolledPreview) {
       // #516 — Returning from Preview or Reading mode when the user did not
       // scroll away in Preview: restore the exact saved editor scroll + caret
@@ -620,16 +627,16 @@ onMounted(() => {
   }, 110);
   setTimeout(bindScrollSync, 300);
   restoreLaunchCursor();
-  window.addEventListener('solomd:outline-goto', onOutlineGotoEvent);
-  window.addEventListener('solomd:insert-markdown', onInsertMarkdownEvent);
-  window.addEventListener('solomd:insert-image-path', onInsertImagePathEvent);
-  window.addEventListener('solomd:insert-image-url', onInsertImageUrlEvent);
-  window.addEventListener('solomd:upload-local-images', onUploadLocalImagesEvent);
-  window.addEventListener('solomd:editor-find', onEditorFindEvent);
-  window.addEventListener('solomd:preview-search', onPreviewSearchEvent);
-  window.addEventListener('solomd:fold', onFoldEvent);
-  window.addEventListener('solomd:edit-table', onEditTableEvent);
-  window.addEventListener('solomd:edit-formula', onEditFormulaEvent);
+  window.addEventListener('xiaoyuan-note:outline-goto', onOutlineGotoEvent);
+  window.addEventListener('xiaoyuan-note:insert-markdown', onInsertMarkdownEvent);
+  window.addEventListener('xiaoyuan-note:insert-image-path', onInsertImagePathEvent);
+  window.addEventListener('xiaoyuan-note:insert-image-url', onInsertImageUrlEvent);
+  window.addEventListener('xiaoyuan-note:upload-local-images', onUploadLocalImagesEvent);
+  window.addEventListener('xiaoyuan-note:editor-find', onEditorFindEvent);
+  window.addEventListener('xiaoyuan-note:preview-search', onPreviewSearchEvent);
+  window.addEventListener('xiaoyuan-note:fold', onFoldEvent);
+  window.addEventListener('xiaoyuan-note:edit-table', onEditTableEvent);
+  window.addEventListener('xiaoyuan-note:edit-formula', onEditFormulaEvent);
 });
 
 onBeforeUnmount(() => {
@@ -638,16 +645,16 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   resizeObserver = null;
   document.body.classList.remove('split-divider--dragging');
-  window.removeEventListener('solomd:outline-goto', onOutlineGotoEvent);
-  window.removeEventListener('solomd:insert-markdown', onInsertMarkdownEvent);
-  window.removeEventListener('solomd:insert-image-path', onInsertImagePathEvent);
-  window.removeEventListener('solomd:insert-image-url', onInsertImageUrlEvent);
-  window.removeEventListener('solomd:upload-local-images', onUploadLocalImagesEvent);
-  window.removeEventListener('solomd:editor-find', onEditorFindEvent);
-  window.removeEventListener('solomd:preview-search', onPreviewSearchEvent);
-  window.removeEventListener('solomd:fold', onFoldEvent);
-  window.removeEventListener('solomd:edit-table', onEditTableEvent);
-  window.removeEventListener('solomd:edit-formula', onEditFormulaEvent);
+  window.removeEventListener('xiaoyuan-note:outline-goto', onOutlineGotoEvent);
+  window.removeEventListener('xiaoyuan-note:insert-markdown', onInsertMarkdownEvent);
+  window.removeEventListener('xiaoyuan-note:insert-image-path', onInsertImagePathEvent);
+  window.removeEventListener('xiaoyuan-note:insert-image-url', onInsertImageUrlEvent);
+  window.removeEventListener('xiaoyuan-note:upload-local-images', onUploadLocalImagesEvent);
+  window.removeEventListener('xiaoyuan-note:editor-find', onEditorFindEvent);
+  window.removeEventListener('xiaoyuan-note:preview-search', onPreviewSearchEvent);
+  window.removeEventListener('xiaoyuan-note:fold', onFoldEvent);
+  window.removeEventListener('xiaoyuan-note:edit-table', onEditTableEvent);
+  window.removeEventListener('xiaoyuan-note:edit-formula', onEditFormulaEvent);
 });
 
 defineExpose({ gotoLine, editorRef });
@@ -656,14 +663,20 @@ defineExpose({ gotoLine, editorRef });
 // reading position to the outline instead. Split mode keeps the cursor.
 function onPreviewTopline(line: number) {
   if (settings.viewMode !== 'preview') return;
-  window.dispatchEvent(new CustomEvent('solomd:preview-topline', {
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:preview-topline', {
     detail: { line, paneId: props.paneId },
   }));
 }
 
 function onOutlineGotoEvent(e: Event) {
-  const { line, paneId } = (e as CustomEvent).detail;
-  if (paneId !== props.paneId) return;
+  const { line, paneId, path } = (e as CustomEvent).detail;
+  if (paneId) {
+    if (paneId !== props.paneId) return;
+  } else if (path && props.tab?.filePath !== path) {
+    // v5.0 — `#L<n>` wikilink jumps omit paneId and target the pane(s) showing
+    // the destination file, so an already-open note lands on the right line.
+    return;
+  }
   gotoLine(line);
 }
 

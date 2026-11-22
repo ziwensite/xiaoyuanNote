@@ -1,6 +1,6 @@
 # App Store Submission Kit
 
-Content for submitting SoloMD to:
+Content for submitting xiaoyuanNote to:
 
 - **`ios/`** — iPad App Store (iPad Only, requires Apple Developer Program)
 - **`macos/`** — Mac App Store (requires sandbox rebuild — see `macos/MAS_BUILD_NOTES.md`)

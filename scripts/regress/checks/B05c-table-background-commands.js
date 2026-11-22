@@ -25,7 +25,7 @@ R.t(vis('[data-table-close="cancel"]'), 'native close asks about the working cop
 $('[data-table-close="cancel"]')?.click();
 await sleep(100);
 const { emitTo } = await import('/node_modules/@tauri-apps/api/event.js');
-await emitTo('main', 'solomd://close-requested', 'main');
+await emitTo('main', 'xiaoyuan-note://close-requested', 'main');
 await sleep(150);
 R.t(vis('[data-table-close="cancel"]'), 'window close asks before dropping table edits');
 R.eq(tabs.activeId, active, 'window stays alive with the original note');

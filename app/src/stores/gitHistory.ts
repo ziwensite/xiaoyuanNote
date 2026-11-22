@@ -4,7 +4,7 @@
  * Wraps the Rust `git_*` Tauri commands and caches the per-folder
  * `WorkspaceStatus` so the History panel can render synchronously.
  *
- * The cache is invalidated on every `solomd://index-updated` event the
+ * The cache is invalidated on every `xiaoyuan-note://index-updated` event the
  * Rust workspace_index file watcher emits — that fires on every file
  * change, which is exactly when our git status would have changed.
  */
@@ -107,7 +107,7 @@ export const useGitHistoryStore = defineStore('gitHistory', {
       // Set up the auto-refresh listener once.
       if (!unlisten) {
         try {
-          unlisten = await listen('solomd://index-updated', () => {
+          unlisten = await listen('xiaoyuan-note://index-updated', () => {
             // Invalidate cached histories — the file under cursor likely
             // got a new commit.
             this.history = {};

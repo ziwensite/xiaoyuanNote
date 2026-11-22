@@ -6,7 +6,7 @@ import { defineStore } from 'pinia';
  * Holds the conversation state for the right-side Agent Panel. The first
  * commit on `feat/v4-panel` only had user/assistant text; this update adds
  * the tool-message variant for the tool-call cards and stashes the run_id
- * per run so the UI can deep-link into `<workspace>/.solomd/agent-runs/`.
+ * per run so the UI can deep-link into `<workspace>/.xiaoyuan-note/agent-runs/`.
  */
 
 export type AgentMessageRole = 'user' | 'assistant' | 'tool' | 'system';
@@ -17,7 +17,7 @@ export interface AgentToolPayload {
   /** Args object the model sent. Rendered as JSON in the expanded card. */
   args: Record<string, unknown>;
   /** Result body — either the JSON-stringified tool return or the error
-   *  message. Set after `solomd://ai-tool-result` arrives. */
+   *  message. Set after `xiaoyuan-note://ai-tool-result` arrives. */
   result?: string;
   /** Set when the dispatch failed; pairs with `result` to surface in red. */
   error?: string;
@@ -47,8 +47,8 @@ interface AgentPanelState {
   currentRunId: string | null;
   /** Persistence run id minted by the Rust agent_run module — distinct
    *  from currentRunId (request_id). Stashed when
-   *  `solomd://ai-run-started` fires so the UI can deep-link to
-   *  `<workspace>/.solomd/agent-runs/<runId>/run.md`. */
+   *  `xiaoyuan-note://ai-run-started` fires so the UI can deep-link to
+   *  `<workspace>/.xiaoyuan-note/agent-runs/<runId>/run.md`. */
   currentPersistRunId: string | null;
 }
 
@@ -85,7 +85,7 @@ export const useAgentPanelStore = defineStore('agentPanel', {
     /**
      * Insert a tool-call placeholder card immediately after the last
      * assistant placeholder. The result fills in once
-     * `solomd://ai-tool-result` arrives. We then re-append a fresh
+     * `xiaoyuan-note://ai-tool-result` arrives. We then re-append a fresh
      * assistant placeholder so subsequent text deltas keep flowing into
      * a new bubble (matches the Anthropic / OpenAI pattern of multiple
      * assistant turns in one chat round).

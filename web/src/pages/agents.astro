@@ -7,17 +7,17 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD Agents — write your own (v4)"
-  description="The agent surface inside SoloMD v4: Inline Agent Panel, scheduled Recipes, replayable Trace, multi-vault Federation, Ollama first-class. The 5 pillars, in detail, with the safety model that makes autonomous writes reviewable."
+  title="xiaoyuanNote Agents — write your own (v4)"
+  description="The agent surface inside xiaoyuanNote v4: Inline Agent Panel, scheduled Recipes, replayable Trace, multi-vault Federation, Ollama first-class. The 5 pillars, in detail, with the safety model that makes autonomous writes reviewable."
   lang={lang}
 >
   <Header lang={lang} />
   <main id="main">
     <article class="container agents-page">
       <p class="eyebrow">v4.0 · the editor where agents live</p>
-      <h1>Agents in SoloMD</h1>
+      <h1>Agents in xiaoyuanNote</h1>
       <p class="lead">
-        SoloMD v4.0 turns the workspace into a place where agents work
+        xiaoyuanNote v4.0 turns the workspace into a place where agents work
         <em>continuously</em>, not just on-demand. Five pillars, all on top of
         plain markdown files you already own. Every autonomous write goes
         through an AutoGit branch sandbox you accept or reject before it
@@ -47,7 +47,7 @@ const lang = 'en' as const;
         </p>
         <p>
           Run history persists as plain markdown in
-          <code>&lt;workspace&gt;/.solomd/agent-runs/&lt;ts&gt;.md</code>.
+          <code>&lt;workspace&gt;/.xiaoyuan-note/agent-runs/&lt;ts&gt;.md</code>.
           Grep-able. Git-trackable. The opposite of a black box.
         </p>
         <ul>
@@ -68,7 +68,7 @@ const lang = 'en' as const;
         <h2>2. Scheduled Recipes</h2>
         <p>
           A recipe is one YAML file under
-          <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>. No build step,
+          <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>. No build step,
           no plugin manifest. Edit, save, run. Five trigger modes:
         </p>
         <table class="recipe-triggers">
@@ -105,7 +105,7 @@ provider: claude`}</code></pre>
         <h2>3. Trace view + replay</h2>
         <p>
           Every run (Panel chat or Recipe) emits
-          <code>&lt;workspace&gt;/.solomd/agent-runs/&lt;run-id&gt;/trace.jsonl</code>
+          <code>&lt;workspace&gt;/.xiaoyuan-note/agent-runs/&lt;run-id&gt;/trace.jsonl</code>
           — line-delimited so you can <code>tail -f</code> a long run while
           it's still going. Schema: one JSON object per step, with kinds
           <code>run_started</code> · <code>prompt</code> ·
@@ -136,11 +136,11 @@ provider: claude`}</code></pre>
       <section id="federation">
         <h2>4. Workspace Federation</h2>
         <p>
-          The bundled <code>solomd-mcp</code> grew a multi-workspace mode in
+          The bundled <code>xiaoyuan-note-mcp</code> grew a multi-workspace mode in
           v4. Pass any number of <code>--workspace</code> flags to bridge
           multiple vaults in a single MCP session:
         </p>
-        <pre class="code-block"><code>{`solomd-mcp \\
+        <pre class="code-block"><code>{`xiaoyuan-note-mcp \\
   --workspace ~/Vaults/personal \\
   --workspace ~/Vaults/work \\
   --workspace ~/Vaults/research`}</code></pre>
@@ -180,7 +180,7 @@ provider: claude`}</code></pre>
         <p>
           Open Settings → Recipes → <strong>Browse cookbook</strong> to
           install any of these. The YAML copies to
-          <code>.solomd/agents/</code> and opens for editing. Re-installable
+          <code>.xiaoyuan-note/agents/</code> and opens for editing. Re-installable
           with auto-suffixed names.
         </p>
         <ul class="cookbook-list">
@@ -229,13 +229,13 @@ provider: claude`}</code></pre>
           <code>docs/agents.md</code> in the repo:
         </p>
         <p>
-          <a class="cta" href="https://github.com/zhitongblog/solomd/blob/main/docs/agents.md" rel="external">
+          <a class="cta" href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/agents.md" rel="external">
             Read docs/agents.md →
           </a>
         </p>
         <p>
           Schema is the source of truth in
-          <a href="https://github.com/zhitongblog/solomd/blob/main/app/src-tauri/src/recipes.rs" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/app/src-tauri/src/recipes.rs" rel="external">
             <code>app/src-tauri/src/recipes.rs</code>
           </a> — Rust types, not a paper spec.
         </p>

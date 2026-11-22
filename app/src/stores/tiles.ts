@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import type { SplitDirection, TileBranch, TileLeaf, TileNode } from '../types';
 import { useTabsStore } from './tabs';
 
-const LS_KEY = 'solomd.tiles.v1';
+const LS_KEY = 'xiaoyuan-note.tiles.v1';
 
 let nextPaneId = 0;
 const newPaneId = () => `pane-${Date.now()}-${nextPaneId++}`;
@@ -26,7 +26,7 @@ interface DragState {
 
 function restoreSessionEnabled(): boolean {
   try {
-    const raw = localStorage.getItem('solomd.settings.v1');
+    const raw = localStorage.getItem('xiaoyuan-note.settings.v1');
     if (raw) {
       const s = JSON.parse(raw);
       if (s && typeof s.restoreSession === 'boolean') return s.restoreSession;

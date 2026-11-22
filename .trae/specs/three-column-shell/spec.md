@@ -175,7 +175,7 @@
 
 - `#header-tabs` 仍是中列头内的唯一挂载点，PaneHost 的 teleport 目标不变。
 - `TileRoot`、`BasesView`、`InboxView`、`TypeLensView`、`ViewNoteList` 的 `v-if` 链仍完整保留在 `.content` 内。
-- 不改 `solomd.tiles.v1` 的 store 与 PaneHost。
+- 不改 `xiaoyuan-note.tiles.v1` 的 store 与 PaneHost。
 
 ---
 

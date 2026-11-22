@@ -1,6 +1,6 @@
 # LanguageTool integration plan (Premium + local server)
 
-Status: phases 1–3 implemented on branch `feature/languagetool` · Target: SoloMD 4.14.x (Tauri 2, Rust + Vue 3 / CodeMirror 6)
+Status: phases 1–3 implemented on branch `feature/languagetool` · Target: xiaoyuanNote 4.14.x (Tauri 2, Rust + Vue 3 / CodeMirror 6)
 
 ## Implementation status
 
@@ -21,7 +21,7 @@ Premium quirks handled: AI rules (`QB_NEW_DE_…_ORTHOGRAPHY_SPELLING`) report t
 
 Verified in the running debug app against a local LanguageTool 6.6 server: German was taken from front matter; code, inline code, link URLs and `**` stayed unchecked; the fix, Disable rule and server-down fallback all worked; the Premium no-credentials path and the public API both behaved as expected. Not covered: the legacy Windows textarea engine (`windowsEditorEngine: native`), which has no CodeMirror and so no Hunspell either.
 
-Running the dev build next to an installed SoloMD needs a different identifier (the single-instance lock is per identifier), e.g. `pnpm tauri dev --config '{"identifier":"app.solomd.dev"}'`. This also keeps dev settings separate.
+Running the dev build next to an installed xiaoyuanNote needs a different identifier (the single-instance lock is per identifier), e.g. `pnpm tauri dev --config '{"identifier":"app.xiaoyuan-note.dev"}'`. This also keeps dev settings separate.
 
 ## 1. Goal
 
@@ -34,7 +34,7 @@ Add grammar, style and multi-language spell checking through LanguageTool (LT), 
 | **Public free API** (optional) | `https://api.languagetool.org/v2` | none | Quick try-out; strict rate/size limits |
 | **Off** (default) | – | – | Current Hunspell behaviour is unchanged |
 
-LT is **opt-in and off by default**, in line with SoloMD's "no SoloMD-hosted servers / local-first" promise. Sending text to a remote LT endpoint must be an explicit user choice, with a clear notice in Settings.
+LT is **opt-in and off by default**, in line with xiaoyuanNote’s "no xiaoyuan-note-hosted servers / local-first" promise. Sending text to a remote LT endpoint must be an explicit user choice, with a clear notice in Settings.
 
 ## 2. What exists today (integration points)
 
@@ -120,7 +120,7 @@ Implementation notes:
 - Build `reqwest::Client` like `ai_proxy::http_client`, with a 15 s timeout and a 2 s connect timeout for local mode. Honour the existing proxy settings.
 - Store the username in settings (it isn't secret). Store the API key in `ai_keystore` under `"languagetool"`.
 - Map errors to user-readable strings: `ECONNREFUSED` → "Local LanguageTool server not running", `401/403` → "Invalid Premium credentials", `413` → "Text too large", `429` → back off.
-- Unit tests: JSON (de)serialisation against recorded LT responses, and annotation building. Integration tests use the `SOLOMD_LT_BASE_URL` env override, with a fixture HTTP server like the one the `ollama.rs` tests use.
+- Unit tests: JSON (de)serialisation against recorded LT responses, and annotation building. Integration tests use the `XIAOYUAN_NOTE_LT_BASE_URL` env override, with a fixture HTTP server like the one the `ollama.rs` tests use.
 - Mobile: the local mode makes no sense on iOS/Android unless a LAN URL is used. Allow a custom URL, and hide the "start local server" helper there.
 
 ## 5. Frontend
@@ -168,7 +168,7 @@ LanguageTool needs Java 17+. This machine already has Temurin JDK 21. Options:
    `java -cp languagetool-server.jar org.languagetool.server.HTTPServer --config server.properties --port 8081 --allow-origin`.
    Optional n-gram data (`ngrams-en`/`ngrams-de`, several GB each) enables the "confused words" rules. Set it with `languageModel=<dir>` in `server.properties`.
 2. **Docker**: `docker run -d -p 8081:8010 erikvl87/languagetool`, a community image that also supports n-grams and fastText.
-3. **Later (optional)**: a "Manage local server" helper in SoloMD that starts or stops a user-provided `languagetool-server.jar` as a child process (desktop only). Bundling LT (~250 MB + JRE) inside SoloMD is **not** recommended.
+3. **Later (optional)**: a "Manage local server" helper in xiaoyuanNote that starts or stops a user-provided `languagetool-server.jar` as a child process (desktop only). Bundling LT (~250 MB + JRE) inside xiaoyuanNote is **not** recommended.
 
 ## 7. Phased delivery
 
@@ -193,5 +193,5 @@ LanguageTool needs Java 17+. This machine already has Temurin JDK 21. Options:
 
 ## 9. Open questions
 - Should LT replace Hunspell completely when active, or run side by side (as proposed)?
-- Upstream acceptance: SoloMD's README stresses "no servers". Remote modes must stay opt-in with a clear privacy notice. Check this with the maintainer (zhitongblog/solomd) before a PR.
+- Upstream acceptance: xiaoyuanNote’s README stresses "no servers". Remote modes must stay opt-in with a clear privacy notice. Check this with the maintainer (zhitongblog/xiaoyuan-note) before a PR.
 - Should Premium dictionary sync be two-way (merge LT words into `user-dict-*.txt`)?

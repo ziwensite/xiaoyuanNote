@@ -7,7 +7,7 @@
 - [x] 确认浮层基座：`app/src/ui/DsModal.vue`（Esc / 焦点陷阱 / Teleport / role="dialog" / max-height）
 - [x] 确认缺口：`width` 需传大值；body 需改 fill 布局（`:deep` 或新增 `fill` prop）
 - [x] 确认任务数据与勾选：`useTasks` / `parseTaskMeta` / `localDateKey` / `isOverdue`
-- [x] 确认跳转定位：`TasksPanel.vue` 的 `openPath` + 120ms `solomd:outline-goto`
+- [x] 确认跳转定位：`TasksPanel.vue` 的 `openPath` + 120ms `xiaoyuan-note:outline-goto`
 - [x] 确认视图纯逻辑：`resolveCalendarViewMode` / `monthGridRange` / `buildCalendarView`
 - [x] 给出 900px 双栏布局、窄屏堆叠、焦点状态与持久化方案
 - [x] 给出 A / C 的后续升级路径（一行）
@@ -17,7 +17,7 @@
 ### S1 状态与纯逻辑
 
 - [x] 新增 `app/src/stores/calendar.ts`：`focusDate` / `view` / `dialogOpen`；`setFocusDate` / `shiftMonth` / `setView` / `openDialog` / `closeDialog`
-- [x] 按工作区持久化 `focusDate` / `view`（`solomd.calendar.v1::<folder>`），`dialogOpen` 不落盘
+- [x] 按工作区持久化 `focusDate` / `view`（`xiaoyuan-note.calendar.v1::<folder>`），`dialogOpen` 不落盘
 - [x] `calendar-view.ts` 新增 `groupTasksByDue(tasks, today)`：逾期 / 今天 / 本周 / 以后 / 未排期
 - [x] 单测：分组边界（今天、本周日、本周日+1、due=null、已完成过滤）；`shiftMonth` 跨年；持久化往返
 

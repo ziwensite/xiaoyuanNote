@@ -125,10 +125,10 @@ async function saveCloudKey() {
 // The Tauri command shape mirrors `app/src-tauri/src/ollama.rs`:
 //   - `ollama_detect({ baseUrl })` → `{ ok, version?, models }`
 //   - `ollama_pull({ model, request_id, baseUrl })` resolves when done;
-//     progress is pushed as `solomd://ollama-pull` events tagged with our
+//     progress is pushed as `xiaoyuan-note://ollama-pull` events tagged with our
 //     `request_id`.
 // `baseUrl` is optional and defaults to localhost; we pass the configured
-// one so a user who already pointed SoloMD at a LAN box sees it here too.
+// one so a user who already pointed xiaoyuanNote at a LAN box sees it here too.
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 interface OllamaDetect {
@@ -186,7 +186,7 @@ async function pullRecommended() {
     completed?: number;
     total?: number;
     done: boolean;
-  }>('solomd://ollama-pull', (e) => {
+  }>('xiaoyuan-note://ollama-pull', (e) => {
     if (e.payload.request_id !== pullRequestId) return;
     pullStatus.value = e.payload.status;
     if (
@@ -272,7 +272,7 @@ onMounted(() => {
 });
 
 // Cleanup: if the user closes the wizard (or HMR remounts) while a multi-GB
-// model pull is in flight, we must unlisten the `solomd://ollama-pull`
+// model pull is in flight, we must unlisten the `xiaoyuan-note://ollama-pull`
 // subscription AND best-effort cancel the pull so it doesn't keep churning
 // disk + bandwidth in the background with no UI to stop it.
 onBeforeUnmount(() => {

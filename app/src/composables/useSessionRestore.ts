@@ -5,7 +5,7 @@
  *   - On workspace change: refresh cloud info + sibling sessions; if the
  *     newest sibling is fresher than our last save AND we haven't already
  *     prompted for this workspace this run, dispatch
- *     `solomd:session-restore-available` for App.vue to show the dialog.
+ *     `xiaoyuan-note:session-restore-available` for App.vue to show the dialog.
  *   - Periodically + on tab/active changes: write our own session.<id>.json
  *     so that other devices opening this workspace see our state.
  *
@@ -83,8 +83,8 @@ export function useSessionRestore() {
   async function persist(folder: string): Promise<void> {
     // #236 — cross-device session handoff only means anything inside a folder
     // that is actually synced between devices (iCloud / Dropbox / OneDrive…).
-    // We used to write `.solomd/sessions/<device>.json` into *every* workspace,
-    // so a user who only ever opens a folder to read a note found a `.solomd/`
+    // We used to write `.xiaoyuan-note/sessions/<device>.json` into *every* workspace,
+    // so a user who only ever opens a folder to read a note found a `.xiaoyuan-note/`
     // directory left behind in it. No cloud provider → nothing to hand off →
     // don't touch the user's folder at all.
     if (!cloud.isInCloudFolder) return;
@@ -122,7 +122,7 @@ export function useSessionRestore() {
     if (sibling.saved_at <= lastSavedAt + 60) return;
     cloud.markPrompted(folder);
     window.dispatchEvent(
-      new CustomEvent('solomd:session-restore-available', {
+      new CustomEvent('xiaoyuan-note:session-restore-available', {
         detail: { folder, sibling },
       }),
     );

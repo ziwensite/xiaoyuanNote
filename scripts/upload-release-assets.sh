@@ -38,7 +38,7 @@ if [ -z "$TAG" ] || [ $# -eq 0 ]; then
   exit 2
 fi
 
-REPO="${GH_REPO:-zhitongblog/solomd}"
+REPO="${GH_REPO:-zhitongblog/xiaoyuan-note}"
 DEADLINE="${UPLOAD_DEADLINE:-240}"   # seconds per attempt
 TRIES="${UPLOAD_TRIES:-6}"
 

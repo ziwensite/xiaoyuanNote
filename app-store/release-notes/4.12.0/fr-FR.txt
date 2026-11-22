@@ -4,7 +4,7 @@ L'impression ne suit plus le thème de l'application. Un thème sombre s'imprima
 
 Supprimer un fichier laisse huit secondes pour annuler. Rien n'est déplacé ailleurs : le fichier reste exactement là où il est jusqu'à la fin du délai.
 
-Capture rapide, depuis n'importe où. Un raccourci système ouvre une petite zone par-dessus ce que vous faites. Écrivez une ligne, appuyez sur Entrée, et elle arrive dans votre boîte de réception sans que SoloMD passe au premier plan.
+Capture rapide, depuis n'importe où. Un raccourci système ouvre une petite zone par-dessus ce que vous faites. Écrivez une ligne, appuyez sur Entrée, et elle arrive dans votre boîte de réception sans que xiaoyuanNote passe au premier plan.
 
 Un panneau Tâches. Chaque « - [ ] » de l'espace de travail dans une seule liste, avec priorités et échéances lues aussi bien depuis les emoji d'Obsidian Tasks que depuis une écriture en ASCII. Un clic saute à la ligne ; une coche écrit le fichier.
 

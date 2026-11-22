@@ -9,7 +9,7 @@ const lang = 'en' as const;
 
 <Layout
   title="How we built v4.0 — engineering notes from a 12-week quiet phase"
-  description="The development process behind SoloMD v4.0: why we held main on patches-only for 12 weeks, why the 5 pillars share one safety contract instead of being five separate minor releases, what 262 unit tests missed that dogfooding caught, and how the agent-paired-with-tests workflow compresses the inner loop without compromising the outer one."
+  description="The development process behind xiaoyuanNote v4.0: why we held main on patches-only for 12 weeks, why the 5 pillars share one safety contract instead of being five separate minor releases, what 262 unit tests missed that dogfooding caught, and how the agent-paired-with-tests workflow compresses the inner loop without compromising the outer one."
   lang={lang}
 >
   <Header lang={lang} />
@@ -72,7 +72,7 @@ const lang = 'en' as const;
       <ul>
         <li>
           One <code>RunHandle</code> that mints the run id, creates
-          <code>.solomd/agent-runs/&lt;run-id&gt;/</code>, persists
+          <code>.xiaoyuan-note/agent-runs/&lt;run-id&gt;/</code>, persists
           <code>run.md</code> + <code>trace.jsonl</code>, finalises
           status / tokens / cost on every exit path including panic.
         </li>
@@ -150,7 +150,7 @@ const lang = 'en' as const;
         <li>
           The race between <code>await invoke('ai_chat')</code>
           resolving and the spawned task emitting
-          <code>solomd://ai-error</code>. For a fast 404 from Ollama,
+          <code>xiaoyuan-note://ai-error</code>. For a fast 404 from Ollama,
           the error event arrived in JS before the IPC response with
           the request id, so the listener's id-match check dropped
           the event. No test simulates the IPC arrival ordering of
@@ -205,7 +205,7 @@ const lang = 'en' as const;
 
       <h2>The agent-paired-with-tests inner loop</h2>
       <p>
-        SoloMD v3.6 became part of how we built v4.0. The dogfood
+        xiaoyuanNote v3.6 became part of how we built v4.0. The dogfood
         cycle inside the project's own vault used <em>itself</em>:
         a v4-beta panel chatting with a vault that contained the
         v4 design docs, with the recipe runner running an actual
@@ -332,7 +332,7 @@ const lang = 'en' as const;
 
       <h2>What's transferable</h2>
       <p>
-        This isn't a methodology post. SoloMD's specific cadence
+        This isn't a methodology post. xiaoyuanNote’s specific cadence
         (12-week quiet phase before a major) isn't right for every
         project. But three things were genuinely load-bearing
         and probably transferable:
@@ -366,10 +366,10 @@ const lang = 'en' as const;
       </p>
 
       <p class="thanks-row">
-        Code: <a href="https://github.com/zhitongblog/solomd">github.com/zhitongblog/solomd</a>.
+        Code: <a href="https://github.com/zhitongblog/xiaoyuan-note">github.com/zhitongblog/xiaoyuan-note</a>.
         v4.0 release: <a href="/whats-new/">whats-new</a> ·
         <a href="/blog/v4-0-0-agent-native-author/">launch post</a>.
-        Bugs: <a href="https://github.com/zhitongblog/solomd/issues">issues</a>.
+        Bugs: <a href="https://github.com/zhitongblog/xiaoyuan-note/issues">issues</a>.
       </p>
     </article>
     <Giscus lang={lang} />

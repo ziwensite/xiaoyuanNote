@@ -6,7 +6,7 @@
  * `browser.runtime.onMessage` listener — useless when we're injecting it
  * via DevTools without an extension context. This driver pulls the same
  * `markdown.ts` + readability + capture POST logic into a single IIFE
- * with a global hook (`window.__solomdClipFor(endpoint, token)`), which
+ * with a global hook (`window.__xiaoyuanNoteClipFor(endpoint, token)`), which
  * the smoke test calls directly.
  */
 import { build } from 'esbuild';

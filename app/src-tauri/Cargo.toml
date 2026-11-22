@@ -1,22 +1,22 @@
 [package]
-name = "solomd"
+name = "xiaoyuanNote"
 version = "5.0.13"
-description = "SoloMD — a lightweight, cross-platform Markdown + plain text editor"
+description = "xiaoyuanNote — a lightweight, cross-platform Markdown + plain text editor"
 authors = ["zhitong"]
 edition = "2021"
 # Disable auto-discovery of bins so Cargo only produces the explicit
-# [[bin]] "SoloMD" below (instead of also building an implicit "solomd"
+# [[bin]] "xiaoyuanNote" below (instead of also building an implicit "xiaoyuanNote"
 # binary from src/main.rs + package.name).
 autobins = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# Force the binary name to "SoloMD" so it matches tauri.conf.json's
-# `mainBinaryName`. Without this, Cargo would produce `solomd.exe` (lowercase
+# Force the binary name to "xiaoyuanNote" so it matches tauri.conf.json's
+# `mainBinaryName`. Without this, Cargo would produce `xiaoyuan-note.exe` (lowercase
 # from [package].name) while Tauri's NSIS template was creating shortcuts
 # pointing to a different name, causing the Windows shortcut to break.
 [[bin]]
-name = "SoloMD"
+name = "xiaoyuanNote"
 path = "src/main.rs"
 
 # v4.3.1 issue #73 — size-optimised release profile. Most of the Android
@@ -24,7 +24,7 @@ path = "src/main.rs"
 # the Rust shared library with all native deps bundled. Default cargo
 # release config (opt-level=3, no LTO, codegen-units=16) optimises for
 # speed; this overrides for size. Compile time goes from ~2 min to
-# ~5-8 min but runtime cost is negligible for SoloMD because the hot
+# ~5-8 min but runtime cost is negligible for xiaoyuanNote because the hot
 # path is the WebView (JS / KaTeX / Mermaid), not Rust. Rust only
 # handles boundary ops (file I/O, git, RAG embedder, encryption);
 # none are tight inner loops sensitive to opt-level.
@@ -78,7 +78,7 @@ walkdir = "2.5.0"
 #
 # (Telemetry used to live in `tauri-plugin-aptabase` and pinned this list
 #  for its plugin-setup `tokio::spawn` calls. We migrated telemetry to a
-#  pure-frontend POST to solomd.app/api/track so the plugin is gone, but
+#  pure-frontend POST to xiaoyuannote.app/api/track so the plugin is gone, but
 #  the runtime entry in main.rs and these features stay — they're still
 #  needed for the rest of the app's async work.)
 tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros"] }

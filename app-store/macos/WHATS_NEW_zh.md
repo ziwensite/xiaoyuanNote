@@ -9,4 +9,4 @@ v0.1.12 — 首次登陆 Mac App Store！
 • 自动识别多种编码的老文件（GBK、Big5、UTF-16）
 • 通用二进制——Apple Silicon 与 Intel 都是原生
 
-喜欢 SoloMD？在 App Store 给个评分，推荐给身边的写作者吧！
+喜欢 xiaoyuanNote？在 App Store 给个评分，推荐给身边的写作者吧！

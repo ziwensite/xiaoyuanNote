@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- SoloMD collects zero user data. No tracking, no third-party SDKs. -->
+	<!-- xiaoyuanNote collects zero user data. No tracking, no third-party SDKs. -->
 	<key>NSPrivacyTracking</key>
 	<false/>
 	<key>NSPrivacyTrackingDomains</key>
@@ -28,7 +28,7 @@
 				<string>DDA9.1</string>
 			</array>
 		</dict>
-		<!-- All of SoloMD's settings + window state + recent files live in
+		<!-- All of xiaoyuanNote’s settings + window state + recent files live in
 		     LocalStorage / UserDefaults inside the app container. -->
 		<dict>
 			<key>NSPrivacyAccessedAPIType</key>

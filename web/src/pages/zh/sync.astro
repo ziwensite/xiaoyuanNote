@@ -7,8 +7,8 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD 同步 — 个人网盘端到端加密备份、WebDAV 与 GitHub 多端同步。免费，零知识。"
-  description="v5.0 同步与加密备份层。支持百度网盘 / 阿里云盘 / 夸克网盘 / OneDrive / 坚果云 / WebDAV / GitHub 端到端加密（Argon2id + XChaCha20-Poly1305）多端同步。没有 SoloMD 服务器，不收订阅。"
+  title="xiaoyuanNote 同步 — 个人网盘端到端加密备份、WebDAV 与 GitHub 多端同步。免费，零知识。"
+  description="v5.0 同步与加密备份层。支持百度网盘 / 阿里云盘 / 夸克网盘 / OneDrive / 坚果云 / WebDAV / GitHub 端到端加密（Argon2id + XChaCha20-Poly1305）多端同步。没有 xiaoyuanNote 服务器，不收订阅。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -18,13 +18,13 @@ const lang = 'zh' as const;
         <span class="sync-tag">v5.0</span>
         <h1>同步与加密备份。<br/><span class="muted">你的个人网盘，你的 GitHub。免费。</span></h1>
         <p class="sync-lead">
-          SoloMD 不建中心化云端，也不收订阅费。
+          xiaoyuanNote 不建中心化云端，也不收订阅费。
           在 <strong>v5.0</strong> 中，除了 GitHub / Gitea 仓库同步，我们新增了<strong>三种个人网盘端到端加密（E2EE）备份与多端同步方案</strong>（感谢 <em>@太阳雨 tyysoft</em> 赞助支持）：无论使用百度网盘、阿里云盘、夸克网盘、坚果云、OneDrive、iCloud 还是 NAS，网盘端永远只看得到高强度密文。
         </p>
         <div class="sync-cta">
           <a class="btn btn--primary" href="/zh/docs/sync/">查看网盘与同步详细配置教程 →</a>
           <a class="btn" href="/zh/whats-new/">看 v5.0 发布说明</a>
-          <a class="btn" href="/zh/#download">下载 SoloMD</a>
+          <a class="btn" href="/zh/#download">下载 xiaoyuanNote</a>
         </div>
       </div>
     </section>
@@ -37,7 +37,7 @@ const lang = 'zh' as const;
           <p>
             同时支持三种个人网盘端到端加密（<code>Argon2id + XChaCha20-Poly1305</code>）多端同步方式：
             ① <strong>本地网盘同步目录加密库</strong>（直接选择百度网盘同步盘、阿里云盘、夸克网盘、OneDrive、iCloud、坚果云目录，自动加密为 <code>.enc</code> 密文防止隐私泄露与误封）；
-            ② <strong>网盘开放平台 API 直连</strong>（免客户端直连百度网盘 OpenAPI、阿里云盘 OpenAPI、OneDrive、Dropbox，整库打包加密为单文件 <code>solomd-vault.enc</code>，连文件名和目录结构也完全隐藏）；
+            ② <strong>网盘开放平台 API 直连</strong>（免客户端直连百度网盘 OpenAPI、阿里云盘 OpenAPI、OneDrive、Dropbox，整库打包加密为单文件 <code>xiaoyuan-note-vault.enc</code>，连文件名和目录结构也完全隐藏）；
             ③ <strong>WebDAV 端到端加密同步</strong>（支持坚果云、Nextcloud、群晖 NAS 与 AList/OpenList）。
           </p>
           <p class="sync-pillar__sub">
@@ -49,7 +49,7 @@ const lang = 'zh' as const;
           <span class="sync-pillar__icon">☁️</span>
           <h2>GitHub / Gitea 同步</h2>
           <p>
-            粘个 Personal Access Token（保存到系统钥匙串）。选一个已有仓库，或者让 SoloMD 给你新建一个私库。
+            粘个 Personal Access Token（保存到系统钥匙串）。选一个已有仓库，或者让 xiaoyuanNote 给你新建一个私库。
             保存后 5 秒自动推，5/15/30/60 分钟间隔自动拉。
             历史侧边栏带逐文件冲突解决：用我的 / 用 GitHub 的 / 都保留。
           </p>
@@ -82,7 +82,7 @@ const lang = 'zh' as const;
           </p>
           <p class="sync-pillar__sub">
             我们在此之上加一层跨设备会话恢复：
-            <code>.solomd/session.&lt;deviceId&gt;.json</code> 记录每台机器的标签页。
+            <code>.xiaoyuan-note/session.&lt;deviceId&gt;.json</code> 记录每台机器的标签页。
             另一台设备打开同一工作区，会一键弹「从 <em>Mac mini</em> 恢复」。
           </p>
         </div>
@@ -91,9 +91,9 @@ const lang = 'zh' as const;
           <span class="sync-pillar__icon">🌐</span>
           <h2>公开只读分享</h2>
           <p>
-            命令面板「复制分享链接」，得到 <code>solomd.app/share/?repo=你/笔记&amp;path=note.md</code>。
+            命令面板「复制分享链接」，得到 <code>xiaoyuannote.app/share/?repo=你/笔记&amp;path=note.md</code>。
             任何人在浏览器里就能阅读 —— 直接从 <code>raw.githubusercontent.com</code> 拉取，
-            DOMPurify 净化，无 SoloMD 服务器。
+            DOMPurify 净化，无 xiaoyuanNote 服务器。
           </p>
           <p class="sync-pillar__sub">
             仅支持公开仓库 —— 私有笔记会清晰显示「可能是私有仓库」而不是默默 404。
@@ -107,7 +107,7 @@ const lang = 'zh' as const;
         <h2>对比一下</h2>
         <table>
           <thead>
-            <tr><th></th><th>SoloMD v5.0</th><th>Obsidian Sync</th><th>仅 iCloud</th></tr>
+            <tr><th></th><th>xiaoyuanNote v5.0</th><th>Obsidian Sync</th><th>仅 iCloud</th></tr>
           </thead>
           <tbody>
             <tr><th>数据存哪</th><td>你的个人网盘 / WebDAV / GitHub</td><td>Obsidian 服务器</td><td>Apple 服务器</td></tr>
@@ -126,7 +126,7 @@ const lang = 'zh' as const;
       <div class="container">
         <h2>60 秒上手</h2>
         <ol>
-          <li>SoloMD →「设置 → GitHub 同步」。</li>
+          <li>xiaoyuanNote →「设置 → GitHub 同步」。</li>
           <li>点「获取 Token」—— 浏览器打开 GitHub Token 页，权限（<code>repo</code>）已预填。</li>
           <li>粘贴 <code>ghp_…</code>，保存。</li>
           <li>选一个已有仓库，或者点「创建并绑定」直接新建一个私库。</li>
@@ -144,7 +144,7 @@ const lang = 'zh' as const;
           <p>加密的笔记就找不回来了。我们也帮不了 —— 这就是 E2EE 的本质。加密之前先把口令抄到安全的地方。</p>
         </div>
         <div class="faq">
-          <h3>SoloMD 哪天不维护了怎么办？</h3>
+          <h3>xiaoyuanNote 哪天不维护了怎么办？</h3>
           <p>你的笔记仓库就是一个普通的 GitHub git 仓库，<code>git clone</code> 下来用任何编辑器都能开。
           就算开了 E2EE，格式上面写得很清楚，加密算法也是标准 XChaCha20-Poly1305 —— 30 行解密脚本就能读出来。</p>
         </div>
@@ -156,23 +156,23 @@ const lang = 'zh' as const;
         </div>
         <div class="faq">
           <h3>同步会收费吗？</h3>
-          <p>同步本身不会。SoloMD 这边没有需要付费维护的服务器，数据在你和 GitHub 之间流动，我们只是个客户端。
+          <p>同步本身不会。xiaoyuanNote 这边没有需要付费维护的服务器，数据在你和 GitHub 之间流动，我们只是个客户端。
           （GitHub 自己对超过 1GB 的私库收费，那是你跟它的事。）</p>
         </div>
         <div class="faq">
           <h3>iPad 能用同步吗？</h3>
-          <p>SoloMD 的 iPad / iOS 版已经上架 App Store。笔记存在「文件」App 里,所以「文件」App 能访问的任何文件夹
+          <p>xiaoyuanNote 的 iPad / iOS 版已经上架 App Store。笔记存在「文件」App 里,所以「文件」App 能访问的任何文件夹
           —— 首选 iCloud Drive —— 都能跨设备同步;之后在 macOS 打开同一个文件夹,云盘联动模式会自动衔接。</p>
         </div>
         <div class="faq">
           <h3>第一次推送时 macOS 弹密码框问我，那是啥？</h3>
-          <p>那是 macOS 钥匙串访问在问 SoloMD 是否有权读取已保存的 GitHub token。可能会弹两次：一次是 token，一次是加密钥匙（开了 E2EE 时才有）。
-          <strong>每次都点「始终允许」（Always Allow），不要点「允许」</strong>—— 这样 SoloMD 就被永久授权，以后再不会问。点「允许」是一次性的，下次推送还会再问。</p>
-          <p>SoloMD 不会把密码发给任何地方。那是 macOS 自己的授权对话框，不是我们的；我们甚至看不到你输了什么。</p>
+          <p>那是 macOS 钥匙串访问在问 xiaoyuanNote 是否有权读取已保存的 GitHub token。可能会弹两次：一次是 token，一次是加密钥匙（开了 E2EE 时才有）。
+          <strong>每次都点「始终允许」（Always Allow），不要点「允许」</strong>—— 这样 xiaoyuanNote 就被永久授权，以后再不会问。点「允许」是一次性的，下次推送还会再问。</p>
+          <p>xiaoyuanNote 不会把密码发给任何地方。那是 macOS 自己的授权对话框，不是我们的；我们甚至看不到你输了什么。</p>
         </div>
         <div class="faq">
           <h3>我在国内 push 老超时怎么办？</h3>
-          <p>国内访问 github.com 经常被防火墙拦。SoloMD 内置代理输入框：<strong>设置 → GitHub 同步 → 高级 → HTTPS 代理</strong>，
+          <p>国内访问 github.com 经常被防火墙拦。xiaoyuanNote 内置代理输入框：<strong>设置 → GitHub 同步 → 高级 → HTTPS 代理</strong>，
           填你本机的代理地址比如 <code>http://127.0.0.1:7897</code>（Clash / Surge 默认端口）或 <code>socks5://127.0.0.1:1080</code>。
           推 / 拉就会走这个代理。</p>
           <p>不用费劲在 shell 里 export <code>HTTPS_PROXY</code> —— Tauri 应用从 Finder 启动时不继承 shell 环境变量，
@@ -190,11 +190,11 @@ const lang = 'zh' as const;
   '@type': 'FAQPage',
   mainEntity: [
     { '@type': 'Question', name: '口令丢了怎么办?', acceptedAnswer: { '@type': 'Answer', text: '加密的笔记就找不回来了,我们也帮不了 —— 这是端到端加密的本质。加密之前先把口令抄到安全的地方。' } },
-    { '@type': 'Question', name: 'SoloMD 哪天不维护了怎么办?', acceptedAnswer: { '@type': 'Answer', text: '你的笔记仓库就是一个普通的 GitHub git 仓库,git clone 下来用任何编辑器都能打开。就算开了 E2EE,格式公开文档化,算法是标准 XChaCha20-Poly1305(Argon2id 派生密钥),短脚本即可解密。' } },
-    { '@type': 'Question', name: '为什么偏偏是 GitHub?', acceptedAnswer: { '@type': 'Answer', text: '用户基本都已有 GitHub 账号,且 SoloMD 没有自己的服务器。不信任 GitHub 可以用 GitLab / Gitea 或任何 HTTPS git 地址,一等支持。' } },
-    { '@type': 'Question', name: '同步会收费吗?', acceptedAnswer: { '@type': 'Answer', text: '不会。SoloMD 这边没有需要付费维护的服务器,数据在你和 GitHub 之间流动。(GitHub 对超过 1GB 的私库收费,那是你和它之间的事。)' } },
-    { '@type': 'Question', name: 'iPad 能用同步吗?', acceptedAnswer: { '@type': 'Answer', text: 'SoloMD 的 iPad / iOS 版已上架 App Store。笔记存在「文件」App 里,「文件」App 能访问的任何文件夹(首选 iCloud Drive)都能跨设备同步;macOS 端用云盘联动模式打开同一文件夹即可衔接。' } },
-    { '@type': 'Question', name: '第一次推送时 macOS 弹密码框问我,那是什么?', acceptedAnswer: { '@type': 'Answer', text: '那是 macOS 钥匙串在询问 SoloMD 是否有权读取已保存的 GitHub token(开了 E2EE 还会问一次加密钥匙)。点「始终允许」即可永久授权。SoloMD 不会看到也不会发送你的密码。' } },
+    { '@type': 'Question', name: 'xiaoyuanNote 哪天不维护了怎么办?', acceptedAnswer: { '@type': 'Answer', text: '你的笔记仓库就是一个普通的 GitHub git 仓库,git clone 下来用任何编辑器都能打开。就算开了 E2EE,格式公开文档化,算法是标准 XChaCha20-Poly1305(Argon2id 派生密钥),短脚本即可解密。' } },
+    { '@type': 'Question', name: '为什么偏偏是 GitHub?', acceptedAnswer: { '@type': 'Answer', text: '用户基本都已有 GitHub 账号,且 xiaoyuanNote 没有自己的服务器。不信任 GitHub 可以用 GitLab / Gitea 或任何 HTTPS git 地址,一等支持。' } },
+    { '@type': 'Question', name: '同步会收费吗?', acceptedAnswer: { '@type': 'Answer', text: '不会。xiaoyuanNote 这边没有需要付费维护的服务器,数据在你和 GitHub 之间流动。(GitHub 对超过 1GB 的私库收费,那是你和它之间的事。)' } },
+    { '@type': 'Question', name: 'iPad 能用同步吗?', acceptedAnswer: { '@type': 'Answer', text: 'xiaoyuanNote 的 iPad / iOS 版已上架 App Store。笔记存在「文件」App 里,「文件」App 能访问的任何文件夹(首选 iCloud Drive)都能跨设备同步;macOS 端用云盘联动模式打开同一文件夹即可衔接。' } },
+    { '@type': 'Question', name: '第一次推送时 macOS 弹密码框问我,那是什么?', acceptedAnswer: { '@type': 'Answer', text: '那是 macOS 钥匙串在询问 xiaoyuanNote 是否有权读取已保存的 GitHub token(开了 E2EE 还会问一次加密钥匙)。点「始终允许」即可永久授权。xiaoyuanNote 不会看到也不会发送你的密码。' } },
     { '@type': 'Question', name: '在国内 push 老超时怎么办?', acceptedAnswer: { '@type': 'Answer', text: '用内置代理:设置 → GitHub 同步 → 高级 → HTTPS 代理,填 http://127.0.0.1:7897 或 socks5://127.0.0.1:1080。shell 里 export HTTPS_PROXY 无效 —— Finder 启动的应用不继承 shell 环境变量。' } },
   ],
 })} />

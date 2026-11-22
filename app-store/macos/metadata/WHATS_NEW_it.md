@@ -16,4 +16,4 @@ RIFINITURE E CORREZIONI
 • Risolto: la digitazione con metodi di input CJK non viene più interrotta a metà composizione
 • Tante correzioni minori e miglioramenti delle prestazioni
 
-Ti piace SoloMD? Lascia una valutazione sull'App Store e condividilo con chi ama scrivere!
+Ti piace xiaoyuanNote? Lascia una valutazione sull'App Store e condividilo con chi ama scrivere!

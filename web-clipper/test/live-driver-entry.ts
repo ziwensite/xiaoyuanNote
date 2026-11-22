@@ -3,7 +3,7 @@
  *
  * Mirrors the extension's content + background pipeline exactly — same
  * Readability options, same markdown.ts, same renderBody YAML shape,
- * same POST shape — but exposed as a `window.__solomdClipFor(endpoint, token)`
+ * same POST shape — but exposed as a `window.__xiaoyuanNoteClipFor(endpoint, token)`
  * hook so the test can drive it without needing an extension context.
  */
 import { Readability } from '@mozilla/readability';
@@ -107,11 +107,11 @@ async function postCapture(
 
 declare global {
   interface Window {
-    __solomdClipFor: (endpoint: string, token: string, mode: 'page' | 'selection') => Promise<CaptureResult>;
+    __xiaoyuanNoteClipFor: (endpoint: string, token: string, mode: 'page' | 'selection') => Promise<CaptureResult>;
   }
 }
 
-window.__solomdClipFor = async (
+window.__xiaoyuanNoteClipFor = async (
   endpoint: string,
   token: string,
   mode: 'page' | 'selection',

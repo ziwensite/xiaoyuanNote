@@ -89,7 +89,7 @@ onMounted(async () => {
 async function onInit() {
   if (!folder.value) return;
   try {
-    await gh.init(folder.value, 'init: SoloMD workspace');
+    await gh.init(folder.value, 'init: xiaoyuanNote workspace');
     toasts.success(t('history.initialized'));
     reload();
   } catch (e) {

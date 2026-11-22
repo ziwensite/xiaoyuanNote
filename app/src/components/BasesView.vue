@@ -13,13 +13,14 @@
  * <tr>s so total scroll height stays correct.
  *
  * Hosted by App.vue (parent integration); a "Back to editor" button in the
- * header dispatches `solomd:close-bases` so the parent can swap back.
+ * header dispatches `xiaoyuan-note:close-bases` so the parent can swap back.
  */
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useWorkspaceIndexStore, type IndexEntry } from '../stores/workspaceIndex';
 import { useFiles } from '../composables/useFiles';
 import { useI18n } from '../i18n';
 import Icons from './Icons.vue';
+import DatePickerPopover from './DatePickerPopover.vue';
 import '../styles/panels.css';
 import {
   applyFilters,
@@ -458,18 +459,28 @@ function toggleTagFilter(columnId: string, tag: string) {
                 v-if="col.kind === 'date' || (col.source === 'builtin' && col.id === 'mtime')"
               >
                 <div class="bases__range">
-                  <input
-                    type="date"
-                    :value="getDateRangeStart(col.id)"
-                    :title="t('bases.dateAfter')"
-                    @input="(e) => setDateRangeStart(col.id, (e.target as HTMLInputElement).value)"
-                  />
-                  <input
-                    type="date"
-                    :value="getDateRangeEnd(col.id)"
-                    :title="t('bases.dateBefore')"
-                    @input="(e) => setDateRangeEnd(col.id, (e.target as HTMLInputElement).value)"
-                  />
+                  <DatePickerPopover :iso="getDateRangeStart(col.id)" @pick="(iso: string) => setDateRangeStart(col.id, iso)">
+                    <template #trigger="{ toggle }">
+                      <input
+                        type="text"
+                        readonly
+                        :value="getDateRangeStart(col.id)"
+                        :title="t('bases.dateAfter')"
+                        @click="toggle"
+                      />
+                    </template>
+                  </DatePickerPopover>
+                  <DatePickerPopover :iso="getDateRangeEnd(col.id)" @pick="(iso: string) => setDateRangeEnd(col.id, iso)">
+                    <template #trigger="{ toggle }">
+                      <input
+                        type="text"
+                        readonly
+                        :value="getDateRangeEnd(col.id)"
+                        :title="t('bases.dateBefore')"
+                        @click="toggle"
+                      />
+                    </template>
+                  </DatePickerPopover>
                 </div>
               </template>
 

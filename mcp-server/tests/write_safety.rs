@@ -9,7 +9,7 @@
 //! the top of the file.
 //!
 //! The export tests that need the Node backend skip themselves when `node`
-//! or `app/scripts/solomd-export.mjs` is missing. The refusal tests never
+//! or `app/scripts/xiaoyuan-note-export.mjs` is missing. The refusal tests never
 //! need it: without `--allow-write` nothing may be written either way.
 
 use std::io::{BufRead, BufReader, Write};
@@ -18,11 +18,11 @@ use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn binary_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_solomd-mcp"))
+    PathBuf::from(env!("CARGO_BIN_EXE_xiaoyuan-note-mcp"))
 }
 
 fn export_script() -> Option<PathBuf> {
-    let c = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../app/scripts/solomd-export.mjs");
+    let c = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../app/scripts/xiaoyuan-note-export.mjs");
     c.is_file().then(|| c.canonicalize().unwrap())
 }
 
@@ -42,7 +42,7 @@ fn export_available() -> bool {
 
 fn fresh_dir(label: &str) -> PathBuf {
     let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-mcp-ws-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-ws-{label}-{nanos}"));
     std::fs::create_dir_all(&dir).unwrap();
     dir.canonicalize().unwrap()
 }
@@ -56,14 +56,14 @@ fn call(workspace: &Path, allow_write: bool, calls: &[(&str, serde_json::Value)]
         cmd.arg("--allow-write");
     }
     if let Some(script) = export_script() {
-        cmd.env("SOLOMD_EXPORT_SCRIPT", script);
+        cmd.env("XIAOYUAN_NOTE_EXPORT_SCRIPT", script);
     }
     let mut child = cmd
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
-        .expect("spawn solomd-mcp");
+        .expect("spawn xiaoyuan-note-mcp");
     let mut stdin = child.stdin.take().unwrap();
     writeln!(stdin, r#"{{"jsonrpc":"2.0","id":0,"method":"initialize","params":{{"protocolVersion":"2025-11-25","capabilities":{{}},"clientInfo":{{"name":"write-safety","version":"0"}}}}}}"#).unwrap();
     writeln!(stdin, r#"{{"jsonrpc":"2.0","method":"notifications/initialized"}}"#).unwrap();
@@ -206,7 +206,7 @@ fn write_note_accepts_notes_only_and_creates_folders() {
 #[test]
 fn read_agent_trace_unknown_run_is_an_error() {
     let ws = fresh_dir("trace");
-    let run = ws.join(".solomd/agent-runs/known-run");
+    let run = ws.join(".xiaoyuan-note/agent-runs/known-run");
     std::fs::create_dir_all(&run).unwrap();
     std::fs::write(run.join("trace.jsonl"), "{\"ts\":1,\"seq\":1,\"kind\":\"run_started\"}\n").unwrap();
     let frames = call(
@@ -294,7 +294,7 @@ fn export_note_is_hidden_without_node() {
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
-            .expect("spawn solomd-mcp");
+            .expect("spawn xiaoyuan-note-mcp");
         let mut stdin = child.stdin.take().unwrap();
         writeln!(stdin, r#"{{"jsonrpc":"2.0","id":0,"method":"initialize","params":{{"protocolVersion":"2025-11-25","capabilities":{{}},"clientInfo":{{"name":"hidden","version":"0"}}}}}}"#).unwrap();
         writeln!(stdin, r#"{{"jsonrpc":"2.0","method":"notifications/initialized"}}"#).unwrap();

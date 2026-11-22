@@ -154,7 +154,7 @@ mod tests {
 
     fn fresh_dir(label: &str) -> PathBuf {
         let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-        let dir = std::env::temp_dir().join(format!("solomd-mcp-safety-{label}-{nanos}"));
+        let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-safety-{label}-{nanos}"));
         fs::create_dir_all(&dir).unwrap();
         dir.canonicalize().unwrap()
     }

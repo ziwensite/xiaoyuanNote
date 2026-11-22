@@ -9,7 +9,7 @@
  *   - Bases (F6) → properties table
  *
  * Whenever the workspace folder changes (workspace store), we re-init the
- * Rust index. The Rust side emits `solomd://index-updated` after every
+ * Rust index. The Rust side emits `xiaoyuan-note://index-updated` after every
  * mutation; we listen and refresh our cached `entries` array.
  */
 import { defineStore } from 'pinia';
@@ -33,6 +33,10 @@ export interface TaskRef {
   /** The character between `[` and `]`; absent on entries cached before it existed. */
   status?: string;
   done: boolean;
+  /** Due date (`YYYY-MM-DD`) parsed server-side from the task text. May be
+   *  absent on older caches; the query engine also derives it live via
+   *  `parseTaskMeta(text)` so a missing value is not fatal. */
+  due?: string | null;
 }
 
 export interface IndexEntry {
@@ -58,6 +62,10 @@ export interface IndexEntry {
    * are excluded. May be absent on entries served from an older index cache.
    */
   relationships?: Record<string, string[]>;
+  /** Full file text (front matter + body), indexed server-side. Powers the
+   *  embedded `query` block's `from: lines` and full-text `search`. Absent on
+   *  entries served from an older index cache (treated as empty). */
+  content?: string;
 }
 
 export interface BacklinkRef {
@@ -87,7 +95,7 @@ interface State {
   folder: string | null;
   /** Whether the Rust index has been initialized for the current folder. */
   ready: boolean;
-  /** Cached files list. Refreshed on `solomd://index-updated`. */
+  /** Cached files list. Refreshed on `xiaoyuan-note://index-updated`. */
   entries: IndexEntry[];
   /** Cached tag counts. */
   tags: TagCount[];
@@ -96,6 +104,10 @@ interface State {
 }
 
 let unlistenIndex: UnlistenFn | null = null;
+// A burst of file events can still arrive from several sources (watcher,
+// explicit saves). Coalesce refreshes so Pinia/Vue doesn't re-render the whole
+// app once per file.
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
   state: (): State => ({
@@ -134,6 +146,10 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
     /** Called by the workspace store whenever the folder changes. */
     async setFolder(folder: string | null) {
       if (folder === this.folder) return;
+      if (refreshTimer !== null) {
+        clearTimeout(refreshTimer);
+        refreshTimer = null;
+      }
       this.folder = folder;
       this.ready = false;
       this.entries = [];
@@ -143,8 +159,12 @@ export const useWorkspaceIndexStore = defineStore('workspaceIndex', {
         await invoke<number>('workspace_index_init', { folder });
         await this.refresh();
         if (!unlistenIndex) {
-          unlistenIndex = await listen('solomd://index-updated', () => {
-            this.refresh().catch(() => {});
+          unlistenIndex = await listen('xiaoyuan-note://index-updated', () => {
+            if (refreshTimer !== null) clearTimeout(refreshTimer);
+            refreshTimer = setTimeout(() => {
+              refreshTimer = null;
+              void this.refresh().catch(() => {});
+            }, 120);
           });
         }
         this.ready = true;

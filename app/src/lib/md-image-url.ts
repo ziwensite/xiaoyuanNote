@@ -4,7 +4,7 @@
  * CommonMark does not allow spaces in a bare destination, so
  * `![](D:/Program Files/img.png)` is not an image at all: markdown-it renders
  * the whole thing as literal text (#345). The same happens with an unbalanced
- * `(` or `)`. Every image SoloMD writes into a note — pasted, dropped,
+ * `(` or `)`. Every image xiaoyuanNote writes into a note — pasted, dropped,
  * uploaded-with-local-fallback, or inserted from a file picker — goes through
  * this function, so an image folder under "Program Files", a note called
  * "My Note" (→ `My Note.assets/`), or a Windows user name with a space all

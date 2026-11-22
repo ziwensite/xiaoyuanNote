@@ -462,7 +462,7 @@ export function combosFor(
 }
 
 /**
- * Chords another program takes over before SoloMD can see them.
+ * Chords another program takes over before xiaoyuanNote can see them.
  *
  * Reported from a Windows 10 machine with an AMD card (2026-09-20): AMD
  * Software's global hotkeys swallow most of the Ctrl+Shift row, so those

@@ -4,7 +4,7 @@ La impresión ya no sigue el tema de la aplicación. Un tema oscuro se imprimía
 
 Borrar un archivo da ocho segundos para deshacerlo. No se mueve a ninguna parte: el archivo se queda exactamente donde está hasta que se agota el tiempo.
 
-Captura rápida, desde donde sea. Un atajo global abre una casilla pequeña sobre lo que estés haciendo. Escribe una línea, pulsa Intro y aparece en tu bandeja de entrada sin que SoloMD llegue a ponerse delante.
+Captura rápida, desde donde sea. Un atajo global abre una casilla pequeña sobre lo que estés haciendo. Escribe una línea, pulsa Intro y aparece en tu bandeja de entrada sin que xiaoyuanNote llegue a ponerse delante.
 
 Un panel de Tareas. Cada «- [ ]» del espacio de trabajo en una sola lista, con prioridades y fechas leídas tanto de los emoji de Obsidian Tasks como de una notación en ASCII. Pulsa una tarea para ir a su línea; márcala para escribir el archivo.
 

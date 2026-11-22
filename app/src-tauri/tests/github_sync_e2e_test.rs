@@ -28,7 +28,7 @@ fn fresh_dir(label: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-ghs-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-ghs-{label}-{nanos}"));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir
@@ -88,8 +88,8 @@ fn init_workspace_with_remote(label: &str, bare_url: &str) -> PathBuf {
         repo.remote("origin", bare_url).unwrap();
     }
 
-    // Write the .solomd/sync.json the inner helpers expect.
-    let cfg_dir = ws.join(".solomd");
+    // Write the .xiaoyuan-note/sync.json the inner helpers expect.
+    let cfg_dir = ws.join(".xiaoyuanNote");
     fs::create_dir_all(&cfg_dir).unwrap();
     let sync_json = json!({
         "remote_url": bare_url,
@@ -100,9 +100,9 @@ fn init_workspace_with_remote(label: &str, bare_url: &str) -> PathBuf {
     })
     .to_string();
     fs::write(cfg_dir.join("sync.json"), sync_json).unwrap();
-    // Mirror what github_link_workspace does in production: keep .solomd/
+    // Mirror what github_link_workspace does in production: keep .xiaoyuan-note/
     // out of the tracked tree so per-device sync.json never conflicts.
-    fs::write(ws.join(".gitignore"), ".solomd/\n").unwrap();
+    fs::write(ws.join(".gitignore"), ".xiaoyuan-note/\n").unwrap();
     ws
 }
 
@@ -246,7 +246,7 @@ fn github_sync_corrupted_config_fails_closed() {
 
     // Corrupt sync.json — typical real-world scenario is a truncated
     // write after a crash, but malformed JSON exercises the same path.
-    fs::write(dev.join(".solomd/sync.json"), b"{not valid json").unwrap();
+    fs::write(dev.join(".xiaoyuan-note/sync.json"), b"{not valid json").unwrap();
 
     let folder = dev.to_string_lossy().into_owned();
     let push_err = github_push_inner(folder.clone(), "ignored".into(), None).err();

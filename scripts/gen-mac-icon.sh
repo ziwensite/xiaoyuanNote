@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gen-mac-icon.sh — Regenerate the macOS app icon for SoloMD (GitHub issue #111).
+# gen-mac-icon.sh — Regenerate the macOS app icon for xiaoyuanNote (GitHub issue #111).
 #
 # Takes the full-bleed square design (app/src-tauri/icons/icon.png — black bg +
 # orange "#" + white "MD") and produces a Big Sur-spec macOS app icon:

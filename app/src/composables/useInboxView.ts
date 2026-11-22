@@ -8,8 +8,8 @@
  * off-limits store.
  *
  * Events:
- *   - `solomd:open-inbox`  → show InboxView
- *   - `solomd:close-inbox` → hide InboxView (back to the editor)
+ *   - `xiaoyuan-note:open-inbox`  → show InboxView
+ *   - `xiaoyuan-note:close-inbox` → hide InboxView (back to the editor)
  */
 
 export interface UseInboxView {
@@ -19,8 +19,8 @@ export interface UseInboxView {
   closeInbox(): void;
 }
 
-export const INBOX_OPEN_EVENT = 'solomd:open-inbox';
-export const INBOX_CLOSE_EVENT = 'solomd:close-inbox';
+export const INBOX_OPEN_EVENT = 'xiaoyuan-note:open-inbox';
+export const INBOX_CLOSE_EVENT = 'xiaoyuan-note:close-inbox';
 
 export function useInboxView(): UseInboxView {
   function openInbox() {

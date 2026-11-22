@@ -9,7 +9,7 @@ use std::fs;
 /// making the walker skip the root itself and return zero hits.
 fn fixture() -> tempfile::TempDir {
     let dir = tempfile::Builder::new()
-        .prefix("solomd-search-")
+        .prefix("xiaoyuan-note-search-")
         .tempdir()
         .unwrap();
     let root = dir.path();

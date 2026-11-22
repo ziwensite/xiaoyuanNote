@@ -1,7 +1,7 @@
 //! iOS: open a folder of the user's choice as the workspace.
 //!
 //! Until now "Open Folder" on iOS silently pinned the workspace to the app's
-//! own Documents folder ("On My iPhone › SoloMD") and told people, in a toast,
+//! own Documents folder ("On My iPhone › xiaoyuanNote") and told people, in a toast,
 //! to move their notes there through the Files app. People could not find it
 //! and could not use the folder their notes already live in (App Store review
 //! "can't change the working folder").
@@ -10,7 +10,7 @@
 //! for `public.folder`), starts security-scoped access on the chosen folder —
 //! which makes plain `std::fs` reads and writes inside it work — and keeps a
 //! bookmark so the access is restored on the next launch
-//! (`ios_restore_folder`). The picker also lists "On My iPhone › SoloMD", so
+//! (`ios_restore_folder`). The picker also lists "On My iPhone › xiaoyuanNote", so
 //! the old folder remains one tap away. Elsewhere both commands are no-ops.
 //!
 //! It also opens the security scope of documents opened in place from the
@@ -53,7 +53,7 @@ mod imp {
         unsafe impl ClassType for FolderPickerDelegate {
             type Super = NSObject;
             type Mutability = mutability::InteriorMutable;
-            const NAME: &'static str = "SoloMDFolderPickerDelegate";
+            const NAME: &'static str = "XiaoyuanNoteFolderPickerDelegate";
         }
 
         impl DeclaredClass for FolderPickerDelegate {}
@@ -445,7 +445,7 @@ mod imp {
     }
 
     /// #425 / #461 / #498 / #509 — Synchronize `TaoUIWindow.overrideUserInterfaceStyle`
-    /// and `tintColor` with SoloMD's active theme, and disable automatic
+    /// and `tintColor` with xiaoyuanNote’s active theme, and disable automatic
     /// `UIScrollView` content-inset adjustments on `WKWebView.scrollView` (CSS
     /// already handles `env(safe-area-inset-*)` via `viewport-fit=cover`, so
     /// automatic scrollView adjustments on iPadOS caused a bottom black bar).
@@ -792,7 +792,7 @@ pub fn ios_restore_folder(app: AppHandle) -> Result<Option<String>, String> {
 }
 
 /// #425 — Set iOS/iPadOS `UIWindow.overrideUserInterfaceStyle` + `tintColor`
-/// to match SoloMD's effective light/dark theme.
+/// to match xiaoyuanNote’s effective light/dark theme.
 #[tauri::command]
 pub fn ios_set_appearance(app: AppHandle, dark: bool) -> Result<(), String> {
     #[cfg(target_os = "ios")]

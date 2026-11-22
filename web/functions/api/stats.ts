@@ -34,7 +34,7 @@
 
 import { fetchGithubDownloads, STORE_CHANNELS } from '../../src/lib/download-channels';
 
-const REPO = 'zhitongblog/solomd';
+const REPO = 'zhitongblog/xiaoyuan-note';
 const CACHE_TTL = 300; // 5 minutes (edge cache TTL on success)
 const CACHE_TTL_STALE = 60; // 1 minute (when serving D1 fallback — refresh sooner)
 
@@ -65,7 +65,7 @@ export const onRequest: PagesFunction<StatsEnv> = async ({ request, env }) => {
   let fetchOk = false;
   try {
     const headers: Record<string, string> = {
-      'User-Agent': 'SoloMD-stats-proxy',
+      'User-Agent': 'xiaoyuan-note-stats-proxy',
       Accept: 'application/vnd.github+json',
     };
     if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;

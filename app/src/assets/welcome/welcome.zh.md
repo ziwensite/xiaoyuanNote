@@ -1,6 +1,6 @@
-# 欢迎使用 SoloMD ✏️
+# 欢迎使用 xiaoyuanNote ✏️
 
-谢谢你试用 SoloMD —— 一个用 Tauri 2 写的、原生快、专注 Markdown 的编辑器。
+谢谢你试用 xiaoyuanNote —— 一个用 Tauri 2 写的、原生快、专注 Markdown 的编辑器。
 
 这份导览有 **4 个简短的标签页**。从任意一个开始读都行。
 
@@ -20,15 +20,19 @@
 3. 直接把图片拖进编辑器：会插入相对路径（可用 front-matter 的 `imageRoot` 指定保存位置）。
 4. 通过 `文件 → 打开文件夹…` 让侧边树管理你的笔记。
 
-## SoloMD 的特别之处
+## xiaoyuanNote 的特别之处
 
 - **原生打印转 PDF**：`Ctrl+Shift+Alt+P` 走系统打印对话框，不走 headless Chrome。
 - **演讲模式**：`Ctrl+Alt+P` 全屏播放当前文档，`---` 行分页。
 - **Front matter 的 `imageRoot`**：每篇文章的粘贴/拖拽图片可写到指定目录。
-- **笔记永远不离开你的设备。** SoloMD 会发送匿名使用统计（用了哪些功能、版本、系统，从不包含文件内容），一个开关就能关掉：设置 → 高级 →「发送匿名使用数据」。App Store 版完全不发送。
+- **笔记永远不离开你的设备。** xiaoyuanNote 会发送匿名使用统计（用了哪些功能、版本、系统，从不包含文件内容），一个开关就能关掉：设置 → 高级 →「发送匿名使用数据」。App Store 版完全不发送。
 
-> 提示：按 `Ctrl+Shift+K`（Mac 上 `Cmd+Shift+K`）打开 **命令面板** —— SoloMD 能干什么，这里都有。
+> 提示：按 `Ctrl+Shift+K`（Mac 上 `Cmd+Shift+K`）打开 **命令面板** —— xiaoyuanNote 能干什么，这里都有。
 
 完事。这些教程标签只在内存里，不会写到磁盘，看完直接关掉就行。
 
-— *SoloMD 团队*
+## 致谢
+
+xiaoyuanNote 是在 **SoloMD** 项目基础上深度开发的。感谢 SoloMD 项目及其贡献者提供了优秀的起点与许多设计灵感。
+
+— *xiaoyuanNote 团队*

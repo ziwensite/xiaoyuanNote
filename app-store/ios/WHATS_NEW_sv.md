@@ -16,4 +16,4 @@ POLERING & FIXAR
 • Fixat: skrivning med CJK-inmatningsmetoder avbryts inte längre mitt i kompositionen
 • Många mindre fixar och prestandaförbättringar sedan 4.1
 
-Gillar du SoloMD? Betygsätt appen på App Store och tipsa andra skribenter!
+Gillar du xiaoyuanNote? Betygsätt appen på App Store och tipsa andra skribenter!

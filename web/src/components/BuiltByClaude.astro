@@ -5,8 +5,8 @@ const { lang } = Astro.props;
 const tr = getT(lang);
 const isZh = lang === 'zh';
 const architectHref = isZh
-  ? 'https://doaipm.com/zh/about/?utm_source=solomd_bbc#work-with-me'
-  : 'https://doaipm.com/en/about/?utm_source=solomd_bbc#work-with-me';
+  ? 'https://doaipm.com/zh/about/?utm_source=XIAOYUAN_NOTE_bbc#work-with-me'
+  : 'https://doaipm.com/en/about/?utm_source=XIAOYUAN_NOTE_bbc#work-with-me';
 ---
 
 <section id="built-by-claude" class="bbc">
@@ -25,7 +25,7 @@ const architectHref = isZh
           )}
         </p>
         <div class="bbc__actions">
-          <a class="bbc__link" href="https://github.com/zhitongblog/solomd">{tr.builtByClaude.cta} →</a>
+          <a class="bbc__link" href="https://github.com/zhitongblog/xiaoyuan-note">{tr.builtByClaude.cta} →</a>
           <a class="bbc__link bbc__link--hire" href={architectHref} target="_blank" rel="noopener">
             {isZh ? '💼 预约 100% 异步远程架构合作 (MCP / Rust / Tauri) →' : '💼 Hire the architect (100% async MCP / Rust / Tauri contracts) →'}
           </a>

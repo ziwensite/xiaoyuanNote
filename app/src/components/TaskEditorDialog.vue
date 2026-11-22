@@ -18,7 +18,9 @@
  * whose only content is task syntax.
  */
 import { computed, reactive, ref, watch } from 'vue';
-import { DsButton, DsModal } from '../ui';
+import { DsButton, DsModal, DsInput, DsSelect, type DsSelectOption } from '../ui';
+import DatePickerPopover from './DatePickerPopover.vue';
+import Icons from './Icons.vue';
 import { compileNaturalRecurrence } from '../lib/tasks';
 import {
   TASK_DATE_FIELDS,
@@ -146,6 +148,22 @@ const toModel = (): TaskLineModel => {
 
 const preview = computed(() => serializeTaskLine(toModel()));
 
+/** DsSelect option lists, kept in sync with the inline <option>s this dialog
+ *  used to render. Labels follow the dialog's zh/en switch like everything else. */
+const statusOptions = computed<DsSelectOption[]>(() =>
+  TASK_STATUSES.map((s) => ({
+    value: s.char,
+    label: `[${s.char}] ${pick(s.zh, s.en)}`,
+  })),
+);
+const priorityOptions = computed<DsSelectOption[]>(() => [
+  { value: '', label: pick('无', 'None') },
+  ...TASK_PRIORITIES.map((p) => ({
+    value: p.emoji,
+    label: `${p.emoji} ${pick(p.zh, p.en)}`,
+  })),
+]);
+
 const problem = computed(() => {
   if (form.recurrence.trim() && !compileNaturalRecurrence(form.recurrence.trim())) {
     return pick('重复规则无法解析，应形如 every 2 weeks', 'Unrecognised repeat rule — expected "every 2 weeks"');
@@ -177,49 +195,36 @@ function save(): void {
       <div class="ted__row">
         <label class="ted__field ted__field--narrow">
           <span class="ted__label">{{ pick('状态', 'Status') }}</span>
-          <select v-model="form.status" class="ted__input">
-            <option v-for="s in TASK_STATUSES" :key="s.char" :value="s.char">
-              [{{ s.char }}] {{ pick(s.zh, s.en) }}
-            </option>
-          </select>
+          <DsSelect v-model="form.status" :options="statusOptions" />
         </label>
         <label class="ted__field ted__field--narrow">
           <span class="ted__label">{{ pick('优先级', 'Priority') }}</span>
-          <select v-model="form.priority" class="ted__input">
-            <option value="">{{ pick('无', 'None') }}</option>
-            <option v-for="p in TASK_PRIORITIES" :key="p.emoji" :value="p.emoji">
-              {{ p.emoji }} {{ pick(p.zh, p.en) }}
-            </option>
-          </select>
+          <DsSelect v-model="form.priority" :options="priorityOptions" />
         </label>
       </div>
 
       <label class="ted__field">
         <span class="ted__label">{{ pick('描述', 'Description') }}</span>
-        <input v-model="form.description" class="ted__input" type="text" />
+        <DsInput v-model="form.description" />
       </label>
 
       <label class="ted__field">
         <span class="ted__label">{{ pick('标签（空格分隔）', 'Tags (space separated)') }}</span>
-        <input v-model="form.tags" class="ted__input" type="text" placeholder="#work #urgent" />
+        <DsInput v-model="form.tags" placeholder="#work #urgent" />
       </label>
 
       <div class="ted__row">
         <label class="ted__field">
           <span class="ted__label">🆔</span>
-          <input
+          <DsInput
             v-model="form.id"
-            class="ted__input"
-            type="text"
             :data-autofocus="focus === 'id' ? '' : undefined"
           />
         </label>
         <label class="ted__field">
           <span class="ted__label">⛔</span>
-          <input
+          <DsInput
             v-model="form.blockedBy"
-            class="ted__input"
-            type="text"
             :data-autofocus="focus === 'blockedBy' ? '' : undefined"
           />
         </label>
@@ -227,10 +232,8 @@ function save(): void {
 
       <label class="ted__field">
         <span class="ted__label">🔁 {{ pick('重复规则', 'Repeat rule') }}</span>
-        <input
+        <DsInput
           v-model="form.recurrence"
-          class="ted__input"
-          type="text"
           :placeholder="pick('every 2 weeks', 'every 2 weeks')"
         />
       </label>
@@ -238,7 +241,29 @@ function save(): void {
       <div class="ted__grid">
         <label v-for="spec in TASK_DATE_FIELDS" :key="spec.field" class="ted__field">
           <span class="ted__label">{{ spec.marker }} {{ pick(spec.zh, spec.en) }}</span>
-          <input v-model="form[spec.field]" class="ted__input" type="date" />
+          <DatePickerPopover :iso="form[spec.field] ?? ''" @pick="(iso: string) => (form[spec.field] = iso)">
+            <template #trigger="{ toggle }">
+              <span class="ted__date">
+                <input
+                  :value="form[spec.field] ?? ''"
+                  class="ted__input"
+                  type="text"
+                  :placeholder="pick('选择日期', 'Pick a date')"
+                  @click.stop
+                  @input="(e: Event) => (form[spec.field] = (e.target as HTMLInputElement).value)"
+                />
+                <button
+                  type="button"
+                  class="ted__date-icon"
+                  :title="pick('选择日期', 'Pick a date')"
+                  :aria-label="pick('选择日期', 'Pick a date')"
+                  @click.stop="toggle"
+                >
+                  <Icons name="calendar" :size="14" />
+                </button>
+              </span>
+            </template>
+          </DatePickerPopover>
         </label>
       </div>
 
@@ -284,19 +309,68 @@ function save(): void {
   font-size: 12px;
 }
 .ted__input {
-  width: 100%;
   box-sizing: border-box;
-  padding: 6px 8px;
-  border: var(--bd-hair);
-  border-radius: 6px;
-  background: var(--fill-1);
+  width: 100%;
+  height: 32px;
+  font-family: var(--font-ui, inherit);
+  font-size: 13px;
   color: var(--text);
-  font: inherit;
+  background: var(--fill-1);
+  border: var(--bd-hair);
+  border-color: var(--hairline);
+  border-radius: var(--r-md);
+  padding: 0 10px;
+  transition: background-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.ted__input::placeholder {
+  color: var(--text-3);
+}
+.ted__input:hover:not(:disabled):not(:focus) {
+  background: var(--fill-2);
+}
+.ted__input:focus-visible,
+.ted__input:focus {
+  outline: none;
+  background: var(--bg);
+  box-shadow: var(--ring-tight);
+}
+.ted__input:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .ted__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--sp-2, 8px) var(--sp-3);
+}
+.ted__date {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.ted__date .ted__input {
+  padding-left: 26px;
+}
+.ted__date-icon {
+  position: absolute;
+  left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ted__date-icon:hover {
+  background: var(--fill-2, rgba(0, 0, 0, 0.08));
+  color: var(--text);
 }
 .ted__problem {
   margin: 0;

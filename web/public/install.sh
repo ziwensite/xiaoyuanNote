@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# SoloMD installer — https://solomd.app
+# xiaoyuanNote installer — https://xiaoyuannote.app
 #
 # Works on macOS and Linux. Windows users: use install.ps1 instead.
 #
 # Usage:
-#   curl -fsSL https://solomd.app/install.sh | bash
+#   curl -fsSL https://xiaoyuannote.app/install.sh | bash
 #
 # What it does:
 #   1. Detects your OS (macOS / Linux) + architecture
@@ -12,11 +12,11 @@
 #   3. Downloads and installs the right package
 #
 # macOS: no root needed (copies to /Applications)
-# Linux: uses .deb / .rpm with sudo, falls back to ~/Applications/SoloMD.AppImage
+# Linux: uses .deb / .rpm with sudo, falls back to ~/Applications/xiaoyuannote.appImage
 
 set -e
 
-REPO="zhitongblog/solomd"
+REPO="zhitongblog/xiaoyuan-note"
 ORANGE='\033[0;33m'
 YELLOW='\033[0;93m'
 BOLD='\033[1m'
@@ -70,11 +70,11 @@ OS="$(uname -s)"
 case "$OS" in
   Darwin) OS_KIND=macos ;;
   Linux)  OS_KIND=linux ;;
-  *) error "Unsupported OS: $OS. For Windows use https://solomd.app/install.ps1" ;;
+  *) error "Unsupported OS: $OS. For Windows use https://xiaoyuannote.app/install.ps1" ;;
 esac
 
 # ---- Fetch latest tag ---------------------------------------------
-info "Fetching latest SoloMD release from GitHub…"
+info "Fetching latest xiaoyuanNote release from GitHub…"
 LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null \
   | grep -E '"tag_name":' | head -1 \
   | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')
@@ -86,8 +86,8 @@ info "Detected architecture: $(uname -m)"
 
 # ---- macOS --------------------------------------------------------
 install_macos() {
-  local dmg_url="$BASE_URL/SoloMD_${VERSION}_universal.dmg"
-  local tmp_dmg="/tmp/SoloMD_${VERSION}.dmg"
+  local dmg_url="$BASE_URL/XIAOYUAN_NOTE_${VERSION}_universal.dmg"
+  local tmp_dmg="/tmp/XIAOYUAN_NOTE_${VERSION}.dmg"
 
   info "Downloading $dmg_url"
   curl -fL --progress-bar -o "$tmp_dmg" "$dmg_url" || error "Download failed"
@@ -106,9 +106,9 @@ install_macos() {
     | awk -F'\t' '$NF ~ /^\/Volumes\// { print $NF; exit }')
   [ -z "$mount_point" ] && error "Failed to mount DMG (no mount point in hdiutil output)"
 
-  info "Copying SoloMD.app to /Applications…"
-  rm -rf /Applications/SoloMD.app
-  cp -R "$mount_point/SoloMD.app" /Applications/ || {
+  info "Copying xiaoyuannote.app to /Applications…"
+  rm -rf /Applications/xiaoyuannote.app
+  cp -R "$mount_point/xiaoyuannote.app" /Applications/ || {
     hdiutil detach "$mount_point" -quiet
     error "Copy failed — do you have write permission to /Applications?"
   }
@@ -116,10 +116,10 @@ install_macos() {
   rm -f "$tmp_dmg"
 
   # Remove quarantine flag so Gatekeeper doesn't complain on first launch
-  xattr -dr com.apple.quarantine /Applications/SoloMD.app 2>/dev/null || true
+  xattr -dr com.apple.quarantine /Applications/xiaoyuannote.app 2>/dev/null || true
 
-  printf "\n✨ ${BOLD}SoloMD installed to /Applications/SoloMD.app${RESET}\n"
-  printf "Launch with: ${BOLD}open /Applications/SoloMD.app${RESET} or Launchpad.\n\n"
+  printf "\n✨ ${BOLD}xiaoyuanNote installed to /Applications/xiaoyuannote.app${RESET}\n"
+  printf "Launch with: ${BOLD}open /Applications/xiaoyuannote.app${RESET} or Launchpad.\n\n"
 }
 
 # ---- GUI dependencies ---------------------------------------------
@@ -156,12 +156,12 @@ install_linux() {
   resolve_arch
 
   # If we're inside WSL, check for WSLg first. WSL1 and WSL2 without WSLg
-  # have no GUI support, so SoloMD will install but can't run.
+  # have no GUI support, so xiaoyuanNote will install but can't run.
   if is_wsl; then
     info "Detected WSL environment."
     if ! has_wslg; then
       warn "No DISPLAY or WAYLAND_DISPLAY found — your WSL does not have WSLg."
-      warn "SoloMD will install but WON'T launch. Fix by:"
+      warn "xiaoyuanNote will install but WON'T launch. Fix by:"
       warn "  • Upgrading to Windows 11 (has WSLg built-in), OR"
       warn "  • Running 'wsl --update' on Windows 10 21H2+, OR"
       warn "  • Installing an external X server (VcXsrv / X410)"
@@ -181,8 +181,8 @@ install_linux() {
 
   if command -v dpkg >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
     # ---- .deb path (Debian / Ubuntu / Kali / Mint) ----------------
-    local url="$BASE_URL/SoloMD_${VERSION}_${DEB_ARCH}.deb"
-    local tmp="/tmp/solomd_${VERSION}.deb"
+    local url="$BASE_URL/XIAOYUAN_NOTE_${VERSION}_${DEB_ARCH}.deb"
+    local tmp="/tmp/XIAOYUAN_NOTE_${VERSION}.deb"
     info "Detected Debian/Ubuntu. Downloading $url"
     curl -fL --progress-bar -o "$tmp" "$url" || error "Download failed"
     info "Installing with sudo dpkg…"
@@ -191,28 +191,28 @@ install_linux() {
       sudo apt-get install -f -y
     }
     rm -f "$tmp"
-    # The Cargo binary is named SoloMD (capital). Create a lowercase symlink
-    # so users can type either `solomd` or `SoloMD`.
-    if [ -x /usr/bin/SoloMD ] && ! [ -e /usr/bin/solomd ]; then
-      sudo ln -sf /usr/bin/SoloMD /usr/bin/solomd
-      info "Created symlink: solomd → SoloMD"
+    # The Cargo binary is named xiaoyuanNote (capital). Create a lowercase symlink
+    # so users can type either `xiaoyuanNote` or `xiaoyuanNote`.
+    if [ -x /usr/bin/xiaoyuanNote ] && ! [ -e /usr/bin/xiaoyuanNote ]; then
+      sudo ln -sf /usr/bin/xiaoyuanNote /usr/bin/xiaoyuanNote
+      info "Created symlink: xiaoyuanNote → xiaoyuanNote"
     fi
-    printf "\n✨ ${BOLD}SoloMD installed. Run with: solomd${RESET}\n\n"
+    printf "\n✨ ${BOLD}xiaoyuanNote installed. Run with: xiaoyuanNote${RESET}\n\n"
 
   elif command -v rpm >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
     # ---- .rpm path (Fedora / RHEL / openSUSE) --------------------
-    local url="$BASE_URL/SoloMD-${VERSION}-1.${RPM_ARCH}.rpm"
-    local tmp="/tmp/solomd_${VERSION}.rpm"
+    local url="$BASE_URL/xiaoyuan-note-${VERSION}-1.${RPM_ARCH}.rpm"
+    local tmp="/tmp/XIAOYUAN_NOTE_${VERSION}.rpm"
     info "Detected RPM system. Downloading $url"
     curl -fL --progress-bar -o "$tmp" "$url" || error "Download failed"
     info "Installing with sudo rpm…"
     sudo rpm -i --replacepkgs "$tmp"
     rm -f "$tmp"
-    if [ -x /usr/bin/SoloMD ] && ! [ -e /usr/bin/solomd ]; then
-      sudo ln -sf /usr/bin/SoloMD /usr/bin/solomd
-      info "Created symlink: solomd → SoloMD"
+    if [ -x /usr/bin/xiaoyuanNote ] && ! [ -e /usr/bin/xiaoyuanNote ]; then
+      sudo ln -sf /usr/bin/xiaoyuanNote /usr/bin/xiaoyuanNote
+      info "Created symlink: xiaoyuanNote → xiaoyuanNote"
     fi
-    printf "\n✨ ${BOLD}SoloMD installed. Run with: solomd${RESET}\n\n"
+    printf "\n✨ ${BOLD}xiaoyuanNote installed. Run with: xiaoyuanNote${RESET}\n\n"
 
   else
     # ---- AppImage fallback ---------------------------------------
@@ -222,12 +222,12 @@ install_linux() {
     info "No dpkg/rpm detected — falling back to AppImage (no sudo needed)"
     install_gui_deps
     mkdir -p "$HOME/Applications"
-    local url="$BASE_URL/SoloMD_${VERSION}_${APPIMAGE_ARCH}.AppImage"
-    local dest="$HOME/Applications/SoloMD.AppImage"
+    local url="$BASE_URL/XIAOYUAN_NOTE_${VERSION}_${APPIMAGE_ARCH}.AppImage"
+    local dest="$HOME/Applications/xiaoyuannote.appImage"
     info "Downloading $url"
     curl -fL --progress-bar -o "$dest" "$url" || error "Download failed"
     chmod +x "$dest"
-    printf "\n✨ ${BOLD}SoloMD installed to ~/Applications/SoloMD.AppImage${RESET}\n"
+    printf "\n✨ ${BOLD}xiaoyuanNote installed to ~/Applications/xiaoyuannote.appImage${RESET}\n"
     printf "Run with: ${BOLD}%s${RESET}\n\n" "$dest"
   fi
 }
@@ -237,5 +237,5 @@ case "$OS_KIND" in
   linux) install_linux ;;
 esac
 
-info "Docs + support: https://solomd.app"
+info "Docs + support: https://xiaoyuannote.app"
 

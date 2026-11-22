@@ -1,5 +1,5 @@
 /**
- * Shared image URL resolution for SoloMD.
+ * Shared image URL resolution for xiaoyuan-note.
  * Used by Preview.vue, pdf-export.ts, image-export.ts, and docx-export.ts
  * to convert local image paths into URLs the webview can load or bytes for embedding.
  */
@@ -137,7 +137,7 @@ function androidSharedStorageToSafPath(p: string): string {
 function activeSafTreeUri(): string | null {
   try {
     if (typeof localStorage === 'undefined') return null;
-    const raw = localStorage.getItem('solomd.workspace.v1');
+    const raw = localStorage.getItem('xiaoyuan-note.workspace.v1');
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { safTreeUri?: unknown };
     return typeof parsed.safTreeUri === 'string' && parsed.safTreeUri ? parsed.safTreeUri : null;
@@ -289,7 +289,7 @@ export function rewriteImageUrls(
           resolved.localPath.startsWith('saf:') ||
           isAndroidSharedStoragePath(resolved.localPath));
       const nextPrefix = needsLocalSrcAttr && resolved.localPath
-        ? prefix.replace(/^<img\b/i, `<img data-solomd-local-src="${encodeHtmlAttr(resolved.localPath)}"`)
+        ? prefix.replace(/^<img\b/i, `<img data-xiaoyuan-note-local-src="${encodeHtmlAttr(resolved.localPath)}"`)
         : prefix;
       return `${nextPrefix}${q}${resolved.src}${q}`;
     },
@@ -477,16 +477,16 @@ export async function inlineLocalImages(
 }
 
 export function installSvgImageFallbacks(root: ParentNode): void {
-  const images = root.querySelectorAll<HTMLImageElement>('img[data-solomd-local-src]');
+  const images = root.querySelectorAll<HTMLImageElement>('img[data-xiaoyuan-note-local-src]');
   for (const img of Array.from(images)) {
-    if (img.dataset.solomdSvgFallbackBound === '1') continue;
-    const path = img.dataset.solomdLocalSrc || '';
+    if (img.dataset.xiaoyuanNoteSvgFallbackBound === '1') continue;
+    const path = img.dataset.xiaoyuanNoteLocalSrc || '';
     if (!path) continue;
     const isSaf = path.startsWith('saf:');
     const isAndroidStorage = isAndroidSharedStoragePath(path);
     const isSvg = isLocalSvgPath(path);
     if (!isSaf && !isAndroidStorage && !isSvg) continue;
-    img.dataset.solomdSvgFallbackBound = '1';
+    img.dataset.xiaoyuanNoteSvgFallbackBound = '1';
 
     if (isSaf) {
       const cached = safImageDataUrlCache.get(path);

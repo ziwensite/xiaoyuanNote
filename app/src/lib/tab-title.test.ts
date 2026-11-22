@@ -16,7 +16,7 @@ const t = (key: string, params?: Record<string, string | number>) =>
 test('extractFirstLineTitle strips Markdown syntax from the first non-empty line', () => {
   assert.equal(extractFirstLineTitle('# 项目周报 2026-10\n正文内容'), '项目周报 2026-10');
   assert.equal(extractFirstLineTitle('\n\n- [ ] 待办事项第一条\n第二条'), '待办事项第一条');
-  assert.equal(extractFirstLineTitle('1. **重点** ==高亮== [链接](https://solomd.app)'), '重点 高亮 链接');
+  assert.equal(extractFirstLineTitle('1. **重点** ==高亮== [链接](https://xiaoyuannote.app)'), '重点 高亮 链接');
 });
 
 test('extractFirstLineTitle skips YAML frontmatter and falls back to frontmatter title or fileName', () => {

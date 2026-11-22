@@ -44,7 +44,7 @@ import CostMeterSettings from './CostMeterSettings.vue';
 import IntegrationsSettings from './IntegrationsSettings.vue';
 // v4.0 Pillar 2 — Agent Recipes panel. Mounted under the existing
 // "Integrations" category so users find Recipes alongside CLI / MCP /
-// AI rewrite — i.e. the cluster of "things SoloMD talks to" rather
+// AI rewrite — i.e. the cluster of "things xiaoyuanNote talks to" rather
 // than a brand-new top-level category.
 import RecipesSettings from './RecipesSettings.vue';
 import GithubSyncSettings from './GithubSyncSettings.vue';
@@ -53,6 +53,7 @@ import CloudFolderBanner from './CloudFolderBanner.vue';
 import ProxySettings from './ProxySettings.vue';
 import LanguageToolSettings from './LanguageToolSettings.vue';
 import CapturePresetsSection from './CapturePresetsSection.vue';
+import PeriodicNotesSettings from './PeriodicNotesSettings.vue';
 import ThemeMarketplace from './ThemeMarketplace.vue';
 import SupportDialog from './SupportDialog.vue';
 import { supporterRecord, badgeInfo, initSupporterState } from '../lib/supporter';
@@ -149,7 +150,7 @@ function isCustomised(action: KeyActionDef): boolean {
   return action.id in settings.keybindings;
 }
 /**
- * Shortcuts another program takes over before SoloMD sees them — AMD
+ * Shortcuts another program takes over before xiaoyuanNote sees them — AMD
  * Software's global hotkeys own most of the Ctrl+Shift row, Microsoft Pinyin
  * takes one more. Nothing can be detected at runtime (the chord never
  * arrives), so the panel names them and offers somewhere else to put the
@@ -1282,6 +1283,18 @@ function onSelectPdfFont(v: string) {
 
         <section data-cat="basics">
           <label>
+            <input
+              type="checkbox"
+              :checked="settings.frontmatterDefaultCollapsed"
+              @change="settings.toggleFrontmatterDefaultCollapsed()"
+            />
+            {{ t('settings.frontmatterDefaultCollapsed') }}
+          </label>
+          <p class="setting-hint">{{ t('settings.frontmatterDefaultCollapsedHint') }}</p>
+        </section>
+
+        <section data-cat="basics">
+          <label>
             <input type="checkbox" :checked="settings.showLineNumbers" @change="settings.toggleLineNumbers()" />
             {{ t('settings.lineNumbers') }}
           </label>
@@ -1769,7 +1782,7 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <section v-if="!isPhoneOrTablet" data-cat="integrations">
+        <section v-if="!isPhoneOrTablet" data-cat="calendar">
           <label>
             <input
               type="checkbox"
@@ -2055,6 +2068,19 @@ function onSelectPdfFont(v: string) {
           <p class="setting-hint">{{ t('settings.assetsDirNameHint') }}</p>
         </section>
 
+        <!-- v5.0 — reference-based component notes folder (relative to workspace). -->
+        <section data-cat="writing">
+          <label>{{ t('settings.componentsDirName') }}</label>
+          <input
+            type="text"
+            :value="settings.componentsDirName"
+            @change="settings.setComponentsDirName(($event.target as HTMLInputElement).value)"
+            placeholder="_components"
+            class="settings__field"
+          />
+          <p class="setting-hint">{{ t('settings.componentsDirNameHint') }}</p>
+        </section>
+
         <section data-cat="writing" v-if="settings.attachmentMode === 'custom'">
           <label>{{ t('settings.attachmentCustomPath') }}</label>
           <input
@@ -2307,26 +2333,8 @@ function onSelectPdfFont(v: string) {
           <button class="kb-btn kb-btn--wide" @click="settings.resetKeybindings()">{{ t('settings.keysResetAll') }}</button>
         </section>
 
-        <section data-cat="advanced">
-          <label>{{ t('settings.dailyNotesFolder') }}</label>
-          <input
-            type="text"
-            :value="settings.dailyNotesFolder"
-            @input="settings.setDailyNotesFolder(($event.target as HTMLInputElement).value)"
-            placeholder="Daily"
-            class="settings__field"
-          />
-        </section>
-
-        <section data-cat="advanced">
-          <label>{{ t('settings.dailyNotesFormat') }}</label>
-          <input
-            type="text"
-            :value="settings.dailyNotesFormat"
-            @input="settings.setDailyNotesFormat(($event.target as HTMLInputElement).value)"
-            placeholder="YYYY-MM-DD.md"
-            class="settings__field"
-          />
+        <section data-cat="calendar">
+          <PeriodicNotesSettings />
         </section>
 
         <section data-cat="tasks">
@@ -2354,7 +2362,7 @@ function onSelectPdfFont(v: string) {
         </section>
 
         <!-- P5 — capture presets. Each one also shows up in the command palette. -->
-        <section data-cat="advanced"><CapturePresetsSection /></section>
+        <section data-cat="calendar"><CapturePresetsSection /></section>
 
         <div data-cat="export"><CitationPickerSettings /></div>
 
@@ -2653,8 +2661,8 @@ function onSelectPdfFont(v: string) {
           </div>
         </section>
 
-        <!-- v2.4 Integrations: HTTP capture endpoint. -->
-        <div data-cat="integrations"><CaptureEndpointSettings /></div>
+        <!-- v2.4 capture endpoint, grouped with the other capture settings. -->
+        <div data-cat="calendar"><CaptureEndpointSettings /></div>
 
         <!-- v4.0: Public REST API for non-MCP clients. -->
         <div data-cat="integrations"><RestApiSettings /></div>

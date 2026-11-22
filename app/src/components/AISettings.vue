@@ -263,7 +263,7 @@ async function openInstallPage(): Promise<void> {
 
 async function ensurePullListener(): Promise<void> {
   if (pullUnlisten) return;
-  pullUnlisten = await listen<OllamaPullEvent>('solomd://ollama-pull', (ev) => {
+  pullUnlisten = await listen<OllamaPullEvent>('xiaoyuan-note://ollama-pull', (ev) => {
     if (ev.payload.request_id !== pullRequestId) return;
     pullStatus.value = ev.payload.status;
     const c = ev.payload.completed ?? null;
@@ -492,7 +492,7 @@ function reopenWizard(): void {
   settingsStore.resetAgentWizard();
   // Ask the app to open it. App.vue listens to a window-level event so
   // we don't have to thread a prop through the whole settings tree.
-  window.dispatchEvent(new CustomEvent('solomd:open-agent-wizard'));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-agent-wizard'));
 }
 
 async function refreshRuns(): Promise<void> {

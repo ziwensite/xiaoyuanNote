@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-  Editor regression smoke test for the Windows plain-textarea editor (SoloMD).
+  Editor regression smoke test for the Windows plain-textarea editor (xiaoyuanNote).
 
 .DESCRIPTION
-  Drives the running `tauri dev` SoloMD instance through the dev-bridge
+  Drives the running `tauri dev` xiaoyuanNote instance through the dev-bridge
   (HTTP /eval) and exercises the editor end to end: new-doc focus, typing,
   selection replace, Enter, Tab indent, undo/redo, task-checkbox toggle,
   find/replace, word-wrap and spellcheck attributes. Each test reloads the app
@@ -11,15 +11,15 @@
   result. Prints a pass/fail table.
 
   Requires: a running `tauri dev` instance (dev-bridge writes its port/token to
-  %APPDATA%\app.solomd\dev-bridge.{port,token}). viewMode is forced to liveEdit.
+  %APPDATA%\app.xiaoyuanNote\dev-bridge.{port,token}). viewMode is forced to liveEdit.
 
 .EXAMPLE
   pwsh -File scripts/dev/editor-smoke.ps1
 #>
 
 $ErrorActionPreference = 'Stop'
-$port  = (Get-Content "$env:APPDATA\app.solomd\dev-bridge.port").Trim()
-$token = (Get-Content "$env:APPDATA\app.solomd\dev-bridge.token").Trim()
+$port  = (Get-Content "$env:APPDATA\app.xiaoyuanNote\dev-bridge.port").Trim()
+$token = (Get-Content "$env:APPDATA\app.xiaoyuanNote\dev-bridge.token").Trim()
 Write-Host "dev-bridge: 127.0.0.1:$port" -ForegroundColor Cyan
 
 function Invoke-Eval([string]$js, [int]$timeoutMs = 15000) {
@@ -161,12 +161,12 @@ return { pass: opened && n1>0 && labels.length===1 && el.value==='- [ ] ' && !do
 )
 
 # Force liveEdit once.
-try { Invoke-Eval "const s=JSON.parse(localStorage.getItem('solomd.settings.v1')||'{}'); s.viewMode='liveEdit'; s.wordWrap=true; s.spellCheck=true; localStorage.setItem('solomd.settings.v1',JSON.stringify(s)); return 1;" 5000 | Out-Null } catch {}
+try { Invoke-Eval "const s=JSON.parse(localStorage.getItem('xiaoyuan-note.settings.v1')||'{}'); s.viewMode='liveEdit'; s.wordWrap=true; s.spellCheck=true; localStorage.setItem('xiaoyuan-note.settings.v1',JSON.stringify(s)); return 1;" 5000 | Out-Null } catch {}
 
 $results = @()
 foreach ($t in $tests) {
   # Reload to a clean Untitled doc for isolation.
-  try { Invoke-Eval "for(const k of Object.keys(localStorage)){if(k.startsWith('solomd.tabs'))localStorage.removeItem(k);} location.reload(); return 1;" 2000 | Out-Null } catch {}
+  try { Invoke-Eval "for(const k of Object.keys(localStorage)){if(k.startsWith('xiaoyuan-note.tabs'))localStorage.removeItem(k);} location.reload(); return 1;" 2000 | Out-Null } catch {}
   Start-Sleep -Seconds 3
   $seedJs = if ($null -ne $t.seed) { "await waitEditor(); await seed('" + $t.seed + "');" } else { "" }
   $full = $prelude + "`ntry{ $seedJs`n" + $t.body + "`n}catch(e){ return { pass:false, detail:{error:String(e)} }; }"

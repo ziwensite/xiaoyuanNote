@@ -1,6 +1,6 @@
-SoloMD to spokojny, szybki edytor Markdown na iPhone’a i iPada. Otwierasz aplikację i od razu piszesz — bez konta, bez rejestracji, bez subskrypcji.
+xiaoyuanNote to spokojny, szybki edytor Markdown na iPhone’a i iPada. Otwierasz aplikację i od razu piszesz — bez konta, bez rejestracji, bez subskrypcji.
 
-Twoje notatki to zwykłe pliki .md i .txt. Trzymaj je w folderze SoloMD w aplikacji Pliki albo otwórz folder, którego już używasz, i edytuj pliki tam, gdzie leżą. Odczyta je każdy edytor na każdym urządzeniu — dziś i za dziesięć lat.
+Twoje notatki to zwykłe pliki .md i .txt. Trzymaj je w folderze xiaoyuanNote w aplikacji Pliki albo otwórz folder, którego już używasz, i edytuj pliki tam, gdzie leżą. Odczyta je każdy edytor na każdym urządzeniu — dziś i za dziesięć lat.
 
 NAJPIERW PISANIE
 
@@ -44,10 +44,10 @@ EKSPORT I UDOSTĘPNIANIE
 
 PRYWATNOŚĆ W ZAŁOŻENIU
 
-SoloMD nie zbiera żadnych danych. Bez konta, bez analityki, bez reklam, bez śledzenia. Twoje notatki zostają w plikach, które należą do Ciebie.
+xiaoyuanNote nie zbiera żadnych danych. Bez konta, bez analityki, bez reklam, bez śledzenia. Twoje notatki zostają w plikach, które należą do Ciebie.
 
-SoloMD to otwarte oprogramowanie na licencji MIT: github.com/zhitongblog/solomd
+xiaoyuanNote to otwarte oprogramowanie na licencji MIT: github.com/zhitongblog/xiaoyuan-note
 
 100% DARMOWE NA ZAWSZE I ODZNAKA WSPIERAJĄCEGO
 
-Wszystkie funkcje SoloMD są w 100% darmowe na zawsze — bez subskrypcji i zablokowanych funkcji. Opcjonalne jednorazowe zakupy w aplikacji (Postaw kawę / Postaw lunch / Hojne wsparcie) to całkowicie dobrowolne napiwki wspierające niezależny rozwój, które na stałe odblokowują odznakę „Wspierający”.
+Wszystkie funkcje xiaoyuanNote są w 100% darmowe na zawsze — bez subskrypcji i zablokowanych funkcji. Opcjonalne jednorazowe zakupy w aplikacji (Postaw kawę / Postaw lunch / Hojne wsparcie) to całkowicie dobrowolne napiwki wspierające niezależny rozwój, które na stałe odblokowują odznakę „Wspierający”.

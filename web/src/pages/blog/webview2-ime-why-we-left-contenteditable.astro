@@ -8,8 +8,8 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="The bug we couldn't fix in JavaScript — why SoloMD's Windows editor left contentEditable"
-  description="Chinese IME input was intermittently broken in SoloMD on Windows: first character dropped, punctuation doubled, worst with Sogou Pinyin. We chased it through CodeMirror's autocomplete, proved the real defect lives in WebView2's contentEditable TSF integration, filed it upstream (WebView2Feedback#5625), and ultimately rewrote the Windows editor on native textarea blocks. Engineering notes from a month of IME debugging."
+  title="The bug we couldn't fix in JavaScript — why xiaoyuanNote’s Windows editor left contentEditable"
+  description="Chinese IME input was intermittently broken in xiaoyuanNote on Windows: first character dropped, punctuation doubled, worst with Sogou Pinyin. We chased it through CodeMirror's autocomplete, proved the real defect lives in WebView2's contentEditable TSF integration, filed it upstream (WebView2Feedback#5625), and ultimately rewrote the Windows editor on native textarea blocks. Engineering notes from a month of IME debugging."
   lang={lang}
 >
   <Header lang={lang} />
@@ -19,13 +19,13 @@ const lang = 'en' as const;
         <a href="/">Home</a> / <a href="/blog/">Blog</a> / <span>Leaving contentEditable</span>
       </nav>
       <time>2026-07-08</time>
-      <h1>The bug we couldn't fix in JavaScript — why SoloMD's Windows editor left contentEditable</h1>
+      <h1>The bug we couldn't fix in JavaScript — why xiaoyuanNote’s Windows editor left contentEditable</h1>
       <p class="lead">
-        In June a user reported that typing Chinese in SoloMD on Windows was
+        In June a user reported that typing Chinese in xiaoyuanNote on Windows was
         "sometimes fine, sometimes broken" — characters silently dropped,
         punctuation needing two keypresses, worst with Sogou Pinyin
-        (<a href="https://github.com/zhitongblog/solomd/issues/108" rel="external">#108</a>).
-        A month later the fix shipped, and it wasn't a patch: SoloMD v4.7
+        (<a href="https://github.com/zhitongblog/xiaoyuan-note/issues/108" rel="external">#108</a>).
+        A month later the fix shipped, and it wasn't a patch: xiaoyuanNote v4.7
         replaced CodeMirror on Windows with a block editor built on native
         <code>&lt;textarea&gt;</code> elements. This post is the debugging trail
         that justified something that drastic.
@@ -92,7 +92,7 @@ const lang = 'en' as const;
         Once the defect is below JavaScript, an app has two honest options:
         wait for Microsoft, or stop standing on the broken floor. Chinese input
         is not an edge case for a Markdown editor with a large CJK user base,
-        so v4.7 moved SoloMD's Windows live editor onto the input surface we
+        so v4.7 moved xiaoyuanNote’s Windows live editor onto the input surface we
         had just proven correct: the document is split into Markdown blocks,
         inactive blocks render as HTML, and the active block is a real
         <code>&lt;textarea&gt;</code> — the native IME path, no
@@ -121,8 +121,8 @@ const lang = 'en' as const;
       </ul>
 
       <p>
-        SoloMD is a free, MIT-licensed Markdown editor for macOS, Windows,
-        Linux, iOS and Android — <a href="/">solomd.app</a>. The Windows block
+        xiaoyuanNote is a free, MIT-licensed Markdown editor for macOS, Windows,
+        Linux, iOS and Android — <a href="/">xiaoyuannote.app</a>. The Windows block
         editor ships since v4.7; the full change log is on the
         <a href="/whats-new/">what's new</a> page.
       </p>
@@ -136,13 +136,13 @@ const lang = 'en' as const;
 <script type="application/ld+json" set:html={JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
-  headline: "The bug we couldn't fix in JavaScript — why SoloMD's Windows editor left contentEditable",
+  headline: "The bug we couldn't fix in JavaScript — why xiaoyuanNote’s Windows editor left contentEditable",
   datePublished: '2026-07-08',
   dateModified: '2026-07-08',
   author: { '@type': 'Person', name: 'xiangdong li', url: 'https://github.com/zhitongblog' },
   publisher: { '@type': 'Person', name: 'xiangdong li' },
-  url: 'https://solomd.app/blog/webview2-ime-why-we-left-contenteditable/',
-  description: 'Chinese IME input was intermittently broken in SoloMD on Windows. We chased it through CodeMirror autocomplete, proved the real defect lives in WebView2 contentEditable TSF integration, filed WebView2Feedback#5625, and rewrote the Windows editor on native textarea blocks.',
+  url: 'https://xiaoyuannote.app/blog/webview2-ime-why-we-left-contenteditable/',
+  description: 'Chinese IME input was intermittently broken in xiaoyuanNote on Windows. We chased it through CodeMirror autocomplete, proved the real defect lives in WebView2 contentEditable TSF integration, filed WebView2Feedback#5625, and rewrote the Windows editor on native textarea blocks.',
   about: ['WebView2', 'IME', 'contentEditable', 'CodeMirror', 'Markdown editor', 'CJK input', 'Sogou Pinyin'],
 })} />
 

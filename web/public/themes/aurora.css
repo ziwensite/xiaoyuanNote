@@ -1,8 +1,8 @@
 /*
- * 极光（Aurora）— SoloMD 青绿紫梦幻主题。
+ * 极光（Aurora）— xiaoyuanNote 青绿紫梦幻主题。
  * 深邃夜空底 + 极光般的青/紫流动渐变。
  *
- * 本主题在 SoloMD 基础上做的自定义：
+ * 本主题在 xiaoyuanNote 基础上做的自定义：
  * 1. 背景：--bg 为普通纯色 #0d1424；多层极光渐变（深空夜空打底 +
  *    角落绿/蓝/紫光晕）仅在 body 使用，
  *    除弹窗外所有区域透明，统一透出 body 渐变。
@@ -469,7 +469,7 @@ body.rs-splitter--dragging .rs-splitter {
 /* #region 按钮 */
 /*
  * 注意：这里只用具体类（工具栏/文件树/窗口控制按钮），
- * 不使用全局 button / .ds-btn 元素选择器，避免覆盖 SoloMD
+ * 不使用全局 button / .ds-btn 元素选择器，避免覆盖 xiaoyuanNote
  * 内部按钮（弹窗、主题市场、确认框等）的背景导致文字看不见。
  */
 /* 工具栏 / 窗口控制 / 文件树按钮：透明背景 + 极光 border */

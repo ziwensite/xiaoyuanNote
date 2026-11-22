@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "SoloMD",
+  "productName": "xiaoyuanNote",
   "version": "5.0.13",
-  "identifier": "app.solomd",
+  "identifier": "app.xiaoyuannote",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "title": "SoloMD",
+        "title": "xiaoyuanNote",
         "width": 1200,
         "height": 800,
         "minWidth": 480,
@@ -35,16 +35,16 @@
       }
     }
   },
-  "mainBinaryName": "SoloMD",
+  "mainBinaryName": "xiaoyuanNote",
   "bundle": {
     "active": true,
     "targets": "all",
     "category": "Productivity",
     "license": "MIT",
     "publisher": "zhitong",
-    "homepage": "https://solomd.app",
+    "homepage": "https://xiaoyuannote.app",
     "shortDescription": "Lightweight Markdown + plain text editor",
-    "longDescription": "SoloMD is a lightweight, distraction-free editor for Markdown and plain text files. One file. One window. Just write.",
+    "longDescription": "xiaoyuanNote is a lightweight, distraction-free editor for Markdown and plain text files. One file. One window. Just write.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -84,6 +84,7 @@
       "resources/dicts/en_US.dic"
     ],
     "externalBin": [
+      "binaries/xiaoyuan-note-mcp",
       "binaries/solomd-mcp"
     ],
     "macOS": {

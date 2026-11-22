@@ -1,13 +1,13 @@
-﻿import type { I18n } from './en';
+import type { I18n } from './en';
 
 export const sv: I18n = {
   iosFolder: {
-    pickerUnavailable: 'Mappväljaren är inte tillgänglig, så SoloMD använder sin egen mapp (Filer › På min iPhone › SoloMD).',
+    pickerUnavailable: 'Mappväljaren är inte tillgänglig, så xiaoyuanNote använder sin egen mapp (Filer › På min iPhone › xiaoyuanNote).',
     savedAs: 'Sparad som {name}',
-    restoreFailed: 'Det gick inte att öppna mappen du valde senast igen — SoloMD:s egen mapp visas. Välj den igen med Öppna mapp.',
+    restoreFailed: 'Det gick inte att öppna mappen du valde senast igen — xiaoyuan-note:s egen mapp visas. Välj den igen med Öppna mapp.',
   },
   starPrompt: {
-    message: 'Gillar du SoloMD? En stjärna på GitHub hjälper andra att hitta den — den är gratis och gjord av en enda person.',
+    message: 'Gillar du xiaoyuanNote? En stjärna på GitHub hjälper andra att hitta den — den är gratis och gjord av en enda person.',
     action: '★ Stjärna på GitHub',
   },
   menubar: {
@@ -62,7 +62,7 @@ export const sv: I18n = {
     helpCli: 'Kommandorad (CLI)',
     zoom: 'Zooma',
     find: "Sök…",
-    about: 'Om SoloMD',
+    about: 'Om xiaoyuanNote',
     aboutShort: 'Om',
     minimize: 'Minimera',
     maximize: 'Maximera',
@@ -86,10 +86,10 @@ export const sv: I18n = {
     theme: "Tema",
     checkUpdate: "Sök efter uppdateringar…",
     services: "Tjänster",
-    hide: "Göm SoloMD",
+    hide: "Göm xiaoyuanNote",
     hideOthers: "Göm övriga",
     showAll: "Visa alla",
-    quit: "Avsluta SoloMD",
+    quit: "Avsluta xiaoyuanNote",
     window: "Fönster",
     quickCapture: "Snabbanteckning…",
     daily: "Daglig anteckning",
@@ -310,7 +310,7 @@ export const sv: I18n = {
     empty: 'Inga undermappar här.',
     cancel: 'Avbryt',
     use: 'Använd den här mappen',
-    permNeeded: 'SoloMD behöver ”åtkomst till alla filer” för att bläddra bland mappar på enheten.',
+    permNeeded: 'xiaoyuanNote behöver ”åtkomst till alla filer” för att bläddra bland mappar på enheten.',
     permGrant: 'Ge åtkomst',
   },
   plainFind: {
@@ -432,7 +432,7 @@ export const sv: I18n = {
     catAdvanced: 'Avancerat',
     catKeys: 'Kortkommandon',
     keysInterceptedTitle: "Några kortkommandon tas av annan programvara",
-    keysInterceptedBody: "Programmen nedan registrerar de här tangentkombinationerna som globala snabbtangenter, så de når aldrig SoloMD. Att flytta kommandona till tangenterna till höger påverkar inte dina övriga kortkommandon.",
+    keysInterceptedBody: "Programmen nedan registrerar de här tangentkombinationerna som globala snabbtangenter, så de når aldrig xiaoyuan-note. Att flytta kommandona till tangenterna till höger påverkar inte dina övriga kortkommandon.",
     keysApplyCompat: "Flytta kommandona till lediga tangenter",
     keysCompatApplied: "{count} kortkommandon flyttade. Använd ”Återställ alla” för att ångra.",
     keysSearch: "Sök kortkommandon – ett namn eller en tangent…",
@@ -446,7 +446,7 @@ export const sv: I18n = {
     keysWriterApply: "Använd {bold} för fetstil",
     keysWriterUndo: "Byt tillbaka",
     keysWriterApplied: "{bold} är nu fetstil. Filträdet ligger på {tree}.",
-    keysInterceptedBy: "Fångas oftast av {source} innan SoloMD ser det",
+    keysInterceptedBy: "Fångas oftast av {source} innan xiaoyuanNote ser det",
     keysHint: 'Klicka på Ändra och tryck önskad tangentkombination. Esc avbryter. Gäller direkt.',
     keysCatFile: 'Arkiv',
     keysCatEdit: 'Redigera',
@@ -562,7 +562,29 @@ export const sv: I18n = {
     cslPicked: 'CSL-stil inläst',
     dailyNotesFolder: 'Mapp för dagliga anteckningar (relativ till arbetsytan)',
     dailyNotesFormat: 'Filnamnsformat för dagliga anteckningar',
-    dailyNotesTemplate: 'Mall för dagliga anteckningar (lämna tom för standard)',
+    dailyNotesTemplate: 'Mall för dagliga anteckningar (lämna tom för standard)',
+    periodic: {
+      title: 'Periodic notes',
+      hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
+      kinds: {
+        flash: 'Flash note',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        quarterly: 'Quarterly',
+        yearly: 'Yearly',
+      },
+      templatePath: 'Template path',
+      templatePlaceholder: 'Leave empty for the built-in template',
+      savePath: 'Save path',
+      filenameFormat: 'Filename format',
+      browseFile: 'Choose template…',
+      browseFolder: 'Choose folder…',
+      clear: 'Clear',
+      markdownFilter: 'Markdown files',
+      preview: 'Preview: {path}',
+      defaultFormat: 'Default: {format}',
+    },
     recurringTaskPlacement: 'Återkommande uppgift slutförd',
     recurringTaskPlacementBelow: 'Lägg till nästa förekomst nedan',
     recurringTaskPlacementAbove: 'Lägg till nästa förekomst ovan',
@@ -603,7 +625,7 @@ export const sv: I18n = {
       codeThemeDark: 'Alltid mörkt',
       frontmatterHint: 'Åsidosätt per dokument med ett `pdf:`-block i YAML-front matter (pageSize / margin / font / fontSize / footer / toc).',
     },
-    imageExportBranding: 'Lägg till sidfoten "Created with SoloMD" vid bildexport',
+    imageExportBranding: 'Lägg till sidfoten "Created with xiaoyuanNote" vid bildexport',
     imageExportBrandingHint: 'På som standard — mild självreklam på delade skärmdumpar. Stäng av om du inte vill ha vattenstämpeln, då exporteras korta anteckningar också tätare utan kortet i slutet.',
     attachmentMode: 'Where to save pasted/dropped images',
     attachmentModeShared: 'Shared `_assets/` folder per directory',
@@ -645,9 +667,9 @@ export const sv: I18n = {
     customCssReloadFailed: 'Det gick inte att ladda om det anpassade CSS-temat',
     clear: 'Rensa',
     fileAssoc: 'Filassociation',
-    setDefault: '⭐ Sätt SoloMD som standard Markdown-editor',
+    setDefault: '⭐ Sätt xiaoyuanNote som standard Markdown-editor',
     settingDefault: 'Sätter…',
-    setDefaultHint: 'Registrerar SoloMD som standardapp för .md / .markdown / .mdown / .mkd-filer. På Windows läggs SoloMD också till i menyn "Öppna med". På Linux krävs xdg-utils.',
+    setDefaultHint: 'Registrerar xiaoyuanNote som standardapp för .md / .markdown / .mdown / .mkd-filer. På Windows läggs xiaoyuanNote också till i menyn "Öppna med". På Linux krävs xdg-utils.',
     language: 'Språk / 语言',
     restoreSession: 'Återställ tidigare flikar och paneler vid start',
     restoreSessionHint: 'Stäng av för att alltid starta med ett tomt fönster.',
@@ -667,7 +689,7 @@ export const sv: I18n = {
     revealInFileTreeOnOpen: 'Visa fil i filträdet vid öppning',
     revealInFileTreeOnOpenHint: "När på pekar filträdet på filens mapp när du öppnar en fil. Ett dolt filträd förblir dolt.",
     openLinkedFilesExternally: 'Öppna länkade filer med systemets standardapp',
-    openLinkedFilesExternallyHint: 'När på öppnar ett klick på en Markdown-länk till en lokal PDF- / Office- / annan dokumentfil den i systemets standardapp. Stäng av för att i stället konvertera den till Markdown. Länkar till .md / text / bilder öppnas alltid i SoloMD.',
+    openLinkedFilesExternallyHint: 'När på öppnar ett klick på en Markdown-länk till en lokal PDF- / Office- / annan dokumentfil den i systemets standardapp. Stäng av för att i stället konvertera den till Markdown. Länkar till .md / text / bilder öppnas alltid i xiaoyuan-note.',
     autoCheckUpdate: 'Sök efter uppdateringar automatiskt',
     checkUpdate: 'Sök efter uppdateringar nu',
     checkingUpdate: 'Söker…',
@@ -676,9 +698,9 @@ export const sv: I18n = {
     updateCheckFailed: 'Kunde inte nå uppdateringsservern — kontrollera ditt nätverk och försök igen',
     telemetry: 'Skicka anonym användardata',
     telemetryHint:
-      'Hjälper till att förbättra SoloMD. Ingen IP-adress, inget filinnehåll, ingen personlig information.',
+      'Hjälper till att förbättra xiaoyuan-note. Ingen IP-adress, inget filinnehåll, ingen personlig information.',
     telemetryNotice:
-      'SoloMD samlar in anonym användardata (funktionsanvändning, version, OS) för att förbättra produkten. Ingen IP-adress, inget filinnehåll och ingen personlig information. Du kan stänga av detta när som helst i inställningarna.',
+      'xiaoyuanNote samlar in anonym användardata (funktionsanvändning, version, OS) för att förbättra produkten. Ingen IP-adress, inget filinnehåll och ingen personlig information. Du kan stänga av detta när som helst i inställningarna.',
     telemetryNoticeOk: 'Uppfattat',
     telemetryNoticeDisable: 'Stäng av nu',
     imageUploaderSection: 'Bilduppladdning (bildhotell)',
@@ -785,7 +807,7 @@ export const sv: I18n = {
     desc: 'En lättviktig, plattformsoberoende editor för Markdown och vanlig text.',
   },
   help: {
-    about: 'Om SoloMD',
+    about: 'Om xiaoyuanNote',
     markdownGuide: 'Markdown-guide',
     keyboardShortcuts: 'Tangentbordsgenvägar',
     noMatchingSyntax: "Ingen matchande syntax",
@@ -794,7 +816,7 @@ export const sv: I18n = {
   toast: {
     outlineMovedToSecondary: 'Filträdet finns nu i den primära sidopanelen. Dispositionen flyttades till den sekundära sidopanelen – du kan flytta tillbaka den från flikmenyn.',
     imageInsertFailed: "Kunde inte infoga bilden: {error}",
-    imageSavedOutsideVault: "Den här mappen kan inte lagra bilder ännu, så bilden sparades i SoloMD:s Dokument-mapp och länkades därifrån.",
+    imageSavedOutsideVault: "Den här mappen kan inte lagra bilder ännu, så bilden sparades i xiaoyuan-note:s Dokument-mapp och länkades därifrån.",
     newWindowFailed: 'Det gick inte att öppna ett nytt fönster',
     noActiveDoc: 'Inget aktivt dokument',
     copied: 'Kopierat',
@@ -817,7 +839,7 @@ export const sv: I18n = {
     uploadedCount: '{n} bild(er) uppladdade',
     noLocalImages: 'Inga lokala bilder att ladda upp',
     nothingToReopen: "Ingen nyligen stängd flik att öppna igen",
-    savedToIos: "Sparad i På min iPhone › SoloMD › {name}",
+    savedToIos: "Sparad i På min iPhone › xiaoyuanNote › {name}",
     exportingFormat: "Exporterar {format}…",
     exportedTo: "Exporterad till {format}",
     exportFailedError: "Exporten misslyckades: {error}",
@@ -865,7 +887,7 @@ export const sv: I18n = {
     selectTextForAi: "Markera lite text först och klicka sedan på AI-omskrivning (eller tryck {chord}).",
     shareUnsupported: "Delning stöds inte i den här iOS-versionen",
     shareFailed: "Delningen misslyckades: {error}",
-    androidAllFilesReturn: "Slå på ”Åtkomst till alla filer” och kom sedan tillbaka — SoloMD startar om sig själv så att behörigheten börjar gälla.",
+    androidAllFilesReturn: "Slå på ”Åtkomst till alla filer” och kom sedan tillbaka — xiaoyuanNote startar om sig själv så att behörigheten börjar gälla.",
     pinyinCopied: "Pinyin kopierat till urklipp",
   },
   dialog: {
@@ -1110,8 +1132,8 @@ export const sv: I18n = {
   integrations: {
     heading: 'Integrationer',
     intro:
-      'SoloMD pratar med din terminal och med MCP-medvetna AI-klienter (Claude Desktop, Codex CLI, Cursor) så att du kan läsa/skriva dina anteckningar utanför appen.',
-    cliTitle: 'CLI (solomd)',
+      'xiaoyuanNote pratar med din terminal och med MCP-medvetna AI-klienter (Claude Desktop, Codex CLI, Cursor) så att du kan läsa/skriva dina anteckningar utanför appen.',
+    cliTitle: 'CLI (xiaoyuanNote)',
     cliInstalled: 'Installerad i {path}',
     cliNotInstalled: 'Inte installerad',
     cliVersionLabel: 'Version',
@@ -1123,14 +1145,14 @@ export const sv: I18n = {
       'Kör detta i din terminal — sudo krävs för /usr/local/bin:',
     cliSubcommandsHeading: 'Vad kan den göra?',
     cliSubcommands: {
-      open: 'open <titel|sökväg> — öppna en anteckning i SoloMD',
+      open: 'open <titel|sökväg> — öppna en anteckning i xiaoyuanNote',
       new: 'new <titel> [text] — skapa + öppna en ny anteckning',
       list: 'list [mapp] — lista markdown-filer',
       search: 'search <fråga> — sök i dina anteckningar',
       cat: 'cat <titel|sökväg> — skriv ut en anteckning till stdout',
       help: 'help — visa alla kommandon',
     },
-    mcpTitle: 'MCP-server (solomd-mcp)',
+    mcpTitle: 'MCP-server (xiaoyuan-note-mcp)',
     mcpBundled: 'Medföljer i {path}',
     mcpNotBundled:
       'Medföljer inte (denna utvecklingsbygge hoppar över externalBin-sidecar). Produktionsbyggen inkluderar den alltid.',
@@ -1159,9 +1181,9 @@ export const sv: I18n = {
     mcpWriteNote:
       'write_note + append_to_note är avstängda som standard. Skicka --allow-write för att slå på dem.',
     // ---- v4.4.5: MCP auto-install across 6 AI clients (EN backfill) ----
-    aiClientsTitle: 'Hook SoloMD into your AI clients',
+    aiClientsTitle: 'Hook xiaoyuanNote into your AI clients',
     aiClientsIntro:
-      'One click and SoloMD writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
+      'One click and xiaoyuanNote writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
     aiClientsNotInstalled: 'not installed',
     aiClientsAlreadyConfigured: 'configured ✓',
     aiClientsReady: 'ready to inject',
@@ -1169,18 +1191,18 @@ export const sv: I18n = {
     aiClientsRemoveBtn: 'Remove',
     aiClientsAllowWrite:
       'Allow writes (--allow-write on the MCP server)',
-    aiClientsInjectBtn: 'Inject SoloMD into {n} client(s)',
+    aiClientsInjectBtn: 'Inject xiaoyuanNote into {n} client(s)',
     aiClientsInjectBtnZero: 'Nothing to inject',
     aiClientsInjectedToast:
-      '✓ Injected SoloMD into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
-    aiClientsRemovedToast: '✓ Removed SoloMD entry from {name}.',
+      '✓ Injected xiaoyuanNote into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
+    aiClientsRemovedToast: '✓ Removed xiaoyuanNote entry from {name}.',
     aiClientsRestartHint:
       'After injecting, restart the AI client (or use its "Reload MCP servers" command if it has one) for the new server to load.'
 ,
     // ---- v4.0 P4 federation: MCP profiles -----------------------------
     profilesHeading: 'MCP-profiler',
     profilesIntro:
-      'Bunta ihop flera arbetsytor under en enda solomd-mcp-instans och kopiera ett färdigt Claude Desktop-konfigurationsblock. Varje profil listar arbetsytorna (alias + sökväg) som MCP-servern exponerar; den första posten är standard — verktygsanrop utan ett uttryckligt `workspace`-argument hamnar där.',
+      'Bunta ihop flera arbetsytor under en enda xiaoyuan-note-mcp-instans och kopiera ett färdigt Claude Desktop-konfigurationsblock. Varje profil listar arbetsytorna (alias + sökväg) som MCP-servern exponerar; den första posten är standard — verktygsanrop utan ett uttryckligt `workspace`-argument hamnar där.',
     profilesEmpty: 'Inga profiler ännu.',
     profilesCreate: 'Ny profil',
     profilesDuplicate: 'Duplicera',
@@ -1210,14 +1232,14 @@ export const sv: I18n = {
     profilesNamePlaceholder: 'jobb-och-hemma',
     profilesNewProfileDefault: 'Ny profil',
     profilesNoMcpBinary:
-      'solomd-mcp medföljer inte i denna utvecklingsbygge — utdraget använder en platshållarsökväg.',
+      'xiaoyuan-note-mcp medföljer inte i denna utvecklingsbygge — utdraget använder en platshållarsökväg.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
   // TODO(zh): translate these once the en strings stabilise.
   recipes: {
     heading: 'Agentrecept',
     intro:
-      'Deklarativa agentjobb som YAML i ditt valv under .solomd/agents/. De körs enligt cron-schema, vid sparning, vid commit, vid taggtillägg eller manuellt.',
+      'Deklarativa agentjobb som YAML i ditt valv under .xiaoyuan-note/agents/. De körs enligt cron-schema, vid sparning, vid commit, vid taggtillägg eller manuellt.',
     openWorkspace: 'Öppna en mapp först — recept ligger inuti valvet.',
     list: 'Recept',
     listEmpty: 'Inga recept ännu. Klicka på "Nytt recept" för att skapa ett.',
@@ -1386,7 +1408,7 @@ export const sv: I18n = {
     settingsHeading: 'Semantisk sökning',
     enable: 'Aktivera semantisk sökning (lokal RAG, ⌘⇧F)',
     enableHint:
-      'Av som standard. När påslagen bäddas dina anteckningar in lokalt i <workspace>/.solomd/embeddings.sqlite — inget nätverk, ingen modellnedladdning behövs för den medföljande hashed-trigram-backenden. ⌘⇧F öppnar panelen.',
+      'Av som standard. När påslagen bäddas dina anteckningar in lokalt i <workspace>/.xiaoyuan-note/embeddings.sqlite — inget nätverk, ingen modellnedladdning behövs för den medföljande hashed-trigram-backenden. ⌘⇧F öppnar panelen.',
     statusReady: 'Indexerat: {indexed} / {total} anteckningar · {chunks} bitar · backend {backend}',
     statusEmpty: 'Inte indexerat ännu — slå på för att bygga indexet.',
     reindexNow: 'Indexera om nu',
@@ -1489,7 +1511,7 @@ export const sv: I18n = {
     captureHeading: 'HTTP-uppfångningsändpunkt',
     enableCapture: 'Aktivera uppfångningsändpunkt',
     enableCaptureHint:
-      'Av som standard. När påslagen lyssnar SoloMD på 127.0.0.1 (endast loopback) efter POST-förfrågningar för nya anteckningar från ett webbläsartillägg, iOS Genväg, shellskript eller curl. Anteckningar landar i arbetsytans inkorgsmapp med `inbox: true` i sin YAML.',
+      'Av som standard. När påslagen lyssnar xiaoyuanNote på 127.0.0.1 (endast loopback) efter POST-förfrågningar för nya anteckningar från ett webbläsartillägg, iOS Genväg, shellskript eller curl. Anteckningar landar i arbetsytans inkorgsmapp med `inbox: true` i sin YAML.',
     endpoint: 'Ändpunkt',
     statusRunning: 'körs',
     statusStarting: 'startar…',
@@ -1515,7 +1537,7 @@ export const sv: I18n = {
       'HTTP-yta som endast är tillgänglig på localhost och som exponerar samma valvverktyg som MCP. Användbar för Alfred, Raycast, n8n, shellskript, iOS Genvägar — allt som inte talar MCP.',
     enable: 'Aktivera REST-API',
     enableHint:
-      'Av som standard. När påslagen lyssnar SoloMD på 127.0.0.1 (endast loopback). Alla rutter utom den publika bannern kräver bearer-token nedan.',
+      'Av som standard. När påslagen lyssnar xiaoyuanNote på 127.0.0.1 (endast loopback). Alla rutter utom den publika bannern kräver bearer-token nedan.',
     endpoint: 'Ändpunkt',
     statusRunning: 'körs',
     statusStarting: 'startar…',
@@ -1542,7 +1564,7 @@ export const sv: I18n = {
     close: 'Stäng',
     chooseTitle: 'Konfigurera din AI-assistent',
     chooseSub:
-      'SoloMD fungerar utan AI, men agentpanelen och recepten behöver en modell. Välj en väg — du kan ändra den när som helst i Inställningar → AI.',
+      'xiaoyuanNote fungerar utan AI, men agentpanelen och recepten behöver en modell. Välj en väg — du kan ändra den när som helst i Inställningar → AI.',
     cloudTitle: 'Moln (BYOK)',
     cloudBody:
       'Anthropic Claude, OpenAI ChatGPT, Google Gemini, DeepSeek och 10+ till. Ta med din egen API-nyckel.',
@@ -1555,7 +1577,7 @@ export const sv: I18n = {
     localDetecting: 'Letar efter en körande Ollama-server…',
     localNotRunning: 'Ingen Ollama-server upptäckt på localhost:11434.',
     localNotRunningHint:
-      'Installera Ollama (~80 MB), starta det och klicka sedan på Försök igen. SoloMD bundlar inte Ollama.',
+      'Installera Ollama (~80 MB), starta det och klicka sedan på Försök igen. xiaoyuanNote bundlar inte Ollama.',
     localInstallBtn: 'Installera Ollama',
     localRetryBtn: 'Försök upptäcka igen',
     localRunningNoModel:
@@ -1591,7 +1613,7 @@ export const sv: I18n = {
   cookbook: {
     heading: 'Receptbok',
     intro:
-      'Välj ett startrecept — installationen kopierar YAML-filen till .solomd/agents/ och öppnar den för redigering. Säkert att installera flera gånger; varje installation får ett nytt suffix.',
+      'Välj ett startrecept — installationen kopierar YAML-filen till .xiaoyuan-note/agents/ och öppnar den för redigering. Säkert att installera flera gånger; varje installation får ett nytt suffix.',
     browse: 'Bläddra i receptbok',
     preview: 'Förhandsgranska YAML',
     hidePreview: 'Dölj förhandsgranskning',
@@ -1677,7 +1699,7 @@ export const sv: I18n = {
     autoEngageFocusHint: 'Att starta en pomodoro slår på fokusläget under tiden; när sessionen avslutas återställs ditt tidigare läge.',
     defaultDuration: 'Standardlängd',
     customDurationLabel: 'Anpassad (minuter)',
-    notificationTitle: 'SoloMD — fokussession klar',
+    notificationTitle: 'xiaoyuanNote — fokussession klar',
     notificationBody: '{minutes} min · {words} ord skrivna',
   },
   quickSwitcher: {
@@ -1746,7 +1768,7 @@ export const sv: I18n = {
   cloudSync: {
     detectedTitle: 'Arbetsytan ligger i {label}',
     detectedHint:
-      'Filer som sparas här sprids automatiskt till dina andra enheter via molnleverantören. SoloMD lägger till sessionsåterställning mellan enheter ovanpå — öppna samma arbetsyta på en annan maskin och samma flikar kommer tillbaka.',
+      'Filer som sparas här sprids automatiskt till dina andra enheter via molnleverantören. xiaoyuanNote lägger till sessionsåterställning mellan enheter ovanpå — öppna samma arbetsyta på en annan maskin och samma flikar kommer tillbaka.',
     siblingCount: '{n} andra enhet(er) har öppnat denna arbetsyta.',
     restoreTitle: 'Fortsätt där du slutade?',
     restoreLead:
@@ -1764,7 +1786,7 @@ export const sv: I18n = {
   githubSync: {
     heading: 'GitHub-synk',
     intro:
-      'Pusha ditt valv till en privat GitHub-repo så att det följer dig mellan enheter. Dina data stannar på ditt konto — SoloMD kör bara git push och git pull.',
+      'Pusha ditt valv till en privat GitHub-repo så att det följer dig mellan enheter. Dina data stannar på ditt konto — xiaoyuanNote kör bara git push och git pull.',
     signInTitle: 'Anslut till GitHub',
     signInHint:
       'Klistra in en personlig åtkomsttoken. Lagras i ditt OS:s nyckelring — skickas aldrig någonstans utom till api.github.com.',
@@ -1854,11 +1876,11 @@ export const sv: I18n = {
     conflictResolveFailed: 'Lösningen misslyckades',
     keychainHintTitle: 'macOS frågar efter ditt lösenord — klicka "Tillåt alltid"',
     keychainHintBody:
-      'Första gången SoloMD pushar till GitHub visar macOS en Keychain-dialog så det kan läsa din sparade token. Om end-to-end-kryptering är på får du en till fråga om krypteringsnyckeln. Klicka "Tillåt alltid" (inte bara "Tillåt") på varje — det ger SoloMD permanent åtkomst och du ser inte frågan igen på den här Mac-en. Om du klickar "Tillåt" en gång får du frågan vid varje push.',
+      'Första gången xiaoyuanNote pushar till GitHub visar macOS en Keychain-dialog så det kan läsa din sparade token. Om end-to-end-kryptering är på får du en till fråga om krypteringsnyckeln. Klicka "Tillåt alltid" (inte bara "Tillåt") på varje — det ger xiaoyuanNote permanent åtkomst och du ser inte frågan igen på den här Mac-en. Om du klickar "Tillåt" en gång får du frågan vid varje push.',
     proxyTitle: 'HTTPS-proxy (för GFW / företagsnätverk)',
     proxyPlaceholder: 'http://127.0.0.1:7897 eller socks5://127.0.0.1:1080',
     proxyHint:
-      'Dirigerar git push / pull genom denna proxy. Lämna tomt för direktanslutning. macOS GUI-appar ärver inte HTTPS_PROXY från shellet, så ange den här specifikt för SoloMD. Löser också "Operation timed out" när github.com inte är direkt nåbar.',
+      'Dirigerar git push / pull genom denna proxy. Lämna tomt för direktanslutning. macOS GUI-appar ärver inte HTTPS_PROXY från shellet, så ange den här specifikt för xiaoyuan-note. Löser också "Operation timed out" när github.com inte är direkt nåbar.',
     proxySaveBtn: 'Spara proxy',
     proxySaving: 'Sparar…',
     proxySavedToast: 'Proxy sparad.',
@@ -1878,7 +1900,7 @@ export const sv: I18n = {
     upgradeRowBtn: 'Aktivera kryptering',
     upgradeFormTitle: 'Aktivera end-to-end-kryptering',
     upgradeFormBody:
-      'Sätt en lösenfras. SoloMD härleder en nyckel (Argon2id) och krypterar om varje fil innan nästa push.',
+      'Sätt en lösenfras. xiaoyuanNote härleder en nyckel (Argon2id) och krypterar om varje fil innan nästa push.',
     upgradeForcePushWarning:
       'Detta force-pushar den krypterade historiken över fjärrkopian — gamla klartextcommits blir onåbara på GitHub. Den som redan klonat repot måste klona om. Om du glömmer lösenfrasen är dina data oåterkalleliga.',
     upgradePassphrasePlaceholder: 'Valv-lösenfras (minst 8 tecken)',
@@ -1921,7 +1943,7 @@ export const sv: I18n = {
       'Push your vault to a Gitea server. Enter your server URL and a Personal Access Token to get started.',
     giteaUrlTitle: 'Gitea server URL',
     giteaUrlHint:
-      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). SoloMD will append /api/v1 automatically.',
+      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). xiaoyuanNote will append /api/v1 automatically.',
     giteaUrlValidateBtn: 'Validate URL',
     giteaUrlValidating: 'Validating...',
     giteaTokenTitle: 'Gitea Personal Access Token',
@@ -2212,8 +2234,15 @@ export const sv: I18n = {
       checkUpdated: 'Helgdagsdata uppdaterade för {years}',
       checkFailed: 'Kontrollen misslyckades – cachen används',
     },
-    week: { header: 'W', tooltip: 'ISO-vecka {week}' },
-    day: { off: 'Helgdag · {name}', work: 'Arbetsdag (ersättning)' },
+    week: { header: 'W', tooltip: 'ISO-vecka {week}' },
+    openPeriodic: {
+      daily: 'Double-click to open the daily note',
+      weekly: 'Double-click to open the weekly note',
+      monthly: 'Double-click to open the monthly note',
+      quarterly: 'Double-click to open the quarterly note',
+      yearly: 'Double-click to open the yearly note',
+    },
+    day: { off: 'Helgdag · {name}', work: 'Arbetsdag (ersättning)', offShort: 'L', workShort: 'A' },
     lunar: { tooltip: 'Månkalender: {value}' },
     selectedDay: {
       open: 'Öppna dagens detaljer för {date}',

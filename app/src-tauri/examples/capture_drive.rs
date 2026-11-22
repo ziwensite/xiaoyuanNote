@@ -35,10 +35,10 @@ fn main() {
         std::process::exit(1);
     }
 
-    // Stable token if SOLOMD_CAPTURE_TOKEN env is set, else mint via _test_set_state.
+    // Stable token if XIAOYUAN_NOTE_CAPTURE_TOKEN env is set, else mint via _test_set_state.
     // The web-clipper smoke test prefers a stable token so it can dump it to .env
     // before we spawn this process.
-    let token = std::env::var("SOLOMD_CAPTURE_TOKEN")
+    let token = std::env::var("XIAOYUAN_NOTE_CAPTURE_TOKEN")
         .unwrap_or_else(|_| "drive-token-0123456789abcdef0123456789abcdef".to_string());
 
     _test_set_state(Some(workspace.clone()), token.clone(), "inbox".to_string());

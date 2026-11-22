@@ -23,15 +23,15 @@ jobs:
       - name: Submit URLs to IndexNow
         run: |
           KEY="f68666d4ab777ed248d92d4c0fe3a9d5"
-          HOST="solomd.app"
+          HOST="xiaoyuannote.app"
           KEY_LOCATION="https://${HOST}/${KEY}.txt"
 
           # The set of URLs we want re-crawled on each content change.
           URLS='[
-            "https://solomd.app/",
-            "https://solomd.app/zh/",
-            "https://solomd.app/sitemap-index.xml",
-            "https://solomd.app/llms.txt"
+            "https://xiaoyuannote.app/",
+            "https://xiaoyuannote.app/zh/",
+            "https://xiaoyuannote.app/sitemap-index.xml",
+            "https://xiaoyuannote.app/llms.txt"
           ]'
 
           PAYLOAD=$(jq -n \

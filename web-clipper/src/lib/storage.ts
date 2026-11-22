@@ -8,9 +8,9 @@
 import browser from 'webextension-polyfill';
 
 export interface ClipperSettings {
-  /** Base URL of the SoloMD capture endpoint, e.g. http://127.0.0.1:7777 */
+  /** Base URL of the xiaoyuanNote capture endpoint, e.g. http://127.0.0.1:7777 */
   endpoint: string;
-  /** Bearer token copied from SoloMD Settings → Integrations. */
+  /** Bearer token copied from xiaoyuanNote Settings → Integrations. */
   token: string;
   /**
    * Optional sub-folder (relative to the workspace inbox folder) under which
@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: ClipperSettings = {
   locale: 'auto',
 };
 
-const KEY = 'solomd-clipper-settings';
+const KEY = 'xiaoyuan-note-clipper-settings';
 
 export async function loadSettings(): Promise<ClipperSettings> {
   const got = (await browser.storage.local.get(KEY)) as Record<string, unknown>;

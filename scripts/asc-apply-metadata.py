@@ -27,7 +27,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from asc_api import Client, make_token  # noqa: E402
 
-BUNDLE_ID = "app.solomd"
+BUNDLE_ID = "app.xiaoyuanNote"
 PLATFORMS = {"ios": "IOS", "macos": "MAC_OS", "mac": "MAC_OS"}
 LIMITS = {"description": 4000, "keywords": 100, "promotionalText": 170, "subtitle": 30}
 #: Versions in these states can still take listing edits.
@@ -148,7 +148,7 @@ def main():
             print(f"    subtitle {locale}: NEW locale")
             client.post("/v1/appInfoLocalizations", {
                 "data": {"type": "appInfoLocalizations",
-                         "attributes": {"locale": locale, "name": "SoloMD",
+                         "attributes": {"locale": locale, "name": "xiaoyuanNote",
                                         "subtitle": fields["subtitle"]},
                          "relationships": {"appInfo": {
                              "data": {"type": "appInfos", "id": info["id"]}}}}})

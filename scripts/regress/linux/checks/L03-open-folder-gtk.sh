@@ -1,5 +1,5 @@
 # File > Open Folder (Ctrl+Alt+Shift+O) → GTK folder chooser → typed path.
-SEED_EXTRA='{"solomd.workspace.v1":{"recentFiles":[],"recentFolders":[],"currentFolder":null,"safTreeUri":null,"safName":null}}' \
+SEED_EXTRA='{"xiaoyuan-note.workspace.v1":{"recentFiles":[],"recentFolders":[],"currentFolder":null,"safTreeUri":null,"safName":null}}' \
   start_on "" || fail "app did not start"
 shot before >/dev/null
 key ctrl+alt+shift+o
@@ -11,7 +11,7 @@ sleep 2
 img=$(shot after)
 expect "tree lists the vault files (OCR 'long.md' and 'roundtrip.md')" bash -c "python3 '$RG_SUITE/lib/ocr.py' has '$img' eng long.md 260x750+0+150 && python3 '$RG_SUITE/lib/ocr.py' has '$img' eng roundtrip.md 260x750+0+150"
 app_quit 10 || { note "quit timed out"; app_kill; }
-cf=$(ls_json solomd.workspace.v1 'v.get("currentFolder")')
+cf=$(ls_json xiaoyuan-note.workspace.v1 'v.get("currentFolder")')
 note "persisted currentFolder: $cf"
 expect "workspace.currentFolder persisted as the vault" test "${cf%/}" = "$VAULT"
 finish "folder opened through the GTK dialog"

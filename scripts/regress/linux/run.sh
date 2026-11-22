@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
-# SoloMD Linux regression suite — Mac-side driver.
+# xiaoyuanNote Linux regression suite — Mac-side driver.
 #
 #   scripts/regress/linux/run.sh <path-to-.deb> [--appimage <path>] [CHECK…]
 #
 # Copies the package(s) and the suite into the Lima VM (default
-# `solomd-linux`), runs vm-suite.sh there (own Xvfb display, openbox, private
+# `xiaoyuan-note-linux`), runs vm-suite.sh there (own Xvfb display, openbox, private
 # dbus, private HOME/profile), then copies results back and prints the table.
 #
 # Environment:
-#   LIMA_VM=solomd-linux      VM name
+#   LIMA_VM=xiaoyuan-note-linux      VM name
 #   RG_DISPLAY=:94            X display inside the VM (must be free)
 #   RG_ROOT=/tmp/rg2          work dir inside the VM
 #   OUT_DIR=<dir>             where results land on the Mac
-#                             (default: /tmp/solomd-regress-linux/<timestamp>)
+#                             (default: /tmp/xiaoyuan-note-regress-linux/<timestamp>)
 #   CHECK_TIMEOUT=240         per-check timeout in seconds
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VM="${LIMA_VM:-solomd-linux}"
+VM="${LIMA_VM:-xiaoyuan-note-linux}"
 RG_ROOT="${RG_ROOT:-/tmp/rg2}"
 RG_DISPLAY="${RG_DISPLAY:-:94}"
 TS="$(date +%Y%m%d-%H%M%S)"
-OUT_DIR="${OUT_DIR:-/tmp/solomd-regress-linux/$TS}"
+OUT_DIR="${OUT_DIR:-/tmp/xiaoyuan-note-regress-linux/$TS}"
 
 usage() { sed -n 2,18p "$0"; exit 2; }
 [ $# -ge 1 ] || usage
@@ -65,7 +65,7 @@ vm "cd $RG_ROOT/suite && ./vm-suite.sh deps"
 echo ">> running (display $RG_DISPLAY)"
 set +e
 vm "cd $RG_ROOT/suite && RG_ROOT=$RG_ROOT RG_DISPLAY=$RG_DISPLAY CHECK_TIMEOUT=${CHECK_TIMEOUT:-240} \
-    SOLOMD_DEB='$VM_DEB' SOLOMD_APPIMAGE='$VM_APPIMAGE' ./vm-suite.sh all ${CHECKS[*]:-}"
+    XIAOYUAN_NOTE_DEB='$VM_DEB' XIAOYUAN_NOTE_APPIMAGE='$VM_APPIMAGE' ./vm-suite.sh all ${CHECKS[*]:-}"
 rc=$?
 set -e
 

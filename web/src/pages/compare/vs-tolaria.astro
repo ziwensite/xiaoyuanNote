@@ -6,20 +6,20 @@ import CompareFaq from '../../components/CompareFaq.astro';
 
 const FAQ = [
   {
-    q: 'What is the core difference between SoloMD and Tolaria?',
-    a: 'Tolaria is a desktop Notion-style block editor built on BlockNote; SoloMD is a Markdown-first editor. Since v4.6 SoloMD ships the same knowledge-graph feature set — typed relationships with automatic inverses, a per-note relationship graph, type-driven sidebar, saved filtered views, properties inspector, and tldraw whiteboards — while staying plain .md + YAML on disk and running on five platforms including iOS and Android.',
+    q: 'What is the core difference between xiaoyuanNote and Tolaria?',
+    a: 'Tolaria is a desktop Notion-style block editor built on BlockNote; xiaoyuanNote is a Markdown-first editor. Since v4.6 xiaoyuanNote ships the same knowledge-graph feature set — typed relationships with automatic inverses, a per-note relationship graph, type-driven sidebar, saved filtered views, properties inspector, and tldraw whiteboards — while staying plain .md + YAML on disk and running on five platforms including iOS and Android.',
   },
   {
     q: 'Are the whiteboards compatible between the two?',
-    a: 'Both use tldraw. SoloMD stores boards inside the note as a ```tldraw fence and is cross-compatible with Tolaria’s on-disk board format.',
+    a: 'Both use tldraw. xiaoyuanNote stores boards inside the note as a ```tldraw fence and is cross-compatible with Tolaria’s on-disk board format.',
   },
   {
     q: 'Which one works on mobile?',
-    a: 'SoloMD has native iOS and Android apps. Tolaria is desktop-only.',
+    a: 'xiaoyuanNote has native iOS and Android apps. Tolaria is desktop-only.',
   },
   {
     q: 'Do both work offline with plain files?',
-    a: 'Yes — both are offline-first and file-based with no account requirement. SoloMD is MIT-licensed (~15 MB); Tolaria is AGPL (~25 MB).',
+    a: 'Yes — both are offline-first and file-based with no account requirement. xiaoyuanNote is MIT-licensed (~15 MB); Tolaria is AGPL (~25 MB).',
   },
 ];
 
@@ -27,7 +27,7 @@ const lang = 'en' as const;
 
 const tolariaVersion = '2026.6.6';
 
-// Each row: [Tolaria capability (html), Tolaria mark, SoloMD mark+note (html)]
+// Each row: [Tolaria capability (html), Tolaria mark, xiaoyuanNote mark+note (html)]
 const featureGroups: { title: string; rows: [string, string, string][] }[] = [
   {
     title: 'Editor & writing',
@@ -61,7 +61,7 @@ const featureGroups: { title: string; rows: [string, string, string][] }[] = [
       ['Typed relationships (<code>belongs_to</code>/<code>related_to</code>/<code>has</code> + inverses)', '✅', '✅ <strong>v4.6</strong> · belongs_to/related_to/has + automatic inverses'],
       ['Relationship graph ("Neighborhood")', '✅', '✅ <strong>v4.6</strong> · per-note outgoing + inverse explorer'],
       ['Properties inspector (date / relationship pickers)', '✅', '✅ <strong>v4.6</strong> · <code>⌘⇧I</code> frontmatter editor (date/relation/status/tags pickers)'],
-      ['Saved filtered views in the sidebar', '✅', '✅ <strong>v4.6</strong> · persistent <code>.solomd/views/*.yml</code> (type/status/date/regex)'],
+      ['Saved filtered views in the sidebar', '✅', '✅ <strong>v4.6</strong> · persistent <code>.xiaoyuan-note/views/*.yml</code> (type/status/date/regex)'],
       ['Inbox workflow + mark-organized (<code>⌘E</code>)', '✅', '✅ <strong>v4.6</strong> · <code>⌘E</code> + auto-advance + inbox-zero'],
       ['Favorites / pin (<code>⌘D</code>)', '✅', '🟡 quick switcher pins'],
       ['Folders, nested', '✅', '✅ file-tree sidebar'],
@@ -83,14 +83,14 @@ const featureGroups: { title: string; rows: [string, string, string][] }[] = [
       ['Git activity feed ("Pulse")', '✅', '🟡 History panel'],
       ['System-git auth (SSH / credential helper)', '✅', '✅ libgit2, no system git needed'],
       ['End-to-end-encrypted sync', '❌', '✅ Argon2id + XChaCha20-Poly1305'],
-      ['Public read-only share link', '❌', '✅ <code>solomd.app/share/…</code>'],
+      ['Public read-only share link', '❌', '✅ <code>xiaoyuannote.app/share/…</code>'],
     ],
   },
   {
     title: 'AI & agents',
     rows: [
       ['Docked AI chat panel (<code>⌘⇧L</code>)', '✅ multi-chat, streaming, action cards', '✅ inline panel + tool-call cards + [[citations]]'],
-      ['In-app CLI coding agents', '✅ 6: Claude Code · Codex · OpenCode · Pi · Gemini · Kiro', '🟡 <code>solomd agent</code> handoff to Claude Code / Codex'],
+      ['In-app CLI coding agents', '✅ 6: Claude Code · Codex · OpenCode · Pi · Gemini · Kiro', '🟡 <code>xiaoyuanNote agent</code> handoff to Claude Code / Codex'],
       ['Vault-Safe / Power-User permission modes', '✅', '🟡 read-only default + write toggle'],
       ['Direct model providers (BYOK)', '✅ OpenAI · Anthropic · Gemini · OpenRouter · Ollama · LM Studio · custom', '✅ <strong>14</strong> incl. DeepSeek · Qwen · GLM · Kimi · 火山方舟'],
       ['Inline AI prompt from editor', '✅ <code>⌘K</code> space', '✅ <code>⌘J</code> rewrite + streaming diff'],
@@ -109,7 +109,7 @@ const featureGroups: { title: string; rows: [string, string, string][] }[] = [
       ['DOCX / HTML / PNG / plain-text export', '❌', '✅'],
       ['<code>@citekey</code> citations + .bib / CSL', '❌', '✅'],
       ['Copy as rich HTML (WeChat / 公众号 / Notion)', '❌', '✅'],
-      ['CLI tool', '❌', '✅ <code>solomd</code> (open / new / search / export / agent)'],
+      ['CLI tool', '❌', '✅ <code>xiaoyuanNote</code> (open / new / search / export / agent)'],
     ],
   },
   {
@@ -129,7 +129,7 @@ const featureGroups: { title: string; rows: [string, string, string][] }[] = [
   },
 ];
 
-// [Tolaria setting (html), SoloMD equivalent (html)]
+// [Tolaria setting (html), xiaoyuanNote equivalent (html)]
 const settingsRows: [string, string][] = [
   ['<strong>Appearance</strong> — theme (light/dark/system)', '✅ <code>theme</code> + system auto-detect'],
   ['Appearance — UI language', '✅ 14 languages'],
@@ -150,13 +150,13 @@ const settingsRows: [string, string][] = [
   ['<strong>Workflow</strong> — inbox enabled + auto-advance', '✅ <strong>v4.6</strong> · Inbox + <code>⌘E</code> mark-organized + auto-advance + inbox-zero'],
   ['Workflow — release channel (stable / beta)', '✅ auto-update channel'],
   ['<strong>Privacy</strong> — telemetry', '✅ opt-out telemetry'],
-  ['<em>SoloMD adds beyond Tolaria:</em>', 'Vim mode · slideshow · Pomodoro · daily-notes · RAG toggle · attachment modes · PDF export presets · bibliography/CSL · custom CSS · scheduled recipes · sidebar pane order/height · image-export branding — none of which Tolaria exposes.'],
+  ['<em>xiaoyuanNote adds beyond Tolaria:</em>', 'Vim mode · slideshow · Pomodoro · daily-notes · RAG toggle · attachment modes · PDF export presets · bibliography/CSL · custom CSS · scheduled recipes · sidebar pane order/height · image-export branding — none of which Tolaria exposes.'],
 ];
 ---
 
 <Layout
-  title="SoloMD vs Tolaria — Tauri Markdown Editors Compared (2026)"
-  description="Two Tauri-based open-source Markdown editors, with Tolaria's complete feature & settings reference. As of v4.6 SoloMD matches Tolaria's whole knowledge-graph layer — properties inspector, type-driven sidebar, typed relationships, relationship graph, saved views, Inbox workflow, and tldraw whiteboards — and keeps its own edges: iPad + mobile, 14 AI providers, CJK encoding, Pandoc/citation export, file import, on-device RAG, scheduled agent recipes + AutoGit sandbox. Tolaria's remaining edge is its BlockNote block editor. Line-by-line comparison."
+  title="xiaoyuanNote vs Tolaria — Tauri Markdown Editors Compared (2026)"
+  description="Two Tauri-based open-source Markdown editors, with Tolaria's complete feature & settings reference. As of v4.6 xiaoyuanNote matches Tolaria's whole knowledge-graph layer — properties inspector, type-driven sidebar, typed relationships, relationship graph, saved views, Inbox workflow, and tldraw whiteboards — and keeps its own edges: iPad + mobile, 14 AI providers, CJK encoding, Pandoc/citation export, file import, on-device RAG, scheduled agent recipes + AutoGit sandbox. Tolaria's remaining edge is its BlockNote block editor. Line-by-line comparison."
   lang={lang}
 >
   <Header lang={lang} />
@@ -166,13 +166,13 @@ const settingsRows: [string, string][] = [
         <a href="/">Home</a> / <a href="/compare">Compare</a> / <span>vs Tolaria</span>
       </nav>
 
-      <h1>SoloMD vs Tolaria: Two Tauri-Based Markdown Editors</h1>
+      <h1>xiaoyuanNote vs Tolaria: Two Tauri-Based Markdown Editors</h1>
       <p class="lead">
-        Quick answer: as of <strong>v4.6</strong> SoloMD has built the whole
+        Quick answer: as of <strong>v4.6</strong> xiaoyuanNote has built the whole
         knowledge-graph layer it used to lack — properties inspector,
         type-driven sidebar, typed relationships, a relationship graph, saved
         views, the Inbox workflow, and tldraw whiteboards — so the choice is no
-        longer "structure vs. everything else." Pick <strong>SoloMD</strong> if
+        longer "structure vs. everything else." Pick <strong>xiaoyuanNote</strong> if
         you also want it on iPad / iOS / Android, write in Chinese / Japanese
         (GBK / Big5 / Shift-JIS auto-detect), need Pandoc / academic-citation
         export or file import, or want the agent-workflow layer (scheduled
@@ -184,20 +184,20 @@ const settingsRows: [string, string][] = [
         Both have converged hard: Tolaria earlier added <strong>Windows</strong>,
         <strong>built-in AI providers</strong>, <strong>multi-vault</strong>, and
         <strong>Traditional-Chinese UI</strong>; and the <strong>v4.6</strong>
-        update closes the gap from the other side — SoloMD now ships the seven
+        update closes the gap from the other side — xiaoyuanNote now ships the seven
         structural features that were Tolaria-only through mid-2026. This page
         reflects the current state.
       </p>
 
       <div class="callout-new">
-        <strong>New in 4.6 — SoloMD now does everything Tolaria's knowledge-graph layer does.</strong>
+        <strong>New in 4.6 — xiaoyuanNote now does everything Tolaria's knowledge-graph layer does.</strong>
         <span>Properties inspector (<code>⌘⇧I</code>) · type-driven sidebar (types-as-lenses) · typed relationships (belongs_to / related_to / has + inverses) · relationship graph ("Neighborhood") · saved filtered views · Inbox workflow (<code>⌘E</code>) · tldraw whiteboards — all built, all on disk as plain <code>.md</code> / YAML.</span>
       </div>
 
       <h2>The 30-second verdict</h2>
       <table class="compare-detail">
         <thead>
-          <tr><th>&nbsp;</th><th>SoloMD v5.0</th><th>Tolaria (mid-2026)</th></tr>
+          <tr><th>&nbsp;</th><th>xiaoyuanNote v5.0</th><th>Tolaria (mid-2026)</th></tr>
         </thead>
         <tbody>
           <tr><th>Price</th><td><strong>Free</strong> (MIT)</td><td><strong>Free</strong> (open source, AGPL)</td></tr>
@@ -207,7 +207,7 @@ const settingsRows: [string, string][] = [
           <tr><th>Editor model</th><td>CodeMirror source-mode + live preview + split</td><td>Block-based slash-command editor (Notion-style)</td></tr>
           <tr><th>Built-in AI providers (BYOK)</th><td>✅ <code>⌘J</code> · <strong>14 providers</strong> · OS keychain · streaming diff overlay</td><td>✅ direct: OpenAI · Anthropic · Gemini · OpenRouter · Ollama · LM Studio · custom</td></tr>
           <tr><th>Inline streamed chat-with-vault panel</th><td>✅ <strong>v4.0</strong> · multi-turn · tool-call cards · [[wikilink]] citations · Insert / Copy</td><td>✅ docked AI panel (<code>⌘⇧L</code>) · multi-chat · streaming · action cards · target picker</td></tr>
-          <tr><th>CLI coding agents</th><td>🟡 <code>solomd agent</code> hands the vault to Claude Code / Codex with MCP pre-wired</td><td>✅ <strong>6 agents</strong> in-app: Claude Code · Codex · OpenCode · Pi · Gemini CLI · Kiro, with Vault-Safe / Power-User modes</td></tr>
+          <tr><th>CLI coding agents</th><td>🟡 <code>xiaoyuanNote agent</code> hands the vault to Claude Code / Codex with MCP pre-wired</td><td>✅ <strong>6 agents</strong> in-app: Claude Code · Codex · OpenCode · Pi · Gemini CLI · Kiro, with Vault-Safe / Power-User modes</td></tr>
           <tr><th>Scheduled agent recipes</th><td>✅ <strong>v4.0</strong> · cron / on-save / on-commit / on-tag · 11-recipe cookbook</td><td>❌</td></tr>
           <tr><th>AutoGit branch sandbox + accept/reject for agent writes</th><td>✅ <strong>v4.0</strong> · per-run branch · write-cap (default 5) · refuses to start dirty</td><td>❌ (agent writes commit directly)</td></tr>
           <tr><th>Replayable agent trace</th><td>✅ <strong>v4.0</strong> · jsonl per step · replay-from-step</td><td>❌</td></tr>
@@ -233,26 +233,26 @@ const settingsRows: [string, string][] = [
           <tr><th>Typed relationships (<code>belongs_to</code> / <code>related_to</code> / <code>has</code> with inverses)</th><td>✅ <strong>v4.6</strong> · first-class relationship fields with automatic inverses</td><td>✅ first-class relationship fields with automatic inverses</td></tr>
           <tr><th>Relationship graph ("Neighborhood" view)</th><td>✅ <strong>v4.6</strong> · per-note outgoing + inverse explorer</td><td>✅ per-note graph of outgoing + inverse links</td></tr>
           <tr><th>Properties panel (rich frontmatter editor — date / relationship pickers)</th><td>✅ <strong>v4.6</strong> · dedicated inspector (<code>⌘⇧I</code>) · date / relation / status / tags pickers</td><td>✅ dedicated inspector (<code>⌘⇧I</code>)</td></tr>
-          <tr><th>Saved filtered views in the sidebar</th><td>✅ <strong>v4.6</strong> · persistent <code>.solomd/views/*.yml</code> (type / status / date / regex filters)</td><td>✅ persistent views (type / status / date / regex filters)</td></tr>
+          <tr><th>Saved filtered views in the sidebar</th><td>✅ <strong>v4.6</strong> · persistent <code>.xiaoyuan-note/views/*.yml</code> (type / status / date / regex filters)</td><td>✅ persistent views (type / status / date / regex filters)</td></tr>
           <tr><th>Inbox workflow (mark-organized, inbox-zero)</th><td>✅ <strong>v4.6</strong> · <code>⌘E</code> + auto-advance + inbox-zero</td><td>✅ <code>⌘E</code> + auto-advance</td></tr>
           <tr><th>Git conflict resolver UI (side-by-side merge)</th><td>🟡 AutoGit is local-only; conflicts handled in your own git client</td><td>✅ in-app conflict resolver</td></tr>
           <tr><th>Git activity feed ("Pulse")</th><td>🟡 History panel (per-note log + diff)</td><td>✅ chronological vault-wide commit feed</td></tr>
           <tr><th>End-to-end-encrypted sync</th><td>✅ Argon2id + XChaCha20-Poly1305, fail-closed</td><td>❌ (plain git remotes)</td></tr>
-          <tr><th>Public read-only share link</th><td>✅ <code>solomd.app/share/…</code></td><td>❌</td></tr>
+          <tr><th>Public read-only share link</th><td>✅ <code>xiaoyuannote.app/share/…</code></td><td>❌</td></tr>
           <tr><th>Daily notes</th><td>✅ folder + format + template</td><td>❌</td></tr>
           <tr><th>Tags panel (<code>#tag</code> aggregation)</th><td>✅</td><td>🟡 tags live in frontmatter; no dedicated panel</td></tr>
-          <tr><th>CLI tool</th><td>✅ <code>solomd</code></td><td>❌</td></tr>
+          <tr><th>CLI tool</th><td>✅ <code>xiaoyuanNote</code></td><td>❌</td></tr>
           <tr><th>UI languages</th><td>✅ 14 languages (en · zh-Hans · ja · ko · …)</td><td>✅ en + zh-Hant · id · be · pl · vi</td></tr>
           <tr><th>Default file format</th><td>plain <code>.md</code></td><td>plain <code>.md</code></td></tr>
         </tbody>
       </table>
 
-      <h2>Everything Tolaria ships — and where SoloMD stands</h2>
+      <h2>Everything Tolaria ships — and where xiaoyuanNote stands</h2>
       <p class="lead" style="font-size:1rem;">
         We went deep on Tolaria <strong>{tolariaVersion}</strong>: installed it,
         clicked through every menu, command, setting and panel, and read the
         source. Here is its <strong>complete</strong> feature &amp; settings
-        surface, grouped by area, with an honest ✅ / 🟡 / ❌ for SoloMD on every
+        surface, grouped by area, with an honest ✅ / 🟡 / ❌ for xiaoyuanNote on every
         line. Nothing hidden — and as of the <strong>4.6</strong> update the
         once Tolaria-only structural rows (properties, types, relationships,
         graph, views, Inbox, whiteboards) now read ✅ here too.
@@ -263,7 +263,7 @@ const settingsRows: [string, string][] = [
           <h3>{group.title}</h3>
           <table class="compare-detail compare-ref">
             <thead>
-              <tr><th>Tolaria capability</th><th>Tolaria</th><th>SoloMD</th></tr>
+              <tr><th>Tolaria capability</th><th>Tolaria</th><th>xiaoyuanNote</th></tr>
             </thead>
             <tbody>
               {group.rows.map((r) => (
@@ -280,10 +280,10 @@ const settingsRows: [string, string][] = [
 
       <h3>Tolaria's settings, one by one</h3>
       <p>Every preference Tolaria exposes (Settings → eight sections), and the
-        SoloMD equivalent:</p>
+        xiaoyuanNote equivalent:</p>
       <table class="compare-detail compare-ref">
         <thead>
-          <tr><th>Tolaria setting</th><th>SoloMD equivalent</th></tr>
+          <tr><th>Tolaria setting</th><th>xiaoyuanNote equivalent</th></tr>
         </thead>
         <tbody>
           {settingsRows.map((r) => (
@@ -292,10 +292,10 @@ const settingsRows: [string, string][] = [
         </tbody>
       </table>
 
-      <h2>When to pick SoloMD</h2>
+      <h2>When to pick xiaoyuanNote</h2>
       <ul>
         <li>You write on <strong>iPad / iOS / Android</strong> — Tolaria is desktop-only.</li>
-        <li>You write in <strong>Chinese / Japanese / Korean</strong> — SoloMD auto-detects GBK / Big5 / Shift-JIS encodings; Tolaria assumes UTF-8.</li>
+        <li>You write in <strong>Chinese / Japanese / Korean</strong> — xiaoyuanNote auto-detects GBK / Big5 / Shift-JIS encodings; Tolaria assumes UTF-8.</li>
         <li>You want the <strong>agent-workflow layer</strong> — scheduled recipes (cron / on-save / on-commit), an AutoGit branch sandbox that lets you accept/reject agent writes, and replayable traces. Tolaria has built-in AI providers, but agent writes commit directly with no sandbox/replay.</li>
         <li>You need <strong>Pandoc export</strong> (EPUB / ODT / LaTeX) or <strong>academic citations</strong> (<code>@citekey</code> + <code>.bib</code> / CSL) — Tolaria ships neither (it added PDF export in mid-2026).</li>
         <li>You want <strong>local semantic search</strong> (on-device RAG) — Tolaria has none.</li>
@@ -306,22 +306,22 @@ const settingsRows: [string, string][] = [
 
       <h2>When to pick Tolaria</h2>
       <p>
-        As of SoloMD 4.6 the list is short. The features that used to be
+        As of xiaoyuanNote 4.6 the list is short. The features that used to be
         Tolaria-only — type-driven sidebar, typed relationships, the
         relationship graph, the properties inspector, saved views, the Inbox
         workflow, and tldraw whiteboards — now ship in <em>both</em>. What's
         genuinely left:
       </p>
       <ul>
-        <li>You want to write inside a <strong>Notion-style block editor</strong> (BlockNote, slash commands). SoloMD stays CodeMirror source + four view modes (including a WYSIWYG live-edit view), so if a true block editor is the surface you compose in, Tolaria is still the one.</li>
-        <li>You want Tolaria's <strong>6 in-app CLI coding agents</strong> (Claude Code · Codex · OpenCode · Pi · Gemini · Kiro) docked in the app, rather than SoloMD's <code>solomd agent</code> handoff.</li>
+        <li>You want to write inside a <strong>Notion-style block editor</strong> (BlockNote, slash commands). xiaoyuanNote stays CodeMirror source + four view modes (including a WYSIWYG live-edit view), so if a true block editor is the surface you compose in, Tolaria is still the one.</li>
+        <li>You want Tolaria's <strong>6 in-app CLI coding agents</strong> (Claude Code · Codex · OpenCode · Pi · Gemini · Kiro) docked in the app, rather than xiaoyuanNote’s <code>xiaoyuanNote agent</code> handoff.</li>
       </ul>
       <p>
         The gap is essentially closed. MCP server, AutoGit history, multi-vault,
         Windows, a docked AI chat panel, built-in AI providers — and now the
         whole knowledge-graph layer (properties, types, typed relationships,
         the Neighborhood graph, saved views, Inbox, whiteboards) — ship in
-        <em>both</em>. With 4.6, SoloMD matches Tolaria's structural half while
+        <em>both</em>. With 4.6, xiaoyuanNote matches Tolaria's structural half while
         keeping its own large edges: iPad / iOS / Android, CJK encodings (GBK /
         Big5 / Shift-JIS), Pandoc / citation export, file import, on-device RAG,
         multi-tab + split panes, Vim, presentation mode, 14 AI providers,
@@ -341,32 +341,32 @@ const settingsRows: [string, string][] = [
         <li>Active maintenance — both shipped releases through mid-2026.</li>
       </ul>
 
-      <h2>Migration — Tolaria to SoloMD</h2>
+      <h2>Migration — Tolaria to xiaoyuanNote</h2>
       <p>
         Both write plain <code>.md</code> with YAML front-matter, so opening
-        your Tolaria vault folder in SoloMD <strong>just works</strong>.
+        your Tolaria vault folder in xiaoyuanNote <strong>just works</strong>.
         Caveats:
       </p>
       <ul>
         <li>Tolaria's <strong>type metadata</strong> (e.g. <code>type: Project</code>) lives in
-          front-matter — SoloMD 4.6 reads it the same way and turns each type into a
+          front-matter — xiaoyuanNote 4.6 reads it the same way and turns each type into a
           first-class sidebar section, with its own icon / color / order / pinned props.</li>
         <li>Your <strong>typed relationships</strong> (<code>belongs_to</code> / <code>related_to</code> /
-          <code>has</code>) carry over unchanged — SoloMD 4.6 resolves them and their automatic
+          <code>has</code>) carry over unchanged — xiaoyuanNote 4.6 resolves them and their automatic
           inverses, and surfaces them in the Neighborhood graph.</li>
         <li>If you used Tolaria's <strong>AutoGit</strong>, your vault is already a git repo —
-          SoloMD's AutoGit (v2.2+) is compatible with the same convention. Both use libgit2 and
+          xiaoyuanNote’s AutoGit (v2.2+) is compatible with the same convention. Both use libgit2 and
           a local-only <code>.git</code> inside the workspace.</li>
-        <li>The <strong>Inbox flag</strong> carries over too — SoloMD 4.6 ships the same
+        <li>The <strong>Inbox flag</strong> carries over too — xiaoyuanNote 4.6 ships the same
           Inbox workflow (<code>⌘E</code> mark-organized + auto-advance + inbox-zero).
-          tldraw whiteboards open directly: SoloMD reads the same <code>.md</code> board format.</li>
+          tldraw whiteboards open directly: xiaoyuanNote reads the same <code>.md</code> board format.</li>
       </ul>
 
       <h2>FAQ</h2>
 
-      <h3>Is SoloMD's MCP server real?</h3>
+      <h3>Is xiaoyuanNote’s MCP server real?</h3>
       <p>Yes — shipped in v2.2. A 1.5 MB Tauri sidecar binary
-        (<code>solomd-mcp</code>) speaks MCP over stdio (no network port). Out
+        (<code>xiaoyuan-note-mcp</code>) speaks MCP over stdio (no network port). Out
         of the box it exposes 12 read tools — <code>list_notes</code>,
         <code>read_note</code>, <code>search</code>,
         <code>get_backlinks</code>, <code>list_tags</code>,
@@ -378,19 +378,19 @@ const settingsRows: [string, string][] = [
 
       <h3>Does Tolaria run on Windows / mobile?</h3>
       <p>Windows — yes, as of April 2026 (x64). Mobile — no: Tolaria is
-        desktop-only (macOS · Windows · Linux). SoloMD additionally ships on
+        desktop-only (macOS · Windows · Linux). xiaoyuanNote additionally ships on
         iPad / iOS (App Store) and Android, so it's the pick if you read or
         edit on a tablet or phone.</p>
 
       <h3>Can I use both?</h3>
       <p>Yes — they read the same <code>.md</code> files and both treat the vault as a
-        git repo. A common combo is Tolaria on a desktop + SoloMD on an iPad / phone
+        git repo. A common combo is Tolaria on a desktop + xiaoyuanNote on an iPad / phone
         on the road, all pointing at the same git-synced vault.</p>
 
       <CompareFaq heading="Frequently asked questions" items={FAQ} />
 
       <div class="compare-cta">
-        <a href="/#download" class="btn btn--primary">Download SoloMD</a>
+        <a href="/#download" class="btn btn--primary">Download xiaoyuanNote</a>
         <a href="https://tolaria.md" class="btn btn--secondary" rel="external">Visit Tolaria</a>
       </div>
     </article>

@@ -239,7 +239,7 @@ fn ensure_watcher(app: &AppHandle, state: &WatcherState) {
                 continue;
             }
 
-            let _ = app_handle.emit("solomd://file-changed", original_path);
+            let _ = app_handle.emit("xiaoyuan-note://file-changed", original_path);
         }
     });
 
@@ -364,7 +364,7 @@ mod tests {
     #[test]
     fn late_event_self_write_suppressed_by_mtime() {
         let dir = std::env::temp_dir().join(format!(
-            "solomd-watcher-mtime-{}",
+            "xiaoyuan-note-watcher-mtime-{}",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()

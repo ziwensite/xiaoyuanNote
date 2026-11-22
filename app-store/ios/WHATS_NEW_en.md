@@ -16,4 +16,4 @@ POLISH & FIXES
 • Fixed: typing with CJK input methods no longer gets interrupted mid-composition
 • Many smaller fixes and performance improvements since 4.1
 
-Enjoying SoloMD? Rate it on the App Store and share with other writers!
+Enjoying xiaoyuanNote? Rate it on the App Store and share with other writers!

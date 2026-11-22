@@ -1,18 +1,18 @@
 /**
  * AI rewrite trigger extension for CodeMirror 6 (v2.0 F4).
  *
- * Wires `Cmd-J` / `Ctrl-J` to dispatch a `solomd:ai-rewrite-open` event with
+ * Wires `Cmd-J` / `Ctrl-J` to dispatch a `xiaoyuan-note:ai-rewrite-open` event with
  * the current selection. The actual overlay UI lives in
  * `AIRewriteOverlay.vue`; this file only takes the keystroke + selection and
  * surfaces a streaming-result decoration once the overlay says so.
  *
  * The overlay drives the inline diff via two transactions:
- *   - `solomd:ai-rewrite-stream` (custom DOM event with `{ paneId, from, to, text, done }`):
+ *   - `xiaoyuan-note:ai-rewrite-stream` (custom DOM event with `{ paneId, from, to, text, done }`):
  *     while a stream is running, show the proposed text as a `Decoration.replace`
  *     widget over the selected range so the user sees it in-place.
- *   - `solomd:ai-rewrite-accept` (handled by App.vue): replaces the selection
+ *   - `xiaoyuan-note:ai-rewrite-accept` (handled by App.vue): replaces the selection
  *     with the final text.
- *   - `solomd:ai-rewrite-cancel`: clears the inline decoration.
+ *   - `xiaoyuan-note:ai-rewrite-cancel`: clears the inline decoration.
  *
  * The keymap binding only fires when the selection is non-empty; an empty
  * selection passes through (so `Cmd-J` is still available for other
@@ -34,13 +34,13 @@ import type { Extension } from '@codemirror/state';
 // ---------------------------------------------------------------------------
 
 /** Fired when Cmd-J is pressed with a non-empty selection. App.vue / overlay listens. */
-export const AI_REWRITE_OPEN_EVENT = 'solomd:ai-rewrite-open';
+export const AI_REWRITE_OPEN_EVENT = 'xiaoyuan-note:ai-rewrite-open';
 /** Fired by the overlay during streaming so the editor can render the proposed text inline. */
-export const AI_REWRITE_STREAM_EVENT = 'solomd:ai-rewrite-stream';
+export const AI_REWRITE_STREAM_EVENT = 'xiaoyuan-note:ai-rewrite-stream';
 /** Fired by the overlay on Accept; App.vue applies the replacement. */
-export const AI_REWRITE_ACCEPT_EVENT = 'solomd:ai-rewrite-accept';
+export const AI_REWRITE_ACCEPT_EVENT = 'xiaoyuan-note:ai-rewrite-accept';
 /** Fired by the overlay on Reject / close; editor clears the inline decoration. */
-export const AI_REWRITE_CANCEL_EVENT = 'solomd:ai-rewrite-cancel';
+export const AI_REWRITE_CANCEL_EVENT = 'xiaoyuan-note:ai-rewrite-cancel';
 
 export interface AIRewriteOpenDetail {
   selection: string;
@@ -170,7 +170,7 @@ function dispatchOpen(view: EditorView): boolean {
 
 /**
  * Returns the AI rewrite CM6 extension bundle:
- *   - keymap binding (`Mod-j` → dispatches `solomd:ai-rewrite-open`)
+ *   - keymap binding (`Mod-j` → dispatches `xiaoyuan-note:ai-rewrite-open`)
  *   - state field that renders the streaming-proposal widget
  *   - DOM listeners for stream / cancel events
  */

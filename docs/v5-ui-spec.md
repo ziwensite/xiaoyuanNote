@@ -1,6 +1,6 @@
-# SoloMD 5.0 — interface spec
+# xiaoyuanNote 5.0 — interface spec
 
-The 5.0 prototype (claude.ai artifact "SoloMD 5.0 UI Prototype", seven boards) approved
+The 5.0 prototype (claude.ai artifact "xiaoyuanNote 5.0 UI Prototype", seven boards) approved
 2026-10-05, with the refinements below. Theme of the release: **writing first, tools out of
 the way.** The default window shows files, tabs and the text; everything else lives in the
 menus, the command palette and panels that appear when asked for.

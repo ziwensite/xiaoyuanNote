@@ -2,7 +2,7 @@
 //!
 //! Responsibilities:
 //!   1. Loading recipes for the active workspace and watching
-//!      `.solomd/agents/` for changes (`State::reload`).
+//!      `.xiaoyuan-note/agents/` for changes (`State::reload`).
 //!   2. Hooking save / commit / cron / manual triggers and dispatching to
 //!      `run_recipe`.
 //!   3. Driving one recipe: mint a run id, create the AutoGit branch,
@@ -14,7 +14,7 @@
 //!
 //! The chat machinery lives in `ai_proxy`: `run_chat_anthropic_loop`,
 //! `run_chat_openai_loop`, and `run_chat_ollama` each own a multi-turn
-//! tool-call loop that emits the same `solomd://ai-*` events the panel
+//! tool-call loop that emits the same `xiaoyuan-note://ai-*` events the panel
 //! listens for and writes the same `trace.jsonl`/`run.md` artifacts the
 //! recipes UI consumes. We pass our own `RunHandle` into the loop so
 //! every model_call / tool_call / tool_result lands in the recipe's run
@@ -50,7 +50,7 @@ use super::recipes::{
 
 // ---------------------------------------------------------------------------
 // Run-id validation — Tauri commands that accept a `run_id` join it onto
-// a path (`.solomd/agent-runs/<run_id>/...`) and so MUST refuse anything
+// a path (`.xiaoyuan-note/agent-runs/<run_id>/...`) and so MUST refuse anything
 // that could escape the run directory. The REST API in `rest_api.rs` does
 // the same check for the same reason; we keep the rules consistent.
 // ---------------------------------------------------------------------------
@@ -726,18 +726,18 @@ pub fn workspace_has_dirty_changes(workspace: &Path) -> Result<bool, String> {
     Ok(false)
 }
 
-/// Paths under `.solomd/` that are app runtime state rather than user
+/// Paths under `.xiaoyuan-note/` that are app runtime state rather than user
 /// content. `RunHandle::finalize` recreates `agent-runs/<id>/meta.json`
 /// after the run's checkout back to main, so a naive dirty check would
 /// treat every just-finished run as dirty and reject every accept.
-fn is_solomd_runtime_path(path: &str) -> bool {
+fn is_xiaoyuan_note_runtime_path(path: &str) -> bool {
     let path = path.replace('\\', "/");
-    if path.starts_with(".solomd/agent-runs/") {
+    if path.starts_with(".xiaoyuan-note/agent-runs/") {
         return true;
     }
-    // `.solomd/agents/*.yml` is user-authored and versioned — a pending
+    // `.xiaoyuan-note/agents/*.yml` is user-authored and versioned — a pending
     // recipe edit is real WIP and must still block accept.
-    match path.strip_prefix(".solomd/") {
+    match path.strip_prefix(".xiaoyuan-note/") {
         Some(rest) if !rest.contains('/') => {
             rest == "sync.json"
                 || rest.starts_with("session.")
@@ -749,7 +749,7 @@ fn is_solomd_runtime_path(path: &str) -> bool {
 }
 
 /// Lists the paths that block an accept: tracked modifications, untracked
-/// files and index (staged) entries all count; ignored paths and SoloMD's
+/// files and index (staged) entries all count; ignored paths and xiaoyuanNote’s
 /// own runtime state do not.
 pub fn workspace_user_wip_paths(workspace: &Path) -> Result<Vec<String>, String> {
     let repo = Repository::open(workspace).map_err(|e| format!("git open: {e}"))?;
@@ -766,7 +766,7 @@ pub fn workspace_user_wip_paths(workspace: &Path) -> Result<Vec<String>, String>
         if st.is_empty() || st.contains(git2::Status::IGNORED) {
             continue;
         }
-        if is_solomd_runtime_path(entry.path().unwrap_or("")) {
+        if is_xiaoyuan_note_runtime_path(entry.path().unwrap_or("")) {
             continue;
         }
         paths.push(entry.path().unwrap_or("").to_string());
@@ -814,7 +814,7 @@ pub async fn run_recipe(
             let _ = (meta,);
         }
         let trace_path = workspace
-            .join(".solomd")
+            .join(".xiaoyuanNote")
             .join("agent-runs")
             .join(&active_id)
             .join("trace.jsonl");
@@ -866,7 +866,7 @@ pub async fn run_recipe(
                 "error": err,
                 "recipe": { "name": recipe.name, "slug": recipe.slug },
             });
-            let _ = app.emit("solomd://recipes-run-finished", &stub);
+            let _ = app.emit("xiaoyuan-note://recipes-run-finished", &stub);
             return Err(err);
         }
         Ok(false) => {}
@@ -909,7 +909,7 @@ pub async fn run_recipe(
                 .path
                 .as_ref()
                 .and_then(|p| p.strip_prefix(workspace).ok().map(|p| p.to_string_lossy().to_string()))
-                .unwrap_or_else(|| format!(".solomd/agents/{}.yml", recipe.slug)),
+                .unwrap_or_else(|| format!(".xiaoyuan-note/agents/{}.yml", recipe.slug)),
             trigger: recipe.trigger.as_str().to_string(),
             branch: branch_name.clone(),
         }),
@@ -974,7 +974,7 @@ pub async fn run_recipe(
     }
 
     // Emit a UI event so the Recipes panel can refresh without polling.
-    let _ = app.emit("solomd://recipes-run-finished", &final_meta);
+    let _ = app.emit("xiaoyuan-note://recipes-run-finished", &final_meta);
 
     // Cooldown slot is released by `_cooldown_guard`'s Drop on return.
 
@@ -1031,7 +1031,7 @@ pub fn prepare_run(
                 .path
                 .as_ref()
                 .and_then(|p| p.strip_prefix(workspace).ok().map(|p| p.to_string_lossy().to_string()))
-                .unwrap_or_else(|| format!(".solomd/agents/{}.yml", recipe.slug)),
+                .unwrap_or_else(|| format!(".xiaoyuan-note/agents/{}.yml", recipe.slug)),
             trigger: recipe.trigger.as_str().to_string(),
             branch: branch_name.clone(),
         }),
@@ -1220,7 +1220,7 @@ async fn run_recipe_chat_loop(
     // itself materialises the tool schema array via `agent_tools`.
     let tools_list = recipe.tools.join(", ");
     let system_text = format!(
-        "You are a SoloMD agent running a recipe ({}).\n\
+        "You are a xiaoyuanNote agent running a recipe ({}).\n\
          Allowed tools: {tools_list}.\n\
          Write-cap: {} (writes beyond this will be refused).\n\
          Use the tools to gather information and (when allow-write is set) save results.\n",
@@ -1505,12 +1505,12 @@ fn commit_branch_changes(
         .get_string("user.name")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "SoloMD Agent".to_string());
+        .unwrap_or_else(|| "xiaoyuanNote Agent".to_string());
     let email = cfg
         .get_string("user.email")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "agent@solomd.local".to_string());
+        .unwrap_or_else(|| "agent@xiaoyuan-note.local".to_string());
     let sig = git2::Signature::now(&name, &email).map_err(|e| format!("sig: {e}"))?;
 
     let summary = if writes_consumed > 0 {
@@ -1605,12 +1605,12 @@ fn commit_on_branch(
         .get_string("user.name")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "SoloMD Agent".to_string());
+        .unwrap_or_else(|| "xiaoyuanNote Agent".to_string());
     let email = cfg
         .get_string("user.email")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "agent@solomd.local".to_string());
+        .unwrap_or_else(|| "agent@xiaoyuan-note.local".to_string());
     let sig = git2::Signature::now(&name, &email).map_err(|e| format!("sig: {e}"))?;
 
     let oid = repo
@@ -1787,23 +1787,23 @@ mod tests {
     }
 
     #[test]
-    fn user_wip_ignores_solomd_runtime_state_but_not_agents() {
+    fn user_wip_ignores_XIAOYUAN_NOTE_runtime_state_but_not_agents() {
         let tmp = tempfile::TempDir::new().unwrap();
         seed_repo(tmp.path());
 
         // `finalize` recreates this after every run — must NOT block accept.
-        let run_dir = tmp.path().join(".solomd/agent-runs/run-1");
+        let run_dir = tmp.path().join(".xiaoyuan-note/agent-runs/run-1");
         std::fs::create_dir_all(&run_dir).unwrap();
         std::fs::write(run_dir.join("meta.json"), "{}").unwrap();
-        std::fs::write(tmp.path().join(".solomd/sync.json"), "{}").unwrap();
+        std::fs::write(tmp.path().join(".xiaoyuan-note/sync.json"), "{}").unwrap();
         assert!(wip_paths(tmp.path()).is_empty(), "runtime state must be ignored");
 
         // Recipes are user-authored and versioned — a pending edit is WIP.
-        std::fs::create_dir_all(tmp.path().join(".solomd/agents")).unwrap();
-        std::fs::write(tmp.path().join(".solomd/agents/x.yml"), "name: x\n").unwrap();
+        std::fs::create_dir_all(tmp.path().join(".xiaoyuan-note/agents")).unwrap();
+        std::fs::write(tmp.path().join(".xiaoyuan-note/agents/x.yml"), "name: x\n").unwrap();
         assert_eq!(
             wip_paths(tmp.path()),
-            vec![".solomd/agents/x.yml".to_string()]
+            vec![".xiaoyuan-note/agents/x.yml".to_string()]
         );
     }
 
@@ -1825,7 +1825,7 @@ mod tests {
     #[test]
     fn accept_refuses_dirty_workspace_and_reports_paths() {
         let tmp = tempfile::TempDir::new().unwrap();
-        let branch = "solomd/agent/20260101-000000-abcdef";
+        let branch = "xiaoyuan-note/agent/20260101-000000-abcdef";
         seed_repo_with_ff_branch(tmp.path(), branch);
 
         // The user edited a tracked note while reviewing the run diff.

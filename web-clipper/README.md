@@ -1,6 +1,6 @@
-# SoloMD Web Clipper
+# xiaoyuanNote Web Clipper
 
-Send the page you're reading — or just your text selection — to your local SoloMD inbox over a 127.0.0.1 HTTP endpoint. Local-only: no remote servers, no telemetry, no accounts.
+Send the page you're reading — or just your text selection — to your local xiaoyuanNote inbox over a 127.0.0.1 HTTP endpoint. Local-only: no remote servers, no telemetry, no accounts.
 
 Ships as a single codebase that builds two store-loadable artefacts:
 
@@ -15,12 +15,12 @@ Ships as a single codebase that builds two store-loadable artefacts:
 | Clip selection  | yes           | yes (selection)  | `Ctrl/Cmd+Shift+S` |
 | Save link       | yes           | yes (link)       | `Ctrl/Cmd+Shift+L` |
 
-Every action ends with a desktop notification — "Saved to SoloMD inbox: <title>" on success, a specific error string on failure (endpoint not running, wrong token, no workspace open, etc.).
+Every action ends with a desktop notification — "Saved to xiaoyuanNote inbox: <title>" on success, a specific error string on failure (endpoint not running, wrong token, no workspace open, etc.).
 
-## How it talks to SoloMD
+## How it talks to xiaoyuanNote
 
 - The desktop app exposes a token-gated `POST http://127.0.0.1:7777/capture` endpoint (see `app/src-tauri/src/capture_endpoint.rs`).
-- The clipper extracts the page's main content via [Mozilla Readability](https://github.com/mozilla/readability) and converts it to Markdown via [Turndown](https://github.com/mixmark-io/turndown), with a SoloMD-tuned preset (preserves headings / lists / tables / fenced code with language hint / blockquotes / links / images, strips scripts/styles/cookie banners, rewrites relative URLs to absolute).
+- The clipper extracts the page's main content via [Mozilla Readability](https://github.com/mozilla/readability) and converts it to Markdown via [Turndown](https://github.com/mixmark-io/turndown), with a xiaoyuan-note-tuned preset (preserves headings / lists / tables / fenced code with language hint / blockquotes / links / images, strips scripts/styles/cookie banners, rewrites relative URLs to absolute).
 - A YAML front matter block is prepended:
   ```yaml
   ---
@@ -34,10 +34,10 @@ Every action ends with a desktop notification — "Saved to SoloMD inbox: <title
 
 ## First-time setup (pairing)
 
-1. Open SoloMD on your desktop, go to **Settings → Integrations → HTTP capture endpoint**, toggle it on, and click **Show / Copy** to grab the bearer token.
+1. Open xiaoyuanNote on your desktop, go to **Settings → Integrations → HTTP capture endpoint**, toggle it on, and click **Show / Copy** to grab the bearer token.
 2. Open the clipper's **Settings** (toolbar popup → "Settings" button, or `chrome://extensions` → Details → Extension options).
-3. Paste the token. Endpoint URL stays at the default `http://127.0.0.1:7777` unless you changed it on the SoloMD side.
-4. Click **Test connection**. On success it shows the workspace path SoloMD currently has open. On failure it shows the exact server message.
+3. Paste the token. Endpoint URL stays at the default `http://127.0.0.1:7777` unless you changed it on the xiaoyuanNote side.
+4. Click **Test connection**. On success it shows the workspace path xiaoyuanNote currently has open. On failure it shows the exact server message.
 5. Save. You're paired.
 
 ## Build
@@ -93,13 +93,13 @@ Release-channel Firefox only installs add-ons signed by Mozilla — handing a us
 
 Notes:
 - **Each signed upload needs a unique `version`** — bump `manifest.firefox.json` before re-signing.
-- The first sign auto-creates a hidden AMO entry under the manifest's `gecko.id` (`web-clipper@solomd.app`); no manual setup.
+- The first sign auto-creates a hidden AMO entry under the manifest's `gecko.id` (`web-clipper@xiaoyuannote.app`); no manual setup.
 - MV2 is fine: Firefox supports it long-term and AMO accepts it.
 - For a public store listing instead, swap `--channel=unlisted` → `--channel=listed` in the `sign:firefox` script and submit `dist/source.zip` (built by `pnpm build`) for the reviewer.
 
 ## End-to-end smoke test
 
-Two test scripts, both run without a built SoloMD desktop app:
+Two test scripts, both run without a built xiaoyuanNote desktop app:
 
 ```bash
 pnpm test:markdown   # JSDOM-driven test of the Readability + turndown pipeline
@@ -114,7 +114,7 @@ If you want to verify against the live Chrome runtime (loads `dist/live-driver.j
 node scripts/build-live-driver.mjs
 ```
 
-…then call `window.__solomdClipFor(endpoint, token, mode)` from the page console.
+…then call `window.__xiaoyuanNoteClipFor(endpoint, token, mode)` from the page console.
 
 ## Privacy
 
@@ -124,4 +124,4 @@ If you change the endpoint URL to something non-loopback (`http://192.168.1.5:77
 
 ## License
 
-MIT — same as the parent SoloMD project.
+MIT — same as the parent xiaoyuanNote project.

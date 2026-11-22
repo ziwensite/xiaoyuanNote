@@ -1,4 +1,4 @@
-SoloMD 4.14.11 lost problemen op die in een volledige testronde zijn gevonden. Enkele daarvan konden tekst wijzigen of laten verdwijnen, dus we raden aan om bij te werken.
+xiaoyuanNote 4.14.11 lost problemen op die in een volledige testronde zijn gevonden. Enkele daarvan konden tekst wijzigen of laten verdwijnen, dus we raden aan om bij te werken.
 
 • De CJK-correctie ziet bestandsnamen (文档.md, 压缩包.tar.gz) en een beletselteken niet langer als leestekenfouten, zodat „Alles toepassen” ze niet meer kan herschrijven.
 • Bij het importeren van een Word-document blijft vet staan waar het stond, en komen genummerde lijsten, takenlijsten en links weer mee. Bij export naar Word worden taken gemarkeerd met [ ] / [x].

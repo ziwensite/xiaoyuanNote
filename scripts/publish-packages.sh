@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Publish SoloMD to all package managers in one command.
+# Publish xiaoyuanNote to all package managers in one command.
 #
 # Usage:
 #   ./scripts/publish-packages.sh 0.1.9                 # all platforms
@@ -8,7 +8,7 @@
 #
 # Supported platforms: brew, winget, choco
 # (AUR is NOT supported here — requires SSH access to aur.archlinux.org,
-#  see aur-solomd-bin/ for manual submission steps.)
+#  see aur-xiaoyuan-note-bin/ for manual submission steps.)
 #
 # Scoop is intentionally NOT listed — ScoopInstaller/Extras bucket's
 # checkver+autoupdate config auto-tracks our GitHub releases, so manual
@@ -39,7 +39,7 @@ else
     TARGETS=("$@")
 fi
 
-REPO="zhitongblog/solomd"
+REPO="zhitongblog/xiaoyuan-note"
 BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
 YOUR_GH="zhitongblog"
 
@@ -67,7 +67,7 @@ ok "Release v${VERSION} found"
 # ==================================================================
 # Download installers and compute SHA256 (cached)
 # ==================================================================
-CACHE_DIR="/tmp/solomd-release-${VERSION}"
+CACHE_DIR="/tmp/xiaoyuan-note-release-${VERSION}"
 mkdir -p "$CACHE_DIR"
 
 fetch_sha256() {
@@ -88,10 +88,10 @@ fetch_sha256() {
     echo "$sha"
 }
 
-DMG="SoloMD_${VERSION}_universal.dmg"
-MSI="SoloMD_${VERSION}_x64_en-US.msi"
-PORTABLE="SoloMD_${VERSION}_x64-portable.zip"
-APPIMAGE="SoloMD_${VERSION}_amd64.AppImage"
+DMG="XIAOYUAN_NOTE_${VERSION}_universal.dmg"
+MSI="XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi"
+PORTABLE="XIAOYUAN_NOTE_${VERSION}_x64-portable.zip"
+APPIMAGE="XIAOYUAN_NOTE_${VERSION}_amd64.AppImage"
 
 # ==================================================================
 # Homebrew Cask
@@ -114,19 +114,19 @@ publish_brew() {
         git fetch origin main 2>&1 | tail -1
         git checkout main 2>/dev/null || git checkout -b main origin/main
         git reset --hard origin/main >/dev/null
-        local branch="update-solomd-${VERSION}"
+        local branch="update-xiaoyuan-note-${VERSION}"
         git checkout -B "$branch" >/dev/null
 
-        cat > "Casks/s/solomd.rb" <<RUBY
-cask "solomd" do
+        cat > "Casks/s/xiaoyuan-note.rb" <<RUBY
+cask "xiaoyuanNote" do
   version "${VERSION}"
   sha256 "${sha}"
 
-  url "https://github.com/${REPO}/releases/download/v#{version}/SoloMD_#{version}_universal.dmg",
+  url "https://github.com/${REPO}/releases/download/v#{version}/XIAOYUAN_NOTE_#{version}_universal.dmg",
       verified: "github.com/${REPO}/"
-  name "SoloMD"
+  name "xiaoyuanNote"
   desc "Lightweight Markdown and plain text editor"
-  homepage "https://solomd.app/"
+  homepage "https://xiaoyuannote.app/"
 
   livecheck do
     url :url
@@ -135,28 +135,28 @@ cask "solomd" do
 
   depends_on macos: ">= :big_sur"
 
-  app "SoloMD.app"
+  app "xiaoyuannote.app"
 
   zap trash: [
-    "~/Library/Application Support/app.solomd",
-    "~/Library/Caches/app.solomd",
-    "~/Library/Preferences/app.solomd.plist",
-    "~/Library/Saved Application State/app.solomd.savedState",
-    "~/Library/WebKit/app.solomd",
+    "~/Library/Application Support/app.xiaoyuannote",
+    "~/Library/Caches/app.xiaoyuannote",
+    "~/Library/Preferences/app.xiaoyuan-note.plist",
+    "~/Library/Saved Application State/app.xiaoyuan-note.savedState",
+    "~/Library/WebKit/app.xiaoyuannote",
   ]
 end
 RUBY
 
-        git add Casks/s/solomd.rb
-        git -c user.email=dev@solomd.local -c user.name="${YOUR_GH}" commit -q -m "Update solomd to ${VERSION}"
+        git add Casks/s/xiaoyuan-note.rb
+        git -c user.email=dev@xiaoyuan-note.local -c user.name="${YOUR_GH}" commit -q -m "Update xiaoyuanNote to ${VERSION}"
         git push fork "$branch" --force >/dev/null 2>&1
     )
 
     local url
     url=$(gh pr create --repo Homebrew/homebrew-cask \
-        --head "${YOUR_GH}:update-solomd-${VERSION}" \
-        --title "Update solomd to ${VERSION}" \
-        --body "Update SoloMD to v${VERSION}. See release notes: https://github.com/${REPO}/releases/tag/v${VERSION}" 2>&1 | tail -1 || true)
+        --head "${YOUR_GH}:update-xiaoyuan-note-${VERSION}" \
+        --title "Update xiaoyuanNote to ${VERSION}" \
+        --body "Update xiaoyuanNote to v${VERSION}. See release notes: https://github.com/${REPO}/releases/tag/v${VERSION}" 2>&1 | tail -1 || true)
     ok "Homebrew PR: $url"
 }
 
@@ -181,10 +181,10 @@ publish_winget() {
         git fetch upstream master 2>&1 | tail -1
         git checkout master 2>/dev/null || git checkout -b master upstream/master
         git reset --hard upstream/master >/dev/null
-        local branch="add-solomd-${VERSION}"
+        local branch="add-xiaoyuan-note-${VERSION}"
         git checkout -B "$branch" >/dev/null
 
-        local manifest_dir="manifests/z/zhitong/SoloMD/${VERSION}"
+        local manifest_dir="manifests/z/zhitong/xiaoyuan-note/${VERSION}"
         mkdir -p "$manifest_dir"
 
         local sha_upper
@@ -192,20 +192,20 @@ publish_winget() {
         local today
         today=$(date +%Y-%m-%d)
 
-        cat > "$manifest_dir/zhitong.SoloMD.yaml" <<YAML
+        cat > "$manifest_dir/zhitong.xiaoyuan-note.yaml" <<YAML
 # yaml-language-server: \$schema=https://aka.ms/winget-manifest.version.1.9.0.schema.json
 
-PackageIdentifier: zhitong.SoloMD
+PackageIdentifier: zhitong.xiaoyuanNote
 PackageVersion: ${VERSION}
 DefaultLocale: en-US
 ManifestType: version
 ManifestVersion: 1.9.0
 YAML
 
-        cat > "$manifest_dir/zhitong.SoloMD.installer.yaml" <<YAML
+        cat > "$manifest_dir/zhitong.xiaoyuan-note.installer.yaml" <<YAML
 # yaml-language-server: \$schema=https://aka.ms/winget-manifest.installer.1.9.0.schema.json
 
-PackageIdentifier: zhitong.SoloMD
+PackageIdentifier: zhitong.xiaoyuanNote
 PackageVersion: ${VERSION}
 MinimumOSVersion: 10.0.17763.0
 InstallerType: wix
@@ -218,31 +218,31 @@ FileExtensions:
 ReleaseDate: ${today}
 Installers:
 - Architecture: x64
-  InstallerUrl: https://github.com/${REPO}/releases/download/v${VERSION}/SoloMD_${VERSION}_x64_en-US.msi
+  InstallerUrl: https://github.com/${REPO}/releases/download/v${VERSION}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi
   InstallerSha256: ${sha_upper}
 ManifestType: installer
 ManifestVersion: 1.9.0
 YAML
 
-        cat > "$manifest_dir/zhitong.SoloMD.locale.en-US.yaml" <<YAML
+        cat > "$manifest_dir/zhitong.xiaoyuan-note.locale.en-US.yaml" <<YAML
 # yaml-language-server: \$schema=https://aka.ms/winget-manifest.defaultLocale.1.9.0.schema.json
 
-PackageIdentifier: zhitong.SoloMD
+PackageIdentifier: zhitong.xiaoyuanNote
 PackageVersion: ${VERSION}
 PackageLocale: en-US
 Publisher: zhitong
 PublisherUrl: https://github.com/${YOUR_GH}
 PublisherSupportUrl: https://github.com/${REPO}/issues
-PackageName: SoloMD
-PackageUrl: https://solomd.app
+PackageName: xiaoyuanNote
+PackageUrl: https://xiaoyuannote.app
 License: MIT
 LicenseUrl: https://github.com/${REPO}/blob/main/LICENSE
 Copyright: Copyright (c) 2026 xiangdong li
 ShortDescription: A lightweight Markdown and plain text editor
 Description: |-
-  SoloMD is a free, open-source, cross-platform Markdown + plain text editor
+  xiaoyuanNote is a free, open-source, cross-platform Markdown + plain text editor
   built with Tauri 2 + Vue 3 + CodeMirror 6. Under 15 MB installed.
-Moniker: solomd
+Moniker: xiaoyuanNote
 Tags:
 - editor
 - markdown
@@ -252,21 +252,21 @@ Tags:
 ReleaseNotesUrl: https://github.com/${REPO}/releases/tag/v${VERSION}
 Documentations:
 - DocumentLabel: Website
-  DocumentUrl: https://solomd.app
+  DocumentUrl: https://xiaoyuannote.app
 ManifestType: defaultLocale
 ManifestVersion: 1.9.0
 YAML
 
         git add "$manifest_dir/"
-        git -c user.email=dev@solomd.local -c user.name="${YOUR_GH}" commit -q -m "New version: zhitong.SoloMD version ${VERSION}"
+        git -c user.email=dev@xiaoyuan-note.local -c user.name="${YOUR_GH}" commit -q -m "New version: zhitong.xiaoyuanNote version ${VERSION}"
         git push origin "$branch" --force >/dev/null 2>&1
     )
 
     local url
     url=$(gh pr create --repo microsoft/winget-pkgs \
-        --head "${YOUR_GH}:add-solomd-${VERSION}" \
-        --title "New version: zhitong.SoloMD version ${VERSION}" \
-        --body "Update SoloMD to v${VERSION}. Release notes: https://github.com/${REPO}/releases/tag/v${VERSION}" 2>&1 | tail -1 || true)
+        --head "${YOUR_GH}:add-xiaoyuan-note-${VERSION}" \
+        --title "New version: zhitong.xiaoyuanNote version ${VERSION}" \
+        --body "Update xiaoyuanNote to v${VERSION}. Release notes: https://github.com/${REPO}/releases/tag/v${VERSION}" 2>&1 | tail -1 || true)
     ok "winget PR: $url"
 }
 
@@ -291,36 +291,36 @@ publish_scoop() {
         git fetch upstream master 2>&1 | tail -1
         git checkout master 2>/dev/null || git checkout -b master upstream/master
         git reset --hard upstream/master >/dev/null
-        local branch="update-solomd-${VERSION}"
+        local branch="update-xiaoyuan-note-${VERSION}"
         git checkout -B "$branch" >/dev/null
 
-        cat > "bucket/solomd.json" <<JSON
+        cat > "bucket/xiaoyuan-note.json" <<JSON
 {
     "version": "${VERSION}",
     "description": "A lightweight Markdown and plain text editor built with Tauri 2",
-    "homepage": "https://solomd.app",
+    "homepage": "https://xiaoyuannote.app",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/${REPO}/releases/download/v${VERSION}/SoloMD_${VERSION}_x64-portable.zip",
+            "url": "https://github.com/${REPO}/releases/download/v${VERSION}/XIAOYUAN_NOTE_${VERSION}_x64-portable.zip",
             "hash": "${sha}"
         }
     },
-    "bin": "SoloMD.exe",
+    "bin": "xiaoyuan-note.exe",
     "shortcuts": [
         [
-            "SoloMD.exe",
-            "SoloMD"
+            "xiaoyuan-note.exe",
+            "xiaoyuanNote"
         ]
     ],
     "checkver": "github",
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/${REPO}/releases/download/v\$version/SoloMD_\$version_x64-portable.zip",
+                "url": "https://github.com/${REPO}/releases/download/v\$version/XIAOYUAN_NOTE_\$version_x64-portable.zip",
                 "hash": {
                     "url": "https://github.com/${REPO}/releases/tag/v\$version",
-                    "regex": "SoloMD_\$version_x64-portable\\\\.zip.*?\$sha256"
+                    "regex": "XIAOYUAN_NOTE_\$version_x64-portable\\\\.zip.*?\$sha256"
                 }
             }
         }
@@ -328,16 +328,16 @@ publish_scoop() {
 }
 JSON
 
-        git add bucket/solomd.json
-        git -c user.email=dev@solomd.local -c user.name="${YOUR_GH}" commit -q -m "solomd: Update to ${VERSION}"
+        git add bucket/xiaoyuan-note.json
+        git -c user.email=dev@xiaoyuan-note.local -c user.name="${YOUR_GH}" commit -q -m "xiaoyuan-note: Update to ${VERSION}"
         git push fork "$branch" --force >/dev/null 2>&1
     )
 
     local url
     url=$(gh pr create --repo ScoopInstaller/Extras \
-        --head "${YOUR_GH}:update-solomd-${VERSION}" \
-        --title "solomd: Update to ${VERSION}" \
-        --body "Update SoloMD to v${VERSION}. Release notes: https://github.com/${REPO}/releases/tag/v${VERSION}" 2>&1 | tail -1 || true)
+        --head "${YOUR_GH}:update-xiaoyuan-note-${VERSION}" \
+        --title "xiaoyuan-note: Update to ${VERSION}" \
+        --body "Update xiaoyuanNote to v${VERSION}. Release notes: https://github.com/${REPO}/releases/tag/v${VERSION}" 2>&1 | tail -1 || true)
     ok "Scoop PR: $url"
 }
 
@@ -367,32 +367,32 @@ publish_choco() {
         return 1
     fi
 
-    local pkg_dir="/tmp/choco-solomd-${VERSION}"
+    local pkg_dir="/tmp/choco-xiaoyuan-note-${VERSION}"
     rm -rf "$pkg_dir"
     mkdir -p "$pkg_dir/tools"
     cd "$pkg_dir"
 
-    cat > solomd.nuspec <<NUSPEC
+    cat > xiaoyuan-note.nuspec <<NUSPEC
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>solomd</id>
+    <id>xiaoyuanNote</id>
     <version>${VERSION}</version>
-    <title>SoloMD</title>
+    <title>xiaoyuanNote</title>
     <authors>zhitong</authors>
     <owners>zhitong</owners>
-    <projectUrl>https://solomd.app</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/${REPO}/main/brand/solomd_icon_fullbleed.png</iconUrl>
+    <projectUrl>https://xiaoyuannote.app</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/${REPO}/main/brand/XIAOYUAN_NOTE_icon_fullbleed.png</iconUrl>
     <licenseUrl>https://github.com/${REPO}/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <tags>markdown editor text-editor tauri vim lightweight</tags>
     <summary>A lightweight Markdown and plain text editor built with Tauri 2</summary>
-    <description>SoloMD is a free, open-source Markdown + plain text editor. Under 15 MB installed.
+    <description>xiaoyuanNote is a free, open-source Markdown + plain text editor. Under 15 MB installed.
 
 Built with Tauri 2 + Vue 3 + CodeMirror 6 + Rust.
 
 Project source: https://github.com/${REPO}
-Documentation: https://solomd.app</description>
+Documentation: https://xiaoyuannote.app</description>
     <releaseNotes>https://github.com/${REPO}/releases/tag/v${VERSION}</releaseNotes>
     <copyright>Copyright (c) 2026 xiangdong li</copyright>
   </metadata>
@@ -405,9 +405,9 @@ NUSPEC
     cat > tools/chocolateyinstall.ps1 <<PS1
 \$ErrorActionPreference = 'Stop'
 \$packageArgs = @{
-    packageName    = 'solomd'
+    packageName    = 'xiaoyuanNote'
     fileType       = 'msi'
-    url64bit       = 'https://github.com/${REPO}/releases/download/v${VERSION}/SoloMD_${VERSION}_x64_en-US.msi'
+    url64bit       = 'https://github.com/${REPO}/releases/download/v${VERSION}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi'
     checksum64     = '${sha}'
     checksumType64 = 'sha256'
     silentArgs     = '/qn /norestart'
@@ -419,8 +419,8 @@ PS1
     cat > tools/chocolateyuninstall.ps1 <<'PS1'
 $ErrorActionPreference = 'Stop'
 $packageArgs = @{
-    packageName    = 'solomd'
-    softwareName   = 'SoloMD*'
+    packageName    = 'xiaoyuanNote'
+    softwareName   = 'xiaoyuanNote*'
     fileType       = 'msi'
     silentArgs     = '/qn /norestart'
     validExitCodes = @(0, 3010, 1605, 1614, 1641)
@@ -435,8 +435,8 @@ if ($key.Count -ge 1) {
 }
 PS1
 
-    nuget pack solomd.nuspec 2>&1 | tail -2
-    nuget push "solomd.${VERSION}.nupkg" -Source https://push.chocolatey.org/ -ApiKey "$api_key" 2>&1 | tail -3 \
+    nuget pack xiaoyuan-note.nuspec 2>&1 | tail -2
+    nuget push "xiaoyuan-note.${VERSION}.nupkg" -Source https://push.chocolatey.org/ -ApiKey "$api_key" 2>&1 | tail -3 \
         && ok "Chocolatey: pushed (awaiting moderation)" \
         || fail "Chocolatey: push failed (previous version may still be in moderation)"
 }

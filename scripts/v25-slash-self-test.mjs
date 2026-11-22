@@ -39,7 +39,7 @@ function fatal(msg) {
 }
 
 // ---- Read bridge port + token ------------------------------------------
-const cfgDir = join(homedir(), 'Library/Application Support/app.solomd');
+const cfgDir = join(homedir(), 'Library/Application Support/app.xiaoyuanNote');
 let port, token;
 try {
   port = parseInt(readFileSync(join(cfgDir, 'dev-bridge.port'), 'utf8').trim(), 10);
@@ -67,10 +67,10 @@ async function ev(script) {
 // Helper: get the active CM6 EditorView via its DOM element.
 // CM6 stamps each rendered DOM node with a `cmTile` (or older `cmView`)
 // pointer. The `tile.root.view` is the EditorView. We also fall back to
-// `window.__solomdActiveView` if the host has exposed one.
+// `window.__xiaoyuanNoteActiveView` if the host has exposed one.
 const VIEW_ACCESSOR = `
   function __getView() {
-    if (window.__solomdActiveView) return window.__solomdActiveView;
+    if (window.__xiaoyuanNoteActiveView) return window.__xiaoyuanNoteActiveView;
     const editorEl = document.querySelector('.cm-editor');
     if (!editorEl) throw new Error('no .cm-editor in DOM');
     const content = editorEl.querySelector('.cm-content');

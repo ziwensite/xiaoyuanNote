@@ -1,6 +1,6 @@
-Dosyalar uygulamasındaki herhangi bir klasörü çalışma klasörü olarak seçin — iCloud Drive, iPhone'umda veya başka bir uygulamanın klasörü. SoloMD bir sonraki açılışta da hatırlar.
+Dosyalar uygulamasındaki herhangi bir klasörü çalışma klasörü olarak seçin — iCloud Drive, iPhone'umda veya başka bir uygulamanın klasörü. xiaoyuanNote bir sonraki açılışta da hatırlar.
 
-SoloMD'nin kendi klasörü artık Dosyalar uygulamasında iPhone'umda › SoloMD altında görünüyor.
+xiaoyuanNote'nin kendi klasörü artık Dosyalar uygulamasında iPhone'umda › xiaoyuanNote altında görünüyor.
 
 Dosyalar'dan açılan notlar yerinde düzenlenir: kaydetmek kopya oluşturmak yerine orijinali günceller.
 
@@ -8,4 +8,4 @@ Dosya ağacında dosyaları yeniden adlandırın, taşıyın ve silin: dosyaya u
 
 Güncellemeden önce açtığınız klasörler, artık orada olmadıkları söylenmeden yeniden açılıyor.
 
-App Store'daki SoloMD kullanım verisi göndermez ve puan isteğini yalnızca Apple'ın kendi puanlama penceresiyle yapar.
+App Store'daki xiaoyuanNote kullanım verisi göndermez ve puan isteğini yalnızca Apple'ın kendi puanlama penceresiyle yapar.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Publish the solomd-mcp crate to crates.io.
+# Publish the xiaoyuan-note-mcp crate to crates.io.
 #
 # Requires CARGO_REGISTRY_TOKEN in the environment (from
 # https://crates.io/me — "API Tokens" tab) or a prior `cargo login`.
@@ -28,7 +28,7 @@ if [ ! -f README.md ]; then
 fi
 
 # Check if this version is already published.
-if curl -s -H "User-Agent: solomd-publish" \
+if curl -s -H "User-Agent: xiaoyuan-note-publish" \
     "https://crates.io/api/v1/crates/$CRATE/$VERSION" \
     | grep -q '"version":'; then
   echo "ERROR: $CRATE@$VERSION already published on crates.io." >&2
@@ -72,13 +72,13 @@ cat <<EOF
 
 Published: https://crates.io/crates/$CRATE/$VERSION
 
-Now \`cargo install solomd-mcp\` works for users on any platform.
+Now \`cargo install xiaoyuan-note-mcp\` works for users on any platform.
 
 Suggested follow-ups:
   1. Tag the crate version in git:
-       git tag -a solomd-mcp-v$VERSION -m "Publish solomd-mcp $VERSION"
-       git push origin solomd-mcp-v$VERSION
+       git tag -a xiaoyuan-note-mcp-v$VERSION -m "Publish xiaoyuan-note-mcp $VERSION"
+       git push origin xiaoyuan-note-mcp-v$VERSION
   2. Update root README badges to reference the crates.io link.
   3. Wait ~5 min for crates.io to propagate, then verify in a clean Rust env:
-       cargo install solomd-mcp --version $VERSION
+       cargo install xiaoyuan-note-mcp --version $VERSION
 EOF

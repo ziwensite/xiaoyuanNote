@@ -1,7 +1,7 @@
 /**
  * text-case.ts — case transforms shared by both editors.
  *
- * SoloMD runs CodeMirror on macOS/Linux and a plain <textarea> on Windows
+ * xiaoyuanNote runs CodeMirror on macOS/Linux and a plain <textarea> on Windows
  * (see `shouldUsePlainWindowsEditor`), and the plain path is itself split into
  * a block editor and a flat one. Any editing feature that lives in only one of
  * them silently does nothing for a whole platform — that is exactly how the

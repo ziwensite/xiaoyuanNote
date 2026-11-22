@@ -17,7 +17,7 @@ rig_up() {
     fi
   fi
   if ! xdpyinfo -display "$RG_DISPLAY" >/dev/null 2>&1; then
-    env SOLOMD_REGRESS_TAG="$SOLOMD_REGRESS_TAG" Xvfb "$RG_DISPLAY" -screen 0 "$RG_SCREEN" -nolisten tcp \
+    env XIAOYUAN_NOTE_REGRESS_TAG="$XIAOYUAN_NOTE_REGRESS_TAG" Xvfb "$RG_DISPLAY" -screen 0 "$RG_SCREEN" -nolisten tcp \
       >"$RG_ROOT/xvfb.log" 2>&1 &
     echo $! >"$RG_ROOT/xvfb.pid"
     local i; for i in $(seq 1 40); do xdpyinfo -display "$RG_DISPLAY" >/dev/null 2>&1 && break; sleep 0.25; done
@@ -26,13 +26,13 @@ rig_up() {
   # private session bus: single-instance (D-Bus) and portals stay out of
   # any other rig on this machine
   local addr pid
-  read -r addr pid < <(env SOLOMD_REGRESS_TAG="$SOLOMD_REGRESS_TAG" dbus-daemon --session --fork \
+  read -r addr pid < <(env XIAOYUAN_NOTE_REGRESS_TAG="$XIAOYUAN_NOTE_REGRESS_TAG" dbus-daemon --session --fork \
     --print-address=1 --print-pid=1 | tr '\n' ' ')
   echo "$pid" >"$RG_ROOT/dbus.pid"
   printf 'export DBUS_SESSION_BUS_ADDRESS=%q\n' "$addr" >"$RG_ROOT/rig.env"
   export DBUS_SESSION_BUS_ADDRESS="$addr"
   # window manager: without one nothing ever gets keyboard focus (trap 1)
-  env SOLOMD_REGRESS_TAG="$SOLOMD_REGRESS_TAG" DISPLAY="$RG_DISPLAY" openbox >"$RG_ROOT/openbox.log" 2>&1 &
+  env XIAOYUAN_NOTE_REGRESS_TAG="$XIAOYUAN_NOTE_REGRESS_TAG" DISPLAY="$RG_DISPLAY" openbox >"$RG_ROOT/openbox.log" 2>&1 &
   echo $! >"$RG_ROOT/openbox.pid"
   sleep 1
   # sanity: the rig itself delivers keystrokes (trap 1 again)
@@ -66,7 +66,7 @@ rig_down() {
 
 # ---------------------------------------------------------------- profile ---
 # A fresh, private profile per check: HOME points at $PROFILE_HOME, so the
-# box's real ~/.local/share/app.solomd is never touched. localStorage is
+# box's real ~/.local/share/app.xiaoyuanNote is never touched. localStorage is
 # seeded so the first-run wizard / tour / banners don't eat input (trap 2),
 # and it is created from scratch, so no WAL from a previous run (trap 3).
 #
@@ -83,7 +83,7 @@ profile_reset() {
 # ------------------------------------------------------------------- app ---
 app_launch() { # [args…]  — starts the app, waits for a painted window
   local t0=$SECONDS
-  app_env "$SOLOMD_BIN" "$@" >>"$RG_OUT/logs/$CHECK_ID.app.log" 2>&1 &
+  app_env "$XIAOYUAN_NOTE_BIN" "$@" >>"$RG_OUT/logs/$CHECK_ID.app.log" 2>&1 &
   echo $! >"$RG_ROOT/app.pid"
   app_wait_ready "${LAUNCH_TIMEOUT:-45}" || return 1
   LAUNCH_SECS=$((SECONDS - t0))
@@ -144,8 +144,8 @@ app_kill() {
 # Open a file in the running app through the single-instance hand-off
 # (second launch with a path argument → existing window opens it).
 app_open() {
-  app_env "$SOLOMD_BIN" "$1" >>"$RG_OUT/logs/$CHECK_ID.app.log" 2>&1 &
-  wait_title "$(basename "$1" | sed 's/[.[\*^$]/\\&/g') — SoloMD" 15
+  app_env "$XIAOYUAN_NOTE_BIN" "$1" >>"$RG_OUT/logs/$CHECK_ID.app.log" 2>&1 &
+  wait_title "$(basename "$1" | sed 's/[.[\*^$]/\\&/g') — xiaoyuanNote" 15
 }
 
 # Fresh vault + profile, launch on FILE (relative to the vault).
@@ -155,7 +155,7 @@ start_on() {
   profile_reset
   if [ -n "${1:-}" ]; then
     app_launch "$VAULT/$1" || return 1
-    wait_title "$(basename "$1" | sed 's/[.[\*^$]/\\&/g') — SoloMD" 20 || { log "title never showed $1"; return 1; }
+    wait_title "$(basename "$1" | sed 's/[.[\*^$]/\\&/g') — xiaoyuanNote" 20 || { log "title never showed $1"; return 1; }
   else
     app_launch || return 1
   fi

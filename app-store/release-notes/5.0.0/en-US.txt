@@ -1,4 +1,4 @@
-SoloMD 5.0 — a calmer place to write.
+xiaoyuanNote 5.0 — a calmer place to write.
 
 • A redesigned window: a quiet header with Live / Source / Split / Preview one tap apart, a sidebar for your folders and notes, pill-shaped tabs, and a small word-count pill instead of a status bar.
 • iPhone: a notes home screen, search and a new-note button at the bottom, and a full-screen editor.

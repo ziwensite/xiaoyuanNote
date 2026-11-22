@@ -8,8 +8,8 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="Markdown 语法参考 — SoloMD 支持的全部语法与扩展"
-  description="SoloMD 支持的全部 Markdown 语法速查：标题与自动多级编号、高亮、上下标、列表与任务、代码块、表格、KaTeX 与 LaTeX 数学公式、Mermaid 图表、GitHub 提示块、Wiki 双向链接、tldraw 白板与 YAML 属性。"
+  title="Markdown 语法参考 — xiaoyuanNote 支持的全部语法与扩展"
+  description="xiaoyuanNote 支持的全部 Markdown 语法速查：标题与自动多级编号、高亮、上下标、列表与任务、代码块、表格、KaTeX 与 LaTeX 数学公式、Mermaid 图表、GitHub 提示块、Wiki 双向链接、tldraw 白板与 YAML 属性。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -21,7 +21,7 @@ const lang = 'zh' as const;
 
       <h1>Markdown 语法参考</h1>
       <p class="lead">
-        SoloMD 完整支持 CommonMark、GitHub Flavored Markdown (GFM) 以及常用的写作扩展语法，在「实时编辑」、「分栏」与「预览」下均可就地渲染。
+        xiaoyuanNote 完整支持 CommonMark、GitHub Flavored Markdown (GFM) 以及常用的写作扩展语法，在「实时编辑」、「分栏」与「预览」下均可就地渲染。
       </p>
 
       <h2>标题与自动多级编号</h2>
@@ -35,7 +35,7 @@ const lang = 'zh' as const;
 
       <h2>自动目录</h2>
       <pre><code>[TOC]</code></pre>
-      <p>在独立一行输入 <code>[TOC]</code>，SoloMD 会根据文档标题自动生成带跳转链接的层级目录。</p>
+      <p>在独立一行输入 <code>[TOC]</code>，xiaoyuanNote 会根据文档标题自动生成带跳转链接的层级目录。</p>
 
       <h2>文字样式、高亮与上下标</h2>
       <pre><code>*斜体* 或 _斜体_
@@ -67,7 +67,7 @@ H~2~O（下标）与 X^2^（上标）
       <h2>Wiki 双向链接、普通链接与图片</h2>
       <pre><code>[[另一篇笔记]]
 [[文件夹/笔记名|自定义显示名称]]
-[外部链接](https://solomd.app "悬停提示")
+[外部链接](https://xiaoyuannote.app "悬停提示")
 
 ![图片说明](./_assets/screenshot.png)</code></pre>
       <p>
@@ -83,7 +83,7 @@ H~2~O（下标）与 X^2^（上标）
       <h2>代码块与语法高亮</h2>
       <pre><code>```rust
 fn main() &#123;
-    println!("Hello, SoloMD!");
+    println!("Hello, xiaoyuanNote!");
 &#125;
 ```</code></pre>
       <p>

@@ -1,4 +1,4 @@
-/* SoloMD 4.6 headless component library — barrel re-export.
+/* xiaoyuanNote 4.6 headless component library — barrel re-export.
  *
  * Every primitive is styled exclusively via the design tokens in
  * styles/tokens.css. Import from here, e.g.

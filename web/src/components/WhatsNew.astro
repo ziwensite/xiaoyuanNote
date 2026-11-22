@@ -21,27 +21,27 @@ const { lang } = Astro.props;
 
 const data = whatsNew[lang] ?? whatsNew.en;
 const VERSION = data.version;
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 const home = lang === 'en' ? '/' : `/${lang}/`;
 
 const v5Sections = data.sections.filter((html) => html.includes('>v5.'));
 const v4Sections = data.sections.filter((html) => !html.includes('>v5.'));
 
 const TAB_LABELS: Record<Lang, { v5: string; v4: string; all: string }> = {
-  en: { v5: 'SoloMD 5.0 (Latest)', v4: 'SoloMD 4.x Archive', all: 'All Releases' },
-  zh: { v5: 'SoloMD 5.0 新版专区', v4: 'SoloMD 4.x 历史版本', all: '全部版本' },
-  ja: { v5: 'SoloMD 5.0 (最新)', v4: 'SoloMD 4.x 履歴', all: 'すべて' },
-  ko: { v5: 'SoloMD 5.0 (최신)', v4: 'SoloMD 4.x 기록', all: '전체 버전' },
-  de: { v5: 'SoloMD 5.0 (Neu)', v4: 'SoloMD 4.x Archiv', all: 'Alle Versionen' },
-  fr: { v5: 'SoloMD 5.0 (Nouveau)', v4: 'SoloMD 4.x Archives', all: 'Toutes les versions' },
-  es: { v5: 'SoloMD 5.0 (Nuevo)', v4: 'SoloMD 4.x Archivo', all: 'Todas las versiones' },
-  pt: { v5: 'SoloMD 5.0 (Novo)', v4: 'SoloMD 4.x Arquivo', all: 'Todas as versões' },
-  it: { v5: 'SoloMD 5.0 (Nuovo)', v4: 'SoloMD 4.x Archivio', all: 'Tutte le versioni' },
-  pl: { v5: 'SoloMD 5.0 (Nowość)', v4: 'SoloMD 4.x Archiwum', all: 'Wszystkie wersje' },
-  nl: { v5: 'SoloMD 5.0 (Nieuw)', v4: 'SoloMD 4.x Archief', all: 'Alle versies' },
-  tr: { v5: 'SoloMD 5.0 (Yeni)', v4: 'SoloMD 4.x Arşiv', all: 'Tüm Sürümler' },
-  sv: { v5: 'SoloMD 5.0 (Nyhet)', v4: 'SoloMD 4.x Arkiv', all: 'Alla versioner' },
-  uk: { v5: 'SoloMD 5.0 (Нове)', v4: 'SoloMD 4.x Архів', all: 'Усі версії' },
+  en: { v5: 'xiaoyuanNote 5.0 (Latest)', v4: 'xiaoyuanNote 4.x Archive', all: 'All Releases' },
+  zh: { v5: 'xiaoyuanNote 5.0 新版专区', v4: 'xiaoyuanNote 4.x 历史版本', all: '全部版本' },
+  ja: { v5: 'xiaoyuanNote 5.0 (最新)', v4: 'xiaoyuanNote 4.x 履歴', all: 'すべて' },
+  ko: { v5: 'xiaoyuanNote 5.0 (최신)', v4: 'xiaoyuanNote 4.x 기록', all: '전체 버전' },
+  de: { v5: 'xiaoyuanNote 5.0 (Neu)', v4: 'xiaoyuanNote 4.x Archiv', all: 'Alle Versionen' },
+  fr: { v5: 'xiaoyuanNote 5.0 (Nouveau)', v4: 'xiaoyuanNote 4.x Archives', all: 'Toutes les versions' },
+  es: { v5: 'xiaoyuanNote 5.0 (Nuevo)', v4: 'xiaoyuanNote 4.x Archivo', all: 'Todas las versiones' },
+  pt: { v5: 'xiaoyuanNote 5.0 (Novo)', v4: 'xiaoyuanNote 4.x Arquivo', all: 'Todas as versões' },
+  it: { v5: 'xiaoyuanNote 5.0 (Nuovo)', v4: 'xiaoyuanNote 4.x Archivio', all: 'Tutte le versioni' },
+  pl: { v5: 'xiaoyuanNote 5.0 (Nowość)', v4: 'xiaoyuanNote 4.x Archiwum', all: 'Wszystkie wersje' },
+  nl: { v5: 'xiaoyuanNote 5.0 (Nieuw)', v4: 'xiaoyuanNote 4.x Archief', all: 'Alle versies' },
+  tr: { v5: 'xiaoyuanNote 5.0 (Yeni)', v4: 'xiaoyuanNote 4.x Arşiv', all: 'Tüm Sürümler' },
+  sv: { v5: 'xiaoyuanNote 5.0 (Nyhet)', v4: 'xiaoyuanNote 4.x Arkiv', all: 'Alla versioner' },
+  uk: { v5: 'xiaoyuanNote 5.0 (Нове)', v4: 'xiaoyuanNote 4.x Архів', all: 'Усі версії' },
 };
 const tabLabels = TAB_LABELS[lang] ?? TAB_LABELS.en;
 
@@ -50,7 +50,7 @@ const tabLabels = TAB_LABELS[lang] ?? TAB_LABELS.en;
 // see in this template. They are global instead, every selector confined to
 // `.whats-new`.
 // `{VERSION}` is a placeholder in the prose — in the CTA labels and in the
-// page title/description, which say things like "What's new in SoloMD 4.12.0".
+// page title/description, which say things like "What's new in xiaoyuanNote 4.12.0".
 // Substituted here rather than left to a template literal, because the prose
 // now lives in a data file where `${...}` would just be text.
 const fill = (t: string) => t.replaceAll('{VERSION}', VERSION);
@@ -75,9 +75,9 @@ const metaDescription = fill(data.meta.description);
       <p class="lead" set:html={data.hero.lead} />
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>{cta[0]}</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>{cta[1]}</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>{cta[2]}</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>{cta[0]}</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>{cta[1]}</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>{cta[2]}</a>
       </div>
 
       <div class="version-tabs" role="tablist" aria-label="Release Major Version Tabs">

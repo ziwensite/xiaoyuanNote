@@ -1,4 +1,4 @@
-SoloMD 5.0 — un posto più tranquillo per scrivere.
+xiaoyuanNote 5.0 — un posto più tranquillo per scrivere.
 
 • Una finestra ridisegnata: un'intestazione sobria con Modifica / Sorgente / Diviso / Anteprima a un tocco di distanza, una barra laterale per cartelle e note, schede a forma di pillola e un piccolo conteggio parole al posto della barra di stato.
 • iPhone: una schermata iniziale con le note, la ricerca e un pulsante per una nuova nota in basso, e un editor a schermo intero.

@@ -1,4 +1,4 @@
-SoloMD 5.0 — een rustigere plek om te schrijven.
+xiaoyuanNote 5.0 — een rustigere plek om te schrijven.
 
 • Een vernieuwd venster: een rustige kopbalk met Live / Bron / Gesplitst / Voorbeeld op één tik afstand, een zijbalk voor je mappen en notities, pilvormige tabbladen en een kleine woordenteller in plaats van een statusbalk.
 • iPhone: een startscherm met notities, zoeken en een knop voor een nieuwe notitie onderaan, en een editor op volledig scherm.

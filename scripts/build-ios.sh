@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# iOS App Store distribution build for SoloMD.
+# iOS App Store distribution build for xiaoyuan-note.
 #
 # This script captures the workflow from the v4.1.0 iOS-build session
 # (2026-05-11), where each clean iOS build runs into the same family
@@ -27,11 +27,11 @@
 #      after 75s unless launchctl-level proxy is set.
 #   6. Apple Distribution signing requires a manually-managed
 #      provisioning profile (Xcode-managed ones cause CODE_SIGN_STYLE
-#      conflicts). Drop one in app/src-tauri/SoloMD-iOS.provisionprofile
+#      conflicts). Drop one in app/src-tauri/xiaoyuan-note-iOS.provisionprofile
 #      before running this script.
 #
 # Required env (export or .env.local):
-#   IOS_SIGNING_PROFILE_NAME  e.g. "SoloMD iOS App Store 2026-05"
+#   IOS_SIGNING_PROFILE_NAME  e.g. "xiaoyuanNote iOS App Store 2026-05"
 #                              (the profile Name as it appears in the
 #                               profile file — used as
 #                               PROVISIONING_PROFILE_SPECIFIER)
@@ -49,7 +49,7 @@
 #                              we register it at launchctl so Xcode
 #                              subprocess can reach GitHub
 #
-# Output: app/src-tauri/gen/apple/build/arm64/SoloMD.ipa
+# Output: app/src-tauri/gen/apple/build/arm64/xiaoyuan-note.ipa
 
 set -euo pipefail
 
@@ -111,7 +111,7 @@ python3 scripts/lib/ios_project_overlay.py "$PROJECT_YML" app/src-tauri/ios-proj
 
 # #425 — Ensure AccentColor.colorset (#E07B39) exists in the gitignored
 # gen/apple/Assets.xcassets directory so iOS/iPadOS system controls and the
-# hardware keyboard candidate bar use SoloMD's warm accent color.
+# hardware keyboard candidate bar use xiaoyuanNote’s warm accent color.
 mkdir -p app/src-tauri/gen/apple/Assets.xcassets/AccentColor.colorset
 cat > app/src-tauri/gen/apple/Assets.xcassets/AccentColor.colorset/Contents.json <<'EOF'
 {
@@ -152,7 +152,7 @@ cat > "$EXPORT_PLIST" <<EOF
     <string>Apple Distribution</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>app.solomd</key>
+        <key>app.xiaoyuannote</key>
         <string>${IOS_SIGNING_PROFILE_NAME}</string>
     </dict>
     <key>uploadSymbols</key>
@@ -199,9 +199,9 @@ fi
 
 echo "==> Building iOS .ipa (release / arm64)"
 # App Store distribution: strip the AI / Agent / Recipe surface (Apple 3.1.1).
-# SOLOMD_APP_STORE_BUILD gates Rust commands (option_env! in app_build.rs);
+# XIAOYUAN_NOTE_APP_STORE_BUILD gates Rust commands (option_env! in app_build.rs);
 # VITE_APP_STORE_BUILD gates the Vue UI (import.meta.env in app-build.ts).
-export SOLOMD_APP_STORE_BUILD=1
+export XIAOYUAN_NOTE_APP_STORE_BUILD=1
 export VITE_APP_STORE_BUILD=true
 OVERRIDE=$(IOS_APP_VERSION="${IOS_APP_VERSION:-}" IOS_BUNDLE_VERSION="${IOS_BUNDLE_VERSION:-}" python3 -c '
 import json, os
@@ -216,13 +216,13 @@ else
   ( cd app && pnpm tauri ios build )
 fi
 
-IPA=app/src-tauri/gen/apple/build/arm64/SoloMD.ipa
+IPA=app/src-tauri/gen/apple/build/arm64/xiaoyuan-note.ipa
 [ -f "$IPA" ] || { echo "ERROR: build didn't produce $IPA" >&2; exit 1; }
 
 echo ""
 echo "==> Verifying .ipa signature"
 TMP=$(mktemp -d)
-unzip -p "$IPA" Payload/SoloMD.app/embedded.mobileprovision > "$TMP/profile"
+unzip -p "$IPA" Payload/xiaoyuannote.app/embedded.mobileprovision > "$TMP/profile"
 echo "  Profile name: $(security cms -D -i "$TMP/profile" | plutil -extract Name xml1 -o - - | grep -o "<string>.*</string>" | head -1)"
 echo "  Platform:     $(security cms -D -i "$TMP/profile" | plutil -extract Platform xml1 -o - - | grep -o "<string>.*</string>" | head -1)"
 echo "  Xcode-managed: $(security cms -D -i "$TMP/profile" | plutil -extract IsXcodeManaged xml1 -o - - | grep -o "<true\\|false/>" || echo "unknown")"

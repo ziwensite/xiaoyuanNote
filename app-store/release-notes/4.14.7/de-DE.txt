@@ -1,6 +1,6 @@
-Wähle einen beliebigen Ordner aus der Dateien-App als Arbeitsordner – iCloud Drive, Auf meinem iPhone oder den Ordner einer anderen App. SoloMD merkt ihn sich über Neustarts hinweg.
+Wähle einen beliebigen Ordner aus der Dateien-App als Arbeitsordner – iCloud Drive, Auf meinem iPhone oder den Ordner einer anderen App. xiaoyuanNote merkt ihn sich über Neustarts hinweg.
 
-SoloMDs eigener Ordner erscheint jetzt in der Dateien-App unter Auf meinem iPhone › SoloMD.
+xiaoyuanNote’s eigener Ordner erscheint jetzt in der Dateien-App unter Auf meinem iPhone › xiaoyuan-note.
 
 Aus der Dateien-App geöffnete Notizen werden direkt bearbeitet: Sichern aktualisiert das Original statt eine Kopie anzulegen.
 
@@ -8,4 +8,4 @@ Dateien im Dateibaum umbenennen, verschieben und löschen: Datei lange drücken 
 
 Ordner, die du vor einem Update geöffnet hattest, öffnen sich wieder, statt als verschoben gemeldet zu werden.
 
-SoloMD aus dem App Store sendet keine Nutzungsdaten und bittet um Bewertungen nur über Apples eigenes Bewertungsfenster.
+xiaoyuanNote aus dem App Store sendet keine Nutzungsdaten und bittet um Bewertungen nur über Apples eigenes Bewertungsfenster.

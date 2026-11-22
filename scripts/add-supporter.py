@@ -17,7 +17,7 @@ Everything lands in web/public/sponsors.json — the one file the website
 (homepage, /thanks, /promote), the README and the app's About dialog read.
 After --apply: commit and push; the site redeploys itself and the app picks
 the names up at runtime (no release needed). Rules for what counts as
-promotion: solomd.app/promote. Check the link yourself before applying.
+promotion: xiaoyuannote.app/promote. Check the link yourself before applying.
 """
 import argparse
 import datetime
@@ -159,9 +159,9 @@ def main() -> None:
 
     if issue and a.close:
         body = (
-            f"Thank you, {entry['name']}! You're now on the list — the [thanks page](https://solomd.app/thanks), "
+            f"Thank you, {entry['name']}! You're now on the list — the [thanks page](https://xiaoyuannote.app/thanks), "
             "the app's About dialog and the README contributors table (live once this is deployed).\n\n"
-            f"谢谢你，{entry['name']}！已加入致谢名单：[鸣谢页](https://solomd.app/zh/thanks)、应用「关于」窗口和 README 贡献者表格（部署后可见）。"
+            f"谢谢你，{entry['name']}！已加入致谢名单：[鸣谢页](https://xiaoyuannote.app/zh/thanks)、应用「关于」窗口和 README 贡献者表格（部署后可见）。"
         )
         subprocess.run(["gh", "issue", "comment", str(a.from_issue), "--body", body], check=True, cwd=ROOT)
         subprocess.run(["gh", "issue", "close", str(a.from_issue)], check=True, cwd=ROOT)

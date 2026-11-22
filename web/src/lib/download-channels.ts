@@ -1,5 +1,5 @@
 /**
- * What counts as a SoloMD download, shared by the build-time Hero numbers,
+ * What counts as a xiaoyuanNote download, shared by the build-time Hero numbers,
  * /api/stats and the admin dashboard so every place agrees.
  *
  * The public total is: GitHub installers + App Store + Microsoft Store +
@@ -20,7 +20,7 @@ export type AssetKind = Platform | 'tools' | null;
  *  (checksums, the Play-only .aab, one-off test builds). */
 export function classifyAsset(name: string): AssetKind {
   const n = name.toLowerCase();
-  if (n.startsWith('solomd-mcp') || n.startsWith('solomd-clipper') || n.startsWith('solomd-skills')) {
+  if (n.startsWith('xiaoyuan-note-mcp') || n.startsWith('xiaoyuan-note-clipper') || n.startsWith('xiaoyuan-note-skills')) {
     return 'tools';
   }
   if (n.includes('sha256sums') || n.endsWith('.sig') || n.endsWith('.json') || n.endsWith('.txt')) return null;

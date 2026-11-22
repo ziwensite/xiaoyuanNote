@@ -1,4 +1,4 @@
-# Smithery.ai listing for solomd-mcp.
+# Smithery.ai listing for xiaoyuan-note-mcp.
 #
 # Schema reference: https://smithery.ai/docs/build/yaml-reference
 #
@@ -6,19 +6,19 @@
 # PR is accepted. Mirrored at marketplace/smithery/smithery.yaml so other
 # clones can reproduce it without copying from upstream's CDN.
 
-name: solomd-mcp
-displayName: SoloMD
+name: xiaoyuan-note-mcp
+displayName: xiaoyuanNote
 description: >
   MCP server for one or more Markdown notes folders. 16 tools (15 listed by
   default): read / search / backlinks / tags / tasks / outlines, per-note
   AutoGit history, sync status, share URLs and agent trace replay, plus four
   gated write tools behind --allow-write. `export_note` is listed only when
-  its Node backend is available. Pairs with the SoloMD desktop editor
-  (solomd.app) but works against any plain folder of .md files.
-homepage: https://solomd.app
-repository: https://github.com/zhitongblog/solomd
+  its Node backend is available. Pairs with the xiaoyuanNote desktop editor
+  (xiaoyuannote.app) but works against any plain folder of .md files.
+homepage: https://xiaoyuannote.app
+repository: https://github.com/zhitongblog/xiaoyuan-note
 license: MIT
-icon: https://solomd.app/favicon.svg
+icon: https://xiaoyuannote.app/favicon.svg
 
 # Smithery categorisation — these surface in the UI's filter sidebar.
 categories:
@@ -35,21 +35,21 @@ categories:
 runtime: binary
 binary:
   downloads:
-    linux-x64: https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-x64.tar.gz
-    linux-arm64: https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-arm64.tar.gz
-    win-x64: https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-win-x64.zip
-    win-arm64: https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-win-arm64.zip
-  # On macOS the binary ships inside the SoloMD app bundle (not as a
+    linux-x64: https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-x64.tar.gz
+    linux-arm64: https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-arm64.tar.gz
+    win-x64: https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-win-x64.zip
+    win-arm64: https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-win-arm64.zip
+  # On macOS the binary ships inside the xiaoyuanNote app bundle (not as a
   # standalone tarball) — Smithery users on Mac should install via
-  # `cargo install solomd-mcp` (we publish on crates.io) or download
-  # the desktop app and point at `/Applications/SoloMD.app/Contents/MacOS/solomd-mcp`.
+  # `cargo install xiaoyuan-note-mcp` (we publish on crates.io) or download
+  # the desktop app and point at `/Applications/xiaoyuannote.app/Contents/MacOS/xiaoyuan-note-mcp`.
   macos-fallback: |
-    cargo install solomd-mcp
+    cargo install xiaoyuan-note-mcp
     # — or —
-    # Install SoloMD.app from solomd.app and use the bundled binary:
-    # /Applications/SoloMD.app/Contents/MacOS/solomd-mcp
+    # Install xiaoyuannote.app from xiaoyuannote.app and use the bundled binary:
+    # /Applications/xiaoyuannote.app/Contents/MacOS/xiaoyuan-note-mcp
 
-  entrypoint: solomd-mcp
+  entrypoint: xiaoyuan-note-mcp
   args:
     # User-configured workspace(s). At least one required.
     # Pass alias=path to multi-mount; repeat the flag for multiple vaults.
@@ -68,7 +68,7 @@ config:
       type: string
       title: Notes folder
       description: >
-        Absolute path to your Markdown notes folder. SoloMD's MCP serves
+        Absolute path to your Markdown notes folder. xiaoyuanNote’s MCP serves
         this directory and its subfolders.
       examples:
         - /Users/you/notes
@@ -145,7 +145,7 @@ tools:
 # Examples that surface in the listing.
 examples:
   - title: Find every TODO across the vault
-    prompt: Use the SoloMD MCP search tool to find every "- [ ]" line in my workspace and group by folder.
+    prompt: Use the xiaoyuanNote MCP search tool to find every "- [ ]" line in my workspace and group by folder.
   - title: Weekly summary from daily notes
     prompt: Read my daily/ notes from the past 7 days and write weekly/2026-W22.md with themes, decisions, and open threads.
   - title: Audit orphan notes

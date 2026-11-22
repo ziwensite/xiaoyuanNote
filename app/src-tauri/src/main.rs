@@ -6,7 +6,7 @@ mod runner;
 mod windows_install_migration;
 
 #[cfg(any(target_os = "windows", test))]
-const WINDOWS_APP_USER_MODEL_ID: &str = "app.solomd";
+const WINDOWS_APP_USER_MODEL_ID: &str = "app.xiaoyuannote";
 
 #[cfg(any(target_os = "windows", test))]
 fn windows_app_user_model_id_wide() -> Vec<u16> {
@@ -90,7 +90,7 @@ fn main() {
     //
     // First seen as the v1.1.2 Windows launch crash with the (now-gone)
     // tauri-plugin-aptabase. The defensive guard stays after the
-    // telemetry migration to solomd.app/api/track because reqwest
+    // telemetry migration to xiaoyuannote.app/api/track because reqwest
     // streaming + autogit + RAG all rely on the same multi-thread
     // runtime being available.
     let rt = tokio::runtime::Builder::new_multi_thread()

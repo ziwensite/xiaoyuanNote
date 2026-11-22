@@ -8,7 +8,7 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD v3.5.5 — Win UI font fix, self-hosted analytics, PR #48 polish"
+  title="xiaoyuanNote v3.5.5 — Win UI font fix, self-hosted analytics, PR #48 polish"
   description="A 6-week-old Windows UI font regression finally diagnosed and fixed. Telemetry migrated off Aptabase to a self-hosted Cloudflare D1 endpoint. Plus PR #48 from @beihai23 with PDF export timeout, outline-in-tab, mermaid overlay contrast."
   lang={lang}
 >
@@ -39,19 +39,19 @@ const lang = 'en' as const;
       </p>
       <p>
         Back in v0.1.12, commit
-        <a href="https://github.com/zhitongblog/solomd/commit/12b82c7" rel="external"><code>12b82c7</code></a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/commit/12b82c7" rel="external"><code>12b82c7</code></a>
         ("feat(ios): iPad v0.1.11 feature integration + CJK font fix")
         bundled a 43&nbsp;KB LXGW WenKai subset as
-        <code>"SoloMD CJK"</code> — a deliberately-soft handwritten font we
+        <code>"xiaoyuanNote CJK"</code> — a deliberately-soft handwritten font we
         embed for the iOS Simulator (which has no PingFang). The intent was
         a fallback. But the implementation put it <em>first</em> in the
         font-family chain, like this:
       </p>
-      <pre><code>--font-ui: "SoloMD CJK", system-ui, -apple-system, ..., "Microsoft YaHei", ...</code></pre>
+      <pre><code>--font-ui: "xiaoyuanNote CJK", system-ui, -apple-system, ..., "Microsoft YaHei", ...</code></pre>
       <p>
         Combined with the <code>@font-face</code> rule's
         <code>unicode-range: U+3400-9FFF</code>, this told every Chromium /
-        WebView2 / WKWebView: "for any CJK character, prefer SoloMD CJK
+        WebView2 / WKWebView: "for any CJK character, prefer xiaoyuanNote CJK
         over everything that follows." So Windows YaHei was bypassed for
         Chinese. Mac PingFang was bypassed. Linux Noto Sans CJK was
         bypassed. Everywhere fell through to the bundled handwritten font,
@@ -63,10 +63,10 @@ const lang = 'en' as const;
         The Settings → Font picker didn't help because that picker only
         controls the <strong>editor</strong> font (the CodeMirror pane),
         not the UI chrome. The UI uses <code>--font-ui</code>, which
-        SoloMD CJK had hijacked.
+        xiaoyuanNote CJK had hijacked.
       </p>
       <p>
-        <strong>The fix</strong>: move <code>"SoloMD CJK"</code> from
+        <strong>The fix</strong>: move <code>"xiaoyuanNote CJK"</code> from
         position 1 to last in the chain, no other changes. The
         <code>unicode-range</code> still triggers a download only when the
         bundled font is needed. On every real platform, the cascade now
@@ -77,7 +77,7 @@ const lang = 'en' as const;
         <li>macOS → PingFang SC (Quartz hinting)</li>
         <li>Linux → Noto Sans CJK SC</li>
         <li>Real iPad → PingFang</li>
-        <li>iOS Simulator → falls through to bundled SoloMD CJK (its original purpose)</li>
+        <li>iOS Simulator → falls through to bundled xiaoyuanNote CJK (its original purpose)</li>
       </ul>
       <p>
         Lesson saved internally: a bundled <code>@font-face</code> with
@@ -101,7 +101,7 @@ const lang = 'en' as const;
       </p>
       <ul>
         <li>
-          Desktop app POSTs to <code>solomd.app/api/track</code>. Same data
+          Desktop app POSTs to <code>xiaoyuannote.app/api/track</code>. Same data
           shape as before — event name, anonymous device UUID
           (localStorage), app version, OS, locale, a few small props.
           <strong>No IP, no User-Agent, no fingerprint.</strong>
@@ -116,7 +116,7 @@ const lang = 'en' as const;
           (5M reads/day, 100k writes/day, 5GB storage).
         </li>
         <li>
-          A token-protected dashboard at <code>solomd.app/admin/</code>
+          A token-protected dashboard at <code>xiaoyuannote.app/admin/</code>
           shows daily activity, event breakdown, version distribution, OS,
           locale. Bearer token in <code>sessionStorage</code>, never in
           a cookie or URL.
@@ -172,18 +172,18 @@ const lang = 'en' as const;
 
       <h2>📥 Download</h2>
       <p>
-        <a class="btn btn--primary" href="https://github.com/zhitongblog/solomd/releases/tag/v3.5.5">Download v3.5.5 →</a>
+        <a class="btn btn--primary" href="https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v3.5.5">Download v3.5.5 →</a>
         &nbsp;
-        <a class="btn" href="https://github.com/zhitongblog/solomd/releases">All releases</a>
+        <a class="btn" href="https://github.com/zhitongblog/xiaoyuan-note/releases">All releases</a>
       </p>
       <p>
         v3.0.x+ users will see an in-app update prompt within 24h. On
-        macOS, <code>brew upgrade --cask solomd</code> works too.
+        macOS, <code>brew upgrade --cask xiaoyuanNote</code> works too.
       </p>
 
       <h2>What's next — v3.6</h2>
       <p>
-        Issue <a href="https://github.com/zhitongblog/solomd/issues/44" rel="external">#44</a>
+        Issue <a href="https://github.com/zhitongblog/xiaoyuan-note/issues/44" rel="external">#44</a>
         — image and table inline rendering inside live edit mode — is
         next up. It's not a CSS change; it needs a CodeMirror
         block-decoration extension that intercepts image-syntax lines and

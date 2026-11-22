@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Icon from './Icons.vue';
 import BrandMark from './BrandMark.vue';
@@ -63,10 +63,14 @@ const props = withDefaults(
     /** macOS: this header is the leftmost visible column's header, so it owns
      *  the traffic-light inset (App decides which column that is). */
     macInset?: boolean;
+    /** Keep the titlebar mounted while reading mode hides it. The component
+     *  has a fragment root, so v-show must live on the toolbar roots. */
+    visible?: boolean;
   }>(),
   {
     variant: 'header',
     macInset: false,
+    visible: true,
   },
 );
 const isTitlebar = computed(() => props.variant === 'titlebar');
@@ -179,10 +183,10 @@ function onTitleBarDblClick(e: MouseEvent) {
 
 /**
  * v2.5 F6 — open the CJK proofread panel. App.vue listens for this
- * event (same pattern as `solomd:open-help` / `solomd:open-settings`).
+ * event (same pattern as `xiaoyuan-note:open-help` / `xiaoyuan-note:open-settings`).
  */
 function onOpenCjkProofread() {
-  window.dispatchEvent(new CustomEvent('solomd:open-cjk-proofread'));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-cjk-proofread'));
 }
 
 function onCleanAI() {
@@ -202,7 +206,7 @@ function onCleanAI() {
 
 /**
  * Toolbar entry for v2.0 F4. Mirrors the Cmd+J keyboard binding —
- * builders the same `solomd:ai-rewrite-open` event off the active editor's
+ * builders the same `xiaoyuan-note:ai-rewrite-open` event off the active editor's
  * selection so both routes funnel into AIRewriteOverlay.
  */
 function onAIRewrite() {
@@ -216,7 +220,7 @@ function onAIRewrite() {
     // SettingsPanel; pass section via event detail so the panel jumps
     // there directly instead of opening at the default `basics` tab.
     window.dispatchEvent(
-      new CustomEvent('solomd:open-settings', { detail: { section: 'integrations' } }),
+      new CustomEvent('xiaoyuan-note:open-settings', { detail: { section: 'integrations' } }),
     );
     return;
   }
@@ -271,7 +275,7 @@ function onAIRewrite() {
     return;
   }
   window.dispatchEvent(
-    new CustomEvent('solomd:ai-rewrite-open', { detail: picked }),
+    new CustomEvent('xiaoyuan-note:ai-rewrite-open', { detail: picked }),
   );
 }
 
@@ -450,7 +454,7 @@ function openPomodoro() {
 /** #296 — formatting from the Insert menu runs the same toggle the shortcut
  *  does, so it wraps the selection instead of dropping a template beside it. */
 function dispatchFormat(kind: string) {
-  window.dispatchEvent(new CustomEvent('solomd:format-markdown', { detail: { kind } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:format-markdown', { detail: { kind } }));
   closeAllDropdowns();
 }
 // A phone has no keyboard to press them with — the hints are just clutter.
@@ -461,7 +465,7 @@ function chord(actionId: string): string {
 
 function dispatchInsert(snippet: string) {
   window.dispatchEvent(
-    new CustomEvent('solomd:insert-markdown', {
+    new CustomEvent('xiaoyuan-note:insert-markdown', {
       detail: { snippet, paneId: tiles.focusedPaneId },
     })
   );
@@ -479,7 +483,7 @@ async function pickAndInsertImage() {
   });
   if (typeof sel !== 'string') return;
   window.dispatchEvent(
-    new CustomEvent('solomd:insert-image-path', {
+    new CustomEvent('xiaoyuan-note:insert-image-path', {
       detail: { path: sel, paneId: tiles.focusedPaneId },
     }),
   );
@@ -488,7 +492,7 @@ async function pickAndInsertImage() {
 // Insert an image by external URL (网络图片) — opens the dialog mounted in App.vue.
 function openImageUrlDialog() {
   closeAllDropdowns();
-  window.dispatchEvent(new CustomEvent('solomd:open-image-url-dialog'));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-image-url-dialog'));
 }
 
 function shortPath(p: string) {
@@ -547,8 +551,8 @@ function menuAction(node: MenuNode) {
   if (node.type !== 'item' || node.enabled === false) return;
   menubarOpen.value = null;
   // Same dispatch surface the native menus use (App.vue listens for both this
-  // DOM event and the Tauri `solomd://menu` event).
-  window.dispatchEvent(new CustomEvent('solomd:menu-action', { detail: node.id }));
+  // DOM event and the Tauri `xiaoyuan-note://menu` event).
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:menu-action', { detail: node.id }));
 }
 /** The chord shown beside an item — read at render time from the bindings. */
 function menuShortcut(node: MenuNode): string {
@@ -709,7 +713,7 @@ onMounted(async () => {
       }),
     );
     unlistenWinChrome.push(
-      await listen<boolean>('solomd://maxbtn-hover', (e) => {
+      await listen<boolean>('xiaoyuan-note://maxbtn-hover', (e) => {
         maxBtnHover.value = !!e.payload;
       }),
     );
@@ -755,14 +759,7 @@ function openByKey(name: DropdownName) {
 }
 const anyToolbarMenuOpen = computed(() => exportOpen.value || modesOpen.value || moreOpen.value);
 watch(
-  () => [menuPos.value, anyToolbarMenuOpen.value, menubarOpen.value],
-  () => {
-    if (anyToolbarMenuOpen.value || menubarOpen.value) keepMenuOnScreen();
-  },
-  { flush: 'post' },
-);
-watch(
-  () => [menuPos.value, anyToolbarMenuOpen.value, menubarOpen.value],
+  () => [anyToolbarMenuOpen.value, menubarOpen.value],
   () => {
     if (anyToolbarMenuOpen.value || menubarOpen.value) keepMenuOnScreen();
   },
@@ -826,12 +823,15 @@ function onEscapeKey(e: KeyboardEvent) {
 function onOpenPomodoroEvent() {
   openPomodoro();
 }
-function onDocClick(e: MouseEvent) {
-  // Menus are teleported to <body>, so `.closest('.dropdown')` from a menu
-  // item won't reach the original `.dropdown` wrapper — also check for the
-  // menu's own marker class.
+// Any mouse press (left OR right) outside the open toolbar menus dismisses
+// them, so they can never sit on top of another popup (e.g. the editor's
+// context menu opened by a right-click). `mousedown` — not `click` — also
+// covers right-clicks. Menus are teleported to <body>, so check their marker
+// classes; `.pomo-popover` is excluded so clicks inside the Pomodoro popover
+// don't dismiss it.
+function onDocDownClose(e: MouseEvent) {
   const target = e.target as HTMLElement | null;
-  if (target && (target.closest('.dropdown') || target.closest('.dropdown__menu'))) return;
+  if (target && (target.closest('.dropdown') || target.closest('.dropdown__menu') || target.closest('.pomo-popover'))) return;
   closeAllDropdowns();
 }
 function onViewportChange() {
@@ -850,25 +850,25 @@ function onScrollAnywhere(e: Event) {
   closeAllDropdowns();
 }
 onMounted(() => {
-  document.addEventListener('click', onDocClick, true);
+  document.addEventListener('mousedown', onDocDownClose, true);
   document.addEventListener('keydown', onEscapeKey, true);
   window.addEventListener('resize', onViewportChange);
   window.addEventListener('scroll', onScrollAnywhere, true);
   // Android Back on the phone shell (App.vue) closes an open menu too.
-  window.addEventListener('solomd:close-menus', closeAllDropdowns);
+  window.addEventListener('xiaoyuan-note:close-menus', closeAllDropdowns);
   // Two Toolbars exist on Windows; only the header answers these.
   if (isTitlebar.value) return;
-  window.addEventListener('solomd:open-pomodoro', onOpenPomodoroEvent);
-  window.addEventListener('solomd:toolbar-ai-rewrite', onAIRewrite);
+  window.addEventListener('xiaoyuan-note:open-pomodoro', onOpenPomodoroEvent);
+  window.addEventListener('xiaoyuan-note:toolbar-ai-rewrite', onAIRewrite);
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('solomd:close-menus', closeAllDropdowns);
-  document.removeEventListener('click', onDocClick, true);
+  window.removeEventListener('xiaoyuan-note:close-menus', closeAllDropdowns);
+  document.removeEventListener('mousedown', onDocDownClose, true);
   document.removeEventListener('keydown', onEscapeKey, true);
   window.removeEventListener('resize', onViewportChange);
   window.removeEventListener('scroll', onScrollAnywhere, true);
-  window.removeEventListener('solomd:open-pomodoro', onOpenPomodoroEvent);
-  window.removeEventListener('solomd:toolbar-ai-rewrite', onAIRewrite);
+  window.removeEventListener('xiaoyuan-note:open-pomodoro', onOpenPomodoroEvent);
+  window.removeEventListener('xiaoyuan-note:toolbar-ai-rewrite', onAIRewrite);
 });
 </script>
 
@@ -876,6 +876,7 @@ onBeforeUnmount(() => {
   <!-- ── Windows: the frameless title bar ─────────────────────────────── -->
   <div
     v-if="isTitlebar"
+    v-show="visible"
     ref="toolbarRef"
     class="toolbar toolbar--titlebar"
     @mousedown.capture="onTitleBarMouseDown"
@@ -1016,6 +1017,7 @@ onBeforeUnmount(() => {
   <!-- ── The header row (every desktop platform; iPad too) ────────────── -->
   <div
     v-else
+    v-show="visible"
     ref="toolbarRef"
     class="toolbar"
     :class="{
@@ -1566,7 +1568,7 @@ onBeforeUnmount(() => {
           </div>
         </Teleport>
 
-    <!-- Writing-session presets, opened from the palette ("solomd:open-pomodoro"). -->
+    <!-- Writing-session presets, opened from the palette ("xiaoyuan-note:open-pomodoro"). -->
     <Teleport to="body">
       <div v-if="pomoOpen" class="dropdown pomo-anchor" :style="pomoAnchorStyle">
         <PomodoroPopover :open="pomoOpen" @close="pomoOpen = false" />

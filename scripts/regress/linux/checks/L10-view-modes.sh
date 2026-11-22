@@ -28,6 +28,6 @@ expect "Ctrl+Shift+R reading mode hides the file tree" bash -c "! python3 '$RG_S
 key ctrl+shift+r; sleep 1
 mode Preview
 app_quit 10 || app_kill
-vm=$(ls_json solomd.settings.v1 'v.get("viewMode")'); note "persisted viewMode: $vm"
+vm=$(ls_json xiaoyuan-note.settings.v1 'v.get("viewMode")'); note "persisted viewMode: $vm"
 expect "Preview persisted (settings.viewMode=preview)" test "$vm" = preview
 finish "view modes switch and persist"

@@ -2,7 +2,7 @@
  * Session-restore extension for CodeMirror 6.
  *
  * Debounces doc-change updates and persists the buffer to
- * `localStorage` under `solomd.session.<tabId>`. On editor mount, the
+ * `localStorage` under `xiaoyuan-note.session.<tabId>`. On editor mount, the
  * Editor component is responsible for reading the saved value and
  * re-dispatching it into the doc if the tab was otherwise empty.
  *
@@ -12,7 +12,7 @@
 
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 
-const KEY_PREFIX = 'solomd.session.';
+const KEY_PREFIX = 'xiaoyuan-note.session.';
 const DEBOUNCE_MS = 500;
 
 export function sessionKey(tabId: string): string {
@@ -86,7 +86,7 @@ export function createDebouncedWrite<T>(
 
 /** Dispatched before saves and window closes (useFiles.ts, App.vue) so every
  *  debounced edit reaches the store and storage first. */
-const FLUSH_EVENT = 'solomd:flush-content-sync';
+const FLUSH_EVENT = 'xiaoyuan-note:flush-content-sync';
 
 export function sessionRestoreExtension(tabId: string) {
   return ViewPlugin.fromClass(

@@ -1,4 +1,4 @@
-SoloMD 5.0 – ein ruhigerer Ort zum Schreiben.
+xiaoyuanNote 5.0 – ein ruhigerer Ort zum Schreiben.
 
 • Ein neu gestaltetes Fenster: eine schlichte Kopfzeile, in der Live / Quelltext / Geteilt / Vorschau nur einen Tipp voneinander entfernt sind, eine Seitenleiste für Ordner und Notizen, Tabs in Pillenform und eine kleine Wortzahl-Anzeige statt einer Statusleiste.
 • iPhone: ein Startbildschirm für Notizen, Suche und eine Schaltfläche für neue Notizen am unteren Rand sowie ein Editor im Vollbild.

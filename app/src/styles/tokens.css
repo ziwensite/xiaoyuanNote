@@ -1,4 +1,4 @@
-/* SoloMD design tokens — 5.0 (docs/v5-ui-spec.md §2).
+/* xiaoyuanNote design tokens — 5.0 (docs/v5-ui-spec.md §2).
  *
  * Imported FIRST from main.css, so main.css and the named themes cascade after
  * this file. Three layers:
@@ -116,9 +116,13 @@
 
   --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
   --ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent-ring);
-  /* One-pixel halo for fields: the 4px ring above reads as a separate frame
-   * around a 24px-tall input, so inputs grow by exactly 1px instead. */
-  --ring-tight: 0 0 0 1px var(--accent-ring);
+  /* One-pixel focus halo for fields. Drawn INSET (inside the border box) on
+   * purpose: an OUTSIDE box-shadow is clipped by any ancestor with overflow:auto
+   * (scroll containers) when the field sits flush against its edge, which made
+   * the ring vanish on left/right edges. Inset lives inside the element's own
+   * box and can never be clipped, so every input/select/textarea keeps a visible
+   * 1px accent ring on focus — at any edge, in any scroll panel. */
+  --ring-tight: inset 0 0 0 1px var(--accent-ring);
 
   --danger: #d64545;
   --danger-fg: #ffffff;

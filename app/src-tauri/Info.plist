@@ -5,7 +5,7 @@
 	<!--
 	  The interface ships in fourteen languages, but the bundle never said so.
 	  Apple reads the supported languages off the bundle, not off the app's own
-	  i18n files, so the App Store listed SoloMD as English-only — which is what
+	  i18n files, so the App Store listed xiaoyuanNote as English-only — which is what
 	  a non-English storefront shows a person deciding whether this app is for
 	  them, and what its search index has to work with.
 
@@ -36,7 +36,7 @@
 	  Export compliance, answered in the bundle rather than in a web form.
 	  A build that arrives without this sits in "Missing Export Compliance"
 	  and review will not take it — which is where the 4.12.0 macOS upload
-	  ended up. False is the accurate answer: SoloMD ships no cryptography of
+	  ended up. False is the accurate answer: xiaoyuanNote ships no cryptography of
 	  its own and only speaks HTTPS through the operating system, which is
 	  exempt.
 	-->

@@ -14,7 +14,7 @@
 //!      the static listings can be compared against.
 //!
 //! This test only reads repository text: no MCP server, no network, no new
-//! dependency. Skipped when the crate is built outside the SoloMD repo (e.g.
+//! dependency. Skipped when the crate is built outside the xiaoyuanNote repo (e.g.
 //! from crates.io), like `version_sync.rs`.
 
 use serde_json::Value;
@@ -54,9 +54,9 @@ fn toml_version(raw: &str) -> String {
 
 fn cli_version(raw: &str) -> String {
     raw.lines()
-        .find_map(|l| l.strip_prefix("SOLOMD_VERSION=\""))
+        .find_map(|l| l.strip_prefix("XIAOYUAN_NOTE_VERSION=\""))
         .and_then(|rest| rest.split('"').next())
-        .expect("SOLOMD_VERSION in scripts/solomd")
+        .expect("XIAOYUAN_NOTE_VERSION in scripts/xiaoyuanNote")
         .to_string()
 }
 
@@ -88,7 +88,7 @@ fn semver(v: &str) -> (u64, u64, u64) {
 #[test]
 fn every_in_tree_version_matches_the_app() {
     if !in_repo() {
-        eprintln!("skipping: not inside the SoloMD repo");
+        eprintln!("skipping: not inside the xiaoyuanNote repo");
         return;
     }
     let app = app_version();
@@ -107,7 +107,7 @@ fn every_in_tree_version_matches_the_app() {
             "mcp-server/mcpb/manifest.json",
             json_version(&read("mcp-server/mcpb/manifest.json")),
         ),
-        ("scripts/solomd", cli_version(&read("scripts/solomd"))),
+        ("scripts/xiaoyuanNote", cli_version(&read("scripts/xiaoyuanNote"))),
         (
             "web/src/layouts/Layout.astro",
             schema_version(&read("web/src/layouts/Layout.astro")),
@@ -158,7 +158,7 @@ fn published_artifacts_are_self_consistent_and_never_ahead_of_the_app() {
         "server.json identifier must point at its own version: {identifier}"
     );
     assert!(
-        identifier.ends_with(&format!("solomd-mcp-{version}.mcpb")),
+        identifier.ends_with(&format!("xiaoyuan-note-mcp-{version}.mcpb")),
         "server.json identifier must name the .mcpb for {version}: {identifier}"
     );
     assert_eq!(sha.len(), 64, "fileSha256 must be a full sha256 hex digest");
@@ -173,10 +173,10 @@ fn published_artifacts_are_self_consistent_and_never_ahead_of_the_app() {
 
     // distribution manifests: one release per set, and URLs agree with it.
     let winget = [
-        "distribution/manifests/winget/zhitong.SoloMD.yaml",
-        "distribution/manifests/winget/zhitong.SoloMD.locale.en-US.yaml",
-        "distribution/manifests/winget/zhitong.SoloMD.locale.zh-CN.yaml",
-        "distribution/manifests/winget/zhitong.SoloMD.installer.yaml",
+        "distribution/manifests/winget/zhitong.xiaoyuan-note.yaml",
+        "distribution/manifests/winget/zhitong.xiaoyuan-note.locale.en-US.yaml",
+        "distribution/manifests/winget/zhitong.xiaoyuan-note.locale.zh-CN.yaml",
+        "distribution/manifests/winget/zhitong.xiaoyuan-note.installer.yaml",
     ]
     .map(|p| (p, read(p)));
     let dist = yaml_package_version(&winget[0].1);
@@ -196,9 +196,9 @@ fn published_artifacts_are_self_consistent_and_never_ahead_of_the_app() {
         winget[1].1.contains(&format!("/tag/v{dist}")),
         "winget ReleaseNotesUrl must point at v{dist}"
     );
-    let scoop = read("distribution/manifests/scoop/solomd.json");
+    let scoop = read("distribution/manifests/scoop/xiaoyuan-note.json");
     assert_eq!(json_version(&scoop), dist, "scoop manifest drifted");
-    let cask = read("distribution/manifests/homebrew/solomd.rb");
+    let cask = read("distribution/manifests/homebrew/xiaoyuan-note.rb");
     assert_eq!(
         quoted_version(&cask, "version \""),
         dist,
@@ -334,8 +334,8 @@ const PUBLIC_TOOL_COPY: &[&str] = &[
     "marketplace/client-docs/cline.md",
     "marketplace/client-docs/claude-desktop.md",
     "marketplace/client-docs/claude-code.md",
-    "marketplace/claude-code-skill/solomd/SKILL.md",
-    "marketplace/claude-code-skill/solomd/install.sh",
+    "marketplace/claude-code-skill/xiaoyuan-note/SKILL.md",
+    "marketplace/claude-code-skill/xiaoyuan-note/install.sh",
     "marketplace/claude-code-skill/README.md",
     "marketplace/awesome-mcp/README.md",
     "marketplace/awesome-mcp/pr-body.md",
@@ -379,10 +379,10 @@ const STALE_TOOL_PHRASES: &[&str] = &[
     "8 загальних",
     "8 generiska",
     "汎用 8",
-    "5 SoloMD-only",
-    "5 SoloMD-eigen",
-    "5 SoloMD-eigene",
-    "5 specifici SoloMD",
+    "5 xiaoyuan-note-only",
+    "5 xiaoyuan-note-eigen",
+    "5 xiaoyuan-note-eigene",
+    "5 specifici xiaoyuanNote",
     "the 3 write tools",
     "off 13",
 ];

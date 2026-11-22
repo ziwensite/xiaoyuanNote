@@ -3,7 +3,7 @@
  *
  * Backs the Settings → Integrations "MCP profiles" UI. A *profile* is a
  * named bundle of `(alias, workspace path)` entries the user wants to
- * expose through one solomd-mcp invocation. The profile name doubles as
+ * expose through one xiaoyuan-note-mcp invocation. The profile name doubles as
  * the `mcpServers.<key>` in the rendered Claude Desktop config snippet.
  *
  * The Rust side (`mcp_profiles::*` Tauri commands) owns disk persistence

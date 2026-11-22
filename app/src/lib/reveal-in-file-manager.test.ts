@@ -8,7 +8,7 @@ test('unix file → its folder', () => {
 });
 
 test('windows file → its folder', () => {
-  assert.equal(parentDirOf('D:\\TYYSTUDY\\SoloMD笔记库\\00 需求问题管理\\untitled.md'), 'D:\\TYYSTUDY\\SoloMD笔记库\\00 需求问题管理');
+  assert.equal(parentDirOf('D:\\TYYSTUDY\\xiaoyuan-note笔记库\\00 需求问题管理\\untitled.md'), 'D:\\TYYSTUDY\\xiaoyuan-note笔记库\\00 需求问题管理');
 });
 
 test('file at a drive root → the drive root, not the drive-relative "D:"', () => {

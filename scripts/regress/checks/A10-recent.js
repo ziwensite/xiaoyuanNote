@@ -7,5 +7,5 @@ R.eq(rec.slice(0, 2), [path('Table Note.md'), path('README.md')], 'recent order'
 act('recent.clear');
 await sleep(100);
 R.eq(workspace.recentFiles.length, 0, 'recent cleared');
-R.t(!(JSON.parse(localStorage.getItem('solomd.workspace.v1') || '{}').recentFiles || []).length, 'cleared in localStorage');
+R.t(!(JSON.parse(localStorage.getItem('xiaoyuan-note.workspace.v1') || '{}').recentFiles || []).length, 'cleared in localStorage');
 return R.done();

@@ -1,6 +1,6 @@
 //! Behavioral integration test for v4.0 multi-workspace federation.
 //!
-//! Spawns the actual `solomd-mcp` binary as a subprocess, drives it over
+//! Spawns the actual `xiaoyuan-note-mcp` binary as a subprocess, drives it over
 //! stdio with raw JSON-RPC frames (mirroring the README's "Verifying"
 //! recipe), and asserts:
 //!
@@ -26,7 +26,7 @@ fn fresh_workspace(label: &str, note_name: &str, body: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-mcp-multi-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-multi-{label}-{nanos}"));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join(note_name), body).unwrap();
@@ -36,7 +36,7 @@ fn fresh_workspace(label: &str, note_name: &str, body: &str) -> PathBuf {
 fn binary_path() -> PathBuf {
     // CARGO_BIN_EXE_<name> is set by cargo for integration tests targeting
     // the named bin in this crate.
-    PathBuf::from(env!("CARGO_BIN_EXE_solomd-mcp"))
+    PathBuf::from(env!("CARGO_BIN_EXE_xiaoyuan-note-mcp"))
 }
 
 /// Drive the server through `initialize` → `notifications/initialized` →
@@ -49,7 +49,7 @@ fn drive(args: &[&str], requests: &[serde_json::Value]) -> Vec<serde_json::Value
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect("spawn solomd-mcp");
+        .expect("spawn xiaoyuan-note-mcp");
 
     let mut stdin = child.stdin.take().unwrap();
     // Initialize handshake.

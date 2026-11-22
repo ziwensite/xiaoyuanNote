@@ -1,4 +1,4 @@
-﻿param([string]$Exe = "notepad.exe", [string]$Title = "", [switch]$NewTab, [string]$ExeArgs = "", [string]$WinText = "", [int]$AfterEnterMs = 300, [int]$BeforeEnterMs = 300, [string]$Out = "C:\Users\Public\ime-result.txt", [int]$Settle = 4, [switch]$MidInsert, [string]$MidClick = "", [switch]$Blocks)
+param([string]$Exe = "notepad.exe", [string]$Title = "", [switch]$NewTab, [string]$ExeArgs = "", [string]$WinText = "", [int]$AfterEnterMs = 300, [int]$BeforeEnterMs = 300, [string]$Out = "C:\Users\Public\ime-result.txt", [int]$Settle = 4, [switch]$MidInsert, [string]$MidClick = "", [switch]$Blocks)
 $ErrorActionPreference = "Continue"
 Add-Type @"
 using System; using System.Runtime.InteropServices; using System.Text;
@@ -40,7 +40,7 @@ function TypeAscii([string]$s) { foreach ($c in $s.ToCharArray()) {
   elseif ($c -eq "`n") { Key 0x0D }
 } }
 Get-Process msedge, Notepad -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
-Get-Process SoloMD -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+Get-Process xiaoyuanNote -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
 Start-Sleep 1
 if ($ExeArgs) { $p = Start-Process $Exe -ArgumentList $ExeArgs -PassThru } else { $p = Start-Process $Exe -PassThru }
 Start-Sleep -Seconds $Settle

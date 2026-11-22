@@ -26,14 +26,14 @@ fn fresh(label: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let p = std::env::temp_dir().join(format!("solomd-e2ee-{label}-{nanos}"));
+    let p = std::env::temp_dir().join(format!("xiaoyuan-note-e2ee-{label}-{nanos}"));
     let _ = fs::remove_dir_all(&p);
     fs::create_dir_all(&p).unwrap();
     p
 }
 
 fn write_sync_json(folder: &Path, remote_url: &str) {
-    let cfg_dir = folder.join(".solomd");
+    let cfg_dir = folder.join(".xiaoyuanNote");
     fs::create_dir_all(&cfg_dir).unwrap();
     let body = json!({
         "remote_url": remote_url,
@@ -46,7 +46,7 @@ fn write_sync_json(folder: &Path, remote_url: &str) {
     })
     .to_string();
     fs::write(cfg_dir.join("sync.json"), body).unwrap();
-    fs::write(folder.join(".gitignore"), ".solomd/\n.solomd-encrypted/\n").unwrap();
+    fs::write(folder.join(".gitignore"), ".xiaoyuan-note/\n.xiaoyuan-note-encrypted/\n").unwrap();
 }
 
 fn file_url(path: &Path) -> String {
@@ -65,7 +65,7 @@ fn file_url(path: &Path) -> String {
 }
 
 fn init_shadow_with_remote(folder: &Path, remote_url: &str) {
-    let shadow = folder.join(".solomd-encrypted");
+    let shadow = folder.join(".xiaoyuan-note-encrypted");
     fs::create_dir_all(&shadow).unwrap();
     let repo = Repository::init(&shadow).unwrap();
     let mut cfg = repo.config().unwrap();
@@ -168,8 +168,8 @@ fn e2ee_full_round_trip_two_devices() {
     );
     assert!(
         dev_b
-            .join(".solomd-encrypted")
-            .join(".solomd-vault.json")
+            .join(".xiaoyuan-note-encrypted")
+            .join(".xiaoyuan-note-vault.json")
             .exists(),
         "synced salt file should have arrived in the shadow"
     );
@@ -215,5 +215,5 @@ fn e2ee_full_round_trip_two_devices() {
     // shadow path (used by the frontend to display "encrypted under
     // ...").
     let shadow = crypto_encrypt_for_push(dev_a.to_string_lossy().into_owned()).unwrap();
-    assert!(shadow.ends_with(".solomd-encrypted"));
+    assert!(shadow.ends_with(".xiaoyuan-note-encrypted"));
 }

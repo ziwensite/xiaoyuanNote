@@ -3,7 +3,7 @@ start_on index.md || fail "app did not start"
 key ctrl+End; typ " rs0"; sleep 1
 app_quit 10 || app_kill
 app_launch || fail "relaunch failed"
-wait_title '^index\.md — SoloMD$' 10
+wait_title '^index\.md — xiaoyuanNote$' 10
 for n in 1 2 3 4; do
   away 2.2
   focus_main; click_editor 1300 600; key ctrl+End

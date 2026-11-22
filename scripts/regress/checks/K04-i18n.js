@@ -8,10 +8,10 @@ R.eq(document.documentElement.lang.toLowerCase().slice(0, 2), 'de', 'html lang d
 settings.setLanguage('zh'); await sleep(200);
 window.__regressToasts = [];
 await fresh('toast.md', '# T\n');
-window.__solomdSavePathOverride = path('_work/' + CHECK + '.html');
+window.__xiaoyuanNoteSavePathOverride = path('_work/' + CHECK + '.html');
 act('export.html');
 await waitFor(() => window.__regressToasts.some((m) => /HTML/.test(m) && !/…/.test(m)), 15000, 200);
-delete window.__solomdSavePathOverride;
+delete window.__xiaoyuanNoteSavePathOverride;
 const saved = await inv('plugin:clipboard-manager|read_text').catch(() => null);
 act('export.copyMd'); await sleep(500);
 if (saved != null) await inv('plugin:clipboard-manager|write_text', { text: saved });

@@ -1,7 +1,7 @@
 /**
  * #427 — "Copy as Word" (`copyAsWord`) HTML transformer.
  *
- * Pasting SoloMD's raw preview HTML directly into Microsoft Word / WPS Office
+ * Pasting xiaoyuanNote’s raw preview HTML directly into Microsoft Word / WPS Office
  * fails in four ways because external stylesheets are not carried on the
  * clipboard:
  *   1. KaTeX outputs both `<span class="katex-mathml"><math>…</math></span>`

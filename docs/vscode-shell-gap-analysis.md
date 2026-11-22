@@ -7,7 +7,7 @@
 
 ## 0. 结论速览
 
-1. **SoloMD 现在不是“两栏”，而是四栏**：文件树列（`Sidebar.vue`）+ 左 Dock + 编辑器 + 右 Dock。VSCode 的“活动栏 + 主侧栏 + 次侧栏”只覆盖了后三者中的一部分。
+1. **xiaoyuanNote 现在不是“两栏”，而是四栏**：文件树列（`Sidebar.vue`）+ 左 Dock + 编辑器 + 右 Dock。VSCode 的“活动栏 + 主侧栏 + 次侧栏”只覆盖了后三者中的一部分。
 2. **真正要动结构的是三件事**：把文件树并入侧栏、把两条 rail 收成一条全局活动栏、把 `side` 模型换成 `primary/secondary` 模型。其余（面包屑、Zen、居中、活动栏底部槽位）都是增量 UI。
 3. **底部 Panel 与 22px 状态栏不建议照搬**；`StatsPill` 已经是有意的替代品。
 4. **S3（拖拽）应暂缓**：它依赖最终的活动栏/侧栏形态；先做外壳合并，再按新模型收窄 S3。S4 与“文件树并入 + 窄屏单抽屉”合并。
@@ -35,7 +35,7 @@
 
 ---
 
-## 2. SoloMD 现状对照
+## 2. xiaoyuanNote 现状对照
 
 ### 2.1 对照表
 
@@ -84,7 +84,7 @@
 
 | # | 冲突 | 为什么必须动结构 | 连带影响 | 量级 |
 |---|---|---|---|---|
-| **C1** | 文件树是第三列，不是侧栏容器 | 只要它还在 Dock 外面，就永远无法“一个活动栏 + 一个主侧栏”。要么并入，要么承认 SoloMD 是四栏外壳 | **迁移**：`showFileTree`/`fileTreeWidth`/`rightSidebarHidden` 的语义重写；**菜单**：`view.toggleFileTree` 的标题与勾选态；**快捷键**：`Mod+B` 从“文件树”变成“主侧栏”；**设置**：`showFileTree` 项、`explorerDoubleClickFiles` 等仍有效但归属变化；**i18n**：15 份文案里 “File tree / Outline side / right sidebar” 要改口径；**测试**：`sidebar-dock.test.ts` + `app-menu.test.ts` 的结构断言 | 高（3–3.5 人日） |
+| **C1** | 文件树是第三列，不是侧栏容器 | 只要它还在 Dock 外面，就永远无法“一个活动栏 + 一个主侧栏”。要么并入，要么承认 xiaoyuanNote 是四栏外壳 | **迁移**：`showFileTree`/`fileTreeWidth`/`rightSidebarHidden` 的语义重写；**菜单**：`view.toggleFileTree` 的标题与勾选态；**快捷键**：`Mod+B` 从“文件树”变成“主侧栏”；**设置**：`showFileTree` 项、`explorerDoubleClickFiles` 等仍有效但归属变化；**i18n**：15 份文案里 “File tree / Outline side / right sidebar” 要改口径；**测试**：`sidebar-dock.test.ts` + `app-menu.test.ts` 的结构断言 | 高（3–3.5 人日） |
 | **C2** | 两条 rail vs 一条活动栏 | VSCode 的活动栏是全局入口；两条 32px rail 在视觉上像“两个小抽屉”，且右侧 rail 与 VSCode 的 Secondary Side Bar **没有**对应关系（VSCode 次侧栏没有活动栏） | **迁移**：`sidebarDock` 的 `collapsed` 语义（rail 开/侧栏开）要拆成 `primary.collapsed` + `secondary.open`；**菜单/工具栏**：`view.toggleRightSidebar` 的文案与勾选态；**快捷键**：`Mod+Alt+B` 的去留；**i18n**：新增 Activity Bar / Primary / Secondary 概念 | 高（2.5–3 人日） |
 | **C3** | `panes[].side` 对称模型 vs `primary/secondary` 角色模型 | 现在“左/右”是同级槽位；VSCode 是“主容器（可多视图）+ 辅助容器（可选）”。不改模型，跨区移动、默认预设、菜单勾选态都会继续按对称逻辑写 | **迁移**：老 S2 blob 的 `side` → 主/次；`outlineSide` 下线或降级为“主侧栏位置”；**菜单**：Panels 子菜单增加“移到主/次侧栏”；**快捷键**：循环焦点/换侧命令；**设置**：`outlineSide` 项；**i18n**：move to primary/secondary | 高（含在 C2 内） |
 | **C4** | 标签条在全局 52px 头部（单面板时） | VSCode 的标签属于编辑器组；放在全局头部会让“应用工具栏”和“文档标签”混在一起，也堵死了面包屑与编辑器动作的位置 | **DOM**：`Toolbar.vue` 的 `#header-tabs` 退役；`PaneHost/PaneTabBar` 改为组头常驻 36px；**拖拽**：标签拖拽命中区改变；**窄屏**：头部高度重新分配；**测试**：无组件测试，需手工矩阵 | 中（1.5–2 人日） |
@@ -110,10 +110,10 @@
 
 | 不照搬 | 理由 |
 |---|---|
-| **Terminal / Output / Problems / Debug Console（底部 Panel）** | SoloMD 没有进程、编译、诊断流；唯一的“输出”是 Agent 轨迹与同步日志，它们已经有侧栏归宿（Agent/Trace、History）。加底部面板只会长期空着，并吃掉正文高度。 |
+| **Terminal / Output / Problems / Debug Console（底部 Panel）** | xiaoyuanNote 没有进程、编译、诊断流；唯一的“输出”是 Agent 轨迹与同步日志，它们已经有侧栏归宿（Agent/Trace、History）。加底部面板只会长期空着，并吃掉正文高度。 |
 | **Activity Bar → Container → View → Viewlet 的嵌套** | 11 个面板两层（图标 → 面板）已经够用；再套一层容器会让“找一个面板”变慢，也让注册表/菜单/i18n 复杂化。建议最多做“扁平分组”（≤5 个图标），不做树。 |
-| **多 root workspace / workspace trust / `.code-workspace`** | SoloMD 是单 vault（`workspace.currentFolder`），多根、信任模型、嵌套 `.code-workspace` 对笔记应用是纯负资产。 |
-| **SCM 视图容器** | Git 同步在 SoloMD 是后台能力（auto-commit、History、冲突面板）；做成 VSCode 式源代码管理树会把“写作工具”变成“开发工具”。 |
+| **多 root workspace / workspace trust / `.code-workspace`** | xiaoyuanNote 是单 vault（`workspace.currentFolder`），多根、信任模型、嵌套 `.code-workspace` 对笔记应用是纯负资产。 |
+| **SCM 视图容器** | Git 同步在 xiaoyuanNote 是后台能力（auto-commit、History、冲突面板）；做成 VSCode 式源代码管理树会把“写作工具”变成“开发工具”。 |
 | **任意网格分栏 / 空的 Editor Group** | 现有二叉分栏树已经覆盖“左右/上下看两份”；VSCode 的网格与空组会引入布局代数与焦点规则，收益极低。 |
 | **Minimap / overview ruler / problems 装饰** | 散文写作不需要字符级导航图；会持续占用右侧并干扰阅读。 |
 | **全宽 22px 状态栏塞满分支/编码/空格/错误** | 信息密度对写作是噪音；`StatsPill` 已经用更低的视觉成本给了行列/字数/Pomodoro。 |

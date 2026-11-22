@@ -29,7 +29,7 @@ fn fresh(label: &str) -> PathBuf {
     // The thread id disambiguates regardless of clock resolution.
     let tid = format!("{:?}", std::thread::current().id())
         .replace(|c: char| !c.is_ascii_alphanumeric(), "");
-    let p = std::env::temp_dir().join(format!("solomd-branch-{label}-{nanos}-{tid}"));
+    let p = std::env::temp_dir().join(format!("xiaoyuan-note-branch-{label}-{nanos}-{tid}"));
     let _ = fs::remove_dir_all(&p);
     fs::create_dir_all(&p).unwrap();
     p
@@ -51,7 +51,7 @@ fn file_url(path: &Path) -> String {
 }
 
 fn write_sync_json(folder: &Path, remote_url: &str) {
-    let cfg_dir = folder.join(".solomd");
+    let cfg_dir = folder.join(".xiaoyuanNote");
     fs::create_dir_all(&cfg_dir).unwrap();
     let body = json!({
         "remote_url": remote_url,
@@ -64,7 +64,7 @@ fn write_sync_json(folder: &Path, remote_url: &str) {
     })
     .to_string();
     fs::write(cfg_dir.join("sync.json"), body).unwrap();
-    fs::write(folder.join(".gitignore"), ".solomd/\n").unwrap();
+    fs::write(folder.join(".gitignore"), ".xiaoyuan-note/\n").unwrap();
 }
 
 fn commit_file(repo: &Repository, workdir: &Path, name: &str, body: &str, msg: &str) -> git2::Oid {

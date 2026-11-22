@@ -16,6 +16,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from '../../i18n';
 import { isValidAlarmTrigger } from '../../lib/calendar-reminders';
 import type { EditorDraft } from './editor-draft';
+import DatePickerPopover from '../DatePickerPopover.vue';
 
 const props = defineProps<{
   draft: EditorDraft;
@@ -152,7 +153,30 @@ function removeAlarm(index: number) {
     <div class="cal-editor__row">
       <label class="cal-editor__field cal-editor__field--date">
         <span>{{ t('calendar.editor.date') }}</span>
-        <input v-model="draft.date" type="date" class="cal-editor__input" :disabled="draft.recurring && draft.scope === 'series'">
+        <DatePickerPopover :iso="draft.date ?? ''" @pick="(iso: string) => (draft.date = iso)">
+          <template #trigger="{ toggle }">
+            <div class="cal-date-wrap">
+              <input
+                :value="draft.date ?? ''"
+                type="text"
+                class="cal-editor__input cal-editor__input--date"
+                :disabled="draft.recurring && draft.scope === 'series'"
+                :placeholder="t('calendar.editor.date')"
+                @click.stop
+                @input="(e: Event) => (draft.date = (e.target as HTMLInputElement).value)"
+              >
+              <button
+                type="button"
+                class="cal-date-ico"
+                :disabled="draft.recurring && draft.scope === 'series'"
+                :aria-label="t('calendar.editor.date')"
+                @click.stop="toggle"
+              >
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+              </button>
+            </div>
+          </template>
+        </DatePickerPopover>
       </label>
       <label class="cal-editor__check">
         <input v-model="draft.allDay" type="checkbox" :disabled="draft.recurring && draft.scope === 'series'">
@@ -304,6 +328,40 @@ function removeAlarm(index: number) {
 
 .cal-editor__field--date {
   flex: 1;
+}
+
+/* Date field: editable input with an in-box calendar icon on the right. Only the
+   icon opens the picker; the input itself stays editable (typed by hand). */
+.cal-date-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.cal-editor__input--date {
+  padding-left: 28px;
+}
+
+.cal-date-ico {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.cal-date-ico:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .cal-editor__row {

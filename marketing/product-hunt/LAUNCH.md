@@ -4,7 +4,7 @@
 
 ### Product Name
 ```
-SoloMD
+xiaoyuanNote
 ```
 
 ### Tagline (60 chars max)
@@ -20,8 +20,8 @@ A 15 MB Markdown editor. No bloat. No cloud. Just write.
 - Productivity
 
 ### Links
-- Website: https://solomd.app
-- GitHub: https://github.com/zhitongblog/solomd
+- Website: https://xiaoyuannote.app
+- GitHub: https://github.com/zhitongblog/xiaoyuan-note
 
 ---
 
@@ -29,16 +29,16 @@ A 15 MB Markdown editor. No bloat. No cloud. Just write.
 
 ### Short Description
 ```
-SoloMD is a lightweight, cross-platform Markdown editor built with Tauri 2 and Rust. At just 15 MB, it's 5-10x smaller than Electron alternatives. Features live preview, KaTeX math, Mermaid diagrams, and works fully offline. Free and open source (MIT).
+xiaoyuanNote is a lightweight, cross-platform Markdown editor built with Tauri 2 and Rust. At just 15 MB, it's 5-10x smaller than Electron alternatives. Features live preview, KaTeX math, Mermaid diagrams, and works fully offline. Free and open source (MIT).
 ```
 
 ### Full Description
 ```
-SoloMD is a Markdown editor for people who want to write without distractions.
+xiaoyuanNote is a Markdown editor for people who want to write without distractions.
 
-**Why SoloMD?**
+**Why xiaoyuanNote?**
 
-Most Markdown editors bundle Chromium and weigh 100-250 MB. SoloMD uses Tauri 2 with your system's webview, keeping the install size around 15 MB.
+Most Markdown editors bundle Chromium and weigh 100-250 MB. xiaoyuanNote uses Tauri 2 with your system's webview, keeping the install size around 15 MB.
 
 **Core Features:**
 • Live preview – Markdown markers hide when cursor leaves the line
@@ -68,12 +68,12 @@ Available for macOS (universal), Windows (x64), and Linux (AppImage/deb/rpm).
 ```
 Hi Product Hunt! 👋
 
-I'm the maker of SoloMD. I built this because I was frustrated with Markdown editors that:
+I'm the maker of xiaoyuan-note. I built this because I was frustrated with Markdown editors that:
 - Take 5+ seconds to launch
 - Use 500 MB of RAM for a text file
 - Require cloud accounts or subscriptions
 
-SoloMD is my answer: a simple, fast editor that respects your privacy and your disk space.
+xiaoyuanNote is my answer: a simple, fast editor that respects your privacy and your disk space.
 
 **Technical details for the curious:**
 - Built with Tauri 2 (Rust backend)
@@ -83,7 +83,7 @@ SoloMD is my answer: a simple, fast editor that respects your privacy and your d
 
 It's fully open source under MIT license. I'd love to hear your feedback and feature requests!
 
-GitHub: https://github.com/zhitongblog/solomd
+GitHub: https://github.com/zhitongblog/xiaoyuan-note
 ```
 
 ---
@@ -137,12 +137,12 @@ GitHub: https://github.com/zhitongblog/solomd
 
 **Q: How is this different from Obsidian?**
 ```
-Obsidian is a knowledge base with linking, graphs, and plugins. SoloMD is a simple editor for when you just want to write a single document. Different tools for different workflows!
+Obsidian is a knowledge base with linking, graphs, and plugins. xiaoyuanNote is a simple editor for when you just want to write a single document. Different tools for different workflows!
 ```
 
 **Q: Why not just use VS Code?**
 ```
-VS Code is great if you're already in it. SoloMD is for opening a quick .md file without loading an entire IDE. Think Notepad++, but with proper Markdown rendering.
+VS Code is great if you're already in it. xiaoyuanNote is for opening a quick .md file without loading an entire IDE. Think Notepad++, but with proper Markdown rendering.
 ```
 
 **Q: Is there a mobile version?**
@@ -154,6 +154,6 @@ Not yet! Desktop only for now (macOS, Windows, Linux). Mobile is something I'm c
 
 ## Attached Images
 
-- `solomd_icon.png` – Product icon (upload as thumbnail)
+- `XIAOYUAN_NOTE_icon.png` – Product icon (upload as thumbnail)
 - `og-image.png` – Social share image
 - `comparison-en.png` – For comments if asked about competitors

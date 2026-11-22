@@ -209,7 +209,7 @@ fn read_saved_language() -> String {
 
 fn dirs_path() -> std::path::PathBuf {
     let mut p = dirs_home().unwrap_or_else(std::env::temp_dir);
-    p.push(".solomd-language");
+    p.push(".xiaoyuan-note-language");
     p
 }
 
@@ -496,7 +496,7 @@ pub fn run_with(initial_file: Option<String>) {
     apply_macos_language(&saved_lang);
 
     // #295 — before any webview exists: with a `data` folder next to
-    // SoloMD.exe, WebView2 and our config files live there. No-op elsewhere.
+    // xiaoyuan-note.exe, WebView2 and our config files live there. No-op elsewhere.
     portable::init();
 
     let builder = tauri::Builder::default();
@@ -529,7 +529,7 @@ pub fn run_with(initial_file: Option<String>) {
     // its handler hooks into the OS' "another instance launching" signal
     // before the rest of the app starts initialising. The second launch
     // reactivates the existing main window and routes any file argument
-    // through the existing `solomd://opened-file` channel that App.vue
+    // through the existing `xiaoyuan-note://opened-file` channel that App.vue
     // already listens on (used by the OS file association too).
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_single_instance::init(
@@ -546,7 +546,7 @@ pub fn run_with(initial_file: Option<String>) {
                 let _ = win.show();
                 let _ = win.set_focus();
                 for f in files {
-                    let _ = app.emit("solomd://opened-file", f);
+                    let _ = app.emit("xiaoyuan-note://opened-file", f);
                 }
                 return;
             }
@@ -846,7 +846,7 @@ pub fn run_with(initial_file: Option<String>) {
             // with the menu item id as payload. App.vue dispatches actions
             // based on this id.
             let id = event.id().0.clone();
-            let _ = app_handle.emit("solomd://menu", id);
+            let _ = app_handle.emit("xiaoyuan-note://menu", id);
         })
         .setup(|app| {
             // #428 — Reopen the last bookmarked workspace folder on macOS ahead
@@ -895,7 +895,7 @@ pub fn run_with(initial_file: Option<String>) {
             // the JS listener is ready (happens on macOS cold start).
 
             // v2.3: in debug builds, start the WebDriver bridge so
-            // `solomd-dev-mcp` can drive the live UI from outside.
+            // `xiaoyuan-note-dev-mcp` can drive the live UI from outside.
             // Release builds compile this out entirely.
             #[cfg(debug_assertions)]
             {
@@ -935,13 +935,13 @@ pub fn run_with(initial_file: Option<String>) {
             //    off-screen. Always recenter when the saved layout is
             //    invalid for the current monitor; preserve when valid.
             //
-            // 2. macOS-only: re-issue show + set_focus so SoloMD becomes
+            // 2. macOS-only: re-issue show + set_focus so xiaoyuanNote becomes
             //    frontmost. `set_focus` from `setup` fires before NSApp
             //    has finished `applicationDidFinishLaunching` and gets
-            //    silently dropped, leaving SoloMD launched behind the
+            //    silently dropped, leaving xiaoyuanNote launched behind the
             //    parent app (Finder / terminal) — the macOS menu bar
             //    keeps showing the previous app's menus until the user
-            //    drags SoloMD's window.
+            //    drags xiaoyuanNote’s window.
             RunEvent::Ready => {
                 // Fallback path: when there's no saved window state for the
                 // plugin to restore (fresh install, deleted state file), no
@@ -982,7 +982,7 @@ pub fn run_with(initial_file: Option<String>) {
                     return;
                 }
                 api.prevent_close();
-                let _ = app_handle.emit("solomd://close-requested", label.clone());
+                let _ = app_handle.emit("xiaoyuan-note://close-requested", label.clone());
             }
 
             // ---- Main window destroyed: the app is quitting ----
@@ -1002,7 +1002,7 @@ pub fn run_with(initial_file: Option<String>) {
                     if window_labels::closes_with_main(&other) {
                         let _ = win.destroy();
                     } else if window_labels::is_editor_window(&other) {
-                        let _ = app_handle.emit("solomd://close-requested", other.clone());
+                        let _ = app_handle.emit("xiaoyuan-note://close-requested", other.clone());
                     }
                 }
             }
@@ -1030,7 +1030,7 @@ pub fn run_with(initial_file: Option<String>) {
                 ..
             } => {
                 if label != "main" {
-                    let _ = app_handle.emit("solomd://window-destroyed", label.clone());
+                    let _ = app_handle.emit("xiaoyuan-note://window-destroyed", label.clone());
                 }
             }
 
@@ -1049,7 +1049,7 @@ pub fn run_with(initial_file: Option<String>) {
                         if let Some(state) = app_handle.try_state::<PendingOpen>() {
                             state.0.lock().unwrap().push(p.clone());
                         }
-                        let _ = app_handle.emit("solomd://opened-file", p);
+                        let _ = app_handle.emit("xiaoyuan-note://opened-file", p);
                     }
                 }
             }

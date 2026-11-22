@@ -16,4 +16,4 @@ VERFIJNING & FIXES
 • Opgelost: typen met CJK-invoermethoden wordt niet langer midden in de compositie onderbroken
 • Veel kleinere fixes en prestatieverbeteringen sinds 4.1
 
-Geniet je van SoloMD? Beoordeel de app in de App Store en deel hem met andere schrijvers!
+Geniet je van xiaoyuanNote? Beoordeel de app in de App Store en deel hem met andere schrijvers!

@@ -4,7 +4,7 @@ Der Druck folgt nicht mehr dem App-Design. Ein dunkles Design wurde bisher dunke
 
 Nach dem Löschen bleiben acht Sekunden zum Rückgängigmachen. Die Datei wird nirgendwohin verschoben: Sie bleibt genau dort, wo sie ist, bis die Zeit abgelaufen ist.
 
-Schnellnotiz, von überall. Ein systemweites Tastenkürzel öffnet ein kleines Feld über dem, was Sie gerade tun. Eine Zeile tippen, Enter — und sie landet im Posteingang, ohne dass SoloMD je in den Vordergrund kommt.
+Schnellnotiz, von überall. Ein systemweites Tastenkürzel öffnet ein kleines Feld über dem, was Sie gerade tun. Eine Zeile tippen, Enter — und sie landet im Posteingang, ohne dass xiaoyuanNote je in den Vordergrund kommt.
 
 Ein Aufgabenbereich. Jedes „- [ ]" im Arbeitsbereich in einer Liste, mit Prioritäten und Fälligkeitsdaten, gelesen entweder aus den Emoji von Obsidian Tasks oder aus einer reinen ASCII-Schreibweise. Ein Klick springt zur Zeile, ein Häkchen schreibt die Datei.
 

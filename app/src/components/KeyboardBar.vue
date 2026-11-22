@@ -11,8 +11,8 @@
  * — exactly when it isn't needed.
  *
  * Every button goes through an existing path: `fmt.*` via
- * `solomd:format-markdown` (the same handler as the shortcut), the insert-image
- * command via `solomd:menu-action`, undo via `solomd:editor-history`. The
+ * `xiaoyuan-note:format-markdown` (the same handler as the shortcut), the insert-image
+ * command via `xiaoyuan-note:menu-action`, undo via `xiaoyuan-note:editor-history`. The
  * buttons never take focus (`mousedown.prevent`), so the keyboard stays up.
  *
  * `?forceKeyboardBar` (dev only) previews it in a desktop browser, pinned to
@@ -146,13 +146,13 @@ const visible = computed(
 );
 
 function format(kind: string) {
-  window.dispatchEvent(new CustomEvent('solomd:format-markdown', { detail: { kind } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:format-markdown', { detail: { kind } }));
 }
 function insertImage() {
-  window.dispatchEvent(new CustomEvent('solomd:menu-action', { detail: 'editor.insertImage' }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:menu-action', { detail: 'editor.insertImage' }));
 }
 function undo() {
-  window.dispatchEvent(new CustomEvent('solomd:editor-history', { detail: { op: 'undo' } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-history', { detail: { op: 'undo' } }));
 }
 function hideKeyboard() {
   const a = document.activeElement;

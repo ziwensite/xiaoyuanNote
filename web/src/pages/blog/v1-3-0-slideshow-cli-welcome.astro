@@ -8,8 +8,8 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD v1.3.0 — Slideshow, Welcome Tour & CLI"
-  description="What shipped in SoloMD 1.3.0: present markdown as fullscreen slides, a guided first-launch experience, a `solomd` CLI tool, Prettier-powered formatting, and paragraph-level focus mode."
+  title="xiaoyuanNote v1.3.0 — Slideshow, Welcome Tour & CLI"
+  description="What shipped in xiaoyuanNote 1.3.0: present markdown as fullscreen slides, a guided first-launch experience, a `xiaoyuanNote` CLI tool, Prettier-powered formatting, and paragraph-level focus mode."
   lang={lang}
 >
   <Header lang={lang} />
@@ -31,12 +31,12 @@ const lang = 'en' as const;
         AI rewrite, Pandoc export, Bases properties view, daily notes, spell-check,
         and 13 AI providers. Download links here point at v2.0. The original v1.3
         slideshow + Windows-fullscreen patch shipped in
-        <a href="https://github.com/zhitongblog/solomd/releases/tag/v1.3.1">v1.3.1</a>.
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v1.3.1">v1.3.1</a>.
       </aside>
 
       <h2>🎤 Slideshow mode (<code>⌘⌥P</code>)</h2>
       <p>
-        Press <kbd>Cmd+Alt+P</kbd> on any markdown doc and SoloMD opens a new
+        Press <kbd>Cmd+Alt+P</kbd> on any markdown doc and xiaoyuanNote opens a new
         fullscreen window that renders it as slides. Lines containing only
         <code>---</code> are slide breaks. Front matter is ignored — it doesn't
         become a blank slide.
@@ -71,21 +71,21 @@ const lang = 'en' as const;
         <kbd>Save As</kbd>, so closing them costs nothing.
       </p>
 
-      <h2>💻 The <code>solomd</code> CLI</h2>
+      <h2>💻 The <code>xiaoyuanNote</code> CLI</h2>
       <p>
         For terminal-first workflows. Install with one line:
       </p>
-      <pre><code>curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash</code></pre>
+      <pre><code>curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash</code></pre>
       <p>Then:</p>
-      <pre><code>solomd new "daily-2026-04-25"   # create + open in SoloMD
-solomd open ./meeting-notes.md   # open existing file
-solomd list                      # list notes in $SOLOMD_NOTES
-solomd search "P0 bug"           # ripgrep across notes
-solomd cat readme               # print to stdout</code></pre>
+      <pre><code>xiaoyuanNote new "daily-2026-04-25"   # create + open in xiaoyuanNote
+xiaoyuanNote open ./meeting-notes.md   # open existing file
+xiaoyuanNote list                      # list notes in $XIAOYUAN_NOTE_NOTES
+xiaoyuanNote search "P0 bug"           # ripgrep across notes
+xiaoyuanNote cat readme               # print to stdout</code></pre>
       <p>
-        The default notes directory is <code>~/Documents/SoloMD</code> — point
-        elsewhere with <code>SOLOMD_NOTES</code>. Bare titles auto-resolve to
-        <code>$SOLOMD_NOTES/&lt;title&gt;.md</code>; anything with
+        The default notes directory is <code>~/Documents/xiaoyuanNote</code> — point
+        elsewhere with <code>XIAOYUAN_NOTE_NOTES</code>. Bare titles auto-resolve to
+        <code>$XIAOYUAN_NOTE_NOTES/&lt;title&gt;.md</code>; anything with
         a <code>/</code> or extension is treated as a path.
       </p>
 
@@ -108,7 +108,7 @@ solomd cat readme               # print to stdout</code></pre>
       <h2>🔍 Find in Preview (<code>⌘F</code>)</h2>
       <p>
         Thanks <a href="https://github.com/beihai23" rel="external">@beihai23</a>
-        for <a href="https://github.com/zhitongblog/solomd/pull/21" rel="external">PR #21</a>:
+        for <a href="https://github.com/zhitongblog/xiaoyuan-note/pull/21" rel="external">PR #21</a>:
         <kbd>Ctrl+F</kbd> in Preview mode now searches the rendered HTML with
         highlight + Enter / Shift+Enter navigation. Some other touch-ups in
         that PR — disambiguated <em>Save As</em> icon, command-palette icon
@@ -131,7 +131,7 @@ solomd cat readme               # print to stdout</code></pre>
         LXGW WenKai 霞鹜文楷, LXGW Bright 霞鹜新晨宋, and TsangerJinKai
         仓耳今楷. All are open-source CJK faces designed for long-form
         reading. We don't bundle them (would have grown the installer
-        from 15&nbsp;MB to 35+&nbsp;MB) — install separately and SoloMD
+        from 15&nbsp;MB to 35+&nbsp;MB) — install separately and xiaoyuanNote
         falls back gracefully if a face is missing.
       </p>
       <p>
@@ -148,9 +148,9 @@ solomd cat readme               # print to stdout</code></pre>
       </p>
 
       <p>
-        <a class="btn btn--primary" href="https://github.com/zhitongblog/solomd/releases/tag/v2.0.0">Download v2.0.0 →</a>
+        <a class="btn btn--primary" href="https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v2.0.0">Download v2.0.0 →</a>
         &nbsp;
-        <a class="btn" href="https://github.com/zhitongblog/solomd/releases/tag/v2.0.0">Full release notes</a>
+        <a class="btn" href="https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v2.0.0">Full release notes</a>
       </p>
     </article>
     <Giscus lang={lang} />

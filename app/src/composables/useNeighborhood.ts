@@ -1,7 +1,7 @@
 /**
  * v4.6 F4 — "Neighborhood" relationship explorer.
  *
- * A pure-TS port of Tolaria's `buildRelationshipGroups` over SoloMD's
+ * A pure-TS port of Tolaria's `buildRelationshipGroups` over xiaoyuanNote’s
  * `workspaceIndex` entries. Tolaria's Neighborhood is NOT a force/node-link
  * graph — it's a grouped LIST of a note's relationships, driven entirely by
  * Markdown frontmatter. We mirror that here.
@@ -282,7 +282,7 @@ export function groupReferencedBy(
 // Outgoing memoization. The outgoing computation is pure over
 // `(focal, byStem)`; the panel calls it on every reactive tick. We cache the
 // last result keyed on focal PATH + the `entries` array identity (which Pinia
-// replaces wholesale on every `solomd://index-updated`) so steady-state
+// replaces wholesale on every `xiaoyuan-note://index-updated`) so steady-state
 // renders are O(1). Single-slot cache is enough: the panel only ever computes
 // one focal at a time.
 // ---------------------------------------------------------------------------

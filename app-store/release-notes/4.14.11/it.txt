@@ -1,4 +1,4 @@
-SoloMD 4.14.11 risolve problemi emersi durante un ciclo completo di test. Alcuni potevano modificare o far perdere testo, quindi consigliamo di aggiornare.
+xiaoyuanNote 4.14.11 risolve problemi emersi durante un ciclo completo di test. Alcuni potevano modificare o far perdere testo, quindi consigliamo di aggiornare.
 
 • La revisione CJK non considera più errori di punteggiatura i nomi di file (文档.md, 压缩包.tar.gz) o i puntini di sospensione, così «Applica tutto» non può più riscriverli.
 • Importando un documento Word il grassetto resta dov’era e tornano elenchi numerati, elenchi di attività e link. L’esportazione in Word segna le attività con [ ] / [x].

@@ -9,7 +9,6 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import type { CtxActionId, CtxNode } from '../lib/context-menus';
 import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
-
 const props = defineProps<{ x: number; y: number; items: CtxNode[]; label?: string }>();
 const emit = defineEmits<{ (e: 'pick', id: CtxActionId): void; (e: 'close'): void }>();
 

@@ -4,7 +4,7 @@ Utskriften följer inte längre appens tema. Ett mörkt tema skrevs ut mörkt �
 
 Att radera en fil ger dig åtta sekunder att ångra. Ingenting flyttas någon annanstans: filen ligger kvar exakt där den är tills tiden gått ut.
 
-Snabbanteckning, varifrån som helst. Ett systemgenvägsgrepp öppnar en liten ruta ovanpå det du håller på med. Skriv en rad, tryck Enter, och den hamnar i din inkorg utan att SoloMD någonsin kommer fram.
+Snabbanteckning, varifrån som helst. Ett systemgenvägsgrepp öppnar en liten ruta ovanpå det du håller på med. Skriv en rad, tryck Enter, och den hamnar i din inkorg utan att xiaoyuanNote någonsin kommer fram.
 
 En uppgiftspanel. Varje ”- [ ]” i arbetsytan i en enda lista, med prioriteringar och förfallodatum lästa antingen från Obsidian Tasks emoji eller från en ren ASCII-form. Klicka på en uppgift för att hoppa till raden; bocka av den för att skriva filen.
 

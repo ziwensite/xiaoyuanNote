@@ -1,6 +1,6 @@
 # 演讲模式
 
-SoloMD 能把任意 Markdown 文档变成 **全屏演讲幻灯片** —— 不用 Keynote、不用 PowerPoint、不需要导出。
+xiaoyuanNote 能把任意 Markdown 文档变成 **全屏演讲幻灯片** —— 不用 Keynote、不用 PowerPoint、不需要导出。
 
 ---
 
@@ -65,6 +65,6 @@ flowchart LR
 - **首页**：单一 `# 标题` + 一两行说明，画面最干净。
 - **要点**：每页 5 条以内，字号会随窗口大小自动缩放。
 - **代码**：会带语法高亮。代码块过长可以拆到多页。
-- **Speaker mode（演讲者模式）** 暂未实现。临时方案：拿 SoloMD 编辑窗口当备注屏。
+- **Speaker mode（演讲者模式）** 暂未实现。临时方案：拿 xiaoyuanNote 编辑窗口当备注屏。
 
 就这些。在这份文档上试试 —— 现在就按 `Ctrl+Alt+P`。

@@ -17,7 +17,7 @@ if (PHASE === 2) {
     if (!want) continue;
     R.eq(acc(rows, re), want, 'accelerator ' + re.source);
   }
-  R.t(!rows.some((r) => /^About SoloMD/.test(r.item)), 'About item localized');
+  R.t(!rows.some((r) => /^About xiaoyuan-note/.test(r.item)), 'About item localized');
   settings.setKeybinding('view.toggleTypewriter', 'Mod+Alt+Shift+9');
   await sleep(1500);
   return { next: R.done(), host: { menu: true } };

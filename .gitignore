@@ -33,7 +33,7 @@ brand/*_error.json
 *.p12
 *.pem
 *.cer
-solomd-*.txt
+xiaoyuan-note-*.txt
 
 # Distribution binaries (use GitHub Releases instead)
 distribution/windows/

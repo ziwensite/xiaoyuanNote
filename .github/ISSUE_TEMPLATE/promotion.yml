@@ -1,12 +1,12 @@
 name: "📣 Promotion / 推广登记"
-description: "You wrote about SoloMD, made a video or recommended it — register it to be listed. 写了文章、录了视频或推荐了 SoloMD？在这里登记。"
+description: "You wrote about xiaoyuanNote, made a video or recommended it — register it to be listed. 写了文章、录了视频或推荐了 xiaoyuanNote？在这里登记。"
 title: "📣 Promotion: "
 labels: ["promotion"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you! Rules and what you get: https://solomd.app/promote · 规则与回报：https://solomd.app/zh/promote
+        Thank you! Rules and what you get: https://xiaoyuannote.app/promote · 规则与回报：https://xiaoyuannote.app/zh/promote
         App store ratings/reviews and GitHub stars don't count (both platforms forbid rewarding them). 应用商店评分/评论和 GitHub Star 不计入（两边都禁止用好处换取）。
   - type: input
     id: name
@@ -48,5 +48,5 @@ body:
     attributes:
       label: "Consent / 同意"
       options:
-        - label: "I agree to my name and link being shown on solomd.app, in the app's About dialog and in the README. 同意在官网、应用「关于」窗口和 README 中展示我的名字和链接。"
+        - label: "I agree to my name and link being shown on xiaoyuannote.app, in the app's About dialog and in the README. 同意在官网、应用「关于」窗口和 README 中展示我的名字和链接。"
           required: true

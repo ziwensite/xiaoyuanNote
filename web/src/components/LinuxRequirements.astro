@@ -1,5 +1,5 @@
 ---
-// "Can my Linux run SoloMD?" — written for people who don't know what glibc
+// "Can my Linux run xiaoyuanNote?" — written for people who don't know what glibc
 // or WebKitGTK are. The flowchart is plain HTML (not an image/SVG) so it
 // wraps on phones, follows the dark theme and stays selectable/translatable.
 //
@@ -29,7 +29,7 @@ const rows: Row[] = zh
       { os: 'CentOS 7 / 8、RHEL 8', ok: false, pkg: '升级到 9 系' },
       { os: 'openSUSE Tumbleweed / Leap 16', ok: true, pkg: '.rpm' },
       { os: 'openSUSE Leap 15', ok: false, pkg: '升级到 Leap 16' },
-      { os: 'Arch / Manjaro / EndeavourOS', ok: true, pkg: 'AUR：yay -S solomd-bin' },
+      { os: 'Arch / Manjaro / EndeavourOS', ok: true, pkg: 'AUR：yay -S xiaoyuan-note-bin' },
     ]
   : [
       { os: 'Ubuntu 22.04 / 24.04 and newer', ok: true, pkg: '.deb' },
@@ -46,25 +46,25 @@ const rows: Row[] = zh
       { os: 'CentOS 7 / 8, RHEL 8', ok: false, pkg: 'Upgrade to a 9.x release' },
       { os: 'openSUSE Tumbleweed / Leap 16', ok: true, pkg: '.rpm' },
       { os: 'openSUSE Leap 15', ok: false, pkg: 'Upgrade to Leap 16' },
-      { os: 'Arch / Manjaro / EndeavourOS', ok: true, pkg: 'AUR: yay -S solomd-bin' },
+      { os: 'Arch / Manjaro / EndeavourOS', ok: true, pkg: 'AUR: yay -S xiaoyuan-note-bin' },
     ];
 
 const pkgs = zh
   ? [
-      { who: 'Ubuntu、Debian、Linux Mint、深度 Deepin 等', file: '.deb', how: '双击用「软件中心」安装，或在终端运行', cmd: 'sudo apt install ./SoloMD_*.deb' },
-      { who: 'Fedora、Rocky、openSUSE 等', file: '.rpm', how: '双击安装，或在终端运行', cmd: 'sudo dnf install ./SoloMD-*.rpm' },
-      { who: 'Arch、Manjaro 等', file: 'AUR', how: '在终端运行', cmd: 'yay -S solomd-bin' },
-      { who: '不确定，或者 .deb / .rpm 提示缺少 libwebkit2gtk-4.1', file: '.AppImage', how: '不用安装，自带运行所需的组件。下载后在终端运行', cmd: 'chmod +x SoloMD_*.AppImage && ./SoloMD_*.AppImage' },
+      { who: 'Ubuntu、Debian、Linux Mint、深度 Deepin 等', file: '.deb', how: '双击用「软件中心」安装，或在终端运行', cmd: 'sudo apt install ./XIAOYUAN_NOTE_*.deb' },
+      { who: 'Fedora、Rocky、openSUSE 等', file: '.rpm', how: '双击安装，或在终端运行', cmd: 'sudo dnf install ./xiaoyuan-note-*.rpm' },
+      { who: 'Arch、Manjaro 等', file: 'AUR', how: '在终端运行', cmd: 'yay -S xiaoyuan-note-bin' },
+      { who: '不确定，或者 .deb / .rpm 提示缺少 libwebkit2gtk-4.1', file: '.AppImage', how: '不用安装，自带运行所需的组件。下载后在终端运行', cmd: 'chmod +x XIAOYUAN_NOTE_*.AppImage && ./XIAOYUAN_NOTE_*.AppImage' },
     ]
   : [
-      { who: 'Ubuntu, Debian, Linux Mint, Deepin …', file: '.deb', how: 'Double-click to open it in your Software app, or run', cmd: 'sudo apt install ./SoloMD_*.deb' },
-      { who: 'Fedora, Rocky, openSUSE …', file: '.rpm', how: 'Double-click to install, or run', cmd: 'sudo dnf install ./SoloMD-*.rpm' },
-      { who: 'Arch, Manjaro …', file: 'AUR', how: 'Run', cmd: 'yay -S solomd-bin' },
-      { who: 'Not sure — or .deb / .rpm complains that libwebkit2gtk-4.1 is missing', file: '.AppImage', how: 'Nothing to install: it carries the parts it needs. After downloading, run', cmd: 'chmod +x SoloMD_*.AppImage && ./SoloMD_*.AppImage' },
+      { who: 'Ubuntu, Debian, Linux Mint, Deepin …', file: '.deb', how: 'Double-click to open it in your Software app, or run', cmd: 'sudo apt install ./XIAOYUAN_NOTE_*.deb' },
+      { who: 'Fedora, Rocky, openSUSE …', file: '.rpm', how: 'Double-click to install, or run', cmd: 'sudo dnf install ./xiaoyuan-note-*.rpm' },
+      { who: 'Arch, Manjaro …', file: 'AUR', how: 'Run', cmd: 'yay -S xiaoyuan-note-bin' },
+      { who: 'Not sure — or .deb / .rpm complains that libwebkit2gtk-4.1 is missing', file: '.AppImage', how: 'Nothing to install: it carries the parts it needs. After downloading, run', cmd: 'chmod +x XIAOYUAN_NOTE_*.AppImage && ./XIAOYUAN_NOTE_*.AppImage' },
     ];
 
 const home = zh ? '/zh/' : '/';
-const issues = 'https://github.com/zhitongblog/solomd/issues/new';
+const issues = 'https://github.com/zhitongblog/xiaoyuan-note/issues/new';
 ---
 
 <article class="container docs-article linux-req">
@@ -73,7 +73,7 @@ const issues = 'https://github.com/zhitongblog/solomd/issues/new';
     <span>{zh ? 'Linux 系统要求' : 'Linux requirements'}</span>
   </nav>
 
-  <h1>{zh ? '我的 Linux 能装 SoloMD 吗？' : 'Will SoloMD run on my Linux?'}</h1>
+  <h1>{zh ? '我的 Linux 能装 xiaoyuanNote 吗？' : 'Will xiaoyuanNote run on my Linux?'}</h1>
   <p class="lead">
     {zh
       ? '2022 年以后发布的 Linux 系统基本都能直接用，装不上的通常是比较老的系统。照着下面这张图走一遍，大约两分钟就能知道结果，也能知道该下载哪个文件。'
@@ -114,8 +114,8 @@ const issues = 'https://github.com/zhitongblog/solomd/issues/new';
           <strong>{zh ? '这台电脑的系统太旧了' : 'This system is too old'}</strong>
           <p>
             {zh
-              ? '目前没法在它上面运行 SoloMD，换哪个安装包都一样。办法是把系统升级到下面表格里标 ✅ 的版本。'
-              : 'SoloMD can’t run on it yet — no download will change that. The fix is to upgrade to a release marked ✅ in the table below.'}
+              ? '目前没法在它上面运行 xiaoyuanNote，换哪个安装包都一样。办法是把系统升级到下面表格里标 ✅ 的版本。'
+              : 'xiaoyuanNote can’t run on it yet — no download will change that. The fix is to upgrade to a release marked ✅ in the table below.'}
           </p>
           <a href="#table">{zh ? '看看升级到哪个版本 ↓' : 'See which release to upgrade to ↓'}</a>
         </div>
@@ -181,13 +181,13 @@ const issues = 'https://github.com/zhitongblog/solomd/issues/new';
   <h2>{zh ? '为什么老系统装不上？' : 'Why don’t older systems work?'}</h2>
   <p>
     {zh
-      ? 'SoloMD 不自带一整套界面程序，而是借用系统里现成的两样东西：显示界面用的「网页引擎」（WebKitGTK），以及所有程序都要用到的「基础运行库」（glibc）。好比家具要装在墙上，墙得有对应的挂钩。'
-      : 'SoloMD doesn’t ship a whole user-interface stack of its own. It borrows two things your system already has: a “web engine” that draws the window (WebKitGTK) and the “base library” every program uses (glibc). Think of furniture that mounts on a wall — the wall needs the right brackets.'}
+      ? 'xiaoyuanNote 不自带一整套界面程序，而是借用系统里现成的两样东西：显示界面用的「网页引擎」（WebKitGTK），以及所有程序都要用到的「基础运行库」（glibc）。好比家具要装在墙上，墙得有对应的挂钩。'
+      : 'xiaoyuanNote doesn’t ship a whole user-interface stack of its own. It borrows two things your system already has: a “web engine” that draws the window (WebKitGTK) and the “base library” every program uses (glibc). Think of furniture that mounts on a wall — the wall needs the right brackets.'}
   </p>
   <p>
     {zh
-      ? '2022 年左右以后的系统才有我们需要的「挂钩」：glibc 2.34 以上、WebKitGTK 4.1。再老的系统要么版本太低，要么根本没有这个网页引擎。这是 SoloMD 所用的开发框架（Tauri 2）定下的底线，不是一个我们调低就能解决的数字，所以升级系统是唯一可靠的办法。AppImage 自带网页引擎，所以比 .deb / .rpm 少一个要求，但基础运行库它也带不了。'
-      : 'Systems from around 2022 onward have the brackets we need: glibc 2.34 or newer and WebKitGTK 4.1. Older systems have versions that are too low, or no such web engine at all. That floor comes from the framework SoloMD is built on (Tauri 2) — it isn’t a number we can simply turn down — so upgrading the system is the only reliable fix. The AppImage carries its own web engine, so it needs one thing less than .deb / .rpm, but it can’t carry the base library.'}
+      ? '2022 年左右以后的系统才有我们需要的「挂钩」：glibc 2.34 以上、WebKitGTK 4.1。再老的系统要么版本太低，要么根本没有这个网页引擎。这是 xiaoyuanNote 所用的开发框架（Tauri 2）定下的底线，不是一个我们调低就能解决的数字，所以升级系统是唯一可靠的办法。AppImage 自带网页引擎，所以比 .deb / .rpm 少一个要求，但基础运行库它也带不了。'
+      : 'Systems from around 2022 onward have the brackets we need: glibc 2.34 or newer and WebKitGTK 4.1. Older systems have versions that are too low, or no such web engine at all. That floor comes from the framework xiaoyuanNote is built on (Tauri 2) — it isn’t a number we can simply turn down — so upgrading the system is the only reliable fix. The AppImage carries its own web engine, so it needs one thing less than .deb / .rpm, but it can’t carry the base library.'}
   </p>
 
   <h2>{zh ? '照着做了还是不行？' : 'Followed the chart and it still fails?'}</h2>

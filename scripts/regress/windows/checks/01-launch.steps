@@ -2,7 +2,7 @@
 # checklist: L1 / A12
 # timeout: 150
 launch
-title~:launch.title|— SoloMD$
+title~:launch.title|— xiaoyuanNote$
 uia:launch.menubar|文件@Button
 uia:launch.view-mode-switch|实时@RadioButton
 ucls:launch.editor-present|cm-content

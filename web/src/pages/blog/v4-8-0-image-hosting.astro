@@ -9,7 +9,7 @@ const lang = 'en' as const;
 
 <Layout
   title="v4.8 — image hosting (图床): the last step between writing and publishing"
-  description="SoloMD 4.8 uploads pasted images to your own image host and inserts the URL — five backends (PicGo, custom command, SM.MS, S3-compatible, GitHub + CDN), auto-upload on paste with a local-copy fallback, insert-from-URL, and a bulk 'upload all local images in this note' command. Why we built it BYO-infrastructure instead of running a relay."
+  description="xiaoyuanNote 4.8 uploads pasted images to your own image host and inserts the URL — five backends (PicGo, custom command, SM.MS, S3-compatible, GitHub + CDN), auto-upload on paste with a local-copy fallback, insert-from-URL, and a bulk 'upload all local images in this note' command. Why we built it BYO-infrastructure instead of running a relay."
   lang={lang}
 >
   <Header lang={lang} />
@@ -25,19 +25,19 @@ const lang = 'en' as const;
         perfectly on your machine — with screenshots saved to
         <code>_assets/</code> — falls apart the moment you paste it into a
         GitHub issue, a WeChat 公众号 draft, or a blog engine, because every
-        image is a local path. SoloMD 4.8 (released June 29) closes that gap:
+        image is a local path. xiaoyuanNote 4.8 (released June 29) closes that gap:
         paste an image and it can go straight to <em>your</em> image host, with
         the returned URL inserted instead.
       </p>
 
-      <h2>Five backends, zero SoloMD servers</h2>
+      <h2>Five backends, zero xiaoyuanNote servers</h2>
       <p>
-        The design constraint was the same one behind SoloMD's sync: we don't
+        The design constraint was the same one behind xiaoyuanNote’s sync: we don't
         want to be a SaaS, and your images shouldn't route through our
         infrastructure. So 4.8 ships five bring-your-own backends:
       </p>
       <ul>
-        <li><strong>PicGo</strong> — talks to the local PicGo server, so whatever PicGo can upload to, SoloMD can too.</li>
+        <li><strong>PicGo</strong> — talks to the local PicGo server, so whatever PicGo can upload to, xiaoyuanNote can too.</li>
         <li><strong>Custom command</strong> — run any script (PicGo-Core, uPic, your own uploader) and read the URL back from stdout.</li>
         <li><strong>SM.MS</strong> — token-based, the simplest hosted option.</li>
         <li><strong>S3-compatible</strong> — Aliyun OSS, Tencent COS, Cloudflare R2, MinIO; endpoint + bucket + keys.</li>
@@ -53,7 +53,7 @@ const lang = 'en' as const;
       <p>
         Auto-upload on paste is only trustworthy if it can't lose your image.
         When the host is unreachable — you're offline, the token expired, the
-        bucket policy changed — SoloMD falls back to the normal local copy in
+        bucket policy changed — xiaoyuanNote falls back to the normal local copy in
         <code>_assets/</code> and tells you, instead of blocking the paste or
         silently dropping the screenshot. Writing flow first; publishing
         plumbing second. When you're back online, a single command uploads
@@ -70,9 +70,9 @@ const lang = 'en' as const;
 
       <h2>Why this matters for the CJK publishing workflow</h2>
       <p>
-        A large share of SoloMD's users write in Chinese and publish to
+        A large share of xiaoyuanNote’s users write in Chinese and publish to
         platforms — 公众号, 知乎, 掘金, personal blogs — that all want URLs, not
-        attachments. The pre-4.8 workflow was: write in SoloMD, then round-trip
+        attachments. The pre-4.8 workflow was: write in xiaoyuanNote, then round-trip
         every screenshot through PicGo or a browser upload page, then fix the
         links. 4.8 folds that into the paste itself. Combined with
         "copy as rich HTML" (which already carried styles into 公众号 editors),
@@ -80,8 +80,8 @@ const lang = 'en' as const;
       </p>
 
       <p>
-        SoloMD is a free, MIT-licensed Markdown editor for macOS, Windows,
-        Linux, iOS and Android — <a href="/">solomd.app</a>. Configure image
+        xiaoyuanNote is a free, MIT-licensed Markdown editor for macOS, Windows,
+        Linux, iOS and Android — <a href="/">xiaoyuannote.app</a>. Configure image
         hosting in Settings → Writing; full release notes on the
         <a href="/whats-new/">what's new</a> page.
       </p>
@@ -100,8 +100,8 @@ const lang = 'en' as const;
   dateModified: '2026-07-09',
   author: { '@type': 'Person', name: 'xiangdong li', url: 'https://github.com/zhitongblog' },
   publisher: { '@type': 'Person', name: 'xiangdong li' },
-  url: 'https://solomd.app/blog/v4-8-0-image-hosting/',
-  description: 'SoloMD 4.8 uploads pasted images to your own image host (PicGo, custom command, SM.MS, S3-compatible, GitHub+CDN) with a local-copy fallback and a bulk upload command — BYO infrastructure, no SoloMD relay.',
+  url: 'https://xiaoyuannote.app/blog/v4-8-0-image-hosting/',
+  description: 'xiaoyuanNote 4.8 uploads pasted images to your own image host (PicGo, custom command, SM.MS, S3-compatible, GitHub+CDN) with a local-copy fallback and a bulk upload command — BYO infrastructure, no xiaoyuanNote relay.',
   about: ['image hosting', '图床', 'PicGo', 'S3', 'Markdown', 'WeChat 公众号'],
 })} />
 

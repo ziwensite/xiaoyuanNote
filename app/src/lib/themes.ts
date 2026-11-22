@@ -18,7 +18,10 @@ function mkTheme(
       '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
       // 5.0 §5 — selection is the accent wash for every theme (--accent-soft
       // derives from each theme's --accent); `selection` stays as a fallback.
-      '.cm-selectionBackground, ::selection': { backgroundColor: `var(--accent-soft, ${selection}) !important` },
+      // Component widgets select native DOM text, so include them explicitly.
+      '.cm-selectionBackground, ::selection, .cm-live-block--component ::selection': {
+        backgroundColor: `var(--accent-soft, ${selection}) !important`,
+      },
       '.cm-gutters': { backgroundColor: bg, color: gutter, border: 'none' },
       '.cm-activeLineGutter': { color: cursor },
     },
@@ -144,7 +147,7 @@ export function themeFamily(theme: Theme): 'light' | 'dark' {
 }
 
 /**
- * Mermaid's built-in theme for a SoloMD theme: 'dark' for every dark theme
+ * Mermaid's built-in theme for a xiaoyuanNote theme: 'dark' for every dark theme
  * (Nord, Dracula, Monokai, Solarized Dark…), not only the one named "dark".
  * Live edit, the Windows editor and preview all use this, so a diagram looks
  * the same in each (#354).

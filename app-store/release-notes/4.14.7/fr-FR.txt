@@ -1,6 +1,6 @@
-Choisissez n'importe quel dossier de l'app Fichiers comme dossier de travail : iCloud Drive, Sur mon iPhone ou le dossier d'une autre app. SoloMD s'en souvient d'un lancement à l'autre.
+Choisissez n'importe quel dossier de l'app Fichiers comme dossier de travail : iCloud Drive, Sur mon iPhone ou le dossier d'une autre app. xiaoyuanNote s'en souvient d'un lancement à l'autre.
 
-Le dossier de SoloMD apparaît désormais dans l'app Fichiers, sous Sur mon iPhone › SoloMD.
+Le dossier de xiaoyuanNote apparaît désormais dans l'app Fichiers, sous Sur mon iPhone › xiaoyuan-note.
 
 Les notes ouvertes depuis Fichiers sont modifiées sur place : l'enregistrement met à jour l'original au lieu de créer une copie.
 
@@ -8,4 +8,4 @@ Renommez, déplacez et supprimez des fichiers dans l'arborescence : appui long s
 
 Les dossiers ouverts avant une mise à jour se rouvrent normalement, au lieu d'être signalés comme déplacés.
 
-SoloMD de l'App Store n'envoie aucune donnée d'utilisation et ne demande une note qu'avec la fenêtre d'évaluation d'Apple.
+xiaoyuanNote de l'App Store n'envoie aucune donnée d'utilisation et ne demande une note qu'avec la fenêtre d'évaluation d'Apple.

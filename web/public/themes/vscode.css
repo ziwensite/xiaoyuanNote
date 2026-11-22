@@ -10,7 +10,7 @@
  * - 语法高亮：Dark+ / Light+（Modern 继承自对应 Plus 主题）。
  *
  * 说明：本文件在同一个 .css 里分别定义 Light 与 Dark 两套配色，
- * SoloMD 通过 data-theme="light"/"dark" 自动切换。
+ * xiaoyuanNote 通过 data-theme="light"/"dark" 自动切换。
  *
  * 作者：raopan
  * 许可证：MIT

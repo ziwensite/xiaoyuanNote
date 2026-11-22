@@ -28,7 +28,7 @@
 
 ### 2.1 三个候选
 
-| 维度 | (A) 事件写进笔记 frontmatter，日历=索引视图 | (B) 独立 `.solomd/calendar.ics` 为主 | (A') 一事件一笔记（frontmatter）+ `.ics` 仅交换 |
+| 维度 | (A) 事件写进笔记 frontmatter，日历=索引视图 | (B) 独立 `.xiaoyuan-note/calendar.ics` 为主 | (A') 一事件一笔记（frontmatter）+ `.ics` 仅交换 |
 |---|---|---|---|
 | 事实源 | `.md`（与现有架构一致） | `.ics`（应用私有） | `.md`（与现有架构一致） |
 | 解析/索引 | 复用 `workspace_index`，零新扫描 | 需新增 ICS 解析器 + 索引 + watcher | 复用 `workspace_index` |
@@ -48,12 +48,12 @@
 3. **互操作不受损**：导出 `.ics` 可完整保留 UID/DTSTART/DTEND/RRULE/EXDATE/VALARM；导入时按 UID 去重。CalDAV/Graph 只在"同步适配层"出现，不改变本地事实源。
 4. **零新增索引成本**：事件笔记就是 md，`workspace_index` 已解析 frontmatter；日历 pane 直接投影内存中的 `entries`。
 
-事件笔记默认落在 **`Calendar/`**（可见文件夹，便于用户理解和迁移；不放 `.solomd/`，避免"应用私有数据"与"用户内容"混在一起）。正文即 `DESCRIPTION`，frontmatter 存结构化字段。
+事件笔记默认落在 **`Calendar/`**（可见文件夹，便于用户理解和迁移；不放 `.xiaoyuan-note/`，避免"应用私有数据"与"用户内容"混在一起）。正文即 `DESCRIPTION`，frontmatter 存结构化字段。
 
 ### 2.3 冲突 / 离线 / Git / 同步的具体结论
 
 - **离线**：全部本地文件，无网络依赖；导入导出与 CalDAV 都是可选增量。
-- **Git**：事件笔记是普通 md，AutoGit 按文件提交；`Calendar/` 不在默认 `.gitignore` 忽略列表（`git_history.rs` L216-L224 只忽略 `.solomd/` 运行时产物）。
+- **Git**：事件笔记是普通 md，AutoGit 按文件提交；`Calendar/` 不在默认 `.gitignore` 忽略列表（`git_history.rs` L216-L224 只忽略 `.xiaoyuan-note/` 运行时产物）。
 - **多设备**：沿用现有同步（GitHub / WebDAV / 云盘），冲突粒度=文件。策略：**UID 去重 + `SEQUENCE`/`LAST-MODIFIED` 比较 + 冲突副本**（生成 `xxx.conflict-<device>.md` 并 toast 提示），**不静默覆盖**。
 - **任务**：继续留在原笔记正文；同步/冲突完全走现有笔记链路，不引入第二套。
 
@@ -210,7 +210,7 @@ sequence: 0                                  # iCal SEQUENCE（预留）
 | 重复事件 | 编辑器预设：每天 / 每周 / 每工作日 / 每月 / 每年 / 自定义 RRULE。编辑/删除时询问范围：`仅此` / `此后` / `全部`；`仅此` 生成 `recurrence_id` 例外笔记。 |
 | 提醒 | chip：`0 / 5 / 15 / 30 / 60 分钟` + 自定义；写入 `alarms`；任务首次设提醒时自动追加 `🆔`，保证跨设备稳定。 |
 | 从笔记建任务 | 编辑器选中文本 → 命令面板「从选中文本创建任务」→ 插入 `- [ ] <选中> 📅 <今天>`；另有「创建日程」→ 生成事件笔记并写 `related_note: [[当前笔记]]`。 |
-| 任务跳回笔记 | 点击任务行 → `files.openPath` + `solomd:outline-goto`（复用 `TasksPanel.vue` L73-L84 的 120ms 延时方案）。 |
+| 任务跳回笔记 | 点击任务行 → `files.openPath` + `xiaoyuan-note:outline-goto`（复用 `TasksPanel.vue` L73-L84 的 120ms 延时方案）。 |
 | 事件详情 | 点击事件 → popover：标题/时间/地点/关联笔记/编辑/删除/「仅此或全部」；「关联笔记」可跳转。 |
 | 完成 | 任务复选框写回正文（复用 `useTasks.toggle`）；事件用 `status: CANCELLED`，不删文件。 |
 

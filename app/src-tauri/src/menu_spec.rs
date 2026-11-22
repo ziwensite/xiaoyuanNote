@@ -99,7 +99,7 @@ pub fn startup_spec() -> Vec<TopMenu> {
     if cfg!(target_os = "macos") {
         vec![
             TopMenu {
-                text: "SoloMD".into(),
+                text: "xiaoyuanNote".into(),
                 items: vec![
                     p(PredefinedRole::About),
                     MenuNode::Separator,
@@ -202,13 +202,13 @@ pub fn build_menu<R: tauri::Runtime>(
             PredefinedRole::SelectAll => PredefinedMenuItem::select_all(app, text),
             PredefinedRole::About => {
                 let meta = tauri::menu::AboutMetadata {
-                    name: Some("SoloMD".into()),
+                    name: Some("xiaoyuanNote".into()),
                     version: Some(env!("CARGO_PKG_VERSION").into()),
                     credits: Some("Made by 智通 / xiangdong li".into()),
                     authors: Some(vec!["xiangdong li".into()]),
                     comments: Some("Lightweight, cross-platform Markdown editor.".into()),
-                    website: Some("https://solomd.app".into()),
-                    website_label: Some("solomd.app".into()),
+                    website: Some("https://xiaoyuannote.app".into()),
+                    website_label: Some("xiaoyuannote.app".into()),
                     ..Default::default()
                 };
                 PredefinedMenuItem::about(app, text, Some(meta))
@@ -293,9 +293,9 @@ mod tests {
     use super::*;
 
     const SAMPLE: &str = r#"[
-      {"text":"SoloMD","items":[{"kind":"predefined","role":"about"},{"kind":"separator"},
+      {"text":"xiaoyuanNote","items":[{"kind":"predefined","role":"about"},{"kind":"separator"},
         {"kind":"item","id":"settings.open","text":"设置…","accelerator":"CmdOrCtrl+Comma","enabled":true},
-        {"kind":"predefined","role":"quit","text":"退出 SoloMD"}]},
+        {"kind":"predefined","role":"quit","text":"退出 xiaoyuanNote"}]},
       {"text":"文件","items":[
         {"kind":"item","id":"file.new","text":"新建 Markdown","accelerator":"CmdOrCtrl+N","enabled":true},
         {"kind":"check","id":"file.autoSave","text":"自动保存","enabled":true,"checked":false},

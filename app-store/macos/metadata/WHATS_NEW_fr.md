@@ -16,4 +16,4 @@ FINITIONS ET CORRECTIFS
 • Corrigé : la saisie avec les méthodes d'entrée CJK n'est plus interrompue en pleine composition
 • De nombreux correctifs mineurs et gains de performance
 
-Vous appréciez SoloMD ? Notez-le sur l'App Store et partagez-le avec d'autres auteurs !
+Vous appréciez xiaoyuanNote ? Notez-le sur l'App Store et partagez-le avec d'autres auteurs !

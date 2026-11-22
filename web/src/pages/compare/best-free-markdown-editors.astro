@@ -9,22 +9,22 @@ const lang = 'en' as const;
 const FAQ = [
   {
     q: 'What is the best free alternative to Typora?',
-    a: 'SoloMD and MarkText are the two free, open-source editors closest to Typora\'s seamless live-preview writing feel. MarkText has seen essentially no development since 2022, so for a maintained option with mobile apps, sync, and export, SoloMD is the practical pick; Obsidian is free too but is a knowledge-base app rather than a file editor, and its core is closed source.',
+    a: 'xiaoyuanNote and MarkText are the two free, open-source editors closest to Typora\'s seamless live-preview writing feel. MarkText has seen essentially no development since 2022, so for a maintained option with mobile apps, sync, and export, xiaoyuanNote is the practical pick; Obsidian is free too but is a knowledge-base app rather than a file editor, and its core is closed source.',
   },
   {
     q: 'Which free Markdown editor works on both desktop and mobile?',
-    a: 'Of the six compared here, only SoloMD ships free native apps across macOS, Windows, Linux, iOS, and Android. Obsidian also covers desktop and mobile for free, with paid optional sync ($5/month); Typora, MarkText, Tolaria, and VS Code are desktop-only.',
+    a: 'Of the six compared here, only xiaoyuanNote ships free native apps across macOS, Windows, Linux, iOS, and Android. Obsidian also covers desktop and mobile for free, with paid optional sync ($5/month); Typora, MarkText, Tolaria, and VS Code are desktop-only.',
   },
   {
     q: 'Is there a completely open-source option?',
-    a: 'SoloMD (MIT), MarkText (MIT), and Tolaria (AGPL) are fully open source. VS Code\'s underlying Code-OSS is MIT but the shipped product adds closed components; Obsidian and Typora are closed source.',
+    a: 'xiaoyuanNote (MIT), MarkText (MIT), and Tolaria (AGPL) are fully open source. VS Code\'s underlying Code-OSS is MIT but the shipped product adds closed components; Obsidian and Typora are closed source.',
   },
 ];
 ---
 
 <Layout
   title="How to choose a free Markdown editor in 2026 — 6 options compared"
-  description="A methodology-first comparison of six Markdown editors in 2026: SoloMD, Typora, Obsidian, MarkText, Tolaria, and VS Code — price, openness, platforms, live preview, knowledge features, AI, sync, and honest limitations of each, with a decision tree."
+  description="A methodology-first comparison of six Markdown editors in 2026: xiaoyuanNote, Typora, Obsidian, MarkText, Tolaria, and VS Code — price, openness, platforms, live preview, knowledge features, AI, sync, and honest limitations of each, with a decision tree."
   lang={lang}
 >
   <Header lang={lang} />
@@ -39,14 +39,14 @@ const FAQ = [
 
       <h2>Methodology &amp; disclosure</h2>
       <ul>
-        <li><strong>Disclosure: we build SoloMD.</strong> To keep this useful anyway, every product is scored on the same dimensions, every claim is checkable against the linked official sources, and each profile lists real limitations — ours included.</li>
+        <li><strong>Disclosure: we build xiaoyuan-note.</strong> To keep this useful anyway, every product is scored on the same dimensions, every claim is checkable against the linked official sources, and each profile lists real limitations — ours included.</li>
         <li><strong>Dimensions</strong> (equal weight, no product-specific extras): price, source model, platforms, install footprint, live-preview writing, knowledge-management features, AI integration, sync &amp; versioning, export, project activity.</li>
         <li><strong>Data sources:</strong> official websites, public repositories, and our own installs. Facts verified 2026-08-05; installer sizes are the current x64 desktop downloads, rounded.</li>
       </ul>
 
       <h2>The comparison</h2>
       <table class="kb-table">
-        <thead><tr><th>Dimension</th><th>SoloMD</th><th>Typora</th><th>Obsidian</th><th>MarkText</th><th>Tolaria</th><th>VS Code</th></tr></thead>
+        <thead><tr><th>Dimension</th><th>xiaoyuanNote</th><th>Typora</th><th>Obsidian</th><th>MarkText</th><th>Tolaria</th><th>VS Code</th></tr></thead>
         <tbody>
           <tr><th>Price</th><td><strong>Free</strong></td><td>$14.99 one-time</td><td>Free (Sync $5/mo)</td><td><strong>Free</strong></td><td><strong>Free</strong></td><td><strong>Free</strong></td></tr>
           <tr><th>Source model</th><td>MIT</td><td>Closed</td><td>Core closed</td><td>MIT</td><td>AGPL</td><td>MIT core, branded build adds closed bits</td></tr>
@@ -64,7 +64,7 @@ const FAQ = [
 
       <h2>Where each one falls short</h2>
       <ul>
-        <li><strong>SoloMD</strong> — young project (first release 2026): no third-party plugin ecosystem, smaller community than Obsidian's, and the Windows source-code mode has limited syntax highlighting (a trade-off for reliable Chinese/Japanese/Korean input on WebView2).</li>
+        <li><strong>xiaoyuanNote</strong> — young project (first release 2026): no third-party plugin ecosystem, smaller community than Obsidian's, and the Windows source-code mode has limited syntax highlighting (a trade-off for reliable Chinese/Japanese/Korean input on WebView2).</li>
         <li><strong>Typora</strong> — paid and closed source; no mobile apps, no sync, no knowledge-management layer. Still arguably the most polished pure writing feel.</li>
         <li><strong>Obsidian</strong> — closed core; sync costs $5/month; heavier footprint; the plugin ecosystem that gives it power also adds maintenance and security surface. A knowledge base first, a file editor second.</li>
         <li><strong>MarkText</strong> — effectively unmaintained since ~2022: open bugs accumulate and there are no releases for current OS versions. Fine for casual use, hard to recommend as a daily driver.</li>
@@ -74,7 +74,7 @@ const FAQ = [
 
       <h2>How to decide</h2>
       <ul>
-        <li><strong>You want Typora's writing feel without paying, plus mobile</strong> → SoloMD.</li>
+        <li><strong>You want Typora's writing feel without paying, plus mobile</strong> → xiaoyuan-note.</li>
         <li><strong>You're building a long-term second brain and want the largest plugin ecosystem</strong> → Obsidian (accept the closed core and paid sync).</li>
         <li><strong>You already live in VS Code and Markdown is occasional</strong> → stay in VS Code.</li>
         <li><strong>You want a Notion-style block editor on plain files</strong> → Tolaria.</li>

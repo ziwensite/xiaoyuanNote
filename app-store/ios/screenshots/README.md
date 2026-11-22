@@ -27,4 +27,4 @@ Four screenshots meet Apple's 3–10 per-device minimum.
 
 ## How these were captured
 
-Demo Markdown (see `/tmp/demo.md` — check git for the version used) was pasted into a fresh SoloMD tab in the iPad Pro 13-inch (M5) Simulator, then the simulator was driven via `osascript`/`cliclick` to toggle outline, open settings, etc. Each screenshot was taken with `xcrun simctl io booted screenshot` (produces 2064 × 2752 portrait buffer) and rotated `-90°` via `sips` to the final landscape 2752 × 2064.
+Demo Markdown (see `/tmp/demo.md` — check git for the version used) was pasted into a fresh xiaoyuanNote tab in the iPad Pro 13-inch (M5) Simulator, then the simulator was driven via `osascript`/`cliclick` to toggle outline, open settings, etc. Each screenshot was taken with `xcrun simctl io booted screenshot` (produces 2064 × 2752 portrait buffer) and rotated `-90°` via `sips` to the final landscape 2752 × 2064.

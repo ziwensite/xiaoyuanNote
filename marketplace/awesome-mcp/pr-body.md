@@ -1,14 +1,14 @@
 <!-- Reuse across all 3 awesome-mcp PRs. Replace {LIST} / {SECTION} per
      submission. -->
 
-## Adding SoloMD to {LIST}
+## Adding xiaoyuanNote to {LIST}
 
 ### What it is
 
-`solomd-mcp` is the MCP server bundled with [SoloMD](https://solomd.app),
+`xiaoyuan-note-mcp` is the MCP server bundled with [xiaoyuanNote](https://xiaoyuannote.app),
 a free MIT-licensed Markdown editor with a built-in agent surface. The
 server also runs standalone against any plain folder of `.md` files — no
-SoloMD account, no SoloMD-hosted servers.
+xiaoyuanNote account, no xiaoyuan-note-hosted servers.
 
 16 tools over stdio (JSON-RPC, 15 listed by default):
 
@@ -29,7 +29,7 @@ the 4 write tools.
 ### Multi-vault federation
 
 ```bash
-solomd-mcp --workspace work=/Users/me/work-notes \
+xiaoyuan-note-mcp --workspace work=/Users/me/work-notes \
            --workspace home=/Users/me/diary
 ```
 
@@ -41,7 +41,7 @@ to the first registered workspace (back-compat with single-vault clients).
 
 Claude Desktop, Claude Code, Cursor, Cline (VS Code), Continue.dev, Zed.
 Per-client install snippets at
-https://github.com/zhitongblog/solomd/tree/main/marketplace/client-docs.
+https://github.com/zhitongblog/xiaoyuan-note/tree/main/marketplace/client-docs.
 
 ### Where it fits
 
@@ -50,15 +50,15 @@ seems like the closest match. Happy to move it if there's a better fit.
 
 ### Distribution
 
-- **Prebuilt binaries** on [every GitHub release](https://github.com/zhitongblog/solomd/releases/latest)
+- **Prebuilt binaries** on [every GitHub release](https://github.com/zhitongblog/xiaoyuan-note/releases/latest)
   for linux-x64, linux-arm64, win-x64, win-arm64 (~4 MB each, signed).
-- **macOS**: `cargo install solomd-mcp` (crate published to crates.io as
-  `solomd-mcp`), or use the binary bundled inside SoloMD.app from
-  https://solomd.app.
+- **macOS**: `cargo install xiaoyuan-note-mcp` (crate published to crates.io as
+  `xiaoyuan-note-mcp`), or use the binary bundled inside xiaoyuannote.app from
+  https://xiaoyuannote.app.
 - **Docker** for unsupported platforms / CI:
-  https://github.com/zhitongblog/solomd/blob/main/marketplace/smithery/Dockerfile.
+  https://github.com/zhitongblog/xiaoyuan-note/blob/main/marketplace/smithery/Dockerfile.
 
 ### Maintainer
 
-@zhitongblog (Alex / lixd220@gmail.com) — same as the SoloMD repo owner.
-License: MIT. Issues + PRs welcome at https://github.com/zhitongblog/solomd.
+@zhitongblog (Alex / lixd220@gmail.com) — same as the xiaoyuanNote repo owner.
+License: MIT. Issues + PRs welcome at https://github.com/zhitongblog/xiaoyuan-note.

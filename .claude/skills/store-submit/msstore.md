@@ -13,9 +13,9 @@ export UNZOO_TAB=$($S/unzoo.sh find-tab partner.microsoft.com)
 `scripts/pack_msix.py` does the whole thing:
 
 ```bash
-gh release download vX.Y.Z -p "SoloMD_X.Y.Z_x64_en-US.msi" -D /tmp/msix
-python3 scripts/pack_msix.py --msi /tmp/msix/SoloMD_X.Y.Z_x64_en-US.msi \
-        --version X.Y.Z --arch x64 --out /tmp/msix/SoloMD_X.Y.Z_x64.msix
+gh release download vX.Y.Z -p "XIAOYUAN_NOTE_X.Y.Z_x64_en-US.msi" -D /tmp/msix
+python3 scripts/pack_msix.py --msi /tmp/msix/XIAOYUAN_NOTE_X.Y.Z_x64_en-US.msi \
+        --version X.Y.Z --arch x64 --out /tmp/msix/XIAOYUAN_NOTE_X.Y.Z_x64.msix
 ```
 
 **★ The package identity is not ours to choose, and it is readable without
@@ -25,13 +25,13 @@ come from the public catalogue:
 ```bash
 curl -s "https://displaycatalog.mp.microsoft.com/v7.0/products/9NXGHK2LL1Q4?market=US&languages=en-us&fieldsTemplate=Details" \
   | python3 -c "import json,sys; p=json.load(sys.stdin)['Product']['Properties']; print(p['PackageIdentityName'], p['PublisherCertificateName'])"
-# zhitong.SoloMD  CN=359F6F65-9E32-4216-A4A1-9AF570A7877A
+# zhitong.xiaoyuanNote  CN=359F6F65-9E32-4216-A4A1-9AF570A7877A
 ```
 
 `pack_msix.py` verifies the publisher string by recomputing the package family
 name hash from it (UTF-16LE, SHA-256, first 8 bytes, Crockford base32 — no
 i/l/o/u) and refusing to build unless it matches the published
-`zhitong.SoloMD_3vmxy07xh2v3m`. **Case matters**: the lowercase GUID hashes to
+`zhitong.XIAOYUAN_NOTE_3vmxy07xh2v3m`. **Case matters**: the lowercase GUID hashes to
 something else entirely.
 
 ## How it works: no Windows machine required
@@ -39,7 +39,7 @@ something else entirely.
 Earlier notes claimed MSIX needs `makeappx` on Windows. It does not.
 
 - `msiextract` (brew `msitools`) unpacks our MSI into five payload files:
-  `SoloMD.exe`, `solomd-mcp.exe`, `file_icon.ico`, `en_US.aff`, `en_US.dic`.
+  `xiaoyuan-note.exe`, `xiaoyuan-note-mcp.exe`, `file_icon.ico`, `en_US.aff`, `en_US.dic`.
 - An MSIX is an OPC zip and **the Store re-signs it**, so no signtool and no
   certificate. Pure-Python `zipfile` with everything `ZIP_STORED`:
   `AppxManifest.xml` + `[Content_Types].xml` + `AppxBlockMap.xml`
@@ -69,8 +69,8 @@ in one submission; nothing else differs.
 
 ```bash
 for arch in x64 arm64; do
-  python3 scripts/pack_msix.py --msi /tmp/msix/SoloMD_X.Y.Z_${arch}_en-US.msi \
-          --version X.Y.Z --arch $arch --out /tmp/msix/SoloMD_X.Y.Z_${arch}.msix
+  python3 scripts/pack_msix.py --msi /tmp/msix/XIAOYUAN_NOTE_X.Y.Z_${arch}_en-US.msi \
+          --version X.Y.Z --arch $arch --out /tmp/msix/XIAOYUAN_NOTE_X.Y.Z_${arch}.msix
 done
 ```
 
@@ -87,7 +87,7 @@ not have.
    created server-side: reload the overview and the draft plus its section
    links (`/submissions/<id>/packages`, `/options`, …) appear.
 2. **Packages**: the input is `input.fileuploader`.
-   `unzoo.sh upload 'input.fileuploader' SoloMD_X.Y.Z.msix`.
+   `unzoo.sh upload 'input.fileuploader' XIAOYUAN_NOTE_X.Y.Z.msix`.
 
    **★ Do not judge the upload by reading the input back.** Angular takes the
    FileList and clears the input in the same tick, so a *successful* attach

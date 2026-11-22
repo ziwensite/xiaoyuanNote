@@ -16,4 +16,4 @@ DOPRACOWANIE I POPRAWKI
 • Naprawiono: pisanie chińskimi/japońskimi/koreańskimi metodami wprowadzania nie jest już przerywane w trakcie składania znaków
 • Wiele mniejszych poprawek i ulepszeń wydajności
 
-Podoba Ci się SoloMD? Oceń aplikację w App Store i poleć ją innym piszącym!
+Podoba Ci się xiaoyuanNote? Oceń aplikację w App Store i poleć ją innym piszącym!

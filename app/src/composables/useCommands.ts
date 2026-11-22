@@ -78,13 +78,13 @@ export function useCommands(): Command[] {
    *  the event up (same routing as find). */
   function dispatchFold(action: 'toggle' | 'all' | 'none' | 'level', level?: number) {
     window.dispatchEvent(
-      new CustomEvent('solomd:fold', {
+      new CustomEvent('xiaoyuan-note:fold', {
         detail: { action, level, paneId: tiles.focusedPaneId },
       }),
     );
   }
 
-  /** Build a solomd.app/share/?repo=...&path=...&branch=main URL for the
+  /** Build a xiaoyuannote.app/share/?repo=...&path=...&branch=main URL for the
    *  active tab, if it's inside a workspace linked to a public-looking
    *  GitHub remote. Returns null if any precondition fails — caller is
    *  responsible for surfacing a helpful toast. */
@@ -101,7 +101,7 @@ export function useCommands(): Command[] {
     if (!tab.filePath.startsWith(folderNorm)) return null;
     const rel = tab.filePath.slice(folderNorm.length).split('\\').join('/');
     const lang = settings.language === 'zh' ? '/zh' : '';
-    return `https://solomd.app${lang}/share/?repo=${m[1]}/${m[2]}&path=${encodeURIComponent(rel)}`;
+    return `https://xiaoyuannote.app${lang}/share/?repo=${m[1]}/${m[2]}&path=${encodeURIComponent(rel)}`;
   }
 
   /**
@@ -144,7 +144,7 @@ export function useCommands(): Command[] {
    * Same flush `saveTab` does.
    */
   function freshActiveTab() {
-    window.dispatchEvent(new Event('solomd:flush-content-sync'));
+    window.dispatchEvent(new Event('xiaoyuan-note:flush-content-sync'));
     return tabs.activeTab;
   }
 
@@ -169,6 +169,18 @@ export function useCommands(): Command[] {
   }
 
   const all: Command[] = [
+    {
+      id: 'insert.queryBlock',
+      title: '插入查询表格',
+      hint: '在光标处插入一个可交互的查询块（Excel 风格）',
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:new-query-block')),
+    },
+    {
+      id: 'insert.component',
+      title: '插入组件树',
+      hint: '在光标处插入一个可嵌套的组件容器（查询表格/提示框/文本/容器）',
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:new-component')),
+    },
     { id: 'file.new', title: 'New Markdown File', shortcut: kb('file.new'), run: () => files.newFile() },
     { id: 'file.newText', title: 'New Plain Text File', shortcut: kb('file.newText'), run: () => files.newTextFile() },
     {
@@ -278,8 +290,8 @@ export function useCommands(): Command[] {
     // to carry them. Settings / reading mode also have a chord.
     { id: 'view.toggleReading', title: 'View: Toggle Reading Mode', shortcut: kb('view.toggleReading'), run: () => settings.toggleReadingMode() },
     { id: 'view.toggleFitWidth', title: 'View: Toggle Preview Fit Width', run: () => settings.togglePreviewFitWidth() },
-    { id: 'pomodoro.open', title: 'Writing Session (Pomodoro)…', hint: '25 / 50 / 90 minutes or a custom length', run: () => window.dispatchEvent(new CustomEvent('solomd:open-pomodoro')) },
-    { id: 'settings.open', title: 'Settings', shortcut: kb('settings.open'), run: () => window.dispatchEvent(new CustomEvent('solomd:open-settings')) },
+    { id: 'pomodoro.open', title: 'Writing Session (Pomodoro)…', hint: '25 / 50 / 90 minutes or a custom length', run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-pomodoro')) },
+    { id: 'settings.open', title: 'Settings', shortcut: kb('settings.open'), run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-settings')) },
 
     // ---- Tile layout ----
     { id: 'tile.splitRight', title: 'Split Editor Right', shortcut: kb('tile.splitRight'), run: () => tiles.splitPane(tiles.focusedPaneId, 'horizontal') },
@@ -293,20 +305,20 @@ export function useCommands(): Command[] {
       title: 'Search in Folder…',
       shortcut: kb('search.global'),
       hint: 'Search across all .md / .txt files in the open folder',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:open-global-search')),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-global-search')),
     },
 
     {
       id: 'search.semantic',
       title: 'Search Notes by Meaning…',
       hint: 'Semantic (RAG) search over the vault index — requires AI settings',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:open-rag-search')),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-rag-search')),
     },
 
     {
       id: 'theme.customCss',
       title: 'Theme: Set Custom CSS File…',
-      hint: 'Pick a .css file to override SoloMD styles',
+      hint: 'Pick a .css file to override xiaoyuanNote styles',
       run: async () => {
         const path = await openFileDialog({
           multiple: false,
@@ -364,7 +376,7 @@ export function useCommands(): Command[] {
       title: 'CJK Proofread — flag Chinese typos',
       shortcut: kb('proofread.cjk'),
       hint: 'Half-/full-width punct, 的/地/得 misuse, repeats, spacing',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:open-cjk-proofread')),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-cjk-proofread')),
     },
 
     {
@@ -374,7 +386,7 @@ export function useCommands(): Command[] {
       hint: 'Open the find & replace bar in the current editor',
       run: () =>
         window.dispatchEvent(
-          new CustomEvent('solomd:editor-find', { detail: { paneId: tiles.focusedPaneId } }),
+          new CustomEvent('xiaoyuan-note:editor-find', { detail: { paneId: tiles.focusedPaneId } }),
         ),
     },
     {
@@ -384,7 +396,7 @@ export function useCommands(): Command[] {
       hint: 'Open the find & replace bar with the caret in the replace field',
       run: () =>
         window.dispatchEvent(
-          new CustomEvent('solomd:editor-find', { detail: { paneId: tiles.focusedPaneId, replace: true } }),
+          new CustomEvent('xiaoyuan-note:editor-find', { detail: { paneId: tiles.focusedPaneId, replace: true } }),
         ),
     },
 
@@ -416,7 +428,7 @@ export function useCommands(): Command[] {
       hint: 'Edit the LaTeX under the cursor with a live preview and a symbol palette, or insert a new formula',
       run: () =>
         window.dispatchEvent(
-          new CustomEvent('solomd:edit-formula', { detail: { paneId: tiles.focusedPaneId } }),
+          new CustomEvent('xiaoyuan-note:edit-formula', { detail: { paneId: tiles.focusedPaneId } }),
         ),
     },
 
@@ -427,7 +439,7 @@ export function useCommands(): Command[] {
       hint: 'Edit the table under the cursor as a grid — add / move / delete rows and columns, set alignment',
       run: () =>
         window.dispatchEvent(
-          new CustomEvent('solomd:edit-table', { detail: { paneId: tiles.focusedPaneId } }),
+          new CustomEvent('xiaoyuan-note:edit-table', { detail: { paneId: tiles.focusedPaneId } }),
         ),
     },
 
@@ -478,7 +490,7 @@ export function useCommands(): Command[] {
         });
         if (typeof sel !== 'string') return;
         window.dispatchEvent(
-          new CustomEvent('solomd:insert-image-path', {
+          new CustomEvent('xiaoyuan-note:insert-image-path', {
             detail: { path: sel, paneId: tiles.focusedPaneId },
           }),
         );
@@ -493,7 +505,7 @@ export function useCommands(): Command[] {
       title: `Format: ${kind}`,
       hint: 'Selection, or the word under the cursor. Run again to remove.',
       shortcut: kb(`fmt.${kind}`),
-      run: () => window.dispatchEvent(new CustomEvent('solomd:format-markdown', { detail: { kind } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:format-markdown', { detail: { kind } })),
     })),
 
     // Gitee IK8QG3. Acts on the selection, or the word under the caret when
@@ -504,7 +516,7 @@ export function useCommands(): Command[] {
       title: 'Cycle Case (lower / UPPER / Title)',
       hint: 'Selection, or the word under the cursor',
       shortcut: kb('editor.caseCycle'),
-      run: () => window.dispatchEvent(new CustomEvent('solomd:transform-case', { detail: { mode: 'cycle' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:transform-case', { detail: { mode: 'cycle' } })),
     },
     // B4 — Typora-style selection and heading commands. Editor.vue applies
     // them on whichever of its three editors the active pane runs.
@@ -523,58 +535,58 @@ export function useCommands(): Command[] {
       id,
       title,
       shortcut: kb(id),
-      run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-command', { detail: { cmd } })),
     })),
     {
       id: 'editor.caseUpper',
       title: 'UPPERCASE',
       hint: 'Selection, or the word under the cursor',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:transform-case', { detail: { mode: 'upper' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:transform-case', { detail: { mode: 'upper' } })),
     },
     {
       id: 'editor.caseLower',
       title: 'lowercase',
       hint: 'Selection, or the word under the cursor',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:transform-case', { detail: { mode: 'lower' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:transform-case', { detail: { mode: 'lower' } })),
     },
     {
       id: 'editor.caseTitle',
       title: 'Title Case',
       hint: 'Selection, or the word under the cursor',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:transform-case', { detail: { mode: 'title' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:transform-case', { detail: { mode: 'title' } })),
     },
     {
       id: 'task.fromSelection',
       title: 'Task: Create from Selection',
       hint: 'Append - [ ] the selected text with today\'s due date',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'createTaskFromSelection' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-command', { detail: { cmd: 'createTaskFromSelection' } })),
     },
     {
       id: 'task.applyDateTokens',
       title: 'Task: Apply Date Tokens on This Line',
       hint: 'Rewrite `明天` / `next monday` at the end of the caret\'s task line as 📅 / ⏳ / 🛫 tokens',
       shortcut: kb('task.applyDateTokens'),
-      run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'applyDateTokens' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-command', { detail: { cmd: 'applyDateTokens' } })),
     },
     {
       id: 'task.normalizeLine',
       title: 'Task: Normalize Markers on This Line',
       hint: 'Reorder the caret line\'s task markers into the canonical order with single spaces',
       shortcut: kb('task.normalizeLine'),
-      run: () => window.dispatchEvent(new CustomEvent('solomd:editor-command', { detail: { cmd: 'normalizeTaskLine' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-command', { detail: { cmd: 'normalizeTaskLine' } })),
     },
     {
       id: 'task.migrateRecurrence',
       title: 'Task: Convert Legacy Recurrence Rules…',
       hint: 'Rewrite `🔁 FREQ=…` as Obsidian Tasks natural language, line by line, before writing anything',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:open-recurrence-migration')),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-recurrence-migration')),
     },
 
     {
       id: 'editor.insertImageUrl',
       title: 'Image from URL…',
       hint: 'Insert a Markdown image link for an external image URL (image host / 图床)',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:open-image-url-dialog')),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-image-url-dialog')),
     },
 
     {
@@ -587,7 +599,7 @@ export function useCommands(): Command[] {
           return;
         }
         window.dispatchEvent(
-          new CustomEvent('solomd:upload-local-images', {
+          new CustomEvent('xiaoyuan-note:upload-local-images', {
             detail: { paneId: tiles.focusedPaneId },
           }),
         );
@@ -727,7 +739,7 @@ export function useCommands(): Command[] {
     {
       id: 'views.create',
       title: 'View: Create Saved View…',
-      hint: 'Define a persistent filtered note list (saved to .solomd/views/)',
+      hint: 'Define a persistent filtered note list (saved to .xiaoyuan-note/views/)',
       run: () => savedViews.newView(),
     },
     {
@@ -775,7 +787,7 @@ export function useCommands(): Command[] {
     {
       id: 'sync.copyShareLink',
       title: 'GitHub Sync: Copy Share Link for This Note',
-      hint: 'Public share via solomd.app/share — works only for public repos',
+      hint: 'Public share via xiaoyuannote.app/share — works only for public repos',
       run: async () => {
         const url = activeShareUrl();
         if (!url) {
@@ -812,7 +824,7 @@ export function useCommands(): Command[] {
           return;
         }
         if (!settings.webdavUrl.trim()) {
-          window.dispatchEvent(new CustomEvent('solomd:open-settings', { detail: { section: 'sync' } }));
+          window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-settings', { detail: { section: 'sync' } }));
           toasts.info(settings.language === 'zh' ? '请先在设置 › 同步中配置 WebDAV 服务器地址' : 'Configure your WebDAV server URL in Settings › Sync first');
           return;
         }
@@ -847,7 +859,7 @@ export function useCommands(): Command[] {
           return;
         }
         if (!settings.webdavUrl.trim()) {
-          window.dispatchEvent(new CustomEvent('solomd:open-settings', { detail: { section: 'sync' } }));
+          window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-settings', { detail: { section: 'sync' } }));
           toasts.info(settings.language === 'zh' ? '请先在设置 › 同步中配置 WebDAV 服务器地址' : 'Configure your WebDAV server URL in Settings › Sync first');
           return;
         }
@@ -862,7 +874,7 @@ export function useCommands(): Command[] {
             encrypted: settings.webdavEncrypted,
             passphrase: settings.webdavPassphrase,
           });
-          window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+          window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
           toasts.success(
             settings.language === 'zh'
               ? `WebDAV 下载完成（共更新 ${res.downloaded} 个文件）`
@@ -877,7 +889,7 @@ export function useCommands(): Command[] {
       id: 'sync.webdavSettings',
       title: 'WebDAV Sync: Settings…',
       hint: 'Configure WebDAV server URL, credentials, and remote directory',
-      run: () => window.dispatchEvent(new CustomEvent('solomd:open-settings', { detail: { section: 'sync' } })),
+      run: () => window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-settings', { detail: { section: 'sync' } })),
     },
 
     {
@@ -896,7 +908,7 @@ export function useCommands(): Command[] {
       hint: 'Quick reference for Markdown syntax',
       run: () => {
         // Triggered via App-level event since useCommands has no DOM access.
-        window.dispatchEvent(new CustomEvent('solomd:open-help'));
+        window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-help'));
       },
     },
     {
@@ -911,17 +923,17 @@ export function useCommands(): Command[] {
           return;
         }
         try {
-          localStorage.setItem('solomd:slideshow:content', t.content || '');
+          localStorage.setItem('xiaoyuan-note:slideshow:content', t.content || '');
           localStorage.setItem(
-            'solomd:slideshow:title',
+            'xiaoyuan-note:slideshow:title',
             t.fileName || 'Untitled',
           );
         } catch {}
-        const label = `solomd-slideshow-${Date.now()}`;
+        const label = `xiaoyuan-note-slideshow-${Date.now()}`;
         try {
           const win = new WebviewWindow(label, {
             url: '/?slideshow=1',
-            title: 'SoloMD — Slideshow',
+            title: 'xiaoyuanNote — Slideshow',
             width: 1200,
             height: 800,
             decorations: true,

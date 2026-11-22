@@ -2,7 +2,7 @@
 #
 # Upload a built MAS .pkg to App Store Connect via altool.
 #
-# Usage: ./scripts/submit-mas.sh [path/to/SoloMD_X.Y.Z.pkg]
+# Usage: ./scripts/submit-mas.sh [path/to/XIAOYUAN_NOTE_X.Y.Z.pkg]
 #
 # Defaults to the newest .pkg in dist-mas/ when no arg is given.
 #

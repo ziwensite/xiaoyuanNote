@@ -7,18 +7,18 @@
  * directly (the sidebar panel, the editor dialog).
  *
  * Events on `window`:
- *   - `solomd:open-view`  (detail: { slug }) → render ViewNoteList for a view
- *   - `solomd:close-view`                    → back to the editor
- *   - `solomd:new-view`                      → open the view editor (create)
- *   - `solomd:edit-view`  (detail: { slug }) → open the view editor (edit)
+ *   - `xiaoyuan-note:open-view`  (detail: { slug }) → render ViewNoteList for a view
+ *   - `xiaoyuan-note:close-view`                    → back to the editor
+ *   - `xiaoyuan-note:new-view`                      → open the view editor (create)
+ *   - `xiaoyuan-note:edit-view`  (detail: { slug }) → open the view editor (edit)
  */
 import { useSavedViewsStore } from '../stores/savedViews';
 import { useSettingsStore } from '../stores/settings';
 
-export const VIEW_OPEN_EVENT = 'solomd:open-view';
-export const VIEW_CLOSE_EVENT = 'solomd:close-view';
-export const VIEW_NEW_EVENT = 'solomd:new-view';
-export const VIEW_EDIT_EVENT = 'solomd:edit-view';
+export const VIEW_OPEN_EVENT = 'xiaoyuan-note:open-view';
+export const VIEW_CLOSE_EVENT = 'xiaoyuan-note:close-view';
+export const VIEW_NEW_EVENT = 'xiaoyuan-note:new-view';
+export const VIEW_EDIT_EVENT = 'xiaoyuan-note:edit-view';
 
 export function useSavedViews() {
   const store = useSavedViewsStore();

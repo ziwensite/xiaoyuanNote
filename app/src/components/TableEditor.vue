@@ -46,8 +46,8 @@ function requestClose() {
   if (dirty.value) closeConfirm.value = true;
   else emit('close');
 }
-onMounted(() => window.addEventListener('solomd:table-close-request', requestClose));
-onBeforeUnmount(() => window.removeEventListener('solomd:table-close-request', requestClose));
+onMounted(() => window.addEventListener('xiaoyuan-note:table-close-request', requestClose));
+onBeforeUnmount(() => window.removeEventListener('xiaoyuan-note:table-close-request', requestClose));
 /** Which column the row/column buttons act on. -1 while the caret is in the
  *  header, which is still a column — the row index is what differs. */
 const focused = ref<{ row: number; col: number }>({ row: -1, col: 0 });

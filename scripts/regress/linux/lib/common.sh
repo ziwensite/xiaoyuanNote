@@ -3,22 +3,22 @@
 # every check. Runs INSIDE the Linux box (Lima VM or a CI runner), never on
 # the Mac.
 #
-# Everything the suite starts carries SOLOMD_REGRESS_TAG in its environment,
+# Everything the suite starts carries XIAOYUAN_NOTE_REGRESS_TAG in its environment,
 # so cleanup can find (and kill) exactly our processes and nothing else.
 
 : "${RG_ROOT:=/tmp/rg2}"                 # work dir (vault, profile, exports, out)
 : "${RG_DISPLAY:=:94}"                   # private X display
 : "${RG_SCREEN:=1440x900x24}"
-: "${SOLOMD_BIN:=/usr/bin/SoloMD}"       # app under test
-: "${SOLOMD_REGRESS_TAG:=rg2-$$}"
+: "${XIAOYUAN_NOTE_BIN:=/usr/bin/xiaoyuanNote}"       # app under test
+: "${XIAOYUAN_NOTE_REGRESS_TAG:=rg2-$$}"
 : "${RG_OUT:=$RG_ROOT/out}"
 : "${RG_SUITE:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-export RG_ROOT RG_DISPLAY SOLOMD_BIN SOLOMD_REGRESS_TAG RG_OUT RG_SUITE
+export RG_ROOT RG_DISPLAY XIAOYUAN_NOTE_BIN XIAOYUAN_NOTE_REGRESS_TAG RG_OUT RG_SUITE
 
 VAULT="$RG_ROOT/vault"
 EXP="$RG_ROOT/exp"
 PROFILE_HOME="$RG_ROOT/home"            # HOME for the app → fresh, private profile
-LS_DIR="$PROFILE_HOME/.local/share/app.solomd/localstorage"
+LS_DIR="$PROFILE_HOME/.local/share/app.xiaoyuan-note/localstorage"
 LS_DB="$LS_DIR/tauri_localhost_0.localstorage"
 SHOTS="$RG_OUT/shots"
 mkdir -p "$RG_OUT" "$SHOTS"
@@ -42,19 +42,19 @@ our_pids() {
   local p
   for p in /proc/[0-9]*; do
     [ -r "$p/environ" ] || continue
-    if tr '\0' '\n' <"$p/environ" 2>/dev/null | grep -qx "SOLOMD_REGRESS_TAG=$SOLOMD_REGRESS_TAG"; then
+    if tr '\0' '\n' <"$p/environ" 2>/dev/null | grep -qx "XIAOYUAN_NOTE_REGRESS_TAG=$XIAOYUAN_NOTE_REGRESS_TAG"; then
       echo "${p#/proc/}"
     fi
   done
 }
 
-# PIDs of app processes (SoloMD / WebKit helpers / AppImage runtime) we own.
+# PIDs of app processes (xiaoyuanNote / WebKit helpers / AppImage runtime) we own.
 our_app_pids() {
   local p c
   for p in $(our_pids); do
     c=$(cat "/proc/$p/comm" 2>/dev/null) || continue
     case "$c" in
-      SoloMD*|solomd*|WebKit*|AppRun*|*.AppImage) echo "$p" ;;
+      xiaoyuanNote*|xiaoyuanNote*|WebKit*|AppRun*|*.AppImage) echo "$p" ;;
     esac
   done
 }
@@ -66,7 +66,7 @@ app_env() {
     XDG_CACHE_HOME="$PROFILE_HOME/.cache" XDG_STATE_HOME="$PROFILE_HOME/.local/state" \
     DBUS_SESSION_BUS_ADDRESS="$DBUS_SESSION_BUS_ADDRESS" \
     NO_AT_BRIDGE=1 GTK_A11Y=none LANG="${RG_LANG:-en_US.UTF-8}" \
-    SOLOMD_REGRESS_TAG="$SOLOMD_REGRESS_TAG" "$@"
+    XIAOYUAN_NOTE_REGRESS_TAG="$XIAOYUAN_NOTE_REGRESS_TAG" "$@"
 }
 
 # Background helper process tagged as ours (xterm, xclip …).
@@ -101,7 +101,7 @@ main_pid() { cat "$RG_ROOT/app.pid" 2>/dev/null; }
 
 # Visible windows titled like ours. Prints window ids.
 app_windows() {
-  xdotool search --onlyvisible --name 'SoloMD' 2>/dev/null | while read -r w; do
+  xdotool search --onlyvisible --name 'xiaoyuanNote' 2>/dev/null | while read -r w; do
     local pid; pid=$(xdotool getwindowpid "$w" 2>/dev/null) || continue
     if our_pids | grep -qx "$pid"; then echo "$w"; fi
   done

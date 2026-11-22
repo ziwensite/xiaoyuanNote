@@ -40,7 +40,7 @@ asc_resolve_auth
 
 cd app
 VERSION=$(node -p "require('./package.json').version")
-echo "==> SoloMD v${VERSION} — local Mac build with file-icon injection"
+echo "==> xiaoyuanNote v${VERSION} — local Mac build with file-icon injection"
 
 echo "==> Installing frontend deps"
 pnpm install --frozen-lockfile
@@ -49,9 +49,9 @@ echo "==> Building a matching universal MCP sidecar"
 ../scripts/build-mcp-sidecar.sh aarch64-apple-darwin
 ../scripts/build-mcp-sidecar.sh x86_64-apple-darwin
 lipo -create \
-  src-tauri/binaries/solomd-mcp-aarch64-apple-darwin \
-  src-tauri/binaries/solomd-mcp-x86_64-apple-darwin \
-  -output src-tauri/binaries/solomd-mcp-universal-apple-darwin
+  src-tauri/binaries/xiaoyuan-note-mcp-aarch64-apple-darwin \
+  src-tauri/binaries/xiaoyuan-note-mcp-x86_64-apple-darwin \
+  -output src-tauri/binaries/xiaoyuan-note-mcp-universal-apple-darwin
 
 echo "==> Building .app (no dmg yet)"
 # Every credential Tauri would notarize with is unset here on purpose: it must
@@ -62,7 +62,7 @@ env -u APPLE_ID -u APPLE_PASSWORD \
   APPLE_SIGNING_IDENTITY="$APPLE_SIGNING_IDENTITY" \
   pnpm tauri build --target universal-apple-darwin --bundles app
 
-APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/SoloMD.app"
+APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/xiaoyuannote.app"
 [ -d "$APP" ] || { echo "ERROR: .app not found at $APP" >&2; exit 1; }
 
 echo "==> Injecting file-type icon into Info.plist"
@@ -81,7 +81,7 @@ echo "==> Embedding the Quick Look extension (#351)"
 # Built unsigned here; it is signed below, after the --deep pass.
 mkdir -p "$APP/Contents/PlugIns"
 src-tauri/quicklook/build.sh "$VERSION" "$APP/Contents/PlugIns"
-QL_APPEX="$APP/Contents/PlugIns/SoloMDQuickLook.appex"
+QL_APPEX="$APP/Contents/PlugIns/xiaoyuanNoteQuickLook.appex"
 
 echo "==> Re-signing .app (signature must cover patched plist)"
 codesign --force --deep --options runtime \
@@ -100,7 +100,7 @@ codesign -d --entitlements - "$QL_APPEX" 2>/dev/null | grep -q app-sandbox \
 codesign --verify --deep --strict "$APP"
 
 echo "==> Notarizing .app"
-ZIP="/tmp/SoloMD-${VERSION}.zip"
+ZIP="/tmp/xiaoyuan-note-${VERSION}.zip"
 rm -f "$ZIP"
 ditto -c -k --keepParent "$APP" "$ZIP"
 xcrun notarytool submit "$ZIP" \
@@ -113,15 +113,15 @@ echo "==> Stapling notarization ticket"
 xcrun stapler staple "$APP"
 
 echo "==> Building dmg"
-STAGE="/tmp/solomd-dmg-stage-${VERSION}"
+STAGE="/tmp/xiaoyuan-note-dmg-stage-${VERSION}"
 rm -rf "$STAGE" && mkdir -p "$STAGE"
-cp -R "$APP" "$STAGE/SoloMD.app"
+cp -R "$APP" "$STAGE/xiaoyuannote.app"
 ln -s /Applications "$STAGE/Applications"
 DMG_DIR="src-tauri/target/universal-apple-darwin/release/bundle/dmg"
 mkdir -p "$DMG_DIR"
-DMG="$DMG_DIR/SoloMD_${VERSION}_universal.dmg"
+DMG="$DMG_DIR/XIAOYUAN_NOTE_${VERSION}_universal.dmg"
 rm -f "$DMG"
-hdiutil create -volname SoloMD -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+hdiutil create -volname xiaoyuanNote -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 
 echo "==> Signing dmg"
 codesign --force --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$DMG"

@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { bindMermaidInteractions, initMermaid } from '../lib/mermaid-lazy';
 import { mermaidThemeFor } from '../lib/themes';
 import { openRenderedLink } from '../lib/link-open';
 import { renderMarkdown, extractImageRoot } from '../lib/markdown';
+import { buildQueryHtml, parseQuerySpec } from '../lib/queryBlock';
+import { parseComponentFenceRef, renderComponentTree } from '../lib/component-system';
+import { useComponentDataVersion } from '../composables/useComponentDataVersion';
+import { useComponentsStore } from '../stores/components';
 import { togglePreviewTask } from '../lib/preview-task-toggle';
 import { useRenderDepsVersion } from '../composables/useRenderDepsVersion';
 import { plantumlSvgUrl } from '../lib/plantuml';
@@ -161,7 +166,7 @@ function onTaskCheckboxClick(e: MouseEvent) {
   const dataLine = Number(li?.getAttribute('data-line') || 0);
   // The editor syncs into the store on a debounce; flush first so the toggle
   // is applied to what is on screen, not to text a few keystrokes old.
-  window.dispatchEvent(new Event('solomd:flush-content-sync'));
+  window.dispatchEvent(new Event('xiaoyuan-note:flush-content-sync'));
   const tab = tabs.tabs.find((x) => x.id === props.tabId);
   const next = togglePreviewTask(tab?.content ?? props.source ?? '', dataLine, all.indexOf(box), wasChecked);
   if (next === null) {
@@ -179,6 +184,7 @@ function onMathKeydown(e: KeyboardEvent) {
 let mermaidIdSeq = 0;
 
 const renderDepsVersion = useRenderDepsVersion();
+const componentDataVersion = useComponentDataVersion();
 
 const html = computed(() => {
   // #141 — establish a reactive dep on the hard-breaks toggle so flipping the
@@ -193,7 +199,11 @@ const html = computed(() => {
   // And for KaTeX / highlight.js arriving after the first render.
   void renderDepsVersion.value;
   const source = props.source || '';
-  return rewriteImageUrls(renderMarkdown(source), extractImageRoot(source), props.filePath);
+  return rewriteImageUrls(
+    renderMarkdown(source, { frontmatterEditable: !!props.tabId }),
+    extractImageRoot(source),
+    props.filePath,
+  );
 });
 
 // v4.10 issue #163 — render ```plantuml fences through the configured
@@ -299,7 +309,7 @@ async function processWhiteboards() {
         wrap.title = t('whiteboard.openFull');
         const openFull = () => {
           window.dispatchEvent(
-            new CustomEvent('solomd:whiteboard-open', {
+            new CustomEvent('xiaoyuan-note:whiteboard-open', {
               detail: { boardId: fence.boardId, tabId: props.tabId, snapshot: fence.snapshot },
             }),
           );
@@ -346,6 +356,8 @@ watch(() => settings.theme, () => {
     }
   }
   void processMermaid();
+  restoreQueryBlocks();
+  processQuery();
 });
 
 function overlayStrings(): OverlayStrings {
@@ -548,7 +560,18 @@ watch(html, async () => {
   await processWhiteboards();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
+  restoreQueryBlocks();
+  processQuery();
   enableTaskCheckboxes();
+});
+
+// A component note finishing an async load / save bumps the version. Re-run
+// processQuery so a component that was "加载中" (or并发误判为"未找到") renders
+// as soon as its data lands — no Ctrl+R needed. cm-live-blocks already does
+// the equivalent on the editor side via ComponentWidget.eq().
+watch(componentDataVersion, () => {
+  if (!host.value) return;
+  processQuery();
 });
 
 // Toggling PlantUML (or changing the server) must re-render: the markdown
@@ -566,6 +589,8 @@ watch(
     await processWhiteboards();
     attachImageOverlayHandlers();
     attachCodeCopyButtons();
+    restoreQueryBlocks();
+    processQuery();
     enableTaskCheckboxes();
   },
 );
@@ -573,7 +598,7 @@ watch(
 /**
  * Intercept all link clicks inside the preview pane and open them in the
  * system browser instead of navigating the Tauri webview (which would
- * replace the SoloMD UI with the target page). Shared with the Windows
+ * replace the xiaoyuanNote UI with the target page). Shared with the Windows
  * live-edit blocks — see lib/link-open.
  */
 function handleLinkClick(e: MouseEvent) {
@@ -581,6 +606,97 @@ function handleLinkClick(e: MouseEvent) {
   if (!anchor) return;
   openRenderedLink(anchor, e, props.filePath);
 }
+
+// ── embedded ```query``` blocks ───────────────────────────────────────────────
+// Swapped in like the mermaid/plantuml/tldraw fences: after markdown render,
+// each `pre > code.language-query` becomes a live HTML table/list (queryBlock).
+// We keep the source on `.qb-wrap` so theme / index refreshes can rebuild.
+function restoreQueryBlocks() {
+  if (!host.value) return;
+  host.value.querySelectorAll<HTMLElement>('.qb-wrap').forEach((el) => {
+    const src = el.dataset.querySource || '';
+    const pre = document.createElement('pre');
+    const code = document.createElement('code');
+    code.className = 'language-query';
+    code.textContent = src;
+    pre.appendChild(code);
+    el.replaceWith(pre);
+  });
+  // v5.0 component trees — restore to fences before re-rendering on refresh.
+  host.value.querySelectorAll<HTMLElement>('.cs-wrap').forEach((el) => {
+    const src = el.dataset.componentSource || '';
+    const pre = document.createElement('pre');
+    const code = document.createElement('code');
+    code.className = 'language-component';
+    code.textContent = src;
+    pre.appendChild(code);
+    el.replaceWith(pre);
+  });
+}
+
+function processQuery() {
+  if (!host.value) return;
+  host.value.querySelectorAll<HTMLElement>('pre > code.language-query').forEach((code) => {
+    const pre = code.parentElement;
+    if (!pre) return;
+    const src = (code.textContent || '').trim();
+    const wrap = document.createElement('div');
+    wrap.className = 'qb-wrap';
+    wrap.dataset.querySource = src;
+    wrap.innerHTML = buildQueryHtml(parseQuerySpec(src));
+    pre.replaceWith(wrap);
+  });
+  // Refresh wraps that replaced a fence on an earlier pass. Re-running
+  // processQuery (on index updates) must refresh them too — the original
+  // <pre><code> is already gone and would otherwise stay stuck on "loading".
+  host.value.querySelectorAll<HTMLElement>('.cs-wrap[data-component-source]').forEach((wrap) => {
+    renderComponentRef(wrap, wrap.dataset.componentSource || '');
+  });
+  // v5.0 — reference-based components: fence body is `cmp_<id>`.
+  host.value.querySelectorAll<HTMLElement>('pre > code.language-component').forEach((code) => {
+    const pre = code.parentElement;
+    if (!pre) return;
+    const src = (code.textContent || '').trim();
+    const wrap = document.createElement('div');
+    wrap.className = 'cs-wrap';
+    wrap.dataset.componentSource = src;
+    renderComponentRef(wrap, src);
+    pre.replaceWith(wrap);
+  });
+}
+
+/** Render one component reference into an existing `.cs-wrap`. */
+function renderComponentRef(wrap: HTMLElement, src: string) {
+  const store = useComponentsStore();
+  const ref = parseComponentFenceRef(src);
+  if (ref.kind === 'legacy') {
+    wrap.innerHTML = '<div class="cs-hint cs-hint--legacy">旧版内联组件（待迁移）：请新建组件并把内容复制过去。</div>';
+    return;
+  }
+  if (ref.kind === 'empty') {
+    wrap.innerHTML = '<div class="cs-hint cs-hint--empty">空组件引用。</div>';
+    return;
+  }
+  const file = store.get(ref.id);
+  if (file) {
+    wrap.innerHTML = renderComponentTree(file.tree);
+    return;
+  }
+  wrap.innerHTML = `<div class="cs-hint cs-hint--missing">组件 ${ref.id} 加载中…</div>`;
+  void store.load(ref.id).then((loaded) => {
+    if (loaded || store.get(ref.id)) {
+      renderComponentRef(wrap, src);
+    } else if (store.loading[ref.id]) {
+      // Another caller (e.g. the CM widget in liveEdit) is still loading it;
+      // keep "加载中" — its completion bumps the version and re-runs us.
+      wrap.innerHTML = `<div class="cs-hint cs-hint--missing">组件 ${ref.id} 加载中…</div>`;
+    } else {
+      wrap.innerHTML = `<div class="cs-hint cs-hint--missing">组件 ${ref.id} 未找到</div>`;
+    }
+  });
+}
+
+let unlistenIndex: UnlistenFn | null = null;
 
 onMounted(async () => {
   await nextTick();
@@ -592,6 +708,8 @@ onMounted(async () => {
   await processWhiteboards();
   attachImageOverlayHandlers();
   attachCodeCopyButtons();
+  restoreQueryBlocks();
+  processQuery();
   enableTaskCheckboxes();
   if (
     props.tabId &&
@@ -603,12 +721,17 @@ onMounted(async () => {
   host.value?.addEventListener('click', handleLinkClick);
   host.value?.addEventListener('click', onTaskCheckboxClick);
   host.value?.addEventListener('dblclick', onPreviewDblClick);
+  unlistenIndex = await listen('xiaoyuan-note://index-updated', () => {
+    restoreQueryBlocks();
+    processQuery();
+  });
 });
 
 onBeforeUnmount(() => {
   host.value?.removeEventListener('click', handleLinkClick);
   host.value?.removeEventListener('click', onTaskCheckboxClick);
   host.value?.removeEventListener('dblclick', onPreviewDblClick);
+  unlistenIndex?.();
 });
 
 function openSearch() {

@@ -5,7 +5,7 @@ round() { # TOKEN DELAY
   local i; for ((i = 0; i < 40; i++)); do [ -z "$(our_app_pids)" ] && break; sleep 0.25; done
   if [ -n "$(our_app_pids)" ]; then note "$1: app still running 10 s after Ctrl+Q"; app_kill; fi
   app_launch || { note "$1: relaunch failed"; return 1; }
-  wait_title '^plain\.md — SoloMD$' 10
+  wait_title '^plain\.md — xiaoyuanNote$' 10
   shot "restored-$1" >/dev/null
   contains "$(editor_text)" "$1"
 }

@@ -1,6 +1,6 @@
-SoloMD is a calm, fast Markdown editor for iPhone and iPad. Open the app and you are writing — no account, no sign-up, no subscription.
+xiaoyuanNote is a calm, fast Markdown editor for iPhone and iPad. Open the app and you are writing — no account, no sign-up, no subscription.
 
-Your notes are plain .md and .txt files. Keep them in SoloMD's folder in the Files app, or open a folder you already use, and edit the files right where they are. Any editor on any device can read them, today and in ten years.
+Your notes are plain .md and .txt files. Keep them in xiaoyuanNote’s folder in the Files app, or open a folder you already use, and edit the files right where they are. Any editor on any device can read them, today and in ten years.
 
 WRITING FIRST
 
@@ -44,10 +44,10 @@ EXPORT AND SHARE
 
 PRIVATE BY DESIGN
 
-SoloMD collects no data. No account, no analytics, no ads, no tracking. Your notes stay in files you own.
+xiaoyuanNote collects no data. No account, no analytics, no ads, no tracking. Your notes stay in files you own.
 
-SoloMD is open source under the MIT license: github.com/zhitongblog/solomd
+xiaoyuanNote is open source under the MIT license: github.com/zhitongblog/xiaoyuan-note
 
 100% FREE FOREVER & SUPPORTER BADGE
 
-Every feature in SoloMD is 100% free forever — no paywalls, no subscriptions, and no locked features. Optional one-time In-App Purchases (Buy a Coffee / Buy a Lunch / Generous Support) are purely voluntary tips to support independent open-source development, and permanently unlock the exclusive "Supporter" badge in Settings and About.
+Every feature in xiaoyuanNote is 100% free forever — no paywalls, no subscriptions, and no locked features. Optional one-time In-App Purchases (Buy a Coffee / Buy a Lunch / Generous Support) are purely voluntary tips to support independent open-source development, and permanently unlock the exclusive "Supporter" badge in Settings and About.

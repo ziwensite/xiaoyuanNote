@@ -8,7 +8,7 @@ Paste these answers into **App Privacy** in App Store Connect.
 
 ## Rationale (for your own records, do not submit)
 
-SoloMD:
+xiaoyuan-note:
 - Has no account system, no login, no analytics SDK, no ad SDK, no crash reporting SDK.
 - Does not transmit user content anywhere — all files stay in the user's local file system.
 - Does not read the address book, photos, location, clipboard (beyond user-initiated cut/copy/paste), or any identifier beyond what macOS provides automatically.
@@ -17,4 +17,4 @@ SoloMD:
 
 ## Privacy Policy URL
 
-`https://solomd.app/privacy` (use the same policy page as the iOS submission — see `../ios/PRIVACY.md`)
+`https://xiaoyuannote.app/privacy` (use the same policy page as the iOS submission — see `../ios/PRIVACY.md`)

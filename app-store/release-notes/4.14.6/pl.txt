@@ -4,6 +4,6 @@ Pogrubienie, kursywa, przekreślenie i kod na kilku akapitach formatują teraz k
 
 Menu: Znajdź i zamień w menu Edycja, polecenia powiększenia w podmenu Widok › Powiększenie, a menu Pomoc pokazuje osobno ściągę Markdown, skróty klawiszowe i wiersz poleceń. Menu Wstaw zyskuje nagłówki 4–6.
 
-Linki w notatkach zawsze otwierają się w przeglądarce, nigdy wewnątrz SoloMD.
+Linki w notatkach zawsze otwierają się w przeglądarce, nigdy wewnątrz xiaoyuan-note.
 
-Po kilku dniach używania SoloMD zapyta raz — i tylko raz — czy zechcesz dać mu gwiazdkę na GitHubie.
+Po kilku dniach używania xiaoyuanNote zapyta raz — i tylko raz — czy zechcesz dać mu gwiazdkę na GitHubie.

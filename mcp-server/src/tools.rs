@@ -32,7 +32,7 @@ use crate::workspace::{self, BacklinkRef, HeadingRef, NoteMeta, TagCount};
 // ---------------------------------------------------------------------------
 
 #[derive(Clone)]
-pub struct SoloMdServer {
+pub struct XiaoyuanNoteServer {
     inner: Arc<ServerState>,
     tool_router: ToolRouter<Self>,
 }
@@ -45,16 +45,16 @@ struct ServerState {
     allow_write: bool,
 }
 
-impl SoloMdServer {
+impl XiaoyuanNoteServer {
     /// `workspaces` is required to be non-empty (the CLI parser enforces
     /// this); the first entry becomes the default workspace.
     pub fn new(workspaces: Vec<(String, PathBuf)>, allow_write: bool) -> Self {
         assert!(
             !workspaces.is_empty(),
-            "SoloMdServer requires at least one workspace"
+            "XiaoyuanNoteServer requires at least one workspace"
         );
         let mut tool_router = Self::tool_router();
-        // `export_note` needs `app/scripts/solomd-export.mjs`, its
+        // `export_note` needs `app/scripts/xiaoyuan-note-export.mjs`, its
         // node_modules and `node` itself. The installed app ships none of
         // them, so advertising the tool there only produced a confusing
         // failure on the first call. Hide it unless the backend is present.
@@ -263,7 +263,7 @@ pub struct WriteResult {
 }
 
 // ---------------------------------------------------------------------------
-// v3.1 SoloMD-only tool args (autogit / sync / share)
+// v3.1 xiaoyuan-note-only tool args (autogit / sync / share)
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
@@ -316,10 +316,10 @@ pub struct ShareUrlArgs {
     pub workspace: Option<String>,
 }
 
-/// v4.1 — args for `export_note`. Drives `app/scripts/solomd-export.mjs`,
-/// the same headless export tool the `solomd export` CLI uses, so MCP
+/// v4.1 — args for `export_note`. Drives `app/scripts/xiaoyuan-note-export.mjs`,
+/// the same headless export tool the `xiaoyuanNote export` CLI uses, so MCP
 /// clients can produce .docx / .html / .txt artifacts in a CI / agent
-/// loop without a running SoloMD GUI. Engine parity with the in-app GUI
+/// loop without a running xiaoyuanNote GUI. Engine parity with the in-app GUI
 /// export — same markdown-it config, same `docx` library.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExportNoteArgs {
@@ -359,7 +359,7 @@ pub struct ExportNoteArgs {
 /// a real "first registered workspace" lookup; for v4.0 it's a 1:1.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ReadAgentTraceArgs {
-    /// Run id under `<workspace>/.solomd/agent-runs/<run_id>/`.
+    /// Run id under `<workspace>/.xiaoyuan-note/agent-runs/<run_id>/`.
     pub run_id: String,
     /// Optional workspace override. Defaults to the server's workspace.
     #[serde(default)]
@@ -380,11 +380,11 @@ pub struct AutogitCommitMeta {
 // ---------------------------------------------------------------------------
 
 #[tool_router(router = tool_router)]
-impl SoloMdServer {
+impl XiaoyuanNoteServer {
     /// List notes in the workspace (metadata only — content is *not* loaded).
     #[tool(
         name = "list_notes",
-        description = "List Markdown notes in a SoloMD workspace. Returns metadata only (path, name, title, mtime, size, summary). Use read_note to fetch full content. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+        description = "List Markdown notes in a xiaoyuanNote workspace. Returns metadata only (path, name, title, mtime, size, summary). Use read_note to fetch full content. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     )]
     pub async fn list_notes(
         &self,
@@ -632,7 +632,7 @@ impl SoloMdServer {
     ) -> Result<CallToolResult, McpError> {
         if !self.inner.allow_write {
             return Err(McpError::invalid_request(
-                "write_note is disabled. Restart solomd-mcp with --allow-write to enable it.",
+                "write_note is disabled. Restart xiaoyuan-note-mcp with --allow-write to enable it.",
                 None,
             ));
         }
@@ -682,12 +682,12 @@ impl SoloMdServer {
         ]))
     }
 
-    // ---- v3.1 SoloMD-only tools (autogit / sync / share) -----------------
+    // ---- v3.1 xiaoyuan-note-only tools (autogit / sync / share) -----------------
 
-    /// List per-note commit history from SoloMD's AutoGit repo.
+    /// List per-note commit history from xiaoyuanNote’s AutoGit repo.
     #[tool(
         name = "autogit_log",
-        description = "List the commit history for a single note from SoloMD's AutoGit repo (saves are auto-committed). Returns sha + short_sha + author + time (unix seconds) + summary, newest first. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+        description = "List the commit history for a single note from xiaoyuanNote’s AutoGit repo (saves are auto-committed). Returns sha + short_sha + author + time (unix seconds) + summary, newest first. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     )]
     pub async fn autogit_log(
         &self,
@@ -749,7 +749,7 @@ impl SoloMdServer {
     ) -> Result<CallToolResult, McpError> {
         if !self.inner.allow_write {
             return Err(McpError::invalid_request(
-                "autogit_rollback is disabled. Restart solomd-mcp with --allow-write to enable it.",
+                "autogit_rollback is disabled. Restart xiaoyuan-note-mcp with --allow-write to enable it.",
                 None,
             ));
         }
@@ -775,10 +775,10 @@ impl SoloMdServer {
         ]))
     }
 
-    /// Read SoloMD's GitHub-sync state for the workspace.
+    /// Read xiaoyuanNote’s GitHub-sync state for the workspace.
     #[tool(
         name = "sync_status",
-        description = "Return SoloMD's GitHub-sync configuration for a workspace: linked remote, current branch, encryption flag, last push/pull timestamps. Reads .solomd/sync.json — does not require credentials. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+        description = "Return xiaoyuanNote’s GitHub-sync configuration for a workspace: linked remote, current branch, encryption flag, last push/pull timestamps. Reads .xiaoyuan-note/sync.json — does not require credentials. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     )]
     pub async fn sync_status(
         &self,
@@ -801,7 +801,7 @@ impl SoloMdServer {
     /// workspace is linked to a public GitHub repo).
     #[tool(
         name = "share_url",
-        description = "Return the public solomd.app/share/ URL for a note. Only resolves to a real page if the workspace's linked repo is public; for private repos the URL exists but raw.githubusercontent.com will 404. Use sync_status first to check `private`. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+        description = "Return the public xiaoyuannote.app/share/ URL for a note. Only resolves to a real page if the workspace's linked repo is public; for private repos the URL exists but raw.githubusercontent.com will 404. Use sync_status first to check `private`. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     )]
     pub async fn share_url(
         &self,
@@ -833,7 +833,7 @@ impl SoloMdServer {
     ) -> Result<CallToolResult, McpError> {
         if !self.inner.allow_write {
             return Err(McpError::invalid_request(
-                "append_to_note is disabled. Restart solomd-mcp with --allow-write to enable it.",
+                "append_to_note is disabled. Restart xiaoyuan-note-mcp with --allow-write to enable it.",
                 None,
             ));
         }
@@ -862,8 +862,8 @@ impl SoloMdServer {
     }
 
     /// v4.1 — Headless export. Shells out to
-    /// `app/scripts/solomd-export.mjs` (Node) so we share the engine the
-    /// `solomd export` CLI uses + the in-app GUI's markdown-it config.
+    /// `app/scripts/xiaoyuan-note-export.mjs` (Node) so we share the engine the
+    /// `xiaoyuanNote export` CLI uses + the in-app GUI's markdown-it config.
     ///
     /// Every export writes a file, so the tool is gated by `--allow-write`
     /// like the other write tools, wherever `output_path` points. It used
@@ -874,10 +874,10 @@ impl SoloMdServer {
     /// created inside the workspace.
     ///
     /// The tool is only listed when the script and `node` were found at
-    /// startup (see `SoloMdServer::new`): the app bundle ships neither.
+    /// startup (see `XiaoyuanNoteServer::new`): the app bundle ships neither.
     #[tool(
         name = "export_note",
-        description = "Export a Markdown note to html / md / txt / docx. Engine-parity with the SoloMD GUI export. Requires --allow-write (it writes a file). Args: `path` (workspace-relative), `format` (default html), optional `output_path` (default: sibling file next to `path` with format-appropriate extension; may be outside the workspace, but then its folder must exist), optional `overwrite` (default false: an existing output file is never replaced unless this is true), optional `number_headings` (promote plain-text numbered sections like 6.2 / 6.2.1 to headings, default false). Returns the absolute output path. Needs Node.js and a SoloMD source checkout with `pnpm install` run in app/."
+        description = "Export a Markdown note to html / md / txt / docx. Engine-parity with the xiaoyuanNote GUI export. Requires --allow-write (it writes a file). Args: `path` (workspace-relative), `format` (default html), optional `output_path` (default: sibling file next to `path` with format-appropriate extension; may be outside the workspace, but then its folder must exist), optional `overwrite` (default false: an existing output file is never replaced unless this is true), optional `number_headings` (promote plain-text numbered sections like 6.2 / 6.2.1 to headings, default false). Returns the absolute output path. Needs Node.js and a xiaoyuanNote source checkout with `pnpm install` run in app/."
     )]
     pub async fn export_note(
         &self,
@@ -885,7 +885,7 @@ impl SoloMdServer {
     ) -> Result<CallToolResult, McpError> {
         if !self.inner.allow_write {
             return Err(McpError::invalid_request(
-                "export_note writes a file and is disabled. Restart solomd-mcp with --allow-write to enable it.",
+                "export_note writes a file and is disabled. Restart xiaoyuan-note-mcp with --allow-write to enable it.",
                 None,
             ));
         }
@@ -985,17 +985,17 @@ impl SoloMdServer {
 
     /// v4.0 Pillar 3 — return the agent trace for a single run.
     ///
-    /// Reads `<workspace>/.solomd/agent-runs/<run_id>/trace.jsonl` and
+    /// Reads `<workspace>/.xiaoyuan-note/agent-runs/<run_id>/trace.jsonl` and
     /// returns its lines as a JSON array, plus a count. Tolerates malformed
     /// lines (skipped, not errored) so partial / crashed runs are still
     /// inspectable. A run id with no trace on disk is an error, not an
     /// empty success, so a mistyped id can't pass for a run that did
     /// nothing. The reader is a slim duplicate of the canonical
     /// `app/src-tauri/src/trace.rs` parser — we don't path-dep into the
-    /// app crate to keep `solomd-mcp` self-contained.
+    /// app crate to keep `xiaoyuan-note-mcp` self-contained.
     #[tool(
         name = "read_agent_trace",
-        description = "Return the agent run trace as an array of step objects. Lines from `<workspace>/.solomd/agent-runs/<run_id>/trace.jsonl`; an unknown run id is an error. Each step has ts (unix ms), seq (1-based), kind, plus kind-specific fields (provider/model/tool/result/...). See SoloMD v4 contracts C2 for the schema."
+        description = "Return the agent run trace as an array of step objects. Lines from `<workspace>/.xiaoyuan-note/agent-runs/<run_id>/trace.jsonl`; an unknown run id is an error. Each step has ts (unix ms), seq (1-based), kind, plus kind-specific fields (provider/model/tool/result/...). See xiaoyuanNote v4 contracts C2 for the schema."
     )]
     pub async fn read_agent_trace(
         &self,
@@ -1013,12 +1013,12 @@ impl SoloMdServer {
             ));
         }
         let dir = workspace
-            .join(".solomd")
+            .join(".xiaoyuanNote")
             .join("agent-runs")
             .join(&run_id);
         if !dir.join("trace.jsonl").is_file() {
             return Err(McpError::invalid_params(
-                format!("agent run not found: {run_id} (no .solomd/agent-runs/{run_id}/trace.jsonl)"),
+                format!("agent run not found: {run_id} (no .xiaoyuan-note/agent-runs/{run_id}/trace.jsonl)"),
                 None,
             ));
         }
@@ -1039,10 +1039,10 @@ impl SoloMdServer {
 // ---------------------------------------------------------------------------
 
 #[tool_handler(router = self.tool_router)]
-impl ServerHandler for SoloMdServer {
+impl ServerHandler for XiaoyuanNoteServer {
     fn get_info(&self) -> ServerInfo {
         let implementation =
-            Implementation::new("solomd-mcp", env!("CARGO_PKG_VERSION")).with_title("SoloMD Vault");
+            Implementation::new("xiaoyuan-note-mcp", env!("CARGO_PKG_VERSION")).with_title("xiaoyuanNote Vault");
         let aliases: Vec<&str> = self
             .inner
             .workspaces
@@ -1061,7 +1061,7 @@ impl ServerHandler for SoloMdServer {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(implementation)
             .with_instructions(format!(
-                "Read and (optionally) write SoloMD Markdown notes vaults. \
+                "Read and (optionally) write xiaoyuanNote Markdown notes vaults. \
                  Tools are read-only by default; restart with --allow-write to expose \
                  write_note + append_to_note + autogit_rollback + export_note. {workspace_blurb}"
             ))
@@ -1426,7 +1426,7 @@ fn autogit_rollback_inner(
 }
 
 fn sync_status_inner(workspace: &std::path::Path) -> Result<serde_json::Value, String> {
-    let cfg_path = workspace.join(".solomd").join("sync.json");
+    let cfg_path = workspace.join(".xiaoyuanNote").join("sync.json");
     if !cfg_path.exists() {
         return Ok(serde_json::json!({
             "linked": false,
@@ -1449,7 +1449,7 @@ fn share_url_inner(
     workspace: &std::path::Path,
     note_path: &std::path::Path,
 ) -> Result<serde_json::Value, String> {
-    let cfg_path = workspace.join(".solomd").join("sync.json");
+    let cfg_path = workspace.join(".xiaoyuanNote").join("sync.json");
     if !cfg_path.exists() {
         return Err("workspace is not linked to a GitHub repo".into());
     }
@@ -1473,7 +1473,7 @@ fn share_url_inner(
         .map_err(|_| "note is outside the workspace".to_string())?;
     let rel_str = rel.to_string_lossy().replace('\\', "/");
     let url = format!(
-        "https://solomd.app/share/?repo={}&path={}&branch={}",
+        "https://xiaoyuannote.app/share/?repo={}&path={}&branch={}",
         urlencode(&owner_repo),
         urlencode(&rel_str),
         urlencode(&branch),
@@ -1512,7 +1512,7 @@ fn urlencode(s: &str) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// v3.1 unit tests for SoloMD-only inner helpers.
+// v3.1 unit tests for xiaoyuan-note-only inner helpers.
 //
 // These don't go through the MCP protocol layer — they call the inner
 // functions directly so we can pin down behavior (fail-closed on bad
@@ -1556,20 +1556,20 @@ fn export_backend() -> Result<PathBuf, String> {
     Ok(script)
 }
 
-/// Locate `app/scripts/solomd-export.mjs`, the Node tool that backs the
-/// `export_note` MCP tool and the `solomd export` CLI subcommand.
+/// Locate `app/scripts/xiaoyuan-note-export.mjs`, the Node tool that backs the
+/// `export_note` MCP tool and the `xiaoyuanNote export` CLI subcommand.
 ///
 /// Search order:
-///   1. `$SOLOMD_EXPORT_SCRIPT` env var (explicit override).
-///   2. `<exe-dir>/../app/scripts/solomd-export.mjs` (running from the
-///      SoloMD repo's release build, e.g. `mcp-server/target/release/`).
-///   3. `<exe-dir>/../../app/scripts/solomd-export.mjs` and
+///   1. `$XIAOYUAN_NOTE_EXPORT_SCRIPT` env var (explicit override).
+///   2. `<exe-dir>/../app/scripts/xiaoyuan-note-export.mjs` (running from the
+///      xiaoyuanNote repo's release build, e.g. `mcp-server/target/release/`).
+///   3. `<exe-dir>/../../app/scripts/xiaoyuan-note-export.mjs` and
 ///      `<exe-dir>/../../../app/…` (running from a monorepo dev build,
 ///      e.g. `mcp-server/target/debug/`).
-///   4. `<cwd>/app/scripts/solomd-export.mjs` (running from repo root).
-///   5. `~/.solomd/solomd-export.mjs` (manually installed).
+///   4. `<cwd>/app/scripts/xiaoyuan-note-export.mjs` (running from repo root).
+///   5. `~/.xiaoyuan-note/xiaoyuan-note-export.mjs` (manually installed).
 fn find_export_script() -> Result<PathBuf, String> {
-    if let Ok(p) = std::env::var("SOLOMD_EXPORT_SCRIPT") {
+    if let Ok(p) = std::env::var("XIAOYUAN_NOTE_EXPORT_SCRIPT") {
         let pb = PathBuf::from(p);
         if pb.is_file() {
             return Ok(pb);
@@ -1579,17 +1579,17 @@ fn find_export_script() -> Result<PathBuf, String> {
     let mut candidates: Vec<PathBuf> = Vec::new();
     if let Some(exe) = exe {
         if let Some(parent) = exe.parent() {
-            candidates.push(parent.join("../app/scripts/solomd-export.mjs"));
-            candidates.push(parent.join("../../app/scripts/solomd-export.mjs"));
-            candidates.push(parent.join("../../../app/scripts/solomd-export.mjs"));
+            candidates.push(parent.join("../app/scripts/xiaoyuan-note-export.mjs"));
+            candidates.push(parent.join("../../app/scripts/xiaoyuan-note-export.mjs"));
+            candidates.push(parent.join("../../../app/scripts/xiaoyuan-note-export.mjs"));
         }
     }
     if let Ok(cwd) = std::env::current_dir() {
-        candidates.push(cwd.join("app/scripts/solomd-export.mjs"));
-        candidates.push(cwd.join("../app/scripts/solomd-export.mjs"));
+        candidates.push(cwd.join("app/scripts/xiaoyuan-note-export.mjs"));
+        candidates.push(cwd.join("../app/scripts/xiaoyuan-note-export.mjs"));
     }
     if let Some(home) = std::env::var_os("HOME") {
-        candidates.push(PathBuf::from(home).join(".solomd/solomd-export.mjs"));
+        candidates.push(PathBuf::from(home).join(".xiaoyuan-note/xiaoyuan-note-export.mjs"));
     }
     for c in &candidates {
         if c.is_file() {
@@ -1597,7 +1597,7 @@ fn find_export_script() -> Result<PathBuf, String> {
         }
     }
     Err(format!(
-        "tried {} candidate paths; set SOLOMD_EXPORT_SCRIPT to point at app/scripts/solomd-export.mjs",
+        "tried {} candidate paths; set XIAOYUAN_NOTE_EXPORT_SCRIPT to point at app/scripts/xiaoyuan-note-export.mjs",
         candidates.len()
     ))
 }
@@ -1615,7 +1615,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = std::env::temp_dir().join(format!("solomd-mcp-{label}-{nanos}"));
+        let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-{label}-{nanos}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         // git init + identity (avoid test depending on user's git config)
@@ -1699,8 +1699,8 @@ mod tests {
     #[test]
     fn sync_status_corrupted_json_fails_closed() {
         let repo = fresh_repo("st2");
-        fs::create_dir_all(repo.join(".solomd")).unwrap();
-        fs::write(repo.join(".solomd/sync.json"), b"{not valid json").unwrap();
+        fs::create_dir_all(repo.join(".xiaoyuanNote")).unwrap();
+        fs::write(repo.join(".xiaoyuan-note/sync.json"), b"{not valid json").unwrap();
         let err = sync_status_inner(&repo).unwrap_err();
         // Same posture as desktop github_push_inner: refuse to invent state.
         assert!(err.contains("corrupted"), "got: {err}");
@@ -1709,9 +1709,9 @@ mod tests {
     #[test]
     fn sync_status_happy_path() {
         let repo = fresh_repo("st3");
-        fs::create_dir_all(repo.join(".solomd")).unwrap();
+        fs::create_dir_all(repo.join(".xiaoyuanNote")).unwrap();
         fs::write(
-            repo.join(".solomd/sync.json"),
+            repo.join(".xiaoyuan-note/sync.json"),
             br#"{"remote_url":"https://github.com/me/notes.git","branch":"main","encrypted":true}"#,
         )
         .unwrap();
@@ -1724,10 +1724,10 @@ mod tests {
     #[test]
     fn share_url_handles_branch_with_slash() {
         let repo = fresh_repo("share");
-        fs::create_dir_all(repo.join(".solomd")).unwrap();
+        fs::create_dir_all(repo.join(".xiaoyuanNote")).unwrap();
         // Branch name contains '/' — used to be the share-page bug.
         fs::write(
-            repo.join(".solomd/sync.json"),
+            repo.join(".xiaoyuan-note/sync.json"),
             br#"{"remote_url":"https://github.com/owner/repo.git","branch":"feature/foo"}"#,
         )
         .unwrap();
@@ -1762,14 +1762,14 @@ mod tests {
         assert!(err.contains("not linked"), "got: {err}");
     }
 
-    // ----- v4.0 federation: SoloMdServer::resolve_workspace ----------------
+    // ----- v4.0 federation: XiaoyuanNoteServer::resolve_workspace ----------------
 
     fn fresh_dir(label: &str) -> PathBuf {
         let nanos = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = std::env::temp_dir().join(format!("solomd-mcp-rw-{label}-{nanos}"));
+        let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-rw-{label}-{nanos}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir
@@ -1779,7 +1779,7 @@ mod tests {
     fn resolve_workspace_none_returns_default() {
         let a = fresh_dir("rw-default-a").canonicalize().unwrap();
         let b = fresh_dir("rw-default-b").canonicalize().unwrap();
-        let server = SoloMdServer::new(
+        let server = XiaoyuanNoteServer::new(
             vec![
                 ("first".into(), a.clone()),
                 ("second".into(), b.clone()),
@@ -1797,7 +1797,7 @@ mod tests {
     fn resolve_workspace_alias_match() {
         let a = fresh_dir("rw-alias-a").canonicalize().unwrap();
         let b = fresh_dir("rw-alias-b").canonicalize().unwrap();
-        let server = SoloMdServer::new(
+        let server = XiaoyuanNoteServer::new(
             vec![
                 ("notes".into(), a.clone()),
                 ("scratch".into(), b.clone()),
@@ -1811,7 +1811,7 @@ mod tests {
     #[test]
     fn resolve_workspace_absolute_path_match() {
         let a = fresh_dir("rw-abs-a").canonicalize().unwrap();
-        let server = SoloMdServer::new(vec![("only".into(), a.clone())], false);
+        let server = XiaoyuanNoteServer::new(vec![("only".into(), a.clone())], false);
         let s = a.to_string_lossy().to_string();
         let resolved = server.resolve_workspace(Some(&s)).unwrap();
         assert_eq!(resolved, a.as_path());
@@ -1820,7 +1820,7 @@ mod tests {
     #[test]
     fn resolve_workspace_unknown_alias_errors_with_available_list() {
         let a = fresh_dir("rw-unknown-a").canonicalize().unwrap();
-        let server = SoloMdServer::new(vec![("home".into(), a.clone())], false);
+        let server = XiaoyuanNoteServer::new(vec![("home".into(), a.clone())], false);
         let err = server.resolve_workspace(Some("bogus")).unwrap_err();
         assert!(err.contains("unknown workspace: bogus"), "got: {err}");
         assert!(err.contains("home"), "error should list available aliases, got: {err}");
@@ -1829,7 +1829,7 @@ mod tests {
     #[test]
     fn resolve_workspace_unregistered_absolute_path_errors() {
         let a = fresh_dir("rw-bad-abs").canonicalize().unwrap();
-        let server = SoloMdServer::new(vec![("only".into(), a.clone())], false);
+        let server = XiaoyuanNoteServer::new(vec![("only".into(), a.clone())], false);
         // /tmp itself is not a registered workspace — must reject even though
         // it canonicalises fine.
         let err = server.resolve_workspace(Some("/tmp")).unwrap_err();
@@ -1841,7 +1841,7 @@ mod tests {
         // Exactly the legacy case: one workspace, no alias arg ever passed.
         // This is what every existing single-`--workspace` client does.
         let a = fresh_dir("rw-legacy").canonicalize().unwrap();
-        let server = SoloMdServer::new(vec![("legacy".into(), a.clone())], false);
+        let server = XiaoyuanNoteServer::new(vec![("legacy".into(), a.clone())], false);
         assert_eq!(server.resolve_workspace(None).unwrap(), a.as_path());
         // And the alias still works if a curious client sends one.
         assert_eq!(
@@ -1853,7 +1853,7 @@ mod tests {
     // ----- get_backlinks -----------------------------------------------------
 
     /// Backlink sources, by file name, for `note_name`.
-    fn backlinks_from(server: &SoloMdServer, note_name: &str) -> Vec<String> {
+    fn backlinks_from(server: &XiaoyuanNoteServer, note_name: &str) -> Vec<String> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         let res = rt
             .block_on(server.get_backlinks(Parameters(GetBacklinksArgs {
@@ -1885,7 +1885,7 @@ mod tests {
         fs::write(dir.join("d.md"), "See [[other/deep]].\n").unwrap();
         fs::write(dir.join("e.md"), "```\nexample: [[deep]]\n```\n").unwrap();
         fs::write(dir.join("f.md"), "See [[undeep]].\n").unwrap();
-        let server = SoloMdServer::new(vec![("v".into(), dir)], false);
+        let server = XiaoyuanNoteServer::new(vec![("v".into(), dir)], false);
 
         let all = vec!["a.md", "b.md", "c.md", "d.md"];
         assert_eq!(backlinks_from(&server, "deep"), all);

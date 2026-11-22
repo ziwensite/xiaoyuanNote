@@ -24,6 +24,7 @@ import { useCalendarStore } from '../../stores/calendar';
 import { useTasks } from '../../composables/useTasks';
 import { useFiles } from '../../composables/useFiles';
 import { useDailyNotes } from '../../composables/useDailyNotes';
+import type { PeriodKind } from '../../lib/periodic-notes';
 import { useI18n, htmlLangFor } from '../../i18n';
 import Icons from '../Icons.vue';
 import CalendarHeader from '../CalendarHeader.vue';
@@ -124,7 +125,7 @@ const writeEntryTo = createEntryWriter({
       path,
       data: Array.from(new TextEncoder().encode(text)),
     });
-    window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: path } }));
   },
 });
 
@@ -658,7 +659,7 @@ async function createNewEvent(event: CalendarEvent) {
   const text = createEntryEventNote(event, entryUid, '');
   noteOwnWrite(path, text);
   await invoke('write_file', { path, content: text, encoding: 'UTF-8' });
-  window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: path } }));
   editor.value = null;
   toasts.success(t('calendar.toastCreated'));
 }
@@ -686,7 +687,7 @@ async function createExceptionNote(masterPath: string, event: CalendarEvent) {
   const text = createCalendarEvent(event, '');
   noteOwnWrite(path, text);
   await invoke('write_file', { path, content: text, encoding: 'UTF-8' });
-  window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: path } }));
   editor.value = null;
   toasts.success(t('calendar.toastSavedOnce'));
 }
@@ -734,7 +735,7 @@ async function splitSeriesNote(draft: EditorDraft, tail: CalendarEvent) {
   const text = createCalendarEvent(created, '');
   noteOwnWrite(path, text);
   await invoke('write_file', { path, content: text, encoding: 'UTF-8' });
-  window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: path } }));
   toasts.success(t('calendar.toastSplit'));
 }
 
@@ -789,7 +790,7 @@ async function persistExisting(
   } else {
     noteOwnWrite(path, next);
     await invoke('write_file', { path, content: next, encoding: disk.encoding || 'UTF-8' });
-    window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: path } }));
   }
   editor.value = null;
   if (notify) toasts.success(t('calendar.toastSaved'));
@@ -861,7 +862,7 @@ async function jumpToTask(task: CalendarTask) {
   await files.openPath(task.path, { bypassNewWindow: true });
   setTimeout(() => {
     window.dispatchEvent(
-      new CustomEvent('solomd:outline-goto', {
+      new CustomEvent('xiaoyuan-note:outline-goto', {
         detail: { line: task.line, paneId: tiles.focusedPaneId },
       }),
     );
@@ -1064,20 +1065,50 @@ function clickDay(date: string) {
   calendar.setFocusDate(date);
 }
 
-function newOnMonth(date: string) {
-  openNew(date, 540, true);
+/** Open the periodic note for the clicked calendar cell. `openPeriodic` opens
+ *  an existing note or creates it from the configured template first. */
+function openPeriodicDate(kind: PeriodKind, date: string) {
+  void daily.openPeriodic(kind, wallDate(date));
 }
 
-/** The month grid is the shared `CalendarPanel`, so its native click/dblclick
- *  bubble up to this host wrapper; we forward them so the workspace keeps its
- *  own interactions (select day, create event on dblclick) intact. */
+function openYearlyNote() {
+  openPeriodicDate('yearly', `${calendar.focusDate.slice(0, 4)}-01-01`);
+}
+
+/** The mini grid keeps click = select day; the double-click handlers live on
+ *  the grid itself so the host wrapper only needs the legacy click forward. */
 function onMiniClick(event: MouseEvent) {
   const el = (event.target as HTMLElement).closest('[data-date]') as HTMLElement | null;
   if (el?.dataset.date) clickDay(el.dataset.date);
 }
-function onMiniDblClick(event: MouseEvent) {
-  const el = (event.target as HTMLElement).closest('[data-date]') as HTMLElement | null;
-  if (el?.dataset.date) newOnMonth(el.dataset.date);
+
+let monthClickTimer: number | null = null;
+let pendingMonthKey: string | null = null;
+function resetMonthClick(): void {
+  if (monthClickTimer !== null) window.clearTimeout(monthClickTimer);
+  monthClickTimer = null;
+  pendingMonthKey = null;
+}
+/** Year-view month titles switch to month view on a single click; wait long
+ *  enough to let a double-click cancel that and open the monthly note instead. */
+function scheduleOpenMonth(key: string): void {
+  if (pendingMonthKey === key && monthClickTimer !== null) {
+    resetMonthClick();
+    return;
+  }
+  resetMonthClick();
+  pendingMonthKey = key;
+  monthClickTimer = window.setTimeout(() => {
+    openMonth(key);
+    resetMonthClick();
+  }, 240);
+}
+function openMonthNote(key: string): void {
+  resetMonthClick();
+  openPeriodicDate('monthly', `${key}-01`);
+}
+function openQuarterNote(firstMonthKey: string): void {
+  openPeriodicDate('quarterly', `${firstMonthKey}-01`);
 }
 
 function newOnHour(date: string, hour: number) {
@@ -1145,6 +1176,7 @@ onBeforeUnmount(() => {
   observer?.disconnect();
   observer = null;
   cleanupDrag?.();
+  resetMonthClick();
 });
 </script>
 
@@ -1154,8 +1186,12 @@ onBeforeUnmount(() => {
 
     <div v-else-if="mode === 'month'" class="cal-w__split">
       <section class="cal-month" style="display:flex;flex-direction:column;min-height:0;" :style="{ flex: '0 0 ' + calSplit + '%' }">
-        <div class="cal-month__host" style="flex:1 1 auto;min-height:0;" @click="onMiniClick" @dblclick="onMiniDblClick">
-          <CalendarPanel :show-open-day="false" />
+        <div class="cal-month__host" style="flex:1 1 auto;min-height:0;" @click="onMiniClick">
+          <CalendarPanel
+            :show-open-day="false"
+            @open-daily="openPeriodicDate('daily', $event)"
+            @open-weekly="openPeriodicDate('weekly', $event)"
+          />
         </div>
       </section>
       <div class="cal-w__resizer" @pointerdown="beginSplitDrag" role="separator"></div>
@@ -1250,9 +1286,18 @@ onBeforeUnmount(() => {
       <CalendarHeader :show-open-day="false" />
 
       <!-- Year: four quarters × three months -->
-      <div v-if="mode === 'year'" class="cal-year">
+      <div
+        v-if="mode === 'year'"
+        class="cal-year"
+        :title="t('calendar.openPeriodic.yearly')"
+        @dblclick.self="openYearlyNote"
+      >
         <section v-for="quarter in yearQuarters" :key="quarter.index" class="cal-year__quarter">
-          <div class="cal-year__quarter-head">
+          <div
+            class="cal-year__quarter-head"
+            :title="t('calendar.openPeriodic.quarterly')"
+            @dblclick.stop="openQuarterNote(quarter.months[0].key)"
+          >
             <span class="cal-year__quarter-tag">{{ quarter.label }}</span>
             <span class="cal-year__quarter-range">{{ quarter.rangeLabel }}</span>
           </div>
@@ -1261,8 +1306,9 @@ onBeforeUnmount(() => {
               <button
                 type="button"
                 class="cal-year__month-title"
-                :title="month.key"
-                @click="openMonth(month.key)"
+                :title="`${month.key} · ${t('calendar.openPeriodic.monthly')}`"
+                @click="scheduleOpenMonth(month.key)"
+                @dblclick.stop="openMonthNote(month.key)"
               >{{ month.label }}</button>
               <CalendarPanel
                 :month="month.key"
@@ -1767,17 +1813,46 @@ onBeforeUnmount(() => {
   background: var(--fill-1);
 }
 
+/* Same look as the task side panel's `.rp-check`: 14px box, 1.4px hairline,
+   4px radius, accent fill + inset tick when done (the span stands in for a
+   native checkbox inside a <button>, so it toggles via .is-done, not :checked). */
 .cal-task-row__check {
   flex: none;
-  width: 13px;
-  height: 13px;
-  border: 1px solid var(--line-2, var(--text-3));
-  border-radius: 3px;
+  display: inline-block;
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border: 1.4px solid var(--line-2, var(--text-3));
+  border-radius: 4px;
+  background: transparent;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .cal-task-row__check.is-done {
   background: var(--accent);
   border-color: var(--accent);
+}
+
+.cal-task-row__check.is-done::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 4px;
+  border: 1.6px solid var(--accent-strong-fg);
+  border-top: 0;
+  border-right: 0;
+  transform: translate(-50%, -60%) rotate(-45deg);
+}
+/* Match the native checkboxes (note / side panel / editor), which the global
+   `@media (pointer: coarse)` rule enlarges to 20px — this span is not an
+   <input>, so it needs the same bump to stay consistent on touch. */
+@media (pointer: coarse) {
+  .cal-task-row__check {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .cal-task-row__title {

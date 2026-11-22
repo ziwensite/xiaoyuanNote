@@ -10,7 +10,7 @@
  * (status / url / boolean / relation) that the Bases table doesn't need.
  *
  * User overrides of the inferred mode persist OUTSIDE notes in
- * `.solomd/properties.json` (see stores/properties.ts) — `getEffectiveMode`
+ * `.xiaoyuan-note/properties.json` (see stores/properties.ts) — `getEffectiveMode`
  * = override ?? inferred.
  *
  * NOTE: `lib/bases.ts` is read-only for this feature; we import its inference

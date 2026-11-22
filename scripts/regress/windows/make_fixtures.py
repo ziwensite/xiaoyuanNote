@@ -3,7 +3,7 @@
 
 The runner zips this, unpacks it in the VM as a pristine copy, and re-copies it to
 Desktop\\regress-vault before EVERY check, so checks never see each other's edits.
-Keep files ASCII-named (the checks pass paths on the SoloMD command line).
+Keep files ASCII-named (the checks pass paths on the xiaoyuanNote command line).
 """
 import os
 import sys

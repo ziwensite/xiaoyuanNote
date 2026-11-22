@@ -19,7 +19,7 @@
 
 ## 链接
 
-访问 [SoloMD 官网](https://solomd.app)，自动链接：<https://github.com/lixd/solomd>。
+访问 [xiaoyuanNote 官网](https://xiaoyuannote.app)，自动链接：<https://github.com/lixd/xiaoyuanNote>。
 
 把光标移到链接所在的那一行，原始的 `[label](url)` 标记就会回来供你编辑；移开光标后又重新渲染成蓝色下划线。
 

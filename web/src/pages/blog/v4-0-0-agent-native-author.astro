@@ -8,7 +8,7 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD v4.0 — The editor where agents live"
+  title="xiaoyuanNote v4.0 — The editor where agents live"
   description="v4.0 is the agent-native author release. Five pillars in core: Inline Agent Panel (streamed chat-with-vault), Scheduled Recipes (cron / on-save / on-commit, AutoGit branch sandbox + accept/reject), Trace View, Multi-workspace MCP Federation, and Ollama first-class polish. Plus REST API, BYOK cost meter, recipe cookbook (11 starters), first-run wizard. Safety rails non-negotiable — every agent run is reviewable before it touches main."
   lang={lang}
 >
@@ -21,7 +21,7 @@ const lang = 'en' as const;
       <time>2026-05-03</time>
       <h1>v4.0 — The editor where agents live</h1>
       <p class="lead">
-        SoloMD has always been two halves of one product: an editor
+        xiaoyuanNote has always been two halves of one product: an editor
         that writes plain <code>.md</code> to disk, plus a bundled MCP
         server pointing at the same vault. v4.0 adds a third half — a
         first-class <strong>agent surface inside the editor</strong>,
@@ -69,14 +69,14 @@ const lang = 'en' as const;
         too long? <strong>Insert</strong> drops it into the active
         editor at the cursor (or replaces selection); <strong>Copy</strong>
         sends it to the clipboard. Run history persists as plain
-        markdown under <code>.solomd/agent-runs/</code> — grep-able,
+        markdown under <code>.xiaoyuan-note/agent-runs/</code> — grep-able,
         git-trackable, auditable months later.
       </p>
 
       <h3>2. Agent Recipes / Scheduled Runs</h3>
       <p>
         Declarative agent jobs as YAML in your vault:
-        <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>. Triggers:
+        <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>. Triggers:
         <code>schedule</code> (cron), <code>on-save</code>,
         <code>on-commit</code>, <code>on-tag-add</code>, manual.
         <strong>Safety rails are non-negotiable</strong>:
@@ -130,7 +130,7 @@ const lang = 'en' as const;
 
       <h3>4. Workspace Federation</h3>
       <p>
-        <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+        <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
         — one MCP session, many vaults. Tool signatures gain an
         optional <code>workspace</code> parameter; default = first
         passed (single-workspace clients keep working unchanged).
@@ -201,7 +201,7 @@ const lang = 'en' as const;
           timing was wrong — <code>set_focus()</code> from
           <code>setup</code> fired before NSApp's run loop had
           finished launching, so the activation request got dropped
-          and SoloMD opened behind whatever was previously frontmost.
+          and xiaoyuanNote opened behind whatever was previously frontmost.
           Fixed by deferring to <code>RunEvent::Ready</code> + the
           window-state plugin's first restore signal.
         </li>
@@ -219,7 +219,7 @@ const lang = 'en' as const;
           <strong>Stuck "streaming…" with no error.</strong> A
           mistyped Ollama model name made the OpenAI-compat layer
           return HTTP 404, the Rust side correctly emitted
-          <code>solomd://ai-error</code>, but the JS listener gated
+          <code>xiaoyuan-note://ai-error</code>, but the JS listener gated
           on <code>currentRunId</code> which was set <em>after</em>
           the <code>await invoke()</code> resolved — and 404 came
           back so fast that the error event arrived before
@@ -312,11 +312,11 @@ const lang = 'en' as const;
       <h2>What's next</h2>
       <p>
         The <em>v4.x and beyond</em> open directions on the
-        <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmap</a>:
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmap</a>:
         a sandboxed scripting API (capability-scoped, Trilium-style
         "I want to script my workflow"), CLI v2 (rewrite / commit /
         semantic search / recipe-trigger from terminal), and the
-        long-deferred <em>"should SoloMD become a business?"</em>
+        long-deferred <em>"should xiaoyuanNote become a business?"</em>
         question — the original v3.0 paid-sync question, still
         unanswered, still gates any engineering on the sync tier.
       </p>
@@ -334,7 +334,7 @@ const lang = 'en' as const;
         quiet phase. The bugs above made it into the release notes
         because dogfooding caught them; the bugs that <em>didn't</em>
         make it into the release notes are the reason any of this
-        works at all. Issues: <a href="https://github.com/zhitongblog/solomd/issues">on GitHub</a>.
+        works at all. Issues: <a href="https://github.com/zhitongblog/xiaoyuan-note/issues">on GitHub</a>.
       </p>
     </article>
     <Giscus lang={lang} />

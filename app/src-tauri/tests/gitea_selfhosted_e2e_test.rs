@@ -18,9 +18,9 @@
 //!
 //! ```sh
 //! gitea web --config <conf>            # or any Gitea/Forgejo instance
-//! export SOLOMD_GITEA_URL=http://localhost:3939
-//! export SOLOMD_GITEA_USER=solouser
-//! export SOLOMD_GITEA_TOKEN=<access token with write:repository>
+//! export XIAOYUAN_NOTE_GITEA_URL=http://localhost:3939
+//! export XIAOYUAN_NOTE_GITEA_USER=solouser
+//! export XIAOYUAN_NOTE_GITEA_TOKEN=<access token with write:repository>
 //! cargo test --test gitea_selfhosted_e2e_test -- --ignored --nocapture
 //! ```
 
@@ -41,9 +41,9 @@ impl Server {
     /// Read the instance out of the environment, or skip the test.
     fn from_env() -> Option<Self> {
         Some(Self {
-            base: std::env::var("SOLOMD_GITEA_URL").ok()?,
-            user: std::env::var("SOLOMD_GITEA_USER").ok()?,
-            token: std::env::var("SOLOMD_GITEA_TOKEN").ok()?,
+            base: std::env::var("XIAOYUAN_NOTE_GITEA_URL").ok()?,
+            user: std::env::var("XIAOYUAN_NOTE_GITEA_USER").ok()?,
+            token: std::env::var("XIAOYUAN_NOTE_GITEA_TOKEN").ok()?,
         })
     }
 
@@ -94,7 +94,7 @@ fn fresh_dir(label: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-gitea-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-gitea-{label}-{nanos}"));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir
@@ -131,7 +131,7 @@ fn init_workspace(label: &str, remote_url: &str, provider: &str) -> PathBuf {
         }
         repo.remote("origin", remote_url).unwrap();
     }
-    let cfg_dir = ws.join(".solomd");
+    let cfg_dir = ws.join(".xiaoyuanNote");
     fs::create_dir_all(&cfg_dir).unwrap();
     fs::write(
         cfg_dir.join("sync.json"),
@@ -146,7 +146,7 @@ fn init_workspace(label: &str, remote_url: &str, provider: &str) -> PathBuf {
         .to_string(),
     )
     .unwrap();
-    fs::write(ws.join(".gitignore"), ".solomd/\n").unwrap();
+    fs::write(ws.join(".gitignore"), ".xiaoyuan-note/\n").unwrap();
     ws
 }
 
@@ -160,7 +160,7 @@ fn write(path: &Path, body: &str) {
 #[ignore = "needs a live Gitea/Forgejo instance; see module docs"]
 fn gitea_push_pull_roundtrip_over_http() {
     let Some(srv) = Server::from_env() else {
-        eprintln!("SOLOMD_GITEA_* not set — skipping");
+        eprintln!("XIAOYUAN_NOTE_GITEA_* not set — skipping");
         return;
     };
     srv.reset_repo("vault");
@@ -219,7 +219,7 @@ fn gitea_push_pull_roundtrip_over_http() {
 #[ignore = "needs a live Gitea/Forgejo instance; see module docs"]
 fn gitea_push_fails_with_bad_token() {
     let Some(srv) = Server::from_env() else {
-        eprintln!("SOLOMD_GITEA_* not set — skipping");
+        eprintln!("XIAOYUAN_NOTE_GITEA_* not set — skipping");
         return;
     };
     srv.reset_repo("vault-auth");

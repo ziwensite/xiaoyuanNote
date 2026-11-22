@@ -178,7 +178,7 @@ function joinPath(a: string, b: string, sepCh: string): string {
 function activeSafContext(): { treeUri: string; rootDocId: string | null } | null {
   try {
     if (typeof localStorage === 'undefined') return null;
-    const raw = localStorage.getItem('solomd.workspace.v1');
+    const raw = localStorage.getItem('xiaoyuan-note.workspace.v1');
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { safTreeUri?: unknown; currentFolder?: unknown };
     const treeUri =
@@ -361,7 +361,7 @@ async function prepareLocalTarget(
     };
   }
   const t = await resolveTempDir(opts.tempDir);
-  const fullPath = joinPath(joinPath(t, 'solomd', sepCh), filename, sepCh);
+  const fullPath = joinPath(joinPath(t, 'xiaoyuanNote', sepCh), filename, sepCh);
   // Forward slashes in the markdown URL — markdown-it eats `\` as escapes on
   // Windows, mangling the preview src. (No-op on macOS/Linux.)
   return { fullPath, insertText: markdownImage(fullPath.replace(/\\/g, '/')) };
@@ -375,7 +375,7 @@ async function prepareTempTarget(
 ): Promise<string> {
   const sepCh = getSep();
   const t = await resolveTempDir(opts.tempDir);
-  return joinPath(joinPath(t, 'solomd', sepCh), filename, sepCh);
+  return joinPath(joinPath(t, 'xiaoyuanNote', sepCh), filename, sepCh);
 }
 
 async function writeBytes(fullPath: string, bytes: Uint8Array): Promise<boolean> {
@@ -538,7 +538,7 @@ async function saveAndInsert(
     srcPath = temp;
   }
 
-  const token = `solomd-uploading-${randSuffix()}${randSuffix()}`;
+  const token = `xiaoyuan-note-uploading-${randSuffix()}${randSuffix()}`;
   insertAtCursor(view, `![](${token})`);
   const finalText = await performUpload(up, srcPath, opts, async () => {
     // On failure keep a local copy: assets file already exists when keepLocal;
@@ -814,7 +814,7 @@ export async function insertImageFromPath(
       uploadSrc = local.fullPath;
     }
   }
-  const token = `solomd-uploading-${randSuffix()}${randSuffix()}`;
+  const token = `xiaoyuan-note-uploading-${randSuffix()}${randSuffix()}`;
   insertAtCursor(view, `![](${token})`);
   const finalText = await performUpload(up, uploadSrc, opts, async () => {
     if (up.keepLocal) return local.insertText;

@@ -2,7 +2,7 @@
 /**
  * v2.6.1 — Cross-device session restore dialog.
  *
- * Triggered from useSessionRestore via `solomd:session-restore-available`
+ * Triggered from useSessionRestore via `xiaoyuan-note:session-restore-available`
  * event when a sibling device's session.<id>.json in the workspace is
  * fresher than ours. Shows the device label, tab count, and timestamp;
  * user picks "Restore" (replace local tabs) or "Keep mine" (dismiss).
@@ -125,10 +125,10 @@ function dismiss() {
 }
 
 onMounted(() => {
-  window.addEventListener('solomd:session-restore-available', onAvailable);
+  window.addEventListener('xiaoyuan-note:session-restore-available', onAvailable);
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('solomd:session-restore-available', onAvailable);
+  window.removeEventListener('xiaoyuan-note:session-restore-available', onAvailable);
 });
 </script>
 

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=xiaoyuanNote
+GenericName=Markdown Editor
+Comment=Lightweight Markdown and plain text editor
+Exec=xiaoyuanNote %U
+Icon=xiaoyuanNote
+Terminal=false
+Type=Application
+Categories=TextEditor;Utility;Development;
+MimeType=text/markdown;text/x-markdown;text/plain;
+Keywords=markdown;editor;text;md;
+StartupWMClass=xiaoyuanNote

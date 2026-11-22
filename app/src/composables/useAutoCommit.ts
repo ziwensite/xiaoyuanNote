@@ -10,7 +10,7 @@
  *     pattern is what made every prior bug invisible to the user.
  *
  * `start()` is called from App.vue's setup. It registers a
- * `solomd:saved` window listener (dispatched by `useFiles().saveActive`)
+ * `xiaoyuan-note:saved` window listener (dispatched by `useFiles().saveActive`)
  * and runs `git_auto_commit` immediately when AutoGit is enabled.
  */
 import { watch } from 'vue';
@@ -89,7 +89,7 @@ export function useAutoCommit() {
     // session toggle would fire an error toast on literally every save.
     if (!hasGitBackend()) return;
     listening = true;
-    window.addEventListener('solomd:saved', onSaved as EventListener);
+    window.addEventListener('xiaoyuan-note:saved', onSaved as EventListener);
 
     // The moment AutoGit is toggled ON, immediately initialize the repo
     // so the user gets visible feedback right after flipping the switch
@@ -111,7 +111,7 @@ export function useAutoCommit() {
   function stop(): void {
     if (!listening) return;
     listening = false;
-    window.removeEventListener('solomd:saved', onSaved as EventListener);
+    window.removeEventListener('xiaoyuan-note:saved', onSaved as EventListener);
   }
 
   /** Explicit "Save snapshot now" command-palette entry. Bypasses the toggle. */

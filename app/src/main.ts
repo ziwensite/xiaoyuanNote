@@ -6,10 +6,36 @@ import { reanchorIosContainerPaths } from './lib/ios-container';
 import { isMobile, isWindowsDesktop } from './lib/platform';
 import { installNativeMenuGuard } from './lib/native-menu-guard';
 import { preloadRenderDeps } from './lib/render-deps';
+import './lib/frontmatter-editing';
 import './styles/cjk-font.css';
 import './styles/main.css';
 import './styles/hljs-theme.css';
 import 'katex/dist/katex.min.css';
+
+// Brand migration: old settings/tab/window keys stay in place as a fallback,
+// but first run copies them under the new xiaoyuan-note prefix so no user
+// settings, workspaces, window layouts or per-window tabs are lost.
+function copyLegacyStorage(store: Storage, legacyPrefix: string, nextPrefix: string): void {
+  try {
+    const legacyKeys: string[] = [];
+    for (let i = 0; i < store.length; i += 1) {
+      const key = store.key(i);
+      if (key?.startsWith(legacyPrefix)) legacyKeys.push(key);
+    }
+    for (const key of legacyKeys) {
+      const nextKey = nextPrefix + key.slice(legacyPrefix.length);
+      if (store.getItem(nextKey) !== null) continue;
+      const value = store.getItem(key);
+      if (value !== null) store.setItem(nextKey, value);
+    }
+  } catch {
+    // Storage can be unavailable in private webviews; stores already tolerate it.
+  }
+}
+copyLegacyStorage(localStorage, 'solomd.', 'xiaoyuan-note.');
+copyLegacyStorage(localStorage, 'solomd-window-', 'xiaoyuan-note-window-');
+copyLegacyStorage(localStorage, 'solomd:', 'xiaoyuan-note:');
+copyLegacyStorage(sessionStorage, 'solomd:', 'xiaoyuan-note:');
 
 const params = new URLSearchParams(window.location.search);
 const isSlideshow = params.get('slideshow') === '1';
@@ -53,7 +79,7 @@ async function readWebviewVersion(): Promise<void> {
   if (!isWindowsDesktop()) return;
   const { invoke } = await import('@tauri-apps/api/core');
   const v = await invoke<string | null>('webview_runtime_version');
-  if (v) (window as unknown as { __SOLOMD_WEBVIEW_VERSION__?: string }).__SOLOMD_WEBVIEW_VERSION__ = v;
+  if (v) (window as unknown as { __XIAOYUAN_NOTE_WEBVIEW_VERSION__?: string }).__XIAOYUAN_NOTE_WEBVIEW_VERSION__ = v;
 }
 
 // iOS: point stored paths at the current app container before any store reads

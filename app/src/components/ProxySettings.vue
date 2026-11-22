@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * v3.0 — Network proxy settings (global, ~/.solomd/proxy).
+ * v3.0 — Network proxy settings (global, ~/.xiaoyuan-note/proxy).
  *
  * Conceptually network-level, not GitHub-specific — covers any
  * libgit2-backed remote (GitHub / GitLab / Gitea / custom). Lives at

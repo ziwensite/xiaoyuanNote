@@ -8,7 +8,7 @@
 //!
 //! How it works:
 //!   - `scripts/build-mas.sh` and `scripts/build-ios.sh` export
-//!     `SOLOMD_APP_STORE_BUILD=1` before invoking `pnpm tauri build`.
+//!     `XIAOYUAN_NOTE_APP_STORE_BUILD=1` before invoking `pnpm tauri build`.
 //!   - `option_env!` reads the value at compile time, so the result is a
 //!     `const bool` and the dead-code arms get optimised out.
 //!   - Every AI / Agent / Recipe Tauri command early-returns Err when this
@@ -19,7 +19,7 @@
 // value flips this to true — the build scripts only export the variable when
 // they actually want the App Store gate, so a stray `=0` setting in someone's
 // shell shouldn't happen in practice.
-pub const IS_APP_STORE: bool = option_env!("SOLOMD_APP_STORE_BUILD").is_some();
+pub const IS_APP_STORE: bool = option_env!("XIAOYUAN_NOTE_APP_STORE_BUILD").is_some();
 
 #[derive(serde::Serialize)]
 pub struct BuildInfo {
@@ -32,8 +32,8 @@ pub fn app_build_info() -> BuildInfo {
 }
 
 /// App Store gate helper. Only referenced by the AI/Agent/Recipe commands
-/// when `SOLOMD_APP_STORE_BUILD=1`; dead code in regular builds.
+/// when `XIAOYUAN_NOTE_APP_STORE_BUILD=1`; dead code in regular builds.
 #[allow(dead_code)]
 pub fn app_store_disabled<T>() -> Result<T, String> {
-    Err("This feature is not available in the App Store edition. Download the GitHub release for the full SoloMD experience.".to_string())
+    Err("This feature is not available in the App Store edition. Download the GitHub release for the full xiaoyuanNote experience.".to_string())
 }

@@ -1,14 +1,14 @@
 name: Download stats
 
 # Once a day: collect download counts from every channel and store them in
-# solomd.app's D1 (web/migrations/0003_downloads.sql) through
+# xiaoyuannote.app's D1 (web/migrations/0003_downloads.sql) through
 # POST /api/admin/downloads. The homepage total (/api/stats) and the /admin
 # dashboard read from there. See scripts/collect-downloads.py for what each
 # channel counts.
 #
 # Secrets:
-#   SOLOMD_INGEST_TOKEN   must equal the INGEST_TOKEN secret of the Cloudflare
-#                         Pages project "solomd"
+#   XIAOYUAN_NOTE_INGEST_TOKEN   must equal the INGEST_TOKEN secret of the Cloudflare
+#                         Pages project "xiaoyuanNote"
 #   ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8   App Store Connect API key
 #   MSSTORE_TENANT_ID, MSSTORE_CLIENT_ID, MSSTORE_CLIENT_SECRET   (optional)
 #   PLAY_BUCKET, PLAY_SERVICE_ACCOUNT_JSON                        (optional)
@@ -37,7 +37,7 @@ jobs:
       - name: Collect and send
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOLOMD_INGEST_TOKEN: ${{ secrets.SOLOMD_INGEST_TOKEN }}
+          XIAOYUAN_NOTE_INGEST_TOKEN: ${{ secrets.XIAOYUAN_NOTE_INGEST_TOKEN }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}

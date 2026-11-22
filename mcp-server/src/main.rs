@@ -1,14 +1,14 @@
-//! solomd-mcp — Model Context Protocol server for SoloMD vaults.
+//! xiaoyuan-note-mcp — Model Context Protocol server for xiaoyuanNote vaults.
 //!
 //! Spoken to over stdio (JSON-RPC); logs go to stderr. Designed for use with
 //! Claude Code, Codex CLI, and any other MCP client.
 //!
 //! Single-workspace (back-compat):
-//!     solomd-mcp --workspace /path/to/notes
+//!     xiaoyuan-note-mcp --workspace /path/to/notes
 //!
 //! Multi-workspace (v4.0 federation):
-//!     solomd-mcp --workspace /path/A --workspace /path/B
-//!     solomd-mcp --workspace work=/path/A --workspace home=/path/B
+//!     xiaoyuan-note-mcp --workspace /path/A --workspace /path/B
+//!     xiaoyuan-note-mcp --workspace work=/path/A --workspace home=/path/B
 //!
 //! Each `--workspace` is either a bare path (alias defaults to the path's
 //! last component) or `<alias>=<path>`. The first workspace is the *default*
@@ -32,10 +32,10 @@ mod workspace;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "solomd-mcp",
+    name = "xiaoyuan-note-mcp",
     version,
-    about = "MCP server for one or more SoloMD Markdown vaults",
-    long_about = "Model Context Protocol server that exposes one *or more* SoloMD Markdown notes \
+    about = "MCP server for one or more xiaoyuanNote Markdown vaults",
+    long_about = "Model Context Protocol server that exposes one *or more* xiaoyuanNote Markdown notes \
                   folders as a set of tools (list_notes, read_note, search, get_backlinks, \
                   list_tags, list_tasks, get_outline, autogit_log/diff/rollback, sync_status, \
                   share_url, read_agent_trace, write_note, append_to_note, export_note) over \
@@ -48,8 +48,8 @@ mod workspace;
                   keep working unchanged.\n\n\
                   Read-only by default. Pass --allow-write to enable write_note, \
                   append_to_note, autogit_rollback and export_note. export_note is only \
-                  listed when Node.js and a SoloMD source checkout's \
-                  app/scripts/solomd-export.mjs are found (or SOLOMD_EXPORT_SCRIPT is set)."
+                  listed when Node.js and a xiaoyuanNote source checkout's \
+                  app/scripts/xiaoyuan-note-export.mjs are found (or XIAOYUAN_NOTE_EXPORT_SCRIPT is set)."
 )]
 struct Cli {
     /// Workspace to serve. Repeat for multi-workspace mode.
@@ -83,7 +83,7 @@ struct Cli {
     /// set, requests must carry `Authorization: Bearer <TOKEN>`. Leave
     /// empty for unauthenticated access (only sensible on a strictly
     /// private network).
-    #[arg(long, env = "SOLOMD_MCP_TOKEN")]
+    #[arg(long, env = "XIAOYUAN_NOTE_MCP_TOKEN")]
     auth_token: Option<String>,
 }
 
@@ -176,11 +176,16 @@ pub(crate) fn build_workspace_list(raws: &[String]) -> Result<Vec<(String, PathB
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+    // Brand migration: keep old MCP client configs working after the rename.
+    if cli.auth_token.is_none() {
+        cli.auth_token = std::env::var("SOLOMD_MCP_TOKEN").ok();
+    }
 
     // Logging — always to stderr so stdout stays clean for JSON-RPC.
     let default_level = if cli.verbose { "debug" } else { "info" };
-    let filter = EnvFilter::try_from_env("SOLOMD_MCP_LOG")
+    let filter = EnvFilter::try_from_env("XIAOYUAN_NOTE_MCP_LOG")
+        .or_else(|_| EnvFilter::try_from_env("SOLOMD_MCP_LOG"))
         .unwrap_or_else(|_| EnvFilter::new(default_level));
     fmt()
         .with_env_filter(filter)
@@ -205,10 +210,10 @@ async fn main() -> Result<()> {
         default = %workspaces[0].0,
         allow_write = cli.allow_write,
         version = env!("CARGO_PKG_VERSION"),
-        "solomd-mcp starting"
+        "xiaoyuan-note-mcp starting"
     );
 
-    let server = tools::SoloMdServer::new(workspaces, cli.allow_write);
+    let server = tools::XiaoyuanNoteServer::new(workspaces, cli.allow_write);
 
     match cli.transport {
         Transport::Stdio => run_stdio(server).await,
@@ -216,7 +221,7 @@ async fn main() -> Result<()> {
     }
 }
 
-async fn run_stdio(server: tools::SoloMdServer) -> Result<()> {
+async fn run_stdio(server: tools::XiaoyuanNoteServer) -> Result<()> {
     let service = server
         .serve(stdio())
         .await
@@ -226,11 +231,11 @@ async fn run_stdio(server: tools::SoloMdServer) -> Result<()> {
         .waiting()
         .await
         .context("MCP service exited with error")?;
-    tracing::info!(?quit_reason, "solomd-mcp shutting down");
+    tracing::info!(?quit_reason, "xiaoyuan-note-mcp shutting down");
     Ok(())
 }
 
-async fn run_http(server: tools::SoloMdServer, bind: &str, auth_token: Option<String>) -> Result<()> {
+async fn run_http(server: tools::XiaoyuanNoteServer, bind: &str, auth_token: Option<String>) -> Result<()> {
     use axum::{
         extract::Request,
         http::StatusCode,
@@ -243,7 +248,7 @@ async fn run_http(server: tools::SoloMdServer, bind: &str, auth_token: Option<St
         tower::{StreamableHttpServerConfig, StreamableHttpService},
     };
 
-    // SoloMdServer is cheap to clone (it's all Arc<…> internally), so a
+    // XiaoyuanNoteServer is cheap to clone (it's all Arc<…> internally), so a
     // fresh service per HTTP session keeps state isolated without forcing
     // global locking. The factory closure captures `server` and returns a
     // clone on every new MCP session.
@@ -285,7 +290,7 @@ async fn run_http(server: tools::SoloMdServer, bind: &str, auth_token: Option<St
     tracing::info!(
         bind = %bind,
         auth = if auth_token.is_some() { "bearer" } else { "none" },
-        "solomd-mcp HTTP transport listening — POST /mcp speaks Streamable HTTP"
+        "xiaoyuan-note-mcp HTTP transport listening — POST /mcp speaks Streamable HTTP"
     );
 
     let listener = tokio::net::TcpListener::bind(bind)
@@ -314,7 +319,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = std::env::temp_dir().join(format!("solomd-mcp-cli-{label}-{nanos}"));
+        let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-cli-{label}-{nanos}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

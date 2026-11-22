@@ -101,7 +101,7 @@ export function useTasks() {
         encoding: read.encoding || 'UTF-8',
       });
       window.dispatchEvent(
-        new CustomEvent('solomd:saved', { detail: { filePath: task.path } }),
+        new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: task.path } }),
       );
     } catch (e) {
       toasts.error(t('toast.taskUpdateFailed', { error: String(e) }));

@@ -1,3 +1,3 @@
-Die App-Store-Version von SoloMD sendet keine Nutzungsdaten mehr.
+Die App-Store-Version von xiaoyuanNote sendet keine Nutzungsdaten mehr.
 
 Um Bewertungen wird nur über Apples eigenes Bewertungsfenster gebeten – selten und nie beim ersten Start.

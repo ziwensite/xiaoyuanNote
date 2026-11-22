@@ -16,4 +16,4 @@
 - [x] `pnpm build`（`vue-tsc --noEmit && vite build`）通过：built in 25.03s。
 - [x] `pnpm test`：702 pass / 0 fail（8094ms）。
 
-> 归档注记：以上为 2026-11-09 Trae 阶段的历史验收数字，保留不改。2026-11-11 复测基线：978 tests / 978 pass / 0 fail，`pnpm build` 29.94s，`cargo test --lib` 259、`--bin SoloMD` 267 全过。
+> 归档注记：以上为 2026-11-09 Trae 阶段的历史验收数字，保留不改。2026-11-11 复测基线：978 tests / 978 pass / 0 fail，`pnpm build` 29.94s，`cargo test --lib` 259、`--bin xiaoyuanNote` 267 全过。

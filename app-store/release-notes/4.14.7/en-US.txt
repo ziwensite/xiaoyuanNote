@@ -1,6 +1,6 @@
-Pick any folder in the Files app as your workspace — iCloud Drive, On My iPhone or another app's folder. SoloMD remembers it across launches.
+Pick any folder in the Files app as your workspace — iCloud Drive, On My iPhone or another app's folder. xiaoyuanNote remembers it across launches.
 
-SoloMD's own folder now shows up in the Files app under On My iPhone › SoloMD.
+xiaoyuanNote’s own folder now shows up in the Files app under On My iPhone › xiaoyuan-note.
 
 Notes opened from the Files app are edited in place: saving updates the original instead of making a copy.
 
@@ -8,4 +8,4 @@ Rename, move and delete files in the file tree: long-press a file or tap ⋯.
 
 Folders you opened before an update open again, instead of saying they are no longer there.
 
-SoloMD from the App Store sends no usage data, and asks for a rating only with Apple's own rating sheet.
+xiaoyuanNote from the App Store sends no usage data, and asks for a rating only with Apple's own rating sheet.

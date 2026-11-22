@@ -5,7 +5,7 @@
  *
  * Writes follow the same rule as the rest of the app: an open tab is
  * authoritative (writing under a dirty buffer would lose edits), otherwise the
- * file is read, changed and written once, with `noteOwnWrite` + `solomd:saved`
+ * file is read, changed and written once, with `noteOwnWrite` + `xiaoyuan-note:saved`
  * so the watcher does not report our own write as an external change.
  */
 
@@ -85,7 +85,7 @@ export function useCapture() {
     }
     noteOwnWrite(path, text);
     await invoke('write_file', { path, content: text, encoding: 'UTF-8' });
-    window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: path } }));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: path } }));
   }
 
   /**

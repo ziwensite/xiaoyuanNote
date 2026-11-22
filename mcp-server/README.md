@@ -1,16 +1,16 @@
-# solomd-mcp — Model Context Protocol server for SoloMD vaults
+# xiaoyuan-note-mcp — Model Context Protocol server for xiaoyuanNote vaults
 
-`solomd-mcp` lets Claude Code, Codex CLI, Cursor, Continue, and any other
-MCP client read (and optionally edit) a SoloMD Markdown notes folder. Your
+`xiaoyuan-note-mcp` lets Claude Code, Codex CLI, Cursor, Continue, and any other
+MCP client read (and optionally edit) a xiaoyuanNote Markdown notes folder. Your
 vault becomes a first-class tool the assistant can call.
 
 It is a **standalone Rust binary**. The desktop app bundles a copy (on
-macOS: `/Applications/SoloMD.app/Contents/MacOS/solomd-mcp`) but never runs
+macOS: `/Applications/xiaoyuannote.app/Contents/MacOS/xiaoyuan-note-mcp`) but never runs
 it itself; it only runs when an MCP client starts it. It reports the same
-version as the app (`solomd-mcp --version`).
+version as the app (`xiaoyuan-note-mcp --version`).
 
 ```
-solomd-mcp --workspace /Users/me/Documents/Notes
+xiaoyuan-note-mcp --workspace /Users/me/Documents/Notes
 # stdin / stdout: JSON-RPC 2.0 (stdio transport, the default)
 # stderr:        human logs (use --verbose for debug)
 ```
@@ -21,7 +21,7 @@ Pass `--workspace` once per vault. Each value is either a bare path (alias
 defaults to the path's last component) or `<alias>=<path>`:
 
 ```
-solomd-mcp \
+xiaoyuan-note-mcp \
   --workspace work=/Users/me/Documents/Work \
   --workspace home=/Users/me/Documents/Home
 ```
@@ -59,9 +59,9 @@ opened on demand for each call.
 | `list_tasks` | Every `- [ ]` / `- [x]` checkbox in the vault, with file, line and done state; `done` filters. | always |
 | `autogit_log` | Commit history of one note from the AutoGit repo, newest first. | always |
 | `autogit_diff` | Unified diff of one note between two AutoGit commits. | always |
-| `sync_status` | GitHub-sync state from `.solomd/sync.json` (remote, branch, encryption). | always |
-| `share_url` | Public solomd.app/share URL for a note in a linked repo. | always |
-| `read_agent_trace` | Steps of one agent run from `.solomd/agent-runs/<run_id>/trace.jsonl`; an unknown run id is an error. | always |
+| `sync_status` | GitHub-sync state from `.xiaoyuan-note/sync.json` (remote, branch, encryption). | always |
+| `share_url` | Public xiaoyuannote.app/share URL for a note in a linked repo. | always |
+| `read_agent_trace` | Steps of one agent run from `.xiaoyuan-note/agent-runs/<run_id>/trace.jsonl`; an unknown run id is an error. | always |
 | `write_note` | Create a `.md` / `.markdown` / `.txt` note (missing folders inside the workspace are created). Replaces an existing note only with `allow_overwrite: true`. | `--allow-write` |
 | `append_to_note` | Append text to an existing note (newline-safe). | `--allow-write` |
 | `autogit_rollback` | Restore a note's content from an AutoGit commit. | `--allow-write` |
@@ -85,7 +85,7 @@ only — no server, no network, no new dependency.
 
 1. **Versions.** `app/src-tauri/tauri.conf.json` is the source of truth. The
    test also checks `app/package.json`, both `Cargo.toml` files, the mcpb
-   manifest, `scripts/solomd`, the website's `softwareVersion` and its locale
+   manifest, `scripts/xiaoyuanNote`, the website's `softwareVersion` and its locale
    badges. `scripts/release.sh` bumps all of them.
 2. **Published artifacts.** `server.json` (a .mcpb URL + `fileSha256`) and
    `distribution/manifests/*` (winget / scoop / homebrew installer URLs)
@@ -108,11 +108,11 @@ the v4.0 plan. `marketplace/_shared/tools.md` is the shared block to paste
 into new listings; `scripts/build-mcpb.sh` regenerates the mcpb `tools`
 array from the live `tools/list`.
 
-**`export_note` needs Node.js and a SoloMD source checkout.** It runs
-`app/scripts/solomd-export.mjs` (the same engine as `solomd export`) with
+**`export_note` needs Node.js and a xiaoyuanNote source checkout.** It runs
+`app/scripts/xiaoyuan-note-export.mjs` (the same engine as `xiaoyuanNote export`) with
 the app's `node_modules`. The installed app ships neither, so the tool is
 only listed when `node` is on `PATH` and the script is found: via
-`SOLOMD_EXPORT_SCRIPT=/path/to/solomd/app/scripts/solomd-export.mjs`, or
+`XIAOYUAN_NOTE_EXPORT_SCRIPT=/path/to/xiaoyuan-note/app/scripts/xiaoyuan-note-export.mjs`, or
 automatically when the binary or the working directory is inside a
 checkout where `pnpm install` has been run in `app/`.
 
@@ -121,24 +121,24 @@ checkout where `pnpm install` has been run in `app/`.
 ### One-line installer (macOS / Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-mcp.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-mcp.sh | bash
 ```
 
 This downloads the right binary for your platform from the latest GitHub
-release and drops it into `/usr/local/bin/solomd-mcp` (falling back to
-`~/.local/bin/solomd-mcp` if the system path is not writable).
+release and drops it into `/usr/local/bin/xiaoyuan-note-mcp` (falling back to
+`~/.local/bin/xiaoyuan-note-mcp` if the system path is not writable).
 
 ### Cargo
 
 ```bash
-cargo install --git https://github.com/zhitongblog/solomd solomd-mcp
+cargo install --git https://github.com/zhitongblog/xiaoyuan-note xiaoyuan-note-mcp
 ```
 
 ### Manual
 
 Grab the right archive from
-[github.com/zhitongblog/solomd/releases](https://github.com/zhitongblog/solomd/releases),
-extract `solomd-mcp`, and put it on your `PATH`.
+[github.com/zhitongblog/xiaoyuan-note/releases](https://github.com/zhitongblog/xiaoyuan-note/releases),
+extract `xiaoyuan-note-mcp`, and put it on your `PATH`.
 
 ## Wire it up
 
@@ -148,8 +148,8 @@ Easiest route is the CLI — it writes the user-scope config (`~/.claude.json`)
 for you:
 
 ```bash
-claude mcp add --scope user solomd-vault -- \
-  solomd-mcp --workspace /Users/me/Documents/Notes
+claude mcp add --scope user xiaoyuan-note-vault -- \
+  xiaoyuan-note-mcp --workspace /Users/me/Documents/Notes
 ```
 
 To scope the server to one project instead, drop an `.mcp.json` in the project
@@ -158,8 +158,8 @@ root:
 ```json
 {
   "mcpServers": {
-    "solomd-vault": {
-      "command": "solomd-mcp",
+    "xiaoyuan-note-vault": {
+      "command": "xiaoyuan-note-mcp",
       "args": ["--workspace", "/Users/me/Documents/Notes"]
     }
   }
@@ -171,8 +171,8 @@ Multi-workspace profile (one MCP server, several vaults):
 ```json
 {
   "mcpServers": {
-    "solomd-vaults": {
-      "command": "solomd-mcp",
+    "xiaoyuan-note-vaults": {
+      "command": "xiaoyuan-note-mcp",
       "args": [
         "--workspace", "work=/Users/me/Documents/Work",
         "--workspace", "home=/Users/me/Documents/Home"
@@ -187,8 +187,8 @@ To enable writes:
 ```json
 {
   "mcpServers": {
-    "solomd-vault": {
-      "command": "solomd-mcp",
+    "xiaoyuan-note-vault": {
+      "command": "xiaoyuan-note-mcp",
       "args": ["--workspace", "/Users/me/Documents/Notes", "--allow-write"]
     }
   }
@@ -200,17 +200,17 @@ To enable writes:
 `~/.codex/config.toml`:
 
 ```toml
-[mcp_servers.solomd-vault]
-command = "solomd-mcp"
+[mcp_servers.xiaoyuan-note-vault]
+command = "xiaoyuan-note-mcp"
 args = ["--workspace", "/Users/me/Documents/Notes"]
 ```
 
 ### Cursor / Continue / generic
 
 Anything that speaks MCP over stdio works. Point its `command` at
-`solomd-mcp` and pass `--workspace <path>`. The `solomd` CLI
-(`scripts/install-cli.sh`) can do this for you: `solomd mcp install`
-writes the entry into every AI client it finds, `solomd mcp-config` prints
+`xiaoyuan-note-mcp` and pass `--workspace <path>`. The `xiaoyuanNote` CLI
+(`scripts/install-cli.sh`) can do this for you: `xiaoyuanNote mcp install`
+writes the entry into every AI client it finds, `xiaoyuanNote mcp-config` prints
 it.
 
 ### Hosted clients (Streamable HTTP)
@@ -219,19 +219,19 @@ For clients that can't spawn a local binary (Smithery, Claude.ai remote
 MCP, ChatGPT connectors), run the HTTP transport:
 
 ```bash
-solomd-mcp --workspace /Users/me/Documents/Notes \
+xiaoyuan-note-mcp --workspace /Users/me/Documents/Notes \
   --transport http --bind 127.0.0.1:8765 --auth-token "$TOKEN"
 ```
 
 It binds to loopback by default, so nothing outside the machine can reach
-it until you change `--bind`. With `--auth-token` (or `SOLOMD_MCP_TOKEN`)
+it until you change `--bind`. With `--auth-token` (or `XIAOYUAN_NOTE_MCP_TOKEN`)
 every request must send `Authorization: Bearer <token>`; without one the
 endpoint is open to anything that can reach the address.
 
 ## CLI reference
 
 ```
-solomd-mcp [OPTIONS] --workspace <ALIAS=DIR | DIR>...
+xiaoyuan-note-mcp [OPTIONS] --workspace <ALIAS=DIR | DIR>...
 
   --workspace <ALIAS=DIR | DIR>
                       Path to a notes folder. Required. Canonicalised.
@@ -246,13 +246,13 @@ solomd-mcp [OPTIONS] --workspace <ALIAS=DIR | DIR>...
                       stdio (default) or Streamable HTTP.
   --bind <ADDR>       HTTP listen address (default 127.0.0.1:8765).
   --auth-token <TOKEN>
-                      HTTP bearer token [env: SOLOMD_MCP_TOKEN].
+                      HTTP bearer token [env: XIAOYUAN_NOTE_MCP_TOKEN].
   -v, --verbose       Debug-level stderr logs.
   -V, --version       Print version.
   -h, --help          Print help.
 ```
 
-Set `SOLOMD_MCP_LOG=trace` (or any `tracing-subscriber` filter expression)
+Set `XIAOYUAN_NOTE_MCP_LOG=trace` (or any `tracing-subscriber` filter expression)
 for finer-grained control.
 
 ## Safety
@@ -263,7 +263,7 @@ for finer-grained control.
   the workspace is `export_note`, and only with `--allow-write`; it never
   creates folders there and never replaces an existing file unless the call
   passes `overwrite: true`.
-* The watcher / index from the SoloMD desktop app is **not** used here —
+* The watcher / index from the xiaoyuanNote desktop app is **not** used here —
   this is a stateless per-invocation server that walks the filesystem
   lazily.
 * `list_notes` reads only an 8 KB prefix of each file (enough for title +
@@ -279,7 +279,7 @@ for finer-grained control.
   printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}'
   printf '%s\n' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
   sleep 1
-} | solomd-mcp --workspace ~/Documents/Notes
+} | xiaoyuan-note-mcp --workspace ~/Documents/Notes
 ```
 
 You should see 16 tools listed (15 if `export_note`'s Node backend isn't
@@ -287,4 +287,4 @@ available).
 
 ## License
 
-MIT — same as SoloMD.
+MIT — same as xiaoyuan-note.

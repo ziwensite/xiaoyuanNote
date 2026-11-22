@@ -234,7 +234,7 @@ export function useExport() {
   // outside our sandbox are unreachable without NSURL's
   // startAccessingSecurityScopedResource). Instead, on iOS we write to the
   // app's own Documents directory — UIFileSharingEnabled + LSSupports
-  // OpeningDocumentsInPlace surface that folder under "On My iPhone › SoloMD"
+  // OpeningDocumentsInPlace surface that folder under "On My iPhone › xiaoyuanNote"
   // in the Files app, so users can move/iCloud-sync from there.
   /** The PlantUML server when the user turned PlantUML on (#163), else null. */
   function plantumlServer(): string | null {
@@ -256,7 +256,7 @@ export function useExport() {
     // Dev-only QA hook (like ?forcePlain): lets a self-test drive an export
     // end to end without a native save panel. Stripped from release builds.
     if (import.meta.env.DEV) {
-      const override = (window as unknown as { __solomdSavePathOverride?: string }).__solomdSavePathOverride;
+      const override = (window as unknown as { __xiaoyuanNoteSavePathOverride?: string }).__xiaoyuanNoteSavePathOverride;
       if (override) return override;
     }
     return await saveDialog({ defaultPath, filters });
@@ -502,7 +502,7 @@ export function useExport() {
         // Only reachable if the mermaid chunk itself fails to load (per-diagram
         // failures are handled inside). Printing the document with the fences
         // still as code beats refusing to print at all — and #115 says we must
-        // never leave the overlay + `body.solomd-printing` mounted.
+        // never leave the overlay + `body.xiaoyuan-note-printing` mounted.
         console.error('[print] mermaid render failed', e);
       }
       // PlantUML fences were printed as code: only the preview rendered them.
@@ -572,8 +572,8 @@ export function useExport() {
       setTimeout(cleanup, 100);
     } catch (e) {
       console.error('[print] failed', e);
-      // #115 — tear down the print DOM (the full-screen #solomd-print-overlay
-      // + `body.solomd-printing`) SYNCHRONOUSLY on error. The old code only
+      // #115 — tear down the print DOM (the full-screen #xiaoyuan-note-print-overlay
+      // + `body.xiaoyuan-note-printing`) SYNCHRONOUSLY on error. The old code only
       // scheduled cleanup via setTimeout in `finally`; if the print invoke
       // rejected, the editor was left under the print-mode body state and
       // felt unresponsive ("mouse input dead after an export error" on macOS).

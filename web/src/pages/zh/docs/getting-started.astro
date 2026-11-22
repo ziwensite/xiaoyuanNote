@@ -8,8 +8,8 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD 快速上手 — 安装、打开文件夹、视图切换、一键升级与网盘加密同步"
-  description="在 macOS、Windows、Linux、iOS 或 Android 上安装 SoloMD，打开你的第一个文件夹，掌握实时/源码/分栏/预览四大模式、标签页切换、一键升级与数据安全机制。"
+  title="xiaoyuanNote 快速上手 — 安装、打开文件夹、视图切换、一键升级与网盘加密同步"
+  description="在 macOS、Windows、Linux、iOS 或 Android 上安装 xiaoyuanNote，打开你的第一个文件夹，掌握实时/源码/分栏/预览四大模式、标签页切换、一键升级与数据安全机制。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -26,19 +26,19 @@ const lang = 'zh' as const;
       <table class="kb-table">
         <thead><tr><th>平台</th><th>安装方式</th></tr></thead>
         <tbody>
-          <tr><th>macOS</th><td><code>brew install --cask zhitongblog/solomd/solomd</code>，或从 <a href="/zh/">solomd.app</a> 下载已签名并经过 Apple 公证的通用 <code>.dmg</code>，拖进「应用程序」即可（支持 Apple Silicon 与 Intel，macOS 10.15+）。</td></tr>
-          <tr><th>Windows</th><td>下载 <code>.msi</code> 安装包（x64 或 arm64），或免安装的 <code>-portable.zip</code> 便携版（便携版在 <code>SoloMD.exe</code> 同级新建 <code>data</code> 文件夹即可随 U 盘携带配置）。支持资源管理器右键「新建 → Markdown 文档」。</td></tr>
+          <tr><th>macOS</th><td><code>brew install --cask zhitongblog/xiaoyuan-note/xiaoyuanNote</code>，或从 <a href="/zh/">xiaoyuannote.app</a> 下载已签名并经过 Apple 公证的通用 <code>.dmg</code>，拖进「应用程序」即可（支持 Apple Silicon 与 Intel，macOS 10.15+）。</td></tr>
+          <tr><th>Windows</th><td>下载 <code>.msi</code> 安装包（x64 或 arm64），或免安装的 <code>-portable.zip</code> 便携版（便携版在 <code>xiaoyuan-note.exe</code> 同级新建 <code>data</code> 文件夹即可随 U 盘携带配置）。支持资源管理器右键「新建 → Markdown 文档」。</td></tr>
           <tr><th>Linux</th><td>提供 <code>.AppImage</code>、<code>.deb</code> 与 <code>.rpm</code>（x64 与 arm64）。采用 <code>xdg-portal</code> 原生异步文件对话框，完美兼容 Ubuntu / Debian / Fedora / KDE Plasma Wayland（<a href="/zh/docs/linux/">发行版对照表</a>）。</td></tr>
           <tr><th>iOS / iPadOS / Android</th><td>iPhone 与 iPad 可在 App Store 获取（支持「文件」App 原地编辑与 iPad 竖屏抽屉侧栏）；Android 提供签名 APK（支持 SAF 文件夹授权与折叠屏双栏）。</td></tr>
         </tbody>
       </table>
       <p>
-        <strong>应用内一键更新</strong>：当有新版本发布时，点击顶栏或「设置 → 关于」中的更新按钮，SoloMD 会直接在应用内下载安装包并自动拉起安装（中国大陆用户会自动路由至 Gitee 高速镜像）。
+        <strong>应用内一键更新</strong>：当有新版本发布时，点击顶栏或「设置 → 关于」中的更新按钮，xiaoyuanNote 会直接在应用内下载安装包并自动拉起安装（中国大陆用户会自动路由至 Gitee 高速镜像）。
       </p>
 
       <h3>Windows：任务栏图标显示空白？</h3>
       <p>
-        如果升级后任务栏固定的 SoloMD 图标变成空白，这是 Windows 图标缓存未刷新所致。在命令提示符（CMD）执行以下四行即可立即恢复：
+        如果升级后任务栏固定的 xiaoyuanNote 图标变成空白，这是 Windows 图标缓存未刷新所致。在命令提示符（CMD）执行以下四行即可立即恢复：
       </p>
       <pre><code>taskkill /f /im explorer.exe
 del /f /q %LocalAppData%\IconCache.db

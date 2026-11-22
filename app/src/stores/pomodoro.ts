@@ -13,7 +13,7 @@
  * or auto-break finishing) restores the prior state.
  *
  * Stats persistence: every completed focus session appends one record to
- * `localStorage['solomd.pomodoro.sessions.v1']`. The shape is intentionally
+ * `localStorage['xiaoyuan-note.pomodoro.sessions.v1']`. The shape is intentionally
  * minimal — `{date, durationMin, wordsWritten}` — so a future v2.6 stats
  * panel can render historical productivity without a schema migration.
  * NOTE: only focus sessions are recorded; break sessions are not (a break
@@ -24,9 +24,9 @@ import { useTabsStore } from './tabs';
 import { useSettingsStore } from './settings';
 import { cjkWordCount } from '../lib/chinese';
 
-const LS_STATE = 'solomd.pomodoro.state.v1';
-const LS_SESSIONS = 'solomd.pomodoro.sessions.v1';
-const LS_LAST_PRESET = 'solomd.pomodoro.lastPreset.v1';
+const LS_STATE = 'xiaoyuan-note.pomodoro.state.v1';
+const LS_SESSIONS = 'xiaoyuan-note.pomodoro.sessions.v1';
+const LS_LAST_PRESET = 'xiaoyuan-note.pomodoro.lastPreset.v1';
 
 export type PomodoroPhase = 'focus' | 'break' | 'flash';
 
@@ -350,7 +350,7 @@ export const usePomodoroStore = defineStore('pomodoro', {
           ? Math.max(0, totalWordCount() - (this.startWordCount ?? 0))
           : 0;
         fireNotification(
-          'SoloMD — focus session complete',
+          'xiaoyuanNote — focus session complete',
           `${durationMin} min · ${wordsDelta} words written`,
         );
       }

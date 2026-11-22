@@ -1,4 +1,4 @@
-SoloMD är en lugn och snabb Markdown-redigerare för Mac. Öppna appen och börja skriva — inget konto, ingen registrering, ingen prenumeration.
+xiaoyuanNote är en lugn och snabb Markdown-redigerare för Mac. Öppna appen och börja skriva — inget konto, ingen registrering, ingen prenumeration.
 
 Dina anteckningar är vanliga .md- och .txt-filer i mappar som du väljer. Öppna en mapp du redan använder och redigera filerna där de ligger. Vilken redigerare som helst på vilken plattform som helst kan läsa dem, i dag och om tio år.
 
@@ -43,10 +43,10 @@ EXPORT
 
 INTEGRITET FRÅN GRUNDEN
 
-SoloMD samlar inte in några data. Inget konto, ingen analys, ingen reklam, ingen spårning. Dina anteckningar stannar i filer som du äger.
+xiaoyuanNote samlar inte in några data. Inget konto, ingen analys, ingen reklam, ingen spårning. Dina anteckningar stannar i filer som du äger.
 
-SoloMD är öppen källkod under MIT-licensen: github.com/zhitongblog/solomd
+xiaoyuanNote är öppen källkod under MIT-licensen: github.com/zhitongblog/xiaoyuan-note
 
 100 % GRATIS FÖR ALLTID OCH SUPPORTER-MÄRKE
 
-Alla funktioner i SoloMD är 100 % gratis för alltid — utan prenumerationer eller låsta funktioner. Valfria engångsköp i appen (Bjud på en kaffe / Bjud på en lunch / Generöst stöd) är helt frivillig dricks för att stödja oberoende utveckling och låser permanent upp märket ”Supporter”.
+Alla funktioner i xiaoyuanNote är 100 % gratis för alltid — utan prenumerationer eller låsta funktioner. Valfria engångsköp i appen (Bjud på en kaffe / Bjud på en lunch / Generöst stöd) är helt frivillig dricks för att stödja oberoende utveckling och låser permanent upp märket ”Supporter”.

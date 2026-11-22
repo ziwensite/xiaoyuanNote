@@ -3,14 +3,14 @@
  * Saved Views sidebar panel (F5).
  *
  * A collapsible "Views" section that lives in the left sidebar (below the file
- * tree). Lists persistent filtered views from `.solomd/views/*.yml` with an
+ * tree). Lists persistent filtered views from `.xiaoyuan-note/views/*.yml` with an
  * icon swatch, name, and live match-count badge. The header '+' opens the
  * editor; rows open the filtered list, and a per-row context menu offers
  * edit / duplicate / delete. Rows drag-reorder, persisting `order` to disk.
  *
  * 5.0: rows / header use the shared panel anatomy (styles/panels.css); the
  * context menu follows the spec §6 menu style (tokens only). Re-evaluates badges on
- * `solomd://index-updated` so counts stay live as notes change on disk.
+ * `xiaoyuan-note://index-updated` so counts stay live as notes change on disk.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
@@ -142,15 +142,25 @@ watch(
 );
 
 let unlistenIndex: UnlistenFn | null = null;
-function onWindowClick() { if (ctx.value) closeCtx(); }
+// A mousedown (left OR right) anywhere outside the context menu dismisses it.
+// `mousedown` (capture, on `document`) instead of `click`/`contextmenu` (on
+// `window`): the menu uses `@click.stop`, which stops `click` bubbling to
+// `window` and would leave a stale menu on screen when another popup opens.
+// `mousedown` is a separate event and is unaffected.
+function onDocDown(e: MouseEvent) {
+  if (!ctx.value) return;
+  const t = e.target as Node | null;
+  if (t && ctxEl.value && ctxEl.value.contains(t)) return;
+  closeCtx();
+}
 onMounted(async () => {
-  window.addEventListener('click', onWindowClick);
+  document.addEventListener('mousedown', onDocDown, true);
   try {
-    unlistenIndex = await listen('solomd://index-updated', () => { rev.value += 1; });
+    unlistenIndex = await listen('xiaoyuan-note://index-updated', () => { rev.value += 1; });
   } catch {}
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('click', onWindowClick);
+  document.removeEventListener('mousedown', onDocDown, true);
   if (unlistenIndex) unlistenIndex();
 });
 </script>

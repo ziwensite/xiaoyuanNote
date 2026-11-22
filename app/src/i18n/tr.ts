@@ -1,13 +1,13 @@
-﻿import type { I18n } from './en';
+import type { I18n } from './en';
 
 export const tr: I18n = {
   iosFolder: {
-    pickerUnavailable: 'Klasör seçici kullanılamıyor; SoloMD kendi klasörünü kullanıyor (Dosyalar › iPhone’umda › SoloMD).',
+    pickerUnavailable: 'Klasör seçici kullanılamıyor; xiaoyuanNote kendi klasörünü kullanıyor (Dosyalar › iPhone’umda › xiaoyuanNote).',
     savedAs: '{name} olarak kaydedildi',
-    restoreFailed: 'Son seçtiğin klasör yeniden açılamadı — SoloMD\'nin kendi klasörü gösteriliyor. Klasör Aç ile tekrar seçebilirsin.',
+    restoreFailed: 'Son seçtiğin klasör yeniden açılamadı — xiaoyuanNote\'nin kendi klasörü gösteriliyor. Klasör Aç ile tekrar seçebilirsin.',
   },
   starPrompt: {
-    message: 'SoloMD\'yi beğendin mi? GitHub\'daki bir yıldız başkalarının da bulmasına yardım eder — ücretsiz ve tek bir kişi tarafından geliştiriliyor.',
+    message: 'xiaoyuanNote\'yi beğendin mi? GitHub\'daki bir yıldız başkalarının da bulmasına yardım eder — ücretsiz ve tek bir kişi tarafından geliştiriliyor.',
     action: '★ GitHub\'da yıldız ver',
   },
   menubar: {
@@ -62,7 +62,7 @@ export const tr: I18n = {
     helpCli: 'Komut satırı (CLI)',
     zoom: 'Yakınlaştırma',
     find: "Bul…",
-    about: 'SoloMD Hakkında',
+    about: 'xiaoyuanNote Hakkında',
     aboutShort: 'Hakkında',
     minimize: 'Simge Durumuna Küçült',
     maximize: 'Ekranı Kapla',
@@ -86,10 +86,10 @@ export const tr: I18n = {
     theme: "Tema",
     checkUpdate: "Güncellemeleri denetle…",
     services: "Servisler",
-    hide: "SoloMD'yi gizle",
+    hide: "xiaoyuanNote'yi gizle",
     hideOthers: "Diğerlerini gizle",
     showAll: "Tümünü göster",
-    quit: "SoloMD'den çık",
+    quit: "xiaoyuanNote'den çık",
     window: "Pencere",
     quickCapture: "Hızlı Not…",
     daily: "Günlük Not",
@@ -310,7 +310,7 @@ export const tr: I18n = {
     empty: 'Burada alt klasör yok.',
     cancel: 'İptal',
     use: 'Bu klasörü kullan',
-    permNeeded: 'SoloMD’nin bu cihazdaki klasörlere göz atması için “tüm dosyalara erişim” izni gerekir.',
+    permNeeded: 'xiaoyuanNote’nin bu cihazdaki klasörlere göz atması için “tüm dosyalara erişim” izni gerekir.',
     permGrant: 'İzin ver',
   },
   plainFind: {
@@ -432,7 +432,7 @@ export const tr: I18n = {
     catAdvanced: 'Gelişmiş',
     catKeys: 'Kısayollar',
     keysInterceptedTitle: "Bazı kısayolları başka yazılımlar alıyor",
-    keysInterceptedBody: "Aşağıdaki programlar bu tuş birleşimlerini genel kısayol olarak kaydediyor, bu yüzden SoloMD'ye hiç ulaşmıyorlar. Komutları sağdaki tuşlara taşımak diğer kısayollarınıza dokunmaz.",
+    keysInterceptedBody: "Aşağıdaki programlar bu tuş birleşimlerini genel kısayol olarak kaydediyor, bu yüzden xiaoyuanNote'ye hiç ulaşmıyorlar. Komutları sağdaki tuşlara taşımak diğer kısayollarınıza dokunmaz.",
     keysApplyCompat: "Bu komutları boş tuşlara taşı",
     keysCompatApplied: "{count} kısayol taşındı. Geri almak için “Tümünü sıfırla”yı kullanın.",
     keysSearch: "Kısayol ara — bir ad veya tuş…",
@@ -446,7 +446,7 @@ export const tr: I18n = {
     keysWriterApply: "Kalın için {bold} kullan",
     keysWriterUndo: "Geri al",
     keysWriterApplied: "{bold} artık kalın. Dosya ağacı {tree} üzerinde.",
-    keysInterceptedBy: "Genellikle SoloMD görmeden {source} tarafından alınır",
+    keysInterceptedBy: "Genellikle xiaoyuanNote görmeden {source} tarafından alınır",
     keysHint: 'Değiştir’e tıklayıp istediğiniz tuş birleşimine basın. Esc iptal eder. Hemen geçerli olur.',
     keysCatFile: 'Dosya',
     keysCatEdit: 'Düzen',
@@ -562,7 +562,29 @@ export const tr: I18n = {
     cslPicked: 'CSL stili yüklendi',
     dailyNotesFolder: 'Günlük not klasörü (çalışma alanına göre)',
     dailyNotesFormat: 'Günlük not dosya adı biçimi',
-    dailyNotesTemplate: 'Günlük not şablonu (varsayılan için boş bırakın)',
+    dailyNotesTemplate: 'Günlük not şablonu (varsayılan için boş bırakın)',
+    periodic: {
+      title: 'Periodic notes',
+      hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
+      kinds: {
+        flash: 'Flash note',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        quarterly: 'Quarterly',
+        yearly: 'Yearly',
+      },
+      templatePath: 'Template path',
+      templatePlaceholder: 'Leave empty for the built-in template',
+      savePath: 'Save path',
+      filenameFormat: 'Filename format',
+      browseFile: 'Choose template…',
+      browseFolder: 'Choose folder…',
+      clear: 'Clear',
+      markdownFilter: 'Markdown files',
+      preview: 'Preview: {path}',
+      defaultFormat: 'Default: {format}',
+    },
     recurringTaskPlacement: 'Yinelenen görev tamamlandığında',
     recurringTaskPlacementBelow: 'Sonraki tekrarı aşağıya ekle',
     recurringTaskPlacementAbove: 'Sonraki tekrarı yukarıya ekle',
@@ -603,7 +625,7 @@ export const tr: I18n = {
       codeThemeDark: 'Her zaman koyu',
       frontmatterHint: 'Belge başına YAML ön bilgisindeki `pdf:` bloğu ile geçersiz kılın (pageSize / margin / font / fontSize / footer / toc).',
     },
-    imageExportBranding: 'Görsel olarak dışa aktarırken "SoloMD ile oluşturuldu" alt bilgisini ekle',
+    imageExportBranding: 'Görsel olarak dışa aktarırken "xiaoyuanNote ile oluşturuldu" alt bilgisini ekle',
     imageExportBrandingHint: 'Varsayılan açık — paylaşılan ekran görüntülerinde hafif bir tanıtım. Filigran istemiyorsanız kapatın; kısa notlar da arka kart olmadan daha derli toplu dışa aktarılır.',
     attachmentMode: 'Where to save pasted/dropped images',
     attachmentModeShared: 'Shared `_assets/` folder per directory',
@@ -645,9 +667,9 @@ export const tr: I18n = {
     customCssReloadFailed: 'Özel CSS teması yeniden yüklenemedi',
     clear: 'Temizle',
     fileAssoc: 'Dosya İlişkilendirme',
-    setDefault: '⭐ SoloMD\'yi varsayılan Markdown düzenleyici yap',
+    setDefault: '⭐ xiaoyuanNote\'yi varsayılan Markdown düzenleyici yap',
     settingDefault: 'Ayarlanıyor…',
-    setDefaultHint: 'SoloMD\'yi .md / .markdown / .mdown / .mkd dosyaları için varsayılan uygulama olarak kaydeder. Windows\'ta SoloMD\'yi "Birlikte aç" menüsüne de ekler. Linux\'ta xdg-utils gerektirir.',
+    setDefaultHint: 'xiaoyuanNote\'yi .md / .markdown / .mdown / .mkd dosyaları için varsayılan uygulama olarak kaydeder. Windows\'ta xiaoyuanNote\'yi "Birlikte aç" menüsüne de ekler. Linux\'ta xdg-utils gerektirir.',
     language: 'Dil / 语言',
     restoreSession: 'Başlangıçta önceki sekmeleri ve panelleri geri yükle',
     restoreSessionHint: 'Her seferinde boş bir pencereyle başlamak için kapatın.',
@@ -667,7 +689,7 @@ export const tr: I18n = {
     revealInFileTreeOnOpen: 'Açılan dosyayı dosya ağacında göster',
     revealInFileTreeOnOpenHint: "Açıkken bir dosya açıldığında dosya ağacı onun klasörüne geçer. Gizli dosya ağacı gizli kalır.",
     openLinkedFilesExternally: 'Bağlantılı dosyaları varsayılan uygulamayla aç',
-    openLinkedFilesExternallyHint: 'Açıkken, Markdown içindeki yerel bir PDF / Office / başka belgeye giden bağlantıya tıklamak onu sistemin varsayılan uygulamasında açar. Bunun yerine Markdown\'a dönüştürmek için kapatın. .md / metin / görsel bağlantıları her zaman SoloMD içinde açılır.',
+    openLinkedFilesExternallyHint: 'Açıkken, Markdown içindeki yerel bir PDF / Office / başka belgeye giden bağlantıya tıklamak onu sistemin varsayılan uygulamasında açar. Bunun yerine Markdown\'a dönüştürmek için kapatın. .md / metin / görsel bağlantıları her zaman xiaoyuanNote içinde açılır.',
     autoCheckUpdate: 'Güncellemeleri otomatik denetle',
     checkUpdate: 'Şimdi güncelleme denetle',
     checkingUpdate: 'Denetleniyor…',
@@ -676,9 +698,9 @@ export const tr: I18n = {
     updateCheckFailed: 'Güncelleme sunucusuna ulaşılamadı — ağınızı denetleyip yeniden deneyin',
     telemetry: 'Anonim kullanım verisi gönder',
     telemetryHint:
-      'SoloMD\'yi geliştirmeye yardımcı olur. IP adresi, dosya içeriği veya kişisel bilgi gönderilmez.',
+      'xiaoyuanNote\'yi geliştirmeye yardımcı olur. IP adresi, dosya içeriği veya kişisel bilgi gönderilmez.',
     telemetryNotice:
-      'SoloMD, ürünü geliştirmeye yardımcı olmak için anonim kullanım verisi (özellik kullanımı, sürüm, işletim sistemi) toplar. IP adresi, dosya içeriği veya kişisel bilgi toplanmaz. Bunu istediğiniz zaman ayarlardan kapatabilirsiniz.',
+      'xiaoyuanNote, ürünü geliştirmeye yardımcı olmak için anonim kullanım verisi (özellik kullanımı, sürüm, işletim sistemi) toplar. IP adresi, dosya içeriği veya kişisel bilgi toplanmaz. Bunu istediğiniz zaman ayarlardan kapatabilirsiniz.',
     telemetryNoticeOk: 'Anladım',
     telemetryNoticeDisable: 'Şimdi kapat',
     imageUploaderSection: 'Görsel yükleme (görsel barındırma)',
@@ -785,7 +807,7 @@ export const tr: I18n = {
     desc: 'Hafif, çapraz platform Markdown + düz metin düzenleyici.',
   },
   help: {
-    about: 'SoloMD Hakkında',
+    about: 'xiaoyuanNote Hakkında',
     markdownGuide: 'Markdown Kılavuzu',
     keyboardShortcuts: 'Klavye Kısayolları',
     noMatchingSyntax: "Eşleşen sözdizimi yok",
@@ -794,7 +816,7 @@ export const tr: I18n = {
   toast: {
     outlineMovedToSecondary: 'Dosya ağacı artık birincil kenar çubuğunda. Ana hat ikincil kenar çubuğuna taşındı — sekme menüsünden geri taşıyabilirsiniz.',
     imageInsertFailed: "Görsel eklenemedi: {error}",
-    imageSavedOutsideVault: "Bu klasör henüz görsel saklayamıyor; görsel SoloMD'nin Belgeler klasörüne kaydedildi ve oradan bağlandı.",
+    imageSavedOutsideVault: "Bu klasör henüz görsel saklayamıyor; görsel xiaoyuanNote'nin Belgeler klasörüne kaydedildi ve oradan bağlandı.",
     newWindowFailed: 'Yeni pencere açılamadı',
     noActiveDoc: 'Etkin belge yok',
     copied: 'Kopyalandı',
@@ -817,7 +839,7 @@ export const tr: I18n = {
     uploadedCount: '{n} görsel yüklendi',
     noLocalImages: 'Yüklenecek yerel görsel yok',
     nothingToReopen: "Yeniden açılacak kapatılmış sekme yok",
-    savedToIos: "Kaydedildi: iPhone'umda › SoloMD › {name}",
+    savedToIos: "Kaydedildi: iPhone'umda › xiaoyuanNote › {name}",
     exportingFormat: "{format} olarak dışa aktarılıyor…",
     exportedTo: "{format} olarak dışa aktarıldı",
     exportFailedError: "Dışa aktarma başarısız: {error}",
@@ -865,7 +887,7 @@ export const tr: I18n = {
     selectTextForAi: "Önce bir metin seçin, ardından YZ ile yeniden yaz'a tıklayın (veya {chord} tuşlarına basın).",
     shareUnsupported: "Bu iOS sürümünde paylaşım desteklenmiyor",
     shareFailed: "Paylaşım başarısız: {error}",
-    androidAllFilesReturn: "“Tüm dosyalara erişim”i açın ve geri dönün — iznin geçerli olması için SoloMD kendini yeniden başlatır.",
+    androidAllFilesReturn: "“Tüm dosyalara erişim”i açın ve geri dönün — iznin geçerli olması için xiaoyuanNote kendini yeniden başlatır.",
     pinyinCopied: "Pinyin panoya kopyalandı",
   },
   dialog: {
@@ -1110,8 +1132,8 @@ export const tr: I18n = {
   integrations: {
     heading: 'Entegrasyonlar',
     intro:
-      'SoloMD, terminalinizle ve MCP destekli YZ istemcileriyle (Claude Desktop, Codex CLI, Cursor) konuşur; böylece notlarınızı uygulama dışından okuyabilir/yazabilirsiniz.',
-    cliTitle: 'CLI (solomd)',
+      'xiaoyuanNote, terminalinizle ve MCP destekli YZ istemcileriyle (Claude Desktop, Codex CLI, Cursor) konuşur; böylece notlarınızı uygulama dışından okuyabilir/yazabilirsiniz.',
+    cliTitle: 'CLI (xiaoyuanNote)',
     cliInstalled: 'Kurulu: {path}',
     cliNotInstalled: 'Kurulu değil',
     cliVersionLabel: 'Sürüm',
@@ -1123,14 +1145,14 @@ export const tr: I18n = {
       'Bunu terminalinizde çalıştırın — /usr/local/bin için sudo gerekir:',
     cliSubcommandsHeading: 'Neler yapabilir?',
     cliSubcommands: {
-      open: 'open <başlık|yol> — SoloMD\'de bir not aç',
+      open: 'open <başlık|yol> — xiaoyuanNote\'de bir not aç',
       new: 'new <başlık> [metin] — yeni not oluştur ve aç',
       list: 'list [klasör] — markdown dosyalarını listele',
       search: 'search <sorgu> — notlarınızda grep yap',
       cat: 'cat <başlık|yol> — bir notu stdout\'a yazdır',
       help: 'help — tüm komutları göster',
     },
-    mcpTitle: 'MCP sunucusu (solomd-mcp)',
+    mcpTitle: 'MCP sunucusu (xiaoyuan-note-mcp)',
     mcpBundled: 'Pakete dahil: {path}',
     mcpNotBundled:
       'Pakete dahil değil (bu geliştirme yapısı externalBin yardımcısını atlar). Üretim yapıları her zaman dahil eder.',
@@ -1159,9 +1181,9 @@ export const tr: I18n = {
     mcpWriteNote:
       'write_note + append_to_note varsayılan olarak kapalıdır. Etkinleştirmek için --allow-write geçirin.',
     // ---- v4.4.5: MCP auto-install across 6 AI clients (EN backfill) ----
-    aiClientsTitle: 'Hook SoloMD into your AI clients',
+    aiClientsTitle: 'Hook xiaoyuanNote into your AI clients',
     aiClientsIntro:
-      'One click and SoloMD writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
+      'One click and xiaoyuanNote writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
     aiClientsNotInstalled: 'not installed',
     aiClientsAlreadyConfigured: 'configured ✓',
     aiClientsReady: 'ready to inject',
@@ -1169,18 +1191,18 @@ export const tr: I18n = {
     aiClientsRemoveBtn: 'Remove',
     aiClientsAllowWrite:
       'Allow writes (--allow-write on the MCP server)',
-    aiClientsInjectBtn: 'Inject SoloMD into {n} client(s)',
+    aiClientsInjectBtn: 'Inject xiaoyuanNote into {n} client(s)',
     aiClientsInjectBtnZero: 'Nothing to inject',
     aiClientsInjectedToast:
-      '✓ Injected SoloMD into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
-    aiClientsRemovedToast: '✓ Removed SoloMD entry from {name}.',
+      '✓ Injected xiaoyuanNote into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
+    aiClientsRemovedToast: '✓ Removed xiaoyuanNote entry from {name}.',
     aiClientsRestartHint:
       'After injecting, restart the AI client (or use its "Reload MCP servers" command if it has one) for the new server to load.'
 ,
     // ---- v4.0 P4 federation: MCP profiles -----------------------------
     profilesHeading: 'MCP profilleri',
     profilesIntro:
-      'Birden çok çalışma alanını tek bir solomd-mcp örneğinde toplayın, sonra hazır bir Claude Desktop yapılandırma bloğunu kopyalayın. Her profil, MCP sunucusunun yayınlayacağı çalışma alanlarını listeler (takma ad + yol); ilk girdi varsayılandır — açık `workspace` argümanı içermeyen araç çağrıları ona düşer.',
+      'Birden çok çalışma alanını tek bir xiaoyuan-note-mcp örneğinde toplayın, sonra hazır bir Claude Desktop yapılandırma bloğunu kopyalayın. Her profil, MCP sunucusunun yayınlayacağı çalışma alanlarını listeler (takma ad + yol); ilk girdi varsayılandır — açık `workspace` argümanı içermeyen araç çağrıları ona düşer.',
     profilesEmpty: 'Henüz profil yok.',
     profilesCreate: 'Yeni profil',
     profilesDuplicate: 'Çoğalt',
@@ -1210,14 +1232,14 @@ export const tr: I18n = {
     profilesNamePlaceholder: 'is-ve-ev',
     profilesNewProfileDefault: 'Yeni profil',
     profilesNoMcpBinary:
-      'Bu geliştirme yapısında solomd-mcp pakete dahil değil — parçacık yer tutucu bir yol kullanır.',
+      'Bu geliştirme yapısında xiaoyuan-note-mcp pakete dahil değil — parçacık yer tutucu bir yol kullanır.',
   },
   // v4.0 Pillar 2 — Agent Recipes (Settings → Integrations panel).
   // TODO(zh): translate these once the en strings stabilise.
   recipes: {
     heading: 'Aracı tarifleri',
     intro:
-      'Vault\'unuzdaki .solomd/agents/ altında YAML olarak tanımlı aracı görevleri. Cron zamanlamasıyla, kayıtta, commit\'te, etiket eklemede veya elle çalışırlar.',
+      'Vault\'unuzdaki .xiaoyuan-note/agents/ altında YAML olarak tanımlı aracı görevleri. Cron zamanlamasıyla, kayıtta, commit\'te, etiket eklemede veya elle çalışırlar.',
     openWorkspace: 'Önce bir klasör açın — tarifler vault içinde yaşar.',
     list: 'Tarifler',
     listEmpty: 'Henüz tarif yok. Oluşturmak için "Yeni tarif" tıklayın.',
@@ -1386,7 +1408,7 @@ export const tr: I18n = {
     settingsHeading: 'Anlamsal arama',
     enable: 'Anlamsal aramayı etkinleştir (yerel RAG, ⌘⇧F)',
     enableHint:
-      'Varsayılan olarak kapalı. Açıkken notlarınız <workspace>/.solomd/embeddings.sqlite içine yerel olarak gömülür — ağ yok, dahili hashed-trigram arka ucu için model indirme gerekmez. ⌘⇧F paneli açar.',
+      'Varsayılan olarak kapalı. Açıkken notlarınız <workspace>/.xiaoyuan-note/embeddings.sqlite içine yerel olarak gömülür — ağ yok, dahili hashed-trigram arka ucu için model indirme gerekmez. ⌘⇧F paneli açar.',
     statusReady: 'Dizinlenen: {indexed} / {total} not · {chunks} parça · arka uç {backend}',
     statusEmpty: 'Henüz dizin yok — dizini oluşturmak için açın.',
     reindexNow: 'Şimdi yeniden dizinle',
@@ -1489,7 +1511,7 @@ export const tr: I18n = {
     captureHeading: 'HTTP yakalama uç noktası',
     enableCapture: 'Yakalama uç noktasını etkinleştir',
     enableCaptureHint:
-      'Varsayılan olarak kapalı. Açıkken SoloMD, tarayıcı uzantısı, iOS Kısayolu, kabuk betiği veya curl\'dan gelen yeni-not POST\'larını dinlemek için 127.0.0.1\'i (yalnızca loopback) dinler. Notlar, YAML\'lerinde `inbox: true` ile çalışma alanının gelen kutusu klasörüne düşer.',
+      'Varsayılan olarak kapalı. Açıkken xiaoyuanNote, tarayıcı uzantısı, iOS Kısayolu, kabuk betiği veya curl\'dan gelen yeni-not POST\'larını dinlemek için 127.0.0.1\'i (yalnızca loopback) dinler. Notlar, YAML\'lerinde `inbox: true` ile çalışma alanının gelen kutusu klasörüne düşer.',
     endpoint: 'Uç nokta',
     statusRunning: 'çalışıyor',
     statusStarting: 'başlatılıyor…',
@@ -1515,7 +1537,7 @@ export const tr: I18n = {
       'MCP ile aynı vault araçlarını yayınlayan yalnızca-localhost HTTP yüzeyi. Alfred, Raycast, n8n, kabuk betikleri, iOS Kısayolları — MCP konuşmayan her şey için kullanışlıdır.',
     enable: 'REST API\'yi etkinleştir',
     enableHint:
-      'Varsayılan olarak kapalı. Açıkken SoloMD 127.0.0.1\'i (yalnızca loopback) dinler. Genel banner dışındaki her rota aşağıdaki bearer belirtecini gerektirir.',
+      'Varsayılan olarak kapalı. Açıkken xiaoyuanNote 127.0.0.1\'i (yalnızca loopback) dinler. Genel banner dışındaki her rota aşağıdaki bearer belirtecini gerektirir.',
     endpoint: 'Uç nokta',
     statusRunning: 'çalışıyor',
     statusStarting: 'başlatılıyor…',
@@ -1542,7 +1564,7 @@ export const tr: I18n = {
     close: 'Kapat',
     chooseTitle: 'YZ asistanınızı kurun',
     chooseSub:
-      'SoloMD YZ olmadan da çalışır, ancak aracı paneli ve tarifler bir model gerektirir. Bir yol seçin — istediğiniz zaman Ayarlar → YZ\'den değiştirebilirsiniz.',
+      'xiaoyuanNote YZ olmadan da çalışır, ancak aracı paneli ve tarifler bir model gerektirir. Bir yol seçin — istediğiniz zaman Ayarlar → YZ\'den değiştirebilirsiniz.',
     cloudTitle: 'Bulut (BYOK)',
     cloudBody:
       'Anthropic Claude, OpenAI ChatGPT, Google Gemini, DeepSeek ve 10\'dan fazlası. Kendi API anahtarınızı kullanın.',
@@ -1555,7 +1577,7 @@ export const tr: I18n = {
     localDetecting: 'Çalışan bir Ollama sunucusu aranıyor…',
     localNotRunning: 'localhost:11434 adresinde Ollama sunucusu algılanmadı.',
     localNotRunningHint:
-      'Ollama\'yı kurun (~80 MB), başlatın, sonra Yeniden Dene\'ye tıklayın. SoloMD Ollama\'yı paketle birlikte sunmaz.',
+      'Ollama\'yı kurun (~80 MB), başlatın, sonra Yeniden Dene\'ye tıklayın. xiaoyuanNote Ollama\'yı paketle birlikte sunmaz.',
     localInstallBtn: 'Ollama\'yı kur',
     localRetryBtn: 'Algılamayı yeniden dene',
     localRunningNoModel:
@@ -1591,7 +1613,7 @@ export const tr: I18n = {
   cookbook: {
     heading: 'Tarif kitabı',
     intro:
-      'Bir başlangıç tarifi seçin — kurulum YAML\'yi .solomd/agents/ içine kopyalar ve düzenlemeniz için açar. Birden fazla kez kurmak güvenlidir; her kurulum yeni bir sonek alır.',
+      'Bir başlangıç tarifi seçin — kurulum YAML\'yi .xiaoyuan-note/agents/ içine kopyalar ve düzenlemeniz için açar. Birden fazla kez kurmak güvenlidir; her kurulum yeni bir sonek alır.',
     browse: 'Tarif kitabına gözat',
     preview: 'YAML önizle',
     hidePreview: 'Önizlemeyi gizle',
@@ -1677,7 +1699,7 @@ export const tr: I18n = {
     autoEngageFocusHint: 'Bir Pomodoro başlatmak süre boyunca odak modunu açar; oturum bittiğinde önceki durumunuz geri yüklenir.',
     defaultDuration: 'Varsayılan süre',
     customDurationLabel: 'Özel (dakika)',
-    notificationTitle: 'SoloMD — odak oturumu tamamlandı',
+    notificationTitle: 'xiaoyuanNote — odak oturumu tamamlandı',
     notificationBody: '{minutes} dk · {words} kelime yazıldı',
   },
   quickSwitcher: {
@@ -1746,7 +1768,7 @@ export const tr: I18n = {
   cloudSync: {
     detectedTitle: 'Çalışma alanı {label} içinde',
     detectedHint:
-      'Buraya kaydedilen dosyalar bulut sağlayıcınız aracılığıyla diğer cihazlarınıza otomatik yayılır. SoloMD bunun üstüne cihazlar arası oturum geri yüklemesi ekler — aynı çalışma alanını başka bir makinede açın, aynı sekmeler geri gelir.',
+      'Buraya kaydedilen dosyalar bulut sağlayıcınız aracılığıyla diğer cihazlarınıza otomatik yayılır. xiaoyuanNote bunun üstüne cihazlar arası oturum geri yüklemesi ekler — aynı çalışma alanını başka bir makinede açın, aynı sekmeler geri gelir.',
     siblingCount: 'Bu çalışma alanını {n} başka cihaz açtı.',
     restoreTitle: 'Kaldığınız yerden devam edilsin mi?',
     restoreLead:
@@ -1764,7 +1786,7 @@ export const tr: I18n = {
   githubSync: {
     heading: 'GitHub eşitleme',
     intro:
-      'Vault\'unuzu özel bir GitHub deposuna gönderin; cihazlar arası takip edilsin. Verileriniz hesabınızda kalır — SoloMD yalnızca git push ve git pull çalıştırır.',
+      'Vault\'unuzu özel bir GitHub deposuna gönderin; cihazlar arası takip edilsin. Verileriniz hesabınızda kalır — xiaoyuanNote yalnızca git push ve git pull çalıştırır.',
     signInTitle: 'GitHub ile bağlan',
     signInHint:
       'Bir Personal Access Token yapıştırın. İşletim sisteminizin anahtarlığında saklanır — api.github.com dışında hiçbir yere gönderilmez.',
@@ -1854,11 +1876,11 @@ export const tr: I18n = {
     conflictResolveFailed: 'Çözüm başarısız',
     keychainHintTitle: 'macOS parolanızı isteyecek — "Her Zaman İzin Ver"e tıklayın',
     keychainHintBody:
-      'SoloMD GitHub\'a ilk push yaptığında macOS, kayıtlı belirtecinizi okuyabilmesi için bir Keychain iletişim kutusu açar. Uçtan uca şifreleme açıksa şifreleme anahtarı için ikinci bir istem görürsünüz. Her birinde "Her Zaman İzin Ver"e tıklayın (sadece "İzin Ver" değil) — bu, SoloMD\'yi kalıcı olarak beyaz listeye alır ve bu Mac\'te bu istemi bir daha görmezsiniz. Yalnızca "İzin Ver"e tıklarsanız her push\'ta yeniden sorulur.',
+      'xiaoyuanNote GitHub\'a ilk push yaptığında macOS, kayıtlı belirtecinizi okuyabilmesi için bir Keychain iletişim kutusu açar. Uçtan uca şifreleme açıksa şifreleme anahtarı için ikinci bir istem görürsünüz. Her birinde "Her Zaman İzin Ver"e tıklayın (sadece "İzin Ver" değil) — bu, xiaoyuanNote\'yi kalıcı olarak beyaz listeye alır ve bu Mac\'te bu istemi bir daha görmezsiniz. Yalnızca "İzin Ver"e tıklarsanız her push\'ta yeniden sorulur.',
     proxyTitle: 'HTTPS proxy (GFW / kurumsal ağlar için)',
     proxyPlaceholder: 'http://127.0.0.1:7897 veya socks5://127.0.0.1:1080',
     proxyHint:
-      'git push / pull\'u bu proxy üzerinden yönlendirir. Doğrudan bağlantı için boş bırakın. macOS GUI uygulamaları kabuğun HTTPS_PROXY ortam değişkenini devralmaz, bu yüzden SoloMD için özel olarak burada ayarlayın. github.com\'a doğrudan ulaşılamadığında "Operation timed out" sorununu da çözer.',
+      'git push / pull\'u bu proxy üzerinden yönlendirir. Doğrudan bağlantı için boş bırakın. macOS GUI uygulamaları kabuğun HTTPS_PROXY ortam değişkenini devralmaz, bu yüzden xiaoyuanNote için özel olarak burada ayarlayın. github.com\'a doğrudan ulaşılamadığında "Operation timed out" sorununu da çözer.',
     proxySaveBtn: 'Proxy\'i kaydet',
     proxySaving: 'Kaydediliyor…',
     proxySavedToast: 'Proxy kaydedildi.',
@@ -1878,7 +1900,7 @@ export const tr: I18n = {
     upgradeRowBtn: 'Şifrelemeyi etkinleştir',
     upgradeFormTitle: 'Uçtan uca şifrelemeyi etkinleştir',
     upgradeFormBody:
-      'Bir parola belirleyin. SoloMD bir anahtar türetecek (Argon2id) ve tekrar gönderilmeden önce her dosyayı yeniden şifreleyecek.',
+      'Bir parola belirleyin. xiaoyuanNote bir anahtar türetecek (Argon2id) ve tekrar gönderilmeden önce her dosyayı yeniden şifreleyecek.',
     upgradeForcePushWarning:
       'Bu işlem şifreli geçmişi uzak depoya zorla gönderir — eski düz metin commit\'lere GitHub\'da artık ulaşılamaz. Bu depoyu daha önce klonlayan herkesin yeniden klonlaması gerekir. Parolayı unutursanız verileriniz kurtarılamaz.',
     upgradePassphrasePlaceholder: 'Vault parolası (en az 8 karakter)',
@@ -1921,7 +1943,7 @@ export const tr: I18n = {
       'Push your vault to a Gitea server. Enter your server URL and a Personal Access Token to get started.',
     giteaUrlTitle: 'Gitea server URL',
     giteaUrlHint:
-      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). SoloMD will append /api/v1 automatically.',
+      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). xiaoyuanNote will append /api/v1 automatically.',
     giteaUrlValidateBtn: 'Validate URL',
     giteaUrlValidating: 'Validating...',
     giteaTokenTitle: 'Gitea Personal Access Token',
@@ -2212,8 +2234,15 @@ export const tr: I18n = {
       checkUpdated: '{years} için tatil verileri güncellendi',
       checkFailed: 'Denetim başarısız — önbellek kullanılıyor',
     },
-    week: { header: 'W', tooltip: 'ISO haftası {week}' },
-    day: { off: 'Tatil · {name}', work: 'Telafi çalışma günü' },
+    week: { header: 'W', tooltip: 'ISO haftası {week}' },
+    openPeriodic: {
+      daily: 'Double-click to open the daily note',
+      weekly: 'Double-click to open the weekly note',
+      monthly: 'Double-click to open the monthly note',
+      quarterly: 'Double-click to open the quarterly note',
+      yearly: 'Double-click to open the yearly note',
+    },
+    day: { off: 'Tatil · {name}', work: 'Telafi çalışma günü', offShort: 'T', workShort: 'Ç' },
     lunar: { tooltip: 'Ay takvimi: {value}' },
     selectedDay: {
       open: '{date} gün ayrıntılarını aç',

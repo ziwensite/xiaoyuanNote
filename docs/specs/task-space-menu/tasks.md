@@ -62,7 +62,7 @@
 - `app/src/components/Editor.vue:4968` `onEditorCommand`：CM 与 plain 两条路径各加提前返回分支。
 - `app/src/composables/useShortcuts.ts`：`'task.applyDateTokens': () => editorCommand('applyDateTokens')`。
 - `app/src/lib/keybindings.ts`：paragraph 组加 `task.applyDateTokens`，默认 `['Mod+Alt+Shift+D']`。
-- `app/src/composables/useCommands.ts`：`task.fromSelection` 后加调色板条目（`solomd:editor-command`）。
+- `app/src/composables/useCommands.ts`：`task.fromSelection` 后加调色板条目（`xiaoyuan-note:editor-command`）。
 - 单测 `dateTokenEdits`：任务行末尾「明天」→ 两段 change（删短语 + 写 token）/ 单段；非任务行 → `null`；无短语 → `null`。
 
 ## - [x] T7. 样式

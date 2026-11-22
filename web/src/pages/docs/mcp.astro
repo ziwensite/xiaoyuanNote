@@ -9,7 +9,7 @@ const lang = 'en' as const;
 const FAQ = [
   {
     q: 'Which AI clients can connect to my vault?',
-    a: 'Claude Desktop, Codex CLI, Cursor — and any client that speaks the Model Context Protocol. The solomd-mcp sidecar binary ships with every SoloMD release and runs locally over stdio.',
+    a: 'Claude Desktop, Codex CLI, Cursor — and any client that speaks the Model Context Protocol. The xiaoyuan-note-mcp sidecar binary ships with every xiaoyuanNote release and runs locally over stdio.',
   },
   {
     q: 'Can the model modify my notes?',
@@ -17,7 +17,7 @@ const FAQ = [
   },
   {
     q: 'Does my vault content leave my machine?',
-    a: 'The MCP server itself is local — it reads files on disk and talks to your AI client over stdio, with no SoloMD server in the path. What the connected AI client does with the text it reads is governed by that client and the model provider you chose.',
+    a: 'The MCP server itself is local — it reads files on disk and talks to your AI client over stdio, with no xiaoyuanNote server in the path. What the connected AI client does with the text it reads is governed by that client and the model provider you chose.',
   },
   {
     q: 'How long does setup take?',
@@ -27,8 +27,8 @@ const FAQ = [
 ---
 
 <Layout
-  title="SoloMD MCP Server — Drive Your Notes from Claude Desktop, Codex, Cursor"
-  description="SoloMD ships an MCP (Model Context Protocol) sidecar so any MCP-aware AI client can list, search, read, and write your notes."
+  title="xiaoyuanNote MCP Server — Drive Your Notes from Claude Desktop, Codex, Cursor"
+  description="xiaoyuanNote ships an MCP (Model Context Protocol) sidecar so any MCP-aware AI client can list, search, read, and write your notes."
   lang={lang}
 >
   <Header lang={lang} />
@@ -38,9 +38,9 @@ const FAQ = [
         <a href="/">Home</a> / <a href="/docs/">Docs</a> / <span>MCP server</span>
       </nav>
 
-      <h1>SoloMD MCP server</h1>
+      <h1>xiaoyuanNote MCP server</h1>
       <p class="lead">
-        Every SoloMD release ships <code>solomd-mcp</code> — a sidecar binary that
+        Every xiaoyuanNote release ships <code>xiaoyuan-note-mcp</code> — a sidecar binary that
         speaks the <a href="https://modelcontextprotocol.io" rel="external">Model Context Protocol</a>.
         Point Claude Desktop, Codex CLI, Cursor, or any MCP client at it and the
         AI can list / search / read / write your notes from outside the app.
@@ -49,7 +49,7 @@ const FAQ = [
       <h2>Why this matters</h2>
       <p>
         Most note apps treat AI as a feature inside the editor — paste in some
-        text, get a rewrite back. SoloMD inverts that: your AI client gets full
+        text, get a rewrite back. xiaoyuanNote inverts that: your AI client gets full
         access to the vault, so you can ask <em>"summarise everything I wrote
         about Q2 planning"</em> or <em>"draft a follow-up to last week's meeting
         note"</em> and the model reads the actual files itself.
@@ -57,12 +57,12 @@ const FAQ = [
 
       <h2>Quick start — Claude Desktop</h2>
       <ol>
-        <li>Open SoloMD → <strong>Settings → Integrations → MCP server</strong>.</li>
+        <li>Open xiaoyuanNote → <strong>Settings → Integrations → MCP server</strong>.</li>
         <li>Click <strong>Copy Claude Desktop config</strong>. The block already
           embeds the bundled binary path and your currently-open workspace.</li>
         <li>Click <strong>Open Claude Desktop config file</strong>. Paste the
           block under <code>"mcpServers"</code> and save.</li>
-        <li>Restart Claude Desktop. <code>solomd-vault</code> appears in the
+        <li>Restart Claude Desktop. <code>xiaoyuan-note-vault</code> appears in the
           tools menu — done.</li>
       </ol>
 
@@ -83,14 +83,14 @@ const FAQ = [
 
       <h2>Read-only by default</h2>
       <p>
-        <code>solomd-mcp</code> exposes write tools only when launched with
+        <code>xiaoyuan-note-mcp</code> exposes write tools only when launched with
         <code>--allow-write</code>. The default config the Settings panel
         copies is read-only. To enable writes, edit the args list:
       </p>
       <pre class="code"><code>{`{
   "mcpServers": {
-    "solomd-vault": {
-      "command": "/path/to/solomd-mcp",
+    "xiaoyuan-note-vault": {
+      "command": "/path/to/xiaoyuan-note-mcp",
       "args": ["--workspace", "/path/to/your/notes", "--allow-write"]
     }
   }
@@ -111,7 +111,7 @@ const FAQ = [
       <h2>Where the binary lives</h2>
       <p>
         On macOS the bundled binary is inside the app bundle:
-        <code>SoloMD.app/Contents/MacOS/solomd-mcp</code>. On Windows + Linux
+        <code>xiaoyuannote.app/Contents/MacOS/xiaoyuan-note-mcp</code>. On Windows + Linux
         it's beside the main executable. The Settings panel always shows the
         absolute path under <strong>Bundled at …</strong> so you don't have to
         hunt for it.
@@ -119,7 +119,7 @@ const FAQ = [
 
       <p class="docs-footer">
         Bug or missing tool? Open an issue on
-        <a href="https://github.com/zhitongblog/solomd/issues" rel="external">GitHub</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/issues" rel="external">GitHub</a>
         — write-side surface area is intentionally small but we're happy to
         grow it where the use case is clear.
       </p>

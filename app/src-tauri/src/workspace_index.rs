@@ -7,7 +7,7 @@
 //! `<app_data_dir>/index/<sha256(folder)>.json` so warm starts are fast.
 //!
 //! A file watcher (notify) keeps the index live; on debounced changes the
-//! affected file is re-scanned and an `solomd://index-updated` event is
+//! affected file is re-scanned and an `xiaoyuan-note://index-updated` event is
 //! emitted to the frontend.
 
 use once_cell::sync::Lazy;
@@ -15,7 +15,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, RwLock};
+use std::sync::{
+    atomic::{AtomicU64, Ordering},
+    Mutex, RwLock,
+};
 use std::time::{Duration, SystemTime};
 
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
@@ -51,6 +54,12 @@ pub struct TaskRef {
     #[serde(default)]
     pub status: String,
     pub done: bool,
+    /// Due date parsed from the task text (`📅 2026-09-10` or `due: 2026-09-10`),
+    /// matching the frontend `lib/tasks.ts` syntax. Optional: older cache files
+    /// and tasks without a date lack it. The frontend also derives this live
+    /// from `text` via `parseTaskMeta`, so a missing value is not fatal.
+    #[serde(default)]
+    pub due: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,6 +98,12 @@ pub struct IndexEntry {
     /// that predates this field.
     #[serde(default)]
     pub relationships: HashMap<String, Vec<String>>,
+    /// Full file text — front matter and body — used for inline content search
+    /// and line-level queries (the embedded `query` block's `from: lines` and
+    /// full-text `search`). Defaults to empty for entries deserialized from an
+    /// older index cache that predates this field.
+    #[serde(default)]
+    pub content: String,
 }
 
 /// F3 — one inverse (referenced-by) edge resolved over the in-memory index.
@@ -153,6 +168,11 @@ static STATE: Lazy<RwLock<State>> = Lazy::new(|| {
 static PENDING: Lazy<Mutex<HashMap<PathBuf, SystemTime>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
+/// Every incoming watcher event bumps this generation. Only the worker with
+/// the newest generation is allowed to scan, so replacing many notes at once
+/// results in one debounced batch instead of one rescan + save + emit per file.
+static WATCH_GEN: Lazy<AtomicU64> = Lazy::new(|| AtomicU64::new(0));
+
 // ---------------------------------------------------------------------------
 // Tauri commands
 // ---------------------------------------------------------------------------
@@ -201,7 +221,7 @@ fn workspace_index_init_inner(app: AppHandle, folder: String) -> Result<usize, S
 
     let count = STATE.read().map_err(|e| e.to_string())?.entries.len();
     save_cache(&app, &root)?;
-    let _ = app.emit("solomd://index-updated", &"init");
+    let _ = app.emit("xiaoyuan-note://index-updated", &"init");
     Ok(count)
 }
 
@@ -450,7 +470,7 @@ fn workspace_index_rescan_inner(app: AppHandle) -> Result<usize, String> {
     }
     scan_into(&root)?;
     save_cache(&app, &root)?;
-    let _ = app.emit("solomd://index-updated", &"rescan");
+    let _ = app.emit("xiaoyuan-note://index-updated", &"rescan");
     let count = STATE.read().map_err(|e| e.to_string())?.entries.len();
     Ok(count)
 }
@@ -544,6 +564,7 @@ fn scan_file(path: &Path) -> Result<IndexEntry, String> {
         summary,
         title,
         relationships,
+        content: raw.to_string(),
     })
 }
 
@@ -1072,6 +1093,7 @@ mod tests {
                 tasks: vec![],
                 summary: String::new(),
                 title: None,
+                content: String::new(),
             }
         }
         {
@@ -1117,6 +1139,7 @@ mod tests {
                 tasks: vec![],
                 summary: String::new(),
                 title: title.map(|s| s.to_string()),
+                content: String::new(),
             }
         }
         {
@@ -1167,6 +1190,17 @@ fn status_is_done(symbol: &str) -> bool {
     matches!(symbol, "x" | "X")
 }
 
+/// Pull a due date out of a task's text, mirroring the frontend
+/// `lib/tasks.ts::DUE_PATTERNS`: an emoji token `📅 2026-09-10` or a
+/// `due: 2026-09-10` key. Returns `None` when the line carries no date.
+fn extract_due(text: &str) -> Option<String> {
+    static RE: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(r"(?:📅\s*(\d{4}-\d{2}-\d{2})|\bdue\s*:\s*(\d{4}-\d{2}-\d{2}))").expect("due regex")
+    });
+    RE.captures(text)
+        .and_then(|c| c.get(1).or_else(|| c.get(2)).map(|m| m.as_str().to_string()))
+}
+
 /// GFM task-list items, scanned over the raw file so line numbers are the
 /// file's own. Skips fenced code (a `- [ ] step one` inside a shell block is
 /// documentation, not a task) and YAML front matter.
@@ -1205,9 +1239,10 @@ fn extract_tasks(raw: &str) -> Vec<TaskRef> {
             }
             out.push(TaskRef {
                 line: idx as u32 + 1,
-                text,
+                text: text.clone(),
                 status,
                 done,
+                due: extract_due(&text),
             });
         }
     }
@@ -1276,54 +1311,57 @@ fn handle_event(app: &AppHandle, event: Event) {
         return;
     }
     let now = SystemTime::now();
-    let mut to_rescan: Vec<PathBuf> = Vec::new();
+    let touched: Vec<PathBuf> = event
+        .paths
+        .into_iter()
+        .filter(|path| {
+            matches!(
+                path.extension().and_then(|s| s.to_str()).map(|s| s.to_lowercase()).as_deref(),
+                Some("md" | "markdown" | "mdown")
+            )
+        })
+        .collect();
+    if touched.is_empty() {
+        return;
+    }
+
+    // Bump the generation before touching PENDING so any newer event invalidates
+    // workers that are already waiting. This turns a burst of external edits
+    // into one rescan/save/notify instead of N interleaved ones.
+    let gen = WATCH_GEN.fetch_add(1, Ordering::SeqCst) + 1;
     {
         let mut pending = match PENDING.lock() {
             Ok(p) => p,
             Err(_) => return,
         };
-        for path in event.paths {
-            let lower = path
-                .extension()
-                .and_then(|s| s.to_str())
-                .map(|s| s.to_lowercase())
-                .unwrap_or_default();
-            if lower != "md" && lower != "markdown" && lower != "mdown" {
-                continue;
-            }
-            pending.insert(path.clone(), now);
-            to_rescan.push(path);
+        for path in touched {
+            pending.insert(path, now);
         }
     }
-    if to_rescan.is_empty() {
-        return;
-    }
-    // Debounce: run rescan in a separate thread after 200ms of quiet.
+
     let app_for_thread = app.clone();
-    let paths = to_rescan.clone();
     std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_millis(200));
-        let now2 = SystemTime::now();
-        let still_pending: Vec<PathBuf> = {
-            let pending = match PENDING.lock() {
+        // 350ms quiet window; a continuous batch keeps invalidating this worker
+        // until the copying is finished.
+        std::thread::sleep(Duration::from_millis(350));
+        let paths: Vec<PathBuf> = {
+            let mut pending = match PENDING.lock() {
                 Ok(p) => p,
                 Err(_) => return,
             };
+            if WATCH_GEN.load(Ordering::SeqCst) != gen {
+                return;
+            }
+            let paths: Vec<PathBuf> = pending.keys().cloned().collect();
+            pending.clear();
             paths
-                .into_iter()
-                .filter(|p| {
-                    pending
-                        .get(p)
-                        .map(|t| now2.duration_since(*t).map(|d| d.as_millis() >= 180).unwrap_or(true))
-                        .unwrap_or(false)
-                })
-                .collect()
         };
-        if still_pending.is_empty() {
+        if paths.is_empty() {
             return;
         }
+
         let mut changed = false;
-        for path in &still_pending {
+        for path in &paths {
             if path.is_file() {
                 if let Ok(idx) = scan_file(path) {
                     if let Ok(mut s) = STATE.write() {
@@ -1331,31 +1369,20 @@ fn handle_event(app: &AppHandle, event: Event) {
                         changed = true;
                     }
                 }
-            } else {
-                // Removed
-                if let Ok(mut s) = STATE.write() {
-                    if s.entries.remove(path).is_some() {
-                        changed = true;
-                    }
+            } else if let Ok(mut s) = STATE.write() {
+                if s.entries.remove(path).is_some() {
+                    changed = true;
                 }
             }
         }
-        if let Ok(mut pending) = PENDING.lock() {
-            for p in &still_pending {
-                pending.remove(p);
-            }
-        }
         if changed {
-            // Persist + notify. IMPORTANT: don't hold STATE.read() across
-            // save_cache(), which itself acquires STATE.read() — recursive
-            // reads on std::sync::RwLock can deadlock on macOS when a
-            // writer is queued in between. Clone `root` out, drop the
-            // guard, then call save_cache.
+            // Persist + notify once for the whole batch. Don't hold STATE.read()
+            // across save_cache(), which takes its own read guard.
             let root = STATE.read().ok().and_then(|s| s.root.clone());
             if let Some(root) = root {
                 let _ = save_cache(&app_for_thread, &root);
             }
-            let _ = app_for_thread.emit("solomd://index-updated", &"watch");
+            let _ = app_for_thread.emit("xiaoyuan-note://index-updated", &"watch");
         }
     });
 }

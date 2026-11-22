@@ -4,7 +4,7 @@ Yazdırma artık uygulamanın temasını izlemiyor. Koyu tema koyu basılıyordu
 
 Bir dosyayı silmek size geri almak için sekiz saniye veriyor. Hiçbir yere taşınmıyor: süre dolana kadar dosya tam olduğu yerde kalıyor.
 
-Her yerden hızlı not. Sistem genelinde bir kısayol, yaptığınız işin üzerinde küçük bir kutu açar. Bir satır yazın, Enter'a basın; SoloMD hiç öne çıkmadan not Gelen Kutunuza düşer.
+Her yerden hızlı not. Sistem genelinde bir kısayol, yaptığınız işin üzerinde küçük bir kutu açar. Bir satır yazın, Enter'a basın; xiaoyuanNote hiç öne çıkmadan not Gelen Kutunuza düşer.
 
 Görevler paneli. Çalışma alanındaki her "- [ ]" tek bir listede; öncelikler ve son tarihler hem Obsidian Tasks emojilerinden hem de düz ASCII yazımdan okunuyor. Bir göreve tıklayınca satırına gider, işaretleyince dosyaya yazılır.
 

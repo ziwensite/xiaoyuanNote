@@ -3,7 +3,7 @@
 //! Drives the recipe runner's *non-LLM* surface against a real temp
 //! directory + real libgit2:
 //!   1. Create a workspace + AutoGit repo.
-//!   2. Drop a recipe yml in `.solomd/agents/`.
+//!   2. Drop a recipe yml in `.xiaoyuan-note/agents/`.
 //!   3. Load + parse it via `recipes::load_recipes`.
 //!   4. Mint a run with `prepare_run`, verify branch + run dir exist.
 //!   5. Apply two `agent_write_note` calls (one within cap, one over) to
@@ -32,7 +32,7 @@ fn fresh_workspace(label: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-recipes-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-recipes-{label}-{nanos}"));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir
@@ -66,7 +66,7 @@ fn recipe_run_creates_branch_and_trace() {
     }
 
     // Drop a recipe.
-    let agents_dir = ws.join(".solomd").join("agents");
+    let agents_dir = ws.join(".xiaoyuanNote").join("agents");
     fs::create_dir_all(&agents_dir).unwrap();
     let yml = r#"
 name: Test recipe
@@ -106,7 +106,7 @@ tools:
 
     // Run dir + meta.json + trace.jsonl + run.md should exist.
     let run_dir = ws
-        .join(".solomd")
+        .join(".xiaoyuanNote")
         .join("agent-runs")
         .join(&meta.run_id);
     assert!(run_dir.join("meta.json").exists(), "meta.json");
@@ -233,7 +233,7 @@ tools:
 #[test]
 fn loader_skips_example_files() {
     let ws = fresh_workspace("loader");
-    let agents = ws.join(".solomd").join("agents");
+    let agents = ws.join(".xiaoyuanNote").join("agents");
     fs::create_dir_all(&agents).unwrap();
     fs::write(
         agents.join("real.yml"),

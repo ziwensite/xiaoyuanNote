@@ -16,4 +16,4 @@ CİLA VE DÜZELTMELER
 • Düzeltildi: CJK girdi yöntemleriyle yazarken giriş artık kompozisyon ortasında kesilmiyor
 • 4.1'den bu yana birçok küçük düzeltme ve performans iyileştirmesi
 
-SoloMD'yi beğendiniz mi? App Store'da puan verin ve diğer yazarlarla paylaşın!
+xiaoyuanNote'yi beğendiniz mi? App Store'da puan verin ve diğer yazarlarla paylaşın!

@@ -9,4 +9,4 @@ Version 0.1.12 — welcome to the Mac App Store!
 • Multi-encoding detection for legacy CJK files (GBK, Big5, UTF-16)
 • Built as a universal binary for Apple Silicon and Intel
 
-Enjoying SoloMD? Rate it on the App Store and share with other writers!
+Enjoying xiaoyuanNote? Rate it on the App Store and share with other writers!

@@ -565,7 +565,7 @@ async function buildBody(tokens: Token[], imageRoot: string | null, filePath?: s
       case 'math_block_eqno': {
         // Word has no KaTeX: keep display math as its LaTeX source, one
         // centred Cambria Math line per source line, rather than dropping it
-        // (same choice as the CLI exporter, scripts/solomd-export.mjs).
+        // (same choice as the CLI exporter, scripts/xiaoyuan-note-export.mjs).
         out.push(mathBlockParagraph(tok.content || ''));
         i += 1;
         break;
@@ -836,9 +836,9 @@ export async function markdownToDocxBlob(
 
   const orderedFormats = ['decimal', 'lowerLetter', 'lowerRoman'] as const;
   const doc = new Document({
-    creator: 'SoloMD',
+    creator: 'xiaoyuanNote',
     title: tpl.title || _title,
-    description: 'Exported from SoloMD',
+    description: 'Exported from xiaoyuanNote',
     styles: {
       default: {
         document: {

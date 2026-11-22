@@ -12,6 +12,6 @@ Bir tema seçip hiçbir şeyin değişmemesi artık açıklanıyor: açık ve ko
 
 Uygulama daha hızlı açılıyor. Her şey ilk kareden önce derleniyordu: diyagram motoru, iki Çince sözlük, PDF ve Word dışa aktarımı, slayt gösterisi. Artık istendiğinde yükleniyorlar ve ilk çizim yaklaşık %30 daha hızlı.
 
-Başka bir düzenleyicide — ya da SoloMD kapalıyken — değişen bir dosya artık fark ediliyor: açılışta ve pencere her geri geldiğinde. Kaydedilmemiş düzenlemelerin üzerine asla yazılmaz.
+Başka bir düzenleyicide — ya da xiaoyuanNote kapalıyken — değişen bir dosya artık fark ediliyor: açılışta ve pencere her geri geldiğinde. Kaydedilmemiş düzenlemelerin üzerine asla yazılmaz.
 
 Sağ kenar çubuğu düğmesi her zaman bir şey yapıyor.

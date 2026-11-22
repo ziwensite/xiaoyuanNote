@@ -8,14 +8,14 @@ export interface WhiteboardOpenDetail {
   snapshot: string;
 }
 
-export const WHITEBOARD_OPEN_EVENT = 'solomd:whiteboard-open';
+export const WHITEBOARD_OPEN_EVENT = 'xiaoyuan-note:whiteboard-open';
 </script>
 
 <script setup lang="ts">
 /**
  * WhiteboardOverlay — F7 fullscreen whiteboard editor.
  *
- * Opened by the `solomd:whiteboard-open` window event (dispatched from the
+ * Opened by the `xiaoyuan-note:whiteboard-open` window event (dispatched from the
  * inline CM board widget's fullscreen button, or from a preview thumbnail
  * click). Mounts a full-window <Tldraw> editor via the dynamic-import runtime
  * adapter so the rest of the app still compiles without the tldraw dep, and

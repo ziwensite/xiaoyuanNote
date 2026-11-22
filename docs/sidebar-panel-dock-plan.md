@@ -14,7 +14,7 @@
 | C2 | 新模型 = 两个独立 Dock，每个 Dock = 活动栏（Rail）+ 标签头（Tabs）+ 面板体（Body），同一时刻只显示 1 个面板 | 与用户确认的目标形态一致。 |
 | C3 | 状态收敛到一份 `sidebarDock` 结构与一个 pane 注册表 | 新增面板从「改 8 处」降为「注册表 1 条 + i18n + 图标」，`App.vue` 里不再出现任何 pane 专属模板。 |
 | C4 | 拖拽用原生 Pointer Events，不引三方库 | 仓库已有两处成熟先例（`PaneTabBar.vue`、`FileTree.vue`）；Tauri WebView2 的原生文件拖放会吞掉 HTML5 DnD（`App.vue` L2137-2143 注释）。 |
-| C5 | 持久化沿用 `solomd.settings.v1`，用一个一次性迁移标记 `v510SidebarDockMigrated` | 与仓库现有迁移约定一致（`settings.ts` L969 / L978 / L996 / L1004 / L1013 / L1017 / L1021）。不新增 schema 版本号。 |
+| C5 | 持久化沿用 `xiaoyuan-note.settings.v1`，用一个一次性迁移标记 `v510SidebarDockMigrated` | 与仓库现有迁移约定一致（`settings.ts` L969 / L978 / L996 / L1004 / L1013 / L1017 / L1021）。不新增 schema 版本号。 |
 | C6 | 迁移后，「只开一侧」的老习惯保持为一个 Dock 有内容、另一侧空 | 迁移时把老栈里的全部可见面板落到 `outlineSide` 对应的一侧；另一侧不分配任何面板。 |
 
 **需要拍板的决策点**（详见 §2.8、§3.7、§4.4、§5.1）：
@@ -113,7 +113,7 @@
 - `moveRsPane()`（L1808-1819）；
 - `setOutlineSide()`（L1244-1246）。
 
-> 注意：`solomd.tiles.v1` 是**编辑器中间区域的分栏树**，只存 `{ root, focusedPaneId }`（`stores/tiles.ts` L5、L272-274），与侧栏无关，本次不需要迁移它。
+> 注意：`xiaoyuan-note.tiles.v1` 是**编辑器中间区域的分栏树**，只存 `{ root, focusedPaneId }`（`stores/tiles.ts` L5、L272-274），与侧栏无关，本次不需要迁移它。
 
 ### 1.4 现有交互
 
@@ -420,7 +420,7 @@ edgeDropMounted(side) = dragging && panes.filter(side).length === 0   // 拖拽�
    - 恢复宽度后自动展开；
    - 若仍不够，强制折叠左侧（文件树优先保内容）。
 3. 宽度下限 240，上限 `min(560, 45vw)`；Agent active 的兜底宽度按本侧计算（不再是「可见即 440」）。
-4. 宽度变化后照旧派发 `solomd:relayout`（沿用 L2183-2189），让 CodeMirror 重新 measure。
+4. 宽度变化后照旧派发 `xiaoyuan-note:relayout`（沿用 L2183-2189），让 CodeMirror 重新 measure。
 
 ### 3.9 窄屏 / 平板 / 移动端降级
 
@@ -454,7 +454,7 @@ edgeDropMounted(side) = dragging && panes.filter(side).length === 0   // 拖拽�
 
 ### 4.1 存储位置
 
-- 继续用 `localStorage` 的 `solomd.settings.v1`（`settings.ts` L12），**不新增 schema 版本号、不换 key**。
+- 继续用 `localStorage` 的 `xiaoyuan-note.settings.v1`（`settings.ts` L12），**不新增 schema 版本号、不换 key**。
 - 新增 `sidebarDock`（一个对象，原子写入）+ `v510SidebarDockMigrated`（布尔标记）。
 - 标记命名沿用现有约定（`v4AgentPanelMigrated`、`fileTreeDefaultDesktopMigrated`、`v491MobileLayoutMigrated`、`v503SourceModeMigrated`、`v507HighlightLineMigrated`）；按发布版本号取标记（5.1.0 → `v510`），当前基线 5.0.13，若实际发布号不同则同步改名。
 - 为什么用布尔标记最稳：现有 blob 没有 schema 版本，且 `load()` 是 `{...defaults(), ...parsed}` 合并（L925）。只有「显式标记位」能区分「用户主动选择的结果」与「老版本的默认值」，也能保证迁移只执行一次、失败重试不会反复改写。现有 7 个迁移全是这个模式（L969-1023）。
@@ -520,7 +520,7 @@ migrateSidebarDock(parsed, defaults) ->
 | `rsPaneOrder` | 迁移时读取，之后冻结 | 顺序改由 `sidebarDock.panes` 管理 |
 | `rightSidebarPaneHeights` | 迁移时忽略；相关 action 与命令改为重置新布局；字段保留一个版本后删 | 标签式不再有竖向分栏 |
 | `_rsPanesBeforeHide` | 直接删除（类型、默认值、`persist()` 剔除逻辑、`toggleRightSidebar` 分支） | 新模型不需要快照 |
-| `solomd.tiles.v1` | **不动** | 编辑器分栏树，与侧栏无关 |
+| `xiaoyuan-note.tiles.v1` | **不动** | 编辑器分栏树，与侧栏无关 |
 
 > 不做双写：`persist()` 会把 `this.$state` 整体写入，冻结字段天然保持在加载值。降级回 5.0.x 时看到的是升级前的那套布局，不会出现「新面板丢了」之外的异常。
 
@@ -679,4 +679,4 @@ migrateSidebarDock(parsed, defaults) ->
 - 11 个面板组件内部（`SidebarPaneBody` 只负责接线）
 - `Sidebar.vue` / `ViewsPanel.vue`（D1=A）
 - Rust 侧全部
-- `solomd.tiles.v1` 结构
+- `xiaoyuan-note.tiles.v1` 结构

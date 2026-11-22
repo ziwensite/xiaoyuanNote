@@ -1,4 +1,4 @@
-# `solomd-mcp` in Cursor
+# `xiaoyuan-note-mcp` in Cursor
 
 [Cursor](https://cursor.com)'s built-in MCP support reads
 `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in the workspace.
@@ -6,15 +6,15 @@
 ## Install the server
 
 ```bash
-# macOS — bundled in SoloMD.app, or:
-cargo install solomd-mcp
+# macOS — bundled in xiaoyuannote.app, or:
+cargo install xiaoyuan-note-mcp
 
 # Linux x64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-x64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-x64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Linux arm64
-curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mcp-linux-arm64.tar.gz \
+curl -L https://github.com/zhitongblog/xiaoyuan-note/releases/latest/download/xiaoyuan-note-mcp-linux-arm64.tar.gz \
   | tar -xz -C /usr/local/bin
 
 # Windows x64 / arm64 — unzip and put on PATH.
@@ -25,21 +25,21 @@ curl -L https://github.com/zhitongblog/solomd/releases/latest/download/solomd-mc
 ```json
 {
   "mcpServers": {
-    "solomd": {
-      "command": "solomd-mcp",
+    "xiaoyuanNote": {
+      "command": "xiaoyuan-note-mcp",
       "args": ["--workspace", "/Users/you/notes"]
     }
   }
 }
 ```
 
-Restart Cursor. **Settings → MCP** should list `solomd` with 16 tools (15 by default).
+Restart Cursor. **Settings → MCP** should list `xiaoyuanNote` with 16 tools (15 by default).
 
 ## Try it
 
 In Cursor's chat (`Cmd+K` / `Ctrl+K`):
 
-> Use the SoloMD MCP to find every note that links to `[[architecture]]`
+> Use the xiaoyuanNote MCP to find every note that links to `[[architecture]]`
 > and give me a 3-bullet summary of each.
 
 ## Allow writes
@@ -54,10 +54,10 @@ Add `--allow-write` to the args. Then Cursor can call `write_note` /
 ]
 ```
 
-## About SoloMD
+## About xiaoyuanNote
 
-[**SoloMD**](https://solomd.app) is the Markdown editor that ships this MCP
+[**xiaoyuanNote**](https://xiaoyuannote.app) is the Markdown editor that ships this MCP
 server pre-wired. Get the desktop app for the Agent panel UI, the pending
 write accept/reject screen, and AutoGit history navigation:
 
-[📥 Download SoloMD for macOS / Windows / Linux](https://github.com/zhitongblog/solomd/releases/latest)
+[📥 Download xiaoyuanNote for macOS / Windows / Linux](https://github.com/zhitongblog/xiaoyuan-note/releases/latest)

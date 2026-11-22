@@ -93,19 +93,19 @@ fn open_repo(folder: &str) -> Result<Repository, String> {
 }
 
 /// Build a `Signature` for commits. Reads `user.name` / `user.email` from
-/// the user's global git config; falls back to `solomd@local`.
+/// the user's global git config; falls back to `xiaoyuanNote@local`.
 fn build_signature(repo: &Repository) -> Result<Signature<'static>, String> {
     let cfg = repo.config().map_err(|e| format!("git config: {}", e))?;
     let name = cfg
         .get_string("user.name")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "SoloMD".to_string());
+        .unwrap_or_else(|| "xiaoyuanNote".to_string());
     let email = cfg
         .get_string("user.email")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "solomd@local".to_string());
+        .unwrap_or_else(|| "xiaoyuanNote@local".to_string());
     Signature::now(&name, &email).map_err(|e| format!("signature: {}", e))
 }
 
@@ -213,18 +213,18 @@ fn workspace_is_dirty(repo: &Repository) -> bool {
     false
 }
 
-/// Ignore rules for SoloMD's own `.solomd/` runtime state. `.solomd/agents/`
+/// Ignore rules for xiaoyuanNote’s own `.xiaoyuan-note/` runtime state. `.xiaoyuan-note/agents/`
 /// is deliberately NOT covered: those are user recipes the user may want to
 /// share through the same repo.
-const SOLOMD_IGNORE_RULES: &[&str] = &[
-    ".solomd/agent-runs/",
-    ".solomd/session.*.json",
-    ".solomd/encryption.*",
-    ".solomd/*.json",
+const XIAOYUAN_NOTE_IGNORE_RULES: &[&str] = &[
+    ".xiaoyuan-note/agent-runs/",
+    ".xiaoyuan-note/session.*.json",
+    ".xiaoyuan-note/encryption.*",
+    ".xiaoyuan-note/*.json",
 ];
 
-const SOLOMD_IGNORE_HEADER: &str =
-    "# SoloMD runtime state (per-device, do not commit).";
+const XIAOYUAN_NOTE_IGNORE_HEADER: &str =
+    "# xiaoyuanNote runtime state (per-device, do not commit).";
 
 /// True when `body` already contains `entry` as a whole, trimmed line.
 fn gitignore_has(body: &str, entry: &str) -> bool {
@@ -234,7 +234,7 @@ fn gitignore_has(body: &str, entry: &str) -> bool {
 /// Write/refresh the default `.gitignore`.
 ///
 /// A brand-new file gets the full default block. An existing file is never
-/// overwritten — we only append the `.solomd/` runtime rules when they are
+/// overwritten — we only append the `.xiaoyuan-note/` runtime rules when they are
 /// missing, so a user's own rules survive. Returns `true` when the file was
 /// created or changed.
 fn write_default_gitignore(folder: &Path, exclude_assets: bool) -> std::io::Result<bool> {
@@ -244,7 +244,7 @@ fn write_default_gitignore(folder: &Path, exclude_assets: bool) -> std::io::Resu
         fs::read_to_string(&gi).unwrap_or_default()
     } else {
         String::from(
-            "# SoloMD AutoGit defaults\n\
+            "# xiaoyuanNote AutoGit defaults\n\
              .DS_Store\n\
              Thumbs.db\n\
              desktop.ini\n\
@@ -261,7 +261,7 @@ fn write_default_gitignore(folder: &Path, exclude_assets: bool) -> std::io::Resu
         body.push_str("_assets/\n");
         changed = true;
     }
-    let missing: Vec<&str> = SOLOMD_IGNORE_RULES
+    let missing: Vec<&str> = XIAOYUAN_NOTE_IGNORE_RULES
         .iter()
         .copied()
         .filter(|rule| !gitignore_has(&body, rule))
@@ -270,8 +270,8 @@ fn write_default_gitignore(folder: &Path, exclude_assets: bool) -> std::io::Resu
         if !body.is_empty() && !body.ends_with('\n') {
             body.push('\n');
         }
-        if !gitignore_has(&body, SOLOMD_IGNORE_HEADER) {
-            body.push_str(SOLOMD_IGNORE_HEADER);
+        if !gitignore_has(&body, XIAOYUAN_NOTE_IGNORE_HEADER) {
+            body.push_str(XIAOYUAN_NOTE_IGNORE_HEADER);
             body.push('\n');
         }
         for rule in missing {
@@ -287,20 +287,20 @@ fn write_default_gitignore(folder: &Path, exclude_assets: bool) -> std::io::Resu
     Ok(true)
 }
 
-/// Drop `.solomd/agent-runs/` entries from the index.
+/// Drop `.xiaoyuan-note/agent-runs/` entries from the index.
 ///
 /// Run artifacts were historically swept into the agent branch (and then
 /// into `main` on accept), so merely adding ignore rules does not untrack
 /// them. Removing the index entries lets the next commit record the
 /// deletion without rewriting history.
-fn untrack_solomd_run_artifacts(repo: &Repository) -> Result<(), String> {
+fn untrack_xiaoyuan_note_run_artifacts(repo: &Repository) -> Result<(), String> {
     let mut index = repo.index().map_err(|e| format!("index: {e}"))?;
     let stale: Vec<PathBuf> = index
         .iter()
         .filter(|e| {
             String::from_utf8_lossy(&e.path)
                 .replace('\\', "/")
-                .starts_with(".solomd/agent-runs/")
+                .starts_with(".xiaoyuan-note/agent-runs/")
         })
         .map(|e| PathBuf::from(String::from_utf8_lossy(&e.path).into_owned()))
         .collect();
@@ -463,13 +463,13 @@ pub fn git_init_workspace_inner(
     write_default_gitignore(path, exclude_assets.unwrap_or(false))
         .map_err(|e| format!("gitignore: {}", e))?;
     // A repo that already existed may still track run artifacts from before
-    // the `.solomd/` rules were introduced — untrack them once so the
+    // the `.xiaoyuan-note/` rules were introduced — untrack them once so the
     // initial commit records the deletion.
-    untrack_solomd_run_artifacts(&repo)?;
+    untrack_xiaoyuan_note_run_artifacts(&repo)?;
 
     stage(&repo, None)?;
     let sig = build_signature(&repo)?;
-    let msg = initial_message.unwrap_or_else(|| "init: SoloMD workspace".to_string());
+    let msg = initial_message.unwrap_or_else(|| "init: xiaoyuanNote workspace".to_string());
 
     let _ = commit_staged(&repo, &sig, &msg)?;
     Ok(())
@@ -494,14 +494,14 @@ pub fn git_auto_commit_inner(
     message: Option<String>,
 ) -> Result<Option<String>, String> {
     let repo = open_repo(&folder)?;
-    // One-time migration for repos created before the `.solomd/` runtime
+    // One-time migration for repos created before the `.xiaoyuan-note/` runtime
     // rules existed: refresh `.gitignore` and untrack run artifacts only on
     // the pass that actually changes the ignore file. Subsequent saves skip
     // this entirely (one cheap read of `.gitignore`).
     if write_default_gitignore(Path::new(&folder), false)
         .map_err(|e| format!("gitignore: {e}"))?
     {
-        untrack_solomd_run_artifacts(&repo)?;
+        untrack_xiaoyuan_note_run_artifacts(&repo)?;
     }
     let pathspec = match file_path.as_ref() {
         Some(abs) => match rel_path(&repo, abs) {
@@ -553,9 +553,9 @@ mod gitignore_tests {
         let changed = write_default_gitignore(tmp.path(), false).unwrap();
         assert!(changed);
         let body = fs::read_to_string(tmp.path().join(".gitignore")).unwrap();
-        assert!(body.contains(".solomd/agent-runs/"));
-        assert!(body.contains(".solomd/*.json"));
-        assert!(!body.lines().any(|l| l.trim() == ".solomd/"));
+        assert!(body.contains(".xiaoyuan-note/agent-runs/"));
+        assert!(body.contains(".xiaoyuan-note/*.json"));
+        assert!(!body.lines().any(|l| l.trim() == ".xiaoyuan-note/"));
     }
 
     #[test]
@@ -566,17 +566,17 @@ mod gitignore_tests {
         assert!(changed);
         let body = fs::read_to_string(tmp.path().join(".gitignore")).unwrap();
         assert!(body.starts_with("custom-rule\n"));
-        assert!(body.contains(".solomd/agent-runs/"));
+        assert!(body.contains(".xiaoyuan-note/agent-runs/"));
 
         // Second call is a no-op.
         assert!(!write_default_gitignore(tmp.path(), false).unwrap());
     }
 
     #[test]
-    fn untrack_solomd_run_artifacts_drops_index_entries() {
+    fn untrack_xiaoyuan_note_run_artifacts_drops_index_entries() {
         let tmp = tempfile::TempDir::new().unwrap();
         let repo = Repository::init(tmp.path()).unwrap();
-        let rel = ".solomd/agent-runs/r1/meta.json";
+        let rel = ".xiaoyuan-note/agent-runs/r1/meta.json";
         let abs = tmp.path().join(rel);
         fs::create_dir_all(abs.parent().unwrap()).unwrap();
         fs::write(&abs, "{}").unwrap();
@@ -589,7 +589,7 @@ mod gitignore_tests {
         repo.commit(Some("HEAD"), &sig, &sig, "run", &tree, &[])
             .unwrap();
 
-        untrack_solomd_run_artifacts(&repo).unwrap();
+        untrack_xiaoyuan_note_run_artifacts(&repo).unwrap();
         assert_eq!(repo.index().unwrap().len(), 0);
     }
 }

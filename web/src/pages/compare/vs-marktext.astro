@@ -7,27 +7,27 @@ import CompareFaq from '../../components/CompareFaq.astro';
 const lang = 'en' as const;
 const FAQ = [
   {
-    q: 'Both are free and MIT-licensed — why pick SoloMD over MarkText?',
-    a: 'SoloMD adds what MarkText never shipped: native iOS and Android apps, built-in AI (14 BYOK providers), local semantic search, AutoGit version history, a bundled MCP server, tldraw whiteboards, and a knowledge graph. It is also ~15 MB on Tauri 2 versus MarkText’s ~80 MB Electron build.',
+    q: 'Both are free and MIT-licensed — why pick xiaoyuanNote over MarkText?',
+    a: 'xiaoyuanNote adds what MarkText never shipped: native iOS and Android apps, built-in AI (14 BYOK providers), local semantic search, AutoGit version history, a bundled MCP server, tldraw whiteboards, and a knowledge graph. It is also ~15 MB on Tauri 2 versus MarkText’s ~80 MB Electron build.',
   },
   {
     q: 'Is MarkText still maintained?',
-    a: 'MarkText was revived in May 2026 after several dormant years, which is good news for the ecosystem. SoloMD ships multiple patch releases a month by an active maintainer, with release notes at solomd.app/whats-new.',
+    a: 'MarkText was revived in May 2026 after several dormant years, which is good news for the ecosystem. xiaoyuanNote ships multiple patch releases a month by an active maintainer, with release notes at xiaoyuannote.app/whats-new.',
   },
   {
     q: 'How is Chinese/CJK input on Windows?',
-    a: 'SoloMD’s Windows live editor runs on native textarea blocks specifically to avoid Chromium contentEditable IME problems (dropped first character, doubled punctuation — worst with Sogou Pinyin). SoloMD’s author filed the underlying WebView2 bug upstream (WebView2Feedback#5625). SoloMD also auto-detects GBK / Big5 / Shift_JIS encodings and counts CJK words correctly.',
+    a: 'xiaoyuanNote’s Windows live editor runs on native textarea blocks specifically to avoid Chromium contentEditable IME problems (dropped first character, doubled punctuation — worst with Sogou Pinyin). xiaoyuanNote’s author filed the underlying WebView2 bug upstream (WebView2Feedback#5625). xiaoyuanNote also auto-detects GBK / Big5 / Shift_JIS encodings and counts CJK words correctly.',
   },
   {
-    q: 'Can I use MarkText-style source and WYSIWYG modes in SoloMD?',
-    a: 'Yes — SoloMD has four view modes: raw source, Typora-style live edit (WYSIWYG), split edit+preview, and reading mode.',
+    q: 'Can I use MarkText-style source and WYSIWYG modes in xiaoyuanNote?',
+    a: 'Yes — xiaoyuanNote has four view modes: raw source, Typora-style live edit (WYSIWYG), split edit+preview, and reading mode.',
   },
 ];
 ---
 
 <Layout
-  title="SoloMD vs MarkText — Two Free Open-Source Markdown Editors Compared"
-  description="SoloMD and MarkText are both free and open source. Side-by-side comparison of features, size, active development, and which one to choose."
+  title="xiaoyuanNote vs MarkText — Two Free Open-Source Markdown Editors Compared"
+  description="xiaoyuanNote and MarkText are both free and open source. Side-by-side comparison of features, size, active development, and which one to choose."
   lang={lang}
 >
   <Header lang={lang} />
@@ -37,9 +37,9 @@ const FAQ = [
         <a href="/">Home</a> / <a href="/compare/">Compare</a> / <span>vs MarkText</span>
       </nav>
 
-      <h1>SoloMD vs MarkText: Two Free Markdown Editors Compared</h1>
+      <h1>xiaoyuanNote vs MarkText: Two Free Markdown Editors Compared</h1>
       <p class="lead">
-        Both are free and open source. <strong>SoloMD</strong> is newer, smaller (15 MB vs 90 MB),
+        Both are free and open source. <strong>xiaoyuanNote</strong> is newer, smaller (15 MB vs 90 MB),
         and adds multi-tab, split view, CJK encoding auto-detect, and a built-in
         AI / MCP / AutoGit stack. <strong>MarkText</strong> — after a long dormant
         stretch — returned to active maintenance in May 2026 (the original author
@@ -49,7 +49,7 @@ const FAQ = [
       <h2>At a glance</h2>
       <table class="compare-detail">
         <thead>
-          <tr><th>&nbsp;</th><th>SoloMD v5.0</th><th>MarkText</th></tr>
+          <tr><th>&nbsp;</th><th>xiaoyuanNote v5.0</th><th>MarkText</th></tr>
         </thead>
         <tbody>
           <tr><th>License</th><td>MIT</td><td>MIT</td></tr>
@@ -76,7 +76,7 @@ const FAQ = [
           <tr><th>Export</th><td>HTML · PDF · DOCX · PNG · EPUB · ODT · LaTeX (Pandoc)</td><td>HTML · PDF</td></tr>
           <tr><th>Vim mode</th><td>✅</td><td>❌</td></tr>
           <tr><th>Slideshow / presentation mode</th><td>✅ <code>⌘⌥P</code></td><td>❌</td></tr>
-          <tr><th>CLI tool</th><td>✅ <code>solomd</code></td><td>❌</td></tr>
+          <tr><th>CLI tool</th><td>✅ <code>xiaoyuanNote</code></td><td>❌</td></tr>
           <tr><th>Format Markdown (Prettier)</th><td>✅ <code>⌘⌥L</code></td><td>❌</td></tr>
           <tr><th>Welcome tour</th><td>✅ on first launch</td><td>❌</td></tr>
           <tr><th>Command palette</th><td>✅ Ctrl+Shift+K</td><td>❌</td></tr>
@@ -85,12 +85,12 @@ const FAQ = [
         </tbody>
       </table>
 
-      <h2>When SoloMD wins</h2>
+      <h2>When xiaoyuanNote wins</h2>
       <ul>
         <li>You want the smallest possible install (~15 MB vs 90 MB).</li>
         <li>You want <strong>split view</strong> — code on one side, preview on the other, synced scroll.</li>
         <li>You want <strong>Vim keybindings</strong>.</li>
-        <li>You work with <strong>CJK encodings</strong> (SoloMD auto-detects GBK / Big5; MarkText needs manual conversion).</li>
+        <li>You work with <strong>CJK encodings</strong> (xiaoyuanNote auto-detects GBK / Big5; MarkText needs manual conversion).</li>
         <li>You want to edit on an <strong>iPad</strong>.</li>
         <li>You want <strong>DOCX export</strong> and rich <strong>copy-as-image</strong>.</li>
       </ul>
@@ -107,10 +107,10 @@ const FAQ = [
         features, not liveness.
       </p>
 
-      <h2>Why SoloMD is smaller</h2>
+      <h2>Why xiaoyuanNote is smaller</h2>
       <p>
         MarkText is built on Electron — the installer bundles Chromium (~60 MB by itself).
-        SoloMD uses Tauri 2, which embeds the OS's native webview (WKWebView / WebView2 /
+        xiaoyuanNote uses Tauri 2, which embeds the OS's native webview (WKWebView / WebView2 /
         WebKitGTK). There's no Chromium to ship. The binary is the Rust core + a compact
         Vue 3 + CodeMirror 6 bundle, totaling around 15 MB installed.
       </p>
@@ -125,7 +125,7 @@ const FAQ = [
       <CompareFaq heading="Frequently asked questions" items={FAQ} />
 
       <div class="compare-cta">
-        <a href="/#download" class="btn btn--primary">Download SoloMD</a>
+        <a href="/#download" class="btn btn--primary">Download xiaoyuanNote</a>
         <a href="/compare/" class="btn btn--secondary">All Comparisons</a>
       </div>
     </article>

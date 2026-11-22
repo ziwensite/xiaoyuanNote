@@ -18,13 +18,13 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="Shared note · SoloMD"
-  description="A read-only view of a Markdown note hosted on GitHub, rendered by SoloMD."
+  title="Shared note · xiaoyuanNote"
+  description="A read-only view of a Markdown note hosted on GitHub, rendered by xiaoyuan-note."
   lang={lang}
 >
   <main id="main" class="share-page">
     <div id="share-toolbar" class="share-toolbar" hidden>
-      <a class="share-toolbar__home" href="/">SoloMD</a>
+      <a class="share-toolbar__home" href="/">xiaoyuanNote</a>
       <span class="share-toolbar__divider">/</span>
       <span id="share-repo-label"></span>
       <span class="share-toolbar__sep"></span>
@@ -39,7 +39,7 @@ const lang = 'en' as const;
 
     <footer id="share-footer" class="share-footer" hidden>
       <p>
-        Rendered by <a href="https://solomd.app">SoloMD</a> —
+        Rendered by <a href="https://xiaoyuannote.app">xiaoyuanNote</a> —
         a Markdown editor with built-in GitHub-backed sync. The note above lives in a public GitHub repository and is fetched client-side; we never store its contents.
       </p>
     </footer>
@@ -117,7 +117,7 @@ const lang = 'en' as const;
         footer.hidden = false;
         // Title from first h1, falls back to file name.
         const h1 = content.querySelector('h1');
-        document.title = `${(h1 ? h1.textContent : path) || 'note'} · SoloMD`;
+        document.title = `${(h1 ? h1.textContent : path) || 'note'} · xiaoyuanNote`;
       })
       .catch((e) => fail(String(e?.message || e)));
   }

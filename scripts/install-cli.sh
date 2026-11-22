@@ -1,20 +1,20 @@
 #!/bin/bash
 #
-# Installs the `solomd` CLI to /usr/local/bin (or $HOME/.local/bin if
+# Installs the `xiaoyuanNote` CLI to /usr/local/bin (or $HOME/.local/bin if
 # /usr/local/bin isn't writable).
 #
 # Run via:
-#   curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash
 
 set -e
 
-URL="https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/solomd"
-TARGETS=("/usr/local/bin/solomd" "$HOME/.local/bin/solomd")
+URL="https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/xiaoyuanNote"
+TARGETS=("/usr/local/bin/xiaoyuanNote" "$HOME/.local/bin/xiaoyuanNote")
 
 for target in "${TARGETS[@]}"; do
     dir="$(dirname "$target")"
     if [[ -w "$dir" ]] || mkdir -p "$dir" 2>/dev/null && [[ -w "$dir" ]]; then
-        echo "Installing solomd to $target"
+        echo "Installing xiaoyuanNote to $target"
         if command -v curl >/dev/null 2>&1; then
             curl -fsSL "$URL" -o "$target"
         elif command -v wget >/dev/null 2>&1; then
@@ -24,7 +24,7 @@ for target in "${TARGETS[@]}"; do
             exit 1
         fi
         chmod +x "$target"
-        echo "Installed. Try: solomd help"
+        echo "Installed. Try: xiaoyuanNote help"
         exit 0
     fi
 done

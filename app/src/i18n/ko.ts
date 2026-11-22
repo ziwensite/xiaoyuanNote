@@ -1,13 +1,13 @@
-﻿import type { I18n } from './en';
+import type { I18n } from './en';
 
 export const ko: I18n = {
   iosFolder: {
-    pickerUnavailable: '폴더 선택기를 열 수 없어 SoloMD 자체 폴더(파일 › 나의 iPhone › SoloMD)를 사용합니다.',
+    pickerUnavailable: '폴더 선택기를 열 수 없어 xiaoyuanNote 자체 폴더(파일 › 나의 iPhone › xiaoyuanNote)를 사용합니다.',
     savedAs: '{name}(으)로 저장됨',
-    restoreFailed: '지난번에 선택한 폴더를 다시 열 수 없어 SoloMD 자체 폴더를 표시합니다. \'폴더 열기\'로 다시 선택하세요.',
+    restoreFailed: '지난번에 선택한 폴더를 다시 열 수 없어 xiaoyuanNote 자체 폴더를 표시합니다. \'폴더 열기\'로 다시 선택하세요.',
   },
   starPrompt: {
-    message: 'SoloMD가 마음에 드시나요? GitHub Star는 다른 사람들이 SoloMD를 찾는 데 큰 도움이 됩니다. 한 명이 만드는 무료 프로그램이에요.',
+    message: 'xiaoyuan-note가 마음에 드시나요? GitHub Star는 다른 사람들이 xiaoyuan-note를 찾는 데 큰 도움이 됩니다. 한 명이 만드는 무료 프로그램이에요.',
     action: '★ GitHub에서 Star',
   },
   menubar: {
@@ -62,7 +62,7 @@ export const ko: I18n = {
     helpCli: '명령줄 (CLI)',
     zoom: '확대/축소',
     find: "찾기…",
-    about: 'SoloMD 정보',
+    about: 'xiaoyuanNote 정보',
     aboutShort: '정보',
     minimize: '최소화',
     maximize: '최대화',
@@ -86,10 +86,10 @@ export const ko: I18n = {
     theme: "테마",
     checkUpdate: "업데이트 확인…",
     services: "서비스",
-    hide: "SoloMD 가리기",
+    hide: "xiaoyuanNote 가리기",
     hideOthers: "기타 가리기",
     showAll: "모두 보기",
-    quit: "SoloMD 종료",
+    quit: "xiaoyuanNote 종료",
     window: "윈도우",
     quickCapture: "빠른 기록…",
     daily: "데일리 노트",
@@ -432,7 +432,7 @@ export const ko: I18n = {
     catAdvanced: '고급',
     catKeys: '단축키',
     keysInterceptedTitle: "다른 소프트웨어가 가져가는 단축키가 있습니다",
-    keysInterceptedBody: "아래 프로그램들이 이 조합을 전역 단축키로 등록해서 SoloMD까지 오지 않습니다. 해당 명령을 오른쪽 키로 옮겨도 나머지 단축키는 그대로입니다.",
+    keysInterceptedBody: "아래 프로그램들이 이 조합을 전역 단축키로 등록해서 xiaoyuan-note까지 오지 않습니다. 해당 명령을 오른쪽 키로 옮겨도 나머지 단축키는 그대로입니다.",
     keysApplyCompat: "이 명령들을 비어 있는 키로 옮기기",
     keysCompatApplied: "단축키 {count}개를 옮겼습니다. 되돌리려면 ‘모두 초기화’를 쓰세요.",
     keysSearch: "단축키 검색 — 이름 또는 키…",
@@ -446,7 +446,7 @@ export const ko: I18n = {
     keysWriterApply: "{bold} 를 굵게로 사용",
     keysWriterUndo: "되돌리기",
     keysWriterApplied: "이제 {bold} 는 굵게입니다. 파일 트리는 {tree} 입니다.",
-    keysInterceptedBy: "보통 {source}이(가) SoloMD보다 먼저 가져갑니다",
+    keysInterceptedBy: "보통 {source}이(가) xiaoyuan-note보다 먼저 가져갑니다",
     keysHint: '변경을 누른 뒤 원하는 조합을 누르세요. Esc로 취소. 변경은 즉시 적용됩니다.',
     keysCatFile: '파일',
     keysCatEdit: '편집',
@@ -562,7 +562,29 @@ export const ko: I18n = {
     cslPicked: 'CSL 스타일 로드 완료',
     dailyNotesFolder: '데일리 노트 폴더(워크스페이스 기준)',
     dailyNotesFormat: '데일리 노트 파일명 형식',
-    dailyNotesTemplate: '데일리 노트 템플릿(비워두면 기본값)',
+    dailyNotesTemplate: '데일리 노트 템플릿(비워두면 기본값)',
+    periodic: {
+      title: 'Periodic notes',
+      hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
+      kinds: {
+        flash: 'Flash note',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        quarterly: 'Quarterly',
+        yearly: 'Yearly',
+      },
+      templatePath: 'Template path',
+      templatePlaceholder: 'Leave empty for the built-in template',
+      savePath: 'Save path',
+      filenameFormat: 'Filename format',
+      browseFile: 'Choose template…',
+      browseFolder: 'Choose folder…',
+      clear: 'Clear',
+      markdownFilter: 'Markdown files',
+      preview: 'Preview: {path}',
+      defaultFormat: 'Default: {format}',
+    },
     recurringTaskPlacement: '반복 작업 완료 시',
     recurringTaskPlacementBelow: '다음 회차를 아래에 추가',
     recurringTaskPlacementAbove: '다음 회차를 위에 추가',
@@ -602,7 +624,7 @@ export const ko: I18n = {
       codeThemeDark: '항상 다크',
       frontmatterHint: 'YAML 프런트매터의 `pdf:` 블록으로 문서별 재정의 가능 (pageSize / margin / font / fontSize / footer / toc).',
     },
-    imageExportBranding: '이미지로 내보낼 때 "Created with SoloMD" 푸터 추가',
+    imageExportBranding: '이미지로 내보낼 때 "Created with xiaoyuanNote" 푸터 추가',
     imageExportBrandingHint: '기본값은 켜짐 — 공유 스크린샷에 가벼운 자기 홍보. 워터마크가 싫으면 끄세요. 짧은 노트는 트레일링 카드 없이 더 컴팩트하게 출력됩니다.',
     attachmentMode: 'Where to save pasted/dropped images',
     attachmentModeShared: 'Shared `_assets/` folder per directory',
@@ -644,9 +666,9 @@ export const ko: I18n = {
     customCssReloadFailed: '사용자 지정 CSS 테마를 다시 로드하지 못했습니다',
     clear: '지우기',
     fileAssoc: '파일 연결',
-    setDefault: '⭐ SoloMD를 기본 Markdown 에디터로 설정',
+    setDefault: '⭐ xiaoyuan-note를 기본 Markdown 에디터로 설정',
     settingDefault: '설정 중…',
-    setDefaultHint: '.md / .markdown / .mdown / .mkd 파일의 기본 앱으로 SoloMD 등록. Windows에서는 "연결 프로그램" 메뉴에도 추가됩니다. Linux는 xdg-utils 필요.',
+    setDefaultHint: '.md / .markdown / .mdown / .mkd 파일의 기본 앱으로 xiaoyuanNote 등록. Windows에서는 "연결 프로그램" 메뉴에도 추가됩니다. Linux는 xdg-utils 필요.',
     language: '언어 / Language',
     restoreSession: '시작 시 이전 탭과 패널 복원',
     restoreSessionHint: '꺼두면 매번 빈 창으로 시작합니다.',
@@ -666,7 +688,7 @@ export const ko: I18n = {
     revealInFileTreeOnOpen: '파일 열 때 파일 트리에서 표시',
     revealInFileTreeOnOpenHint: "켜면 파일을 열 때 파일 트리를 해당 상위 폴더로 전환합니다. 숨긴 파일 트리는 그대로 숨겨져 있습니다.",
     openLinkedFilesExternally: '링크된 파일을 기본 앱으로 열기',
-    openLinkedFilesExternallyHint: '켜면 Markdown 안의 로컬 PDF / Office / 기타 문서 링크를 클릭할 때 OS 기본 앱으로 엽니다. 끄면 대신 Markdown으로 변환해 엽니다. .md / 텍스트 / 이미지 링크는 항상 SoloMD 안에서 열립니다.',
+    openLinkedFilesExternallyHint: '켜면 Markdown 안의 로컬 PDF / Office / 기타 문서 링크를 클릭할 때 OS 기본 앱으로 엽니다. 끄면 대신 Markdown으로 변환해 엽니다. .md / 텍스트 / 이미지 링크는 항상 xiaoyuanNote 안에서 열립니다.',
     autoCheckUpdate: '업데이트 자동 확인',
     checkUpdate: '지금 업데이트 확인',
     checkingUpdate: '확인 중…',
@@ -675,9 +697,9 @@ export const ko: I18n = {
     updateCheckFailed: '업데이트 서버에 연결할 수 없습니다 — 네트워크를 확인하고 다시 시도하세요',
     telemetry: '익명 사용 데이터 전송',
     telemetryHint:
-      'SoloMD 개선에 도움이 됩니다. IP 주소, 파일 내용, 개인정보는 포함되지 않습니다.',
+      'xiaoyuanNote 개선에 도움이 됩니다. IP 주소, 파일 내용, 개인정보는 포함되지 않습니다.',
     telemetryNotice:
-      'SoloMD는 제품 개선을 위해 익명 사용 데이터(기능 사용, 버전, OS)를 수집합니다. IP 주소, 파일 내용, 개인정보는 포함되지 않습니다. 설정에서 언제든 끌 수 있습니다.',
+      'xiaoyuan-note는 제품 개선을 위해 익명 사용 데이터(기능 사용, 버전, OS)를 수집합니다. IP 주소, 파일 내용, 개인정보는 포함되지 않습니다. 설정에서 언제든 끌 수 있습니다.',
     telemetryNoticeOk: '확인',
     telemetryNoticeDisable: '지금 끄기',
     imageUploaderSection: '이미지 업로드 (이미지 호스팅)',
@@ -784,7 +806,7 @@ export const ko: I18n = {
     desc: '가볍고 크로스 플랫폼인 Markdown + 일반 텍스트 에디터.',
   },
   help: {
-    about: 'SoloMD 정보',
+    about: 'xiaoyuanNote 정보',
     markdownGuide: 'Markdown 가이드',
     keyboardShortcuts: '키보드 단축키',
     noMatchingSyntax: "일치하는 문법이 없습니다",
@@ -793,7 +815,7 @@ export const ko: I18n = {
   toast: {
     outlineMovedToSecondary: '파일 트리는 이제 기본 사이드바에 있습니다. 개요는 보조 사이드바로 이동했습니다. 탭 메뉴에서 다시 옮길 수 있습니다.',
     imageInsertFailed: "이미지를 삽입하지 못했습니다: {error}",
-    imageSavedOutsideVault: "이 폴더에는 아직 이미지를 저장할 수 없어 SoloMD 문서 폴더에 저장하고 그곳을 링크했습니다.",
+    imageSavedOutsideVault: "이 폴더에는 아직 이미지를 저장할 수 없어 xiaoyuanNote 문서 폴더에 저장하고 그곳을 링크했습니다.",
     newWindowFailed: '새 창을 열 수 없습니다',
     noActiveDoc: '활성 문서가 없습니다',
     copied: '복사됨',
@@ -816,7 +838,7 @@ export const ko: I18n = {
     uploadedCount: '이미지 {n}개를 업로드했습니다',
     noLocalImages: '업로드할 로컬 이미지가 없습니다',
     nothingToReopen: "다시 열 수 있는 닫은 탭이 없습니다",
-    savedToIos: "나의 iPhone › SoloMD › {name}에 저장됨",
+    savedToIos: "나의 iPhone › xiaoyuanNote › {name}에 저장됨",
     exportingFormat: "{format} 내보내는 중…",
     exportedTo: "{format}(으)로 내보냄",
     exportFailedError: "내보내기 실패: {error}",
@@ -864,7 +886,7 @@ export const ko: I18n = {
     selectTextForAi: "먼저 텍스트를 선택한 다음 AI 다시 쓰기를 클릭하세요({chord}를 눌러도 됩니다).",
     shareUnsupported: "이 iOS 버전에서는 공유를 지원하지 않습니다",
     shareFailed: "공유 실패: {error}",
-    androidAllFilesReturn: "“모든 파일 액세스”를 켠 다음 돌아오세요 — 권한이 적용되도록 SoloMD가 자동으로 다시 시작됩니다.",
+    androidAllFilesReturn: "“모든 파일 액세스”를 켠 다음 돌아오세요 — 권한이 적용되도록 xiaoyuan-note가 자동으로 다시 시작됩니다.",
     pinyinCopied: "병음이 클립보드에 복사됨",
   },
   dialog: {
@@ -1109,8 +1131,8 @@ export const ko: I18n = {
   integrations: {
     heading: '통합',
     intro:
-      'SoloMD는 터미널과 MCP 지원 AI 클라이언트(Claude Desktop, Codex CLI, Cursor)와 통신합니다. 앱 밖에서 노트를 읽고 쓸 수 있어요.',
-    cliTitle: 'CLI(solomd)',
+      'xiaoyuan-note는 터미널과 MCP 지원 AI 클라이언트(Claude Desktop, Codex CLI, Cursor)와 통신합니다. 앱 밖에서 노트를 읽고 쓸 수 있어요.',
+    cliTitle: 'CLI(xiaoyuanNote)',
     cliInstalled: '{path}에 설치됨',
     cliNotInstalled: '설치되지 않음',
     cliVersionLabel: '버전',
@@ -1122,14 +1144,14 @@ export const ko: I18n = {
       '터미널에서 실행하세요 — /usr/local/bin에는 sudo가 필요합니다:',
     cliSubcommandsHeading: '무엇을 할 수 있나요?',
     cliSubcommands: {
-      open: 'open <title|path> — SoloMD에서 노트 열기',
+      open: 'open <title|path> — xiaoyuan-note에서 노트 열기',
       new: 'new <title> [text] — 새 노트 생성하고 열기',
       list: 'list [folder] — Markdown 파일 목록',
       search: 'search <query> — 노트 grep',
       cat: 'cat <title|path> — 노트를 stdout으로 출력',
       help: 'help — 모든 명령 표시',
     },
-    mcpTitle: 'MCP 서버(solomd-mcp)',
+    mcpTitle: 'MCP 서버(xiaoyuan-note-mcp)',
     mcpBundled: '{path}에 번들됨',
     mcpNotBundled:
       '번들되지 않음(이 dev 빌드는 externalBin 사이드카를 건너뜁니다). 프로덕션 빌드에는 항상 포함됩니다.',
@@ -1158,9 +1180,9 @@ export const ko: I18n = {
     mcpWriteNote:
       'write_note + append_to_note는 기본 꺼짐. --allow-write로 옵트인하세요.',
     // ---- v4.4.5: MCP auto-install across 6 AI clients (EN backfill) ----
-    aiClientsTitle: 'Hook SoloMD into your AI clients',
+    aiClientsTitle: 'Hook xiaoyuanNote into your AI clients',
     aiClientsIntro:
-      'One click and SoloMD writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
+      'One click and xiaoyuanNote writes its MCP server entry into the config of every AI client we recognise on this machine. Each write is JSON-merged in place (existing entries are preserved) and the original config is backed up to <path>.bak.<timestamp> before any change.',
     aiClientsNotInstalled: 'not installed',
     aiClientsAlreadyConfigured: 'configured ✓',
     aiClientsReady: 'ready to inject',
@@ -1168,17 +1190,17 @@ export const ko: I18n = {
     aiClientsRemoveBtn: 'Remove',
     aiClientsAllowWrite:
       'Allow writes (--allow-write on the MCP server)',
-    aiClientsInjectBtn: 'Inject SoloMD into {n} client(s)',
+    aiClientsInjectBtn: 'Inject xiaoyuanNote into {n} client(s)',
     aiClientsInjectBtnZero: 'Nothing to inject',
     aiClientsInjectedToast:
-      '✓ Injected SoloMD into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
-    aiClientsRemovedToast: '✓ Removed SoloMD entry from {name}.',
+      '✓ Injected xiaoyuanNote into {n} client(s). Restart the AI client(s) for the new MCP server to load.',
+    aiClientsRemovedToast: '✓ Removed xiaoyuanNote entry from {name}.',
     aiClientsRestartHint:
       'After injecting, restart the AI client (or use its "Reload MCP servers" command if it has one) for the new server to load.'
 ,
     profilesHeading: 'MCP 프로필',
     profilesIntro:
-      '여러 워크스페이스를 하나의 solomd-mcp 인스턴스로 묶고, 붙여넣을 수 있는 Claude Desktop 설정 블록을 복사할 수 있습니다. 각 프로필은 MCP 서버가 노출하는 워크스페이스(별칭 + 경로)를 나열합니다. 첫 번째 항목이 기본값 — `workspace` 인자 없이 호출되는 도구는 여기로 폴스루됩니다.',
+      '여러 워크스페이스를 하나의 xiaoyuan-note-mcp 인스턴스로 묶고, 붙여넣을 수 있는 Claude Desktop 설정 블록을 복사할 수 있습니다. 각 프로필은 MCP 서버가 노출하는 워크스페이스(별칭 + 경로)를 나열합니다. 첫 번째 항목이 기본값 — `workspace` 인자 없이 호출되는 도구는 여기로 폴스루됩니다.',
     profilesEmpty: '아직 프로필이 없습니다.',
     profilesCreate: '새 프로필',
     profilesDuplicate: '복제',
@@ -1208,12 +1230,12 @@ export const ko: I18n = {
     profilesNamePlaceholder: 'work-and-home',
     profilesNewProfileDefault: '새 프로필',
     profilesNoMcpBinary:
-      '이 dev 빌드에는 solomd-mcp가 번들되지 않았습니다 — 스니펫은 플레이스홀더 경로를 사용합니다.',
+      '이 dev 빌드에는 xiaoyuan-note-mcp가 번들되지 않았습니다 — 스니펫은 플레이스홀더 경로를 사용합니다.',
   },
   recipes: {
     heading: 'Agent 레시피',
     intro:
-      '선언적 Agent 작업을 vault 안의 .solomd/agents/에 YAML로 저장합니다. cron 스케줄, 저장 시, 커밋 시, 태그 추가 시 또는 수동으로 실행됩니다.',
+      '선언적 Agent 작업을 vault 안의 .xiaoyuan-note/agents/에 YAML로 저장합니다. cron 스케줄, 저장 시, 커밋 시, 태그 추가 시 또는 수동으로 실행됩니다.',
     openWorkspace: '먼저 폴더를 여세요 — 레시피는 vault 안에 있습니다.',
     list: '레시피',
     listEmpty: '아직 레시피가 없습니다. "새 레시피"를 클릭하여 생성하세요.',
@@ -1382,7 +1404,7 @@ export const ko: I18n = {
     settingsHeading: '시맨틱 검색',
     enable: '시맨틱 검색 활성화(로컬 RAG, ⌘⇧F)',
     enableHint:
-      '기본 꺼짐. 켜면 노트가 <workspace>/.solomd/embeddings.sqlite에 로컬로 임베딩됩니다 — 네트워크 불필요, 번들된 hashed-trigram 백엔드는 모델 다운로드도 필요 없습니다. ⌘⇧F로 패널을 엽니다.',
+      '기본 꺼짐. 켜면 노트가 <workspace>/.xiaoyuan-note/embeddings.sqlite에 로컬로 임베딩됩니다 — 네트워크 불필요, 번들된 hashed-trigram 백엔드는 모델 다운로드도 필요 없습니다. ⌘⇧F로 패널을 엽니다.',
     statusReady: '인덱싱됨: {indexed} / {total} 노트 · {chunks} 청크 · 백엔드 {backend}',
     statusEmpty: '아직 인덱싱되지 않음 — 켜서 인덱스를 빌드하세요.',
     reindexNow: '지금 다시 인덱싱',
@@ -1485,7 +1507,7 @@ export const ko: I18n = {
     captureHeading: 'HTTP 캡처 엔드포인트',
     enableCapture: '캡처 엔드포인트 활성화',
     enableCaptureHint:
-      '기본 꺼짐. 켜면 SoloMD가 127.0.0.1(루프백 전용)에서 브라우저 확장, iOS 단축어, 셸 스크립트, curl로부터 새 노트 POST를 수신합니다. 노트는 워크스페이스의 inbox 폴더에 `inbox: true`와 함께 저장됩니다.',
+      '기본 꺼짐. 켜면 xiaoyuan-note가 127.0.0.1(루프백 전용)에서 브라우저 확장, iOS 단축어, 셸 스크립트, curl로부터 새 노트 POST를 수신합니다. 노트는 워크스페이스의 inbox 폴더에 `inbox: true`와 함께 저장됩니다.',
     endpoint: '엔드포인트',
     statusRunning: '실행 중',
     statusStarting: '시작 중…',
@@ -1511,7 +1533,7 @@ export const ko: I18n = {
       'MCP와 동일한 vault 도구를 노출하는 localhost 전용 HTTP 인터페이스. Alfred, Raycast, n8n, 셸, iOS 단축어 등 MCP를 말하지 않는 클라이언트에 유용.',
     enable: 'REST API 활성화',
     enableHint:
-      '기본값은 꺼짐. 켜면 SoloMD가 127.0.0.1(루프백 전용)에서 수신 대기합니다. 공개 배너 외 모든 경로는 아래 Bearer 토큰이 필요합니다.',
+      '기본값은 꺼짐. 켜면 xiaoyuan-note가 127.0.0.1(루프백 전용)에서 수신 대기합니다. 공개 배너 외 모든 경로는 아래 Bearer 토큰이 필요합니다.',
     endpoint: '엔드포인트',
     statusRunning: '실행 중',
     statusStarting: '시작 중…',
@@ -1538,7 +1560,7 @@ export const ko: I18n = {
     close: '닫기',
     chooseTitle: 'AI 어시스턴트 설정',
     chooseSub:
-      'SoloMD는 AI 없이도 동작하지만, Agent 패널과 Recipes는 모델이 필요합니다. 둘 중 하나를 고르세요 — 언제든지 설정 → AI에서 변경 가능.',
+      'xiaoyuan-note는 AI 없이도 동작하지만, Agent 패널과 Recipes는 모델이 필요합니다. 둘 중 하나를 고르세요 — 언제든지 설정 → AI에서 변경 가능.',
     cloudTitle: '클라우드(BYOK)',
     cloudBody:
       'Anthropic Claude, OpenAI ChatGPT, Google Gemini, DeepSeek 등 14개 Provider. 자신의 API 키 사용.',
@@ -1551,7 +1573,7 @@ export const ko: I18n = {
     localDetecting: '실행 중인 Ollama 서버를 찾는 중…',
     localNotRunning: 'localhost:11434에서 Ollama 서버가 발견되지 않습니다.',
     localNotRunningHint:
-      'Ollama(약 80 MB)를 설치하고 실행한 뒤 「재시도」를 눌러주세요. SoloMD는 Ollama를 동봉하지 않습니다.',
+      'Ollama(약 80 MB)를 설치하고 실행한 뒤 「재시도」를 눌러주세요. xiaoyuan-note는 Ollama를 동봉하지 않습니다.',
     localInstallBtn: 'Ollama 설치',
     localRetryBtn: '재시도',
     localRunningNoModel:
@@ -1587,7 +1609,7 @@ export const ko: I18n = {
   cookbook: {
     heading: 'Recipe 쿡북',
     intro:
-      '시작 Recipe를 고르세요 — 설치하면 YAML이 .solomd/agents/에 복사되고 편집할 수 있도록 열립니다. 여러 번 설치 가능하며, 매번 자동으로 접미사가 붙습니다.',
+      '시작 Recipe를 고르세요 — 설치하면 YAML이 .xiaoyuan-note/agents/에 복사되고 편집할 수 있도록 열립니다. 여러 번 설치 가능하며, 매번 자동으로 접미사가 붙습니다.',
     browse: '쿡북 둘러보기',
     preview: 'YAML 미리보기',
     hidePreview: '미리보기 숨기기',
@@ -1673,7 +1695,7 @@ export const ko: I18n = {
     autoEngageFocusHint: 'Pomodoro 시작 시 집중 모드가 켜지고, 세션 종료 시 이전 상태로 복원됩니다.',
     defaultDuration: '기본 시간',
     customDurationLabel: '사용자 지정(분)',
-    notificationTitle: 'SoloMD — 집중 세션 완료',
+    notificationTitle: 'xiaoyuanNote — 집중 세션 완료',
     notificationBody: '{minutes}분 · {words} 단어 작성',
   },
   quickSwitcher: {
@@ -1742,7 +1764,7 @@ export const ko: I18n = {
   cloudSync: {
     detectedTitle: '워크스페이스가 {label}에 있습니다',
     detectedHint:
-      '여기에 저장된 파일은 클라우드 제공자를 통해 다른 기기로 자동 전파됩니다. SoloMD는 그 위에 크로스 디바이스 세션 복원을 추가 — 다른 머신에서 같은 워크스페이스를 열면 같은 탭이 돌아옵니다.',
+      '여기에 저장된 파일은 클라우드 제공자를 통해 다른 기기로 자동 전파됩니다. xiaoyuan-note는 그 위에 크로스 디바이스 세션 복원을 추가 — 다른 머신에서 같은 워크스페이스를 열면 같은 탭이 돌아옵니다.',
     siblingCount: '다른 {n}대의 기기가 이 워크스페이스를 열었습니다.',
     restoreTitle: '이어서 작업하시겠습니까?',
     restoreLead:
@@ -1760,7 +1782,7 @@ export const ko: I18n = {
   githubSync: {
     heading: 'GitHub 동기화',
     intro:
-      'vault를 비공개 GitHub 저장소에 push하여 기기 간 따라다니게 합니다. 데이터는 본인 계정에 남아있고 SoloMD는 git push와 git pull을 실행할 뿐입니다.',
+      'vault를 비공개 GitHub 저장소에 push하여 기기 간 따라다니게 합니다. 데이터는 본인 계정에 남아있고 xiaoyuan-note는 git push와 git pull을 실행할 뿐입니다.',
     signInTitle: 'GitHub에 연결',
     signInHint:
       'Personal Access Token을 붙여넣으세요. OS 키체인에 저장되며 api.github.com 외 다른 곳으로 전송되지 않습니다.',
@@ -1844,11 +1866,11 @@ export const ko: I18n = {
     conflictResolveFailed: '해결 실패',
     keychainHintTitle: 'macOS가 비밀번호를 요구합니다 — 「항상 허용」을 클릭하세요',
     keychainHintBody:
-      'SoloMD가 처음 GitHub에 push할 때 macOS가 저장된 토큰을 읽기 위한 키체인 대화상자를 띄웁니다. 엔드투엔드 암호화가 켜져 있다면 암호화 키용 두 번째 프롬프트도 표시됩니다. 각 프롬프트에서 「허용」이 아닌 「항상 허용」을 클릭하세요 — 이렇게 하면 SoloMD가 영구적으로 허용 목록에 등록되어 이 Mac에서 다시 묻지 않습니다. 「허용」만 한 번 클릭하면 push할 때마다 다시 묻습니다.',
+      'xiaoyuan-note가 처음 GitHub에 push할 때 macOS가 저장된 토큰을 읽기 위한 키체인 대화상자를 띄웁니다. 엔드투엔드 암호화가 켜져 있다면 암호화 키용 두 번째 프롬프트도 표시됩니다. 각 프롬프트에서 「허용」이 아닌 「항상 허용」을 클릭하세요 — 이렇게 하면 xiaoyuan-note가 영구적으로 허용 목록에 등록되어 이 Mac에서 다시 묻지 않습니다. 「허용」만 한 번 클릭하면 push할 때마다 다시 묻습니다.',
     proxyTitle: 'HTTPS 프록시(GFW / 기업 네트워크용)',
     proxyPlaceholder: 'http://127.0.0.1:7897 또는 socks5://127.0.0.1:1080',
     proxyHint:
-      'git push / pull을 이 프록시로 라우팅합니다. 직접 연결할 때는 비워두세요. macOS GUI 앱은 셸의 HTTPS_PROXY 환경 변수를 상속하지 않으므로 SoloMD 전용으로 여기서 설정하세요. github.com에 직접 연결할 수 없을 때의 "Operation timed out"도 해결합니다.',
+      'git push / pull을 이 프록시로 라우팅합니다. 직접 연결할 때는 비워두세요. macOS GUI 앱은 셸의 HTTPS_PROXY 환경 변수를 상속하지 않으므로 xiaoyuanNote 전용으로 여기서 설정하세요. github.com에 직접 연결할 수 없을 때의 "Operation timed out"도 해결합니다.',
     proxySaveBtn: '프록시 저장',
     proxySaving: '저장 중…',
     proxySavedToast: '프록시를 저장했습니다.',
@@ -1866,7 +1888,7 @@ export const ko: I18n = {
     upgradeRowBtn: '암호화 활성화',
     upgradeFormTitle: '엔드투엔드 암호화 활성화',
     upgradeFormBody:
-      '암호 구문을 설정하세요. SoloMD는 키(Argon2id)를 도출하고 다시 push하기 전에 모든 파일을 재암호화합니다.',
+      '암호 구문을 설정하세요. xiaoyuan-note는 키(Argon2id)를 도출하고 다시 push하기 전에 모든 파일을 재암호화합니다.',
     upgradeForcePushWarning:
       '암호화된 기록을 원격에 force push합니다 — GitHub 상의 이전 평문 커밋은 도달 불가능해집니다. 이미 이 저장소를 클론한 사람은 다시 클론해야 합니다. 암호 구문을 잊으면 데이터를 복구할 수 없습니다.',
     upgradePassphrasePlaceholder: 'vault 암호 구문(최소 8자)',
@@ -1907,7 +1929,7 @@ export const ko: I18n = {
       'Push your vault to a Gitea server. Enter your server URL and a Personal Access Token to get started.',
     giteaUrlTitle: 'Gitea server URL',
     giteaUrlHint:
-      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). SoloMD will append /api/v1 automatically.',
+      'The base URL of your Gitea instance (e.g. https://gitea.com or your own server). xiaoyuanNote will append /api/v1 automatically.',
     giteaUrlValidateBtn: 'Validate URL',
     giteaUrlValidating: 'Validating...',
     giteaTokenTitle: 'Gitea Personal Access Token',
@@ -2193,8 +2215,15 @@ export const ko: I18n = {
       checkUpdated: '{years}년 공휴일 데이터를 업데이트했습니다',
       checkFailed: '확인 실패 — 캐시 사용',
     },
-    week: { header: 'W', tooltip: 'ISO {week}주' },
-    day: { off: '휴일 · {name}', work: '대체 근무일' },
+    week: { header: 'W', tooltip: 'ISO {week}주' },
+    openPeriodic: {
+      daily: 'Double-click to open the daily note',
+      weekly: 'Double-click to open the weekly note',
+      monthly: 'Double-click to open the monthly note',
+      quarterly: 'Double-click to open the quarterly note',
+      yearly: 'Double-click to open the yearly note',
+    },
+    day: { off: '휴일 · {name}', work: '대체 근무일', offShort: '휴', workShort: '근' },
     lunar: { tooltip: '음력: {value}' },
     selectedDay: {
       open: '{date} 일 상세 열기',

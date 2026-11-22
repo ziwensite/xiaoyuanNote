@@ -1,7 +1,7 @@
 //! #148 / #151 — Android "All files access" (MANAGE_EXTERNAL_STORAGE).
 //!
 //! Android's sandbox puts the app's only freely-readable folder under
-//! `/Android/data/app.solomd/files`, which no file manager can browse on an
+//! `/Android/data/app.xiaoyuan-note/files`, which no file manager can browse on an
 //! unrooted device — so a user's real vault (`…/Documents`, a Syncthing or
 //! Dropbox folder) was unreachable, and files opened from a file manager had
 //! to be *copied* into the sandbox instead of edited in place (#148 reporter).

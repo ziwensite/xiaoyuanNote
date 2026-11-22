@@ -19,7 +19,7 @@ if (!('navigator' in globalThis)) g.navigator = { userAgent: 'node', platform: '
 
 // Per-workspace tabs off → a single global bucket, which keeps the test
 // independent of the workspace store.
-mem.set('solomd.settings.v1', JSON.stringify({ restoreSession: true, perWorkspaceTabs: false }));
+mem.set('xiaoyuan-note.settings.v1', JSON.stringify({ restoreSession: true, perWorkspaceTabs: false }));
 
 const { useTabsStore } = await import('./tabs.ts');
 
@@ -35,7 +35,7 @@ test('caret is persisted and restored once on the next launch', async () => {
   });
   first.setCursor(tab.id, 30, 3);
   await new Promise((r) => setTimeout(r, 900));
-  const saved = JSON.parse(mem.get('solomd.tabs.v1')!);
+  const saved = JSON.parse(mem.get('xiaoyuan-note.tabs.v1')!);
   assert.deepEqual(saved.tabs[0].cursor, { line: 30, col: 3 });
 
   // "Relaunch": a fresh pinia re-runs the store's state() from localStorage.

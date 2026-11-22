@@ -88,12 +88,12 @@ actions: {
 ```
 
 - **月份一致**：迷你月与弹窗都不各自持有 cursor，全部 `computed(() => monthGridRange(store.focusDate))`；任一处的"上一月/下一月"或点日期都只调 `setFocusDate`，两处天然同月同日。
-- **持久化**：`focusDate` / `view` 写 `localStorage`，键 `solomd.calendar.v1::<folder>`（与 `tabs.ts` 的 per-workspace bucket 同构，按工作区独立；不做跨设备同步）。`dialogOpen` 不持久化。
+- **持久化**：`focusDate` / `view` 写 `localStorage`，键 `xiaoyuan-note.calendar.v1::<folder>`（与 `tabs.ts` 的 per-workspace bucket 同构，按工作区独立；不做跨设备同步）。`dialogOpen` 不持久化。
 - **侧栏迷你月**（292px）：只读月网格，点一天 = `setFocusDate` + `openDialog()`（点击即打开详细视图，符合"主用月"）。
 - **任务点击跳笔记并定位行**：复用 `TasksPanel.vue` L73-84 既有路径：
   1. `closeDialog()`（让编辑区可见）
   2. `await files.openPath(task.path, { bypassNewWindow: true })`
-  3. `setTimeout(120ms)` 后 `window.dispatchEvent(new CustomEvent('solomd:outline-goto', { detail: { line: task.line, paneId: tiles.focusedPaneId } }))`
+  3. `setTimeout(120ms)` 后 `window.dispatchEvent(new CustomEvent('xiaoyuan-note:outline-goto', { detail: { line: task.line, paneId: tiles.focusedPaneId } }))`
   - 复选框点击 `@click.stop` → `useTasks.toggle(task)`（已实现：打开 tab 走 `saveTab`，否则 `read_file → write_file`，行号失效只警告不写）。
 - **事件点击**：`files.openPath(event.path, { bypassNewWindow: true })`，事件笔记无行号，打开即定位文首（与 M1 `openEvent` 同）。
 - 焦点日期在弹窗内的作用：月网格高亮当天/焦点日；切到日/周时以 `focusDate` 为锚；任务列表本身是绝对分组，不随焦点日过滤（避免"选了某天列表就空了"的困惑）。
@@ -143,7 +143,7 @@ actions: {
 
 - `DsModal` body 默认滚动，不改成 fill 会出现"两栏各自滚动 + 外层再滚"的双滚动条。
 - 日/周全宽与任务列表并排时左栏过窄，必须二选一（月=双栏，日/周=单栏）。
-- `solomd:outline-goto` 需要正确的 `paneId` 与 120ms 延迟，弹窗关闭后立即派发可能落空。
+- `xiaoyuan-note:outline-goto` 需要正确的 `paneId` 与 120ms 延迟，弹窗关闭后立即派发可能落空。
 - 焦点陷阱开启时，月网格/任务行若大量用 `tabindex` 会拖慢 Tab 循环；只让格子和复选框可聚焦。
 - 按工作区持久化时，切换工作区焦点日期会各自独立（预期，但需接受）。
 

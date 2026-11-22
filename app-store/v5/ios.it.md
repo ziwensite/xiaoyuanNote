@@ -1,6 +1,6 @@
-SoloMD è un editor Markdown tranquillo e veloce per iPhone e iPad. Apri l’app e stai già scrivendo: niente account, niente registrazione, niente abbonamento.
+xiaoyuanNote è un editor Markdown tranquillo e veloce per iPhone e iPad. Apri l’app e stai già scrivendo: niente account, niente registrazione, niente abbonamento.
 
-Le tue note sono semplici file .md e .txt. Tienile nella cartella di SoloMD nell’app File, oppure apri una cartella che usi già e modifica i file dove si trovano. Qualsiasi editor su qualsiasi dispositivo può leggerli, oggi e tra dieci anni.
+Le tue note sono semplici file .md e .txt. Tienile nella cartella di xiaoyuanNote nell’app File, oppure apri una cartella che usi già e modifica i file dove si trovano. Qualsiasi editor su qualsiasi dispositivo può leggerli, oggi e tra dieci anni.
 
 PRIMA LA SCRITTURA
 
@@ -44,10 +44,10 @@ ESPORTA E CONDIVIDI
 
 PRIVATO PER SCELTA
 
-SoloMD non raccoglie alcun dato. Niente account, niente statistiche, niente pubblicità, niente tracciamento. Le tue note restano in file che appartengono a te.
+xiaoyuanNote non raccoglie alcun dato. Niente account, niente statistiche, niente pubblicità, niente tracciamento. Le tue note restano in file che appartengono a te.
 
-SoloMD è open source con licenza MIT: github.com/zhitongblog/solomd
+xiaoyuanNote è open source con licenza MIT: github.com/zhitongblog/xiaoyuan-note
 
 100% GRATUITO PER SEMPRE E BADGE SOSTENITORE
 
-Tutte le funzionalità di SoloMD sono gratuite al 100% per sempre, senza abbonamenti né funzioni bloccate. Gli acquisti in-app singoli (Offri un caffè / Offri un pranzo / Supporto generoso) sono mance puramente volontarie per sostenere lo sviluppo indipendente e sbloccano per sempre il badge esclusivo «Sostenitore».
+Tutte le funzionalità di xiaoyuanNote sono gratuite al 100% per sempre, senza abbonamenti né funzioni bloccate. Gli acquisti in-app singoli (Offri un caffè / Offri un pranzo / Supporto generoso) sono mance puramente volontarie per sostenere lo sviluppo indipendente e sbloccano per sempre il badge esclusivo «Sostenitore».

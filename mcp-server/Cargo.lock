@@ -1296,29 +1296,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "solomd-mcp"
-version = "5.0.13"
-dependencies = [
- "anyhow",
- "axum",
- "clap",
- "git2",
- "once_cell",
- "regex-lite",
- "rmcp",
- "schemars",
- "serde",
- "serde_json",
- "serde_yaml",
- "tokio",
- "tower",
- "tracing",
- "tracing-subscriber",
- "walkdir",
- "zip",
-]
-
-[[package]]
 name = "sse-stream"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1905,6 +1882,29 @@ name = "writeable"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4"
+
+[[package]]
+name = "xiaoyuan-note-mcp"
+version = "5.0.13"
+dependencies = [
+ "anyhow",
+ "axum",
+ "clap",
+ "git2",
+ "once_cell",
+ "regex-lite",
+ "rmcp",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tokio",
+ "tower",
+ "tracing",
+ "tracing-subscriber",
+ "walkdir",
+ "zip",
+]
 
 [[package]]
 name = "yoke"

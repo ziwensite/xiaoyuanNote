@@ -59,7 +59,7 @@ async function openBacklink(ref: BacklinkRef) {
   // the editor view a tick to mount, then dispatch outline-goto for line nav.
   setTimeout(() => {
     window.dispatchEvent(
-      new CustomEvent('solomd:outline-goto', {
+      new CustomEvent('xiaoyuan-note:outline-goto', {
         detail: { line: ref.line, paneId: tiles.focusedPaneId },
       }),
     );

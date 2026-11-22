@@ -16,21 +16,21 @@ import {
 
 // Legacy / global key (used when per-workspace tabs is OFF, and as the
 // migration source on first upgrade).
-const LS_KEY = 'solomd.tabs.v1';
-// Per-workspace bucket prefix: `solomd.tabs.v1::<folder>`. Each workspace
+const LS_KEY = 'xiaoyuan-note.tabs.v1';
+// Per-workspace bucket prefix: `xiaoyuan-note.tabs.v1::<folder>`. Each workspace
 // remembers its own open tabs, so opening folder A never dumps folder B's
 // accumulated tabs, and two windows on different workspaces write distinct
 // keys instead of clobbering one global blob.
-const LS_BUCKET_PREFIX = 'solomd.tabs.v1::';
+const LS_BUCKET_PREFIX = 'xiaoyuan-note.tabs.v1::';
 const NO_WORKSPACE = '__none__';
 
 // #103 — auxiliary windows ("Open file in new window") get their own tab
 // bucket so multiple windows on the same folder don't clobber each other's
 // open tabs. The main window keeps the un-suffixed keys above (backward
 // compatible — existing sessions restore unchanged); auxiliary windows
-// append `::win::<label>`. Labels are the stable `solomd-window-N` ids the
+// append `::win::<label>`. Labels are the stable `xiaoyuan-note-window-N` ids the
 // windows store hands out.
-const AUX_LABEL_PREFIX = 'solomd-window-';
+const AUX_LABEL_PREFIX = 'xiaoyuan-note-window-';
 
 /** The current Tauri window's label, or 'main' outside Tauri (Vitest, the
  *  marketing site preview, etc.). Read lazily and defensively because tabs.ts
@@ -69,7 +69,7 @@ interface PersistedState {
  *  from localStorage so we can run before the settings store hydrates. */
 function restoreSessionEnabled(): boolean {
   try {
-    const raw = localStorage.getItem('solomd.settings.v1');
+    const raw = localStorage.getItem('xiaoyuan-note.settings.v1');
     if (raw) {
       const s = JSON.parse(raw);
       if (s && typeof s.restoreSession === 'boolean') return s.restoreSession;
@@ -83,7 +83,7 @@ function restoreSessionEnabled(): boolean {
  *  creation). */
 function perWorkspaceTabsEnabled(): boolean {
   try {
-    const raw = localStorage.getItem('solomd.settings.v1');
+    const raw = localStorage.getItem('xiaoyuan-note.settings.v1');
     if (raw) {
       const s = JSON.parse(raw);
       if (s && typeof s.perWorkspaceTabs === 'boolean') return s.perWorkspaceTabs;
@@ -96,7 +96,7 @@ function perWorkspaceTabsEnabled(): boolean {
  *  static import cycle with the workspace store and to work at init time. */
 function currentWorkspaceFolder(): string | null {
   try {
-    const raw = localStorage.getItem('solomd.workspace.v1');
+    const raw = localStorage.getItem('xiaoyuan-note.workspace.v1');
     if (raw) {
       const w = JSON.parse(raw);
       if (w && typeof w.currentFolder === 'string') return w.currentFolder;
@@ -297,7 +297,7 @@ export const useTabsStore = defineStore('tabs', {
       this.activeId = tab.id;
       recordMruVisit(tab.id);
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('solomd:leave-center-overlay'));
+        window.dispatchEvent(new Event('xiaoyuan-note:leave-center-overlay'));
       }
       return tab;
     },
@@ -363,7 +363,7 @@ export const useTabsStore = defineStore('tabs', {
           this.applyDiskRead(existing.id, payload);
         }
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('solomd:leave-center-overlay'));
+          window.dispatchEvent(new Event('xiaoyuan-note:leave-center-overlay'));
         }
         return existing;
       }
@@ -396,7 +396,7 @@ export const useTabsStore = defineStore('tabs', {
       this.activeId = tab.id;
       recordMruVisit(tab.id);
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('solomd:leave-center-overlay'));
+        window.dispatchEvent(new Event('xiaoyuan-note:leave-center-overlay'));
       }
       return tab;
     },
@@ -447,6 +447,13 @@ export const useTabsStore = defineStore('tabs', {
       const c = launchCursors.get(id) ?? null;
       launchCursors.delete(id);
       return c;
+    },
+    /** v5.0 — stage a one-shot caret/scroll target for a tab (used by
+     *  `#L<n>` wikilink jumps so the pane scrolls to the line when it shows
+     *  the tab). Consumed once by `takeLaunchCursor`. */
+    setLaunchCursor(id: string, line: number, col = 1) {
+      if (line >= 1 && Number.isFinite(line)) launchCursors.set(id, { line, col });
+      else launchCursors.delete(id);
     },
     /** v4.6 F1 — apply content that was just written to disk by an external
      *  path (the Properties inspector's Rust frontmatter round-trip). Sets both
@@ -553,7 +560,7 @@ export const useTabsStore = defineStore('tabs', {
       this.activeId = id;
       recordMruVisit(id);
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('solomd:leave-center-overlay'));
+        window.dispatchEvent(new Event('xiaoyuan-note:leave-center-overlay'));
       }
     },
     /** #508 — Record a tab visit in the MRU stack without resetting an active

@@ -54,7 +54,7 @@ function gitLastmod(url) {
 }
 
 export default defineConfig({
-  site: 'https://solomd.app',
+  site: 'https://xiaoyuannote.app',
   build: {
     inlineStylesheets: 'auto',
   },

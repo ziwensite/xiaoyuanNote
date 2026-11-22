@@ -1,11 +1,11 @@
 # The AppImage starts, renders, takes typing and quits fully.
-[ -n "${SOLOMD_APPIMAGE:-}" ] && [ -f "$SOLOMD_APPIMAGE" ] || skip "SOLOMD_APPIMAGE not given"
-chmod +x "$SOLOMD_APPIMAGE"
+[ -n "${XIAOYUAN_NOTE_APPIMAGE:-}" ] && [ -f "$XIAOYUAN_NOTE_APPIMAGE" ] || skip "XIAOYUAN_NOTE_APPIMAGE not given"
+chmod +x "$XIAOYUAN_NOTE_APPIMAGE"
 if [ ! -e /dev/fuse ] || ! command -v fusermount >/dev/null 2>&1; then
   export APPIMAGE_EXTRACT_AND_RUN=1; note "no FUSE: using APPIMAGE_EXTRACT_AND_RUN=1"
 fi
 mounts0=$(grep -c '\.mount_' /proc/mounts)
-SOLOMD_BIN="$SOLOMD_APPIMAGE"
+XIAOYUAN_NOTE_BIN="$XIAOYUAN_NOTE_APPIMAGE"
 start_on plain.md || fail "AppImage: no painted window within ${LAUNCH_TIMEOUT:-45}s"
 note "window process: $(readlink /proc/$(xdotool getwindowpid "$(main_window)")/exe)"
 note "AppImage painted after ${LAUNCH_SECS}s"

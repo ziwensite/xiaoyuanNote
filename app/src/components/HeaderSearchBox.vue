@@ -5,7 +5,7 @@
  * It is the ONLY visible search entry point (spec D1). The search itself is
  * not reimplemented: `useGlobalSearch().search()` supplies the hits and the
  * open behaviour mirrors GlobalSearch.vue (`files.openPath` followed by a
- * `solomd:outline-goto` event on the next tick).
+ * `xiaoyuan-note:outline-goto` event on the next tick).
  *
  * `data-no-drag` on the root keeps a click from turning into a window drag —
  * the title bar lives inside Tauri's draggable region.
@@ -196,7 +196,7 @@ async function openHit(hit: SearchHit) {
     await files.openPath(hit.file);
     nextTick(() => {
       window.dispatchEvent(
-        new CustomEvent('solomd:outline-goto', {
+        new CustomEvent('xiaoyuan-note:outline-goto', {
           detail: { line: hit.line, paneId: tiles.focusedPaneId },
         }),
       );
@@ -374,9 +374,10 @@ function escapeRe(s: string) {
 }
 .hsearch:focus-within {
   background: var(--bg);
-  /* 1px halo, not the 4px --ring: the focus frame must not look bigger than
-     the field it belongs to. */
-  box-shadow: var(--ring-tight);
+  /* 1px halo AROUND the pill (outside, not the 4px --ring). The inner input is
+     excluded from the global focus-ring rule, so only this capsule-level ring
+     shows — never a second "internal" ring. */
+  box-shadow: 0 0 0 1px var(--accent-ring);
 }
 .hsearch__icon {
   flex: none;

@@ -150,7 +150,7 @@ export function taskSuggestExtension(opts: TaskSuggestOptions): Extension;
 - `app/src/composables/useShortcuts.ts`：`actions` 表加 `'task.applyDateTokens': () => editorCommand('applyDateTokens')`。
 - `app/src/lib/keybindings.ts`：paragraph 组加
   `{ id: 'task.applyDateTokens', label: 'Task: Apply Date Tokens on This Line', category: 'paragraph', defaults: ['Mod+Alt+Shift+D'] }`（该组合当前无默认占用）。
-- `app/src/composables/useCommands.ts`：在 `task.fromSelection` 后加同 id 的调色板条目，`run` 派发 `solomd:editor-command`。
+- `app/src/composables/useCommands.ts`：在 `task.fromSelection` 后加同 id 的调色板条目，`run` 派发 `xiaoyuan-note:editor-command`。
 
 ### 4.6 样式
 

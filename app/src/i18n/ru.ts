@@ -1,13 +1,13 @@
-﻿import type { I18n } from './en';
+import type { I18n } from './en';
 
 export const ru: I18n = {
   iosFolder: {
-    pickerUnavailable: 'Выбор папки недоступен, поэтому SoloMD использует свою папку (Файлы › На iPhone › SoloMD).',
+    pickerUnavailable: 'Выбор папки недоступен, поэтому xiaoyuanNote использует свою папку (Файлы › На iPhone › xiaoyuanNote).',
     savedAs: 'Сохранено как {name}',
-    restoreFailed: 'Не удалось снова открыть папку, выбранную в прошлый раз, — показана папка SoloMD. Выберите её заново через «Открыть папку».',
+    restoreFailed: 'Не удалось снова открыть папку, выбранную в прошлый раз, — показана папка xiaoyuan-note. Выберите её заново через «Открыть папку».',
   },
   starPrompt: {
-    message: 'Нравится SoloMD? Звезда на GitHub помогает другим его найти — он бесплатный, и его делает один человек.',
+    message: 'Нравится xiaoyuanNote? Звезда на GitHub помогает другим его найти — он бесплатный, и его делает один человек.',
     action: '★ Звезда на GitHub',
   },
   menubar: {
@@ -62,7 +62,7 @@ export const ru: I18n = {
     helpCli: 'Командная строка (CLI)',
     zoom: 'Масштаб',
     find: "Найти…",
-    about: 'О SoloMD',
+    about: 'О xiaoyuanNote',
     aboutShort: 'О программе',
     minimize: 'Свернуть',
     maximize: 'Развернуть',
@@ -86,10 +86,10 @@ export const ru: I18n = {
     theme: "Тема",
     checkUpdate: "Проверить обновления…",
     services: "Службы",
-    hide: "Скрыть SoloMD",
+    hide: "Скрыть xiaoyuanNote",
     hideOthers: "Скрыть остальные",
     showAll: "Показать все",
-    quit: "Завершить SoloMD",
+    quit: "Завершить xiaoyuanNote",
     window: "Окно",
     quickCapture: "Быстрая запись…",
     daily: "Ежедневная заметка",
@@ -310,7 +310,7 @@ export const ru: I18n = {
     empty: 'Здесь нет вложенных папок.',
     cancel: 'Отмена',
     use: 'Выбрать эту папку',
-    permNeeded: 'SoloMD нужен доступ «Все файлы», чтобы просматривать папки на этом устройстве.',
+    permNeeded: 'xiaoyuanNote нужен доступ «Все файлы», чтобы просматривать папки на этом устройстве.',
     permGrant: 'Предоставить доступ',
   },
   plainFind: {
@@ -432,7 +432,7 @@ export const ru: I18n = {
     catAdvanced: 'Дополнительно',
     catKeys: 'Сочетания клавиш',
     keysInterceptedTitle: 'Некоторые сочетания перехватывают другие программы',
-    keysInterceptedBody: 'Эти сочетания зарегистрированы как глобальные горячие клавиши программами, указанными ниже, поэтому до SoloMD они не доходят. Если перенести команды на клавиши справа, остальные ваши сочетания не изменятся.',
+    keysInterceptedBody: 'Эти сочетания зарегистрированы как глобальные горячие клавиши программами, указанными ниже, поэтому до xiaoyuanNote они не доходят. Если перенести команды на клавиши справа, остальные ваши сочетания не изменятся.',
     keysApplyCompat: 'Перенести эти команды на свободные клавиши',
     keysCompatApplied: 'Перенесено сочетаний: {count}. Чтобы отменить, нажмите «Восстановить все по умолчанию».',
     keysSearch: 'Поиск сочетаний — название или клавиша…',
@@ -446,7 +446,7 @@ export const ru: I18n = {
     keysWriterApply: 'Полужирный на {bold}',
     keysWriterUndo: 'Вернуть как было',
     keysWriterApplied: 'Теперь {bold} — полужирный. Дерево файлов — на {tree}.',
-    keysInterceptedBy: 'Обычно перехватывается {source} раньше, чем SoloMD',
+    keysInterceptedBy: 'Обычно перехватывается {source} раньше, чем xiaoyuanNote',
     keysHint: 'Нажмите «Изменить», затем нужное сочетание. Esc — отмена. Изменения применяются сразу.',
     keysCatFile: 'Файл',
     keysCatEdit: 'Правка',
@@ -562,7 +562,29 @@ export const ru: I18n = {
     cslPicked: 'Стиль CSL загружен',
     dailyNotesFolder: 'Папка ежедневных заметок (относительно рабочей папки)',
     dailyNotesFormat: 'Формат имени ежедневной заметки',
-    dailyNotesTemplate: 'Шаблон ежедневной заметки (пусто — по умолчанию)',
+    dailyNotesTemplate: 'Шаблон ежедневной заметки (пусто — по умолчанию)',
+    periodic: {
+      title: 'Periodic notes',
+      hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
+      kinds: {
+        flash: 'Flash note',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        quarterly: 'Quarterly',
+        yearly: 'Yearly',
+      },
+      templatePath: 'Template path',
+      templatePlaceholder: 'Leave empty for the built-in template',
+      savePath: 'Save path',
+      filenameFormat: 'Filename format',
+      browseFile: 'Choose template…',
+      browseFolder: 'Choose folder…',
+      clear: 'Clear',
+      markdownFilter: 'Markdown files',
+      preview: 'Preview: {path}',
+      defaultFormat: 'Default: {format}',
+    },
     recurringTaskPlacement: 'Завершённая повторяющаяся задача',
     recurringTaskPlacementBelow: 'Добавлять следующее повторение ниже',
     recurringTaskPlacementAbove: 'Добавлять следующее повторение выше',
@@ -603,7 +625,7 @@ export const ru: I18n = {
       codeThemeDark: 'Всегда тёмная',
       frontmatterHint: 'Переопределяется для документа блоком `pdf:` во front matter YAML (pageSize / margin / font / fontSize / footer / toc).',
     },
-    imageExportBranding: 'Добавлять подпись «Создано в SoloMD» при экспорте в изображение',
+    imageExportBranding: 'Добавлять подпись «Создано в xiaoyuanNote» при экспорте в изображение',
     imageExportBrandingHint: 'Включено по умолчанию — ненавязчивая реклама на скриншотах. Отключите, если подпись не нужна; короткие заметки к тому же экспортируются компактнее без нижней карточки.',
     attachmentMode: 'Куда сохранять вставленные / перетащенные изображения',
     attachmentModeShared: 'Общая папка `_assets/` в каждом каталоге',
@@ -617,7 +639,7 @@ export const ru: I18n = {
     spellCheck: 'Проверка орфографии (браузер)',
     spellcheckLang: 'Словарь',
     spellcheckAddDict: 'Открыть папку словарей',
-    spellcheckLangHint: 'С SoloMD поставляется только en_US. Положите в эту папку пару файлов Hunspell <code>.aff</code> + <code>.dic</code> (например, из словарей LibreOffice) — и словарь появится здесь.',
+    spellcheckLangHint: 'С xiaoyuanNote поставляется только en_US. Положите в эту папку пару файлов Hunspell <code>.aff</code> + <code>.dic</code> (например, из словарей LibreOffice) — и словарь появится здесь.',
     focusMode: 'Режим фокуса — приглушать неактивные абзацы',
     toolbarHidden: 'Скрыть кнопки панели инструментов (оставить заголовок окна)',
     toolbarHiddenHint: 'Для работы только с клавиатуры. Вернуть — {key} или через палитру команд.',
@@ -645,9 +667,9 @@ export const ru: I18n = {
     customCssReloadFailed: 'Не удалось перезагрузить свою тему CSS',
     clear: 'Очистить',
     fileAssoc: 'Сопоставление файлов',
-    setDefault: '⭐ Сделать SoloMD редактором Markdown по умолчанию',
+    setDefault: '⭐ Сделать xiaoyuanNote редактором Markdown по умолчанию',
     settingDefault: 'Настройка…',
-    setDefaultHint: 'Регистрирует SoloMD как приложение по умолчанию для файлов .md / .markdown / .mdown / .mkd. В Windows также добавляет SoloMD в меню «Открыть с помощью». В Linux требуется xdg-utils.',
+    setDefaultHint: 'Регистрирует xiaoyuanNote как приложение по умолчанию для файлов .md / .markdown / .mdown / .mkd. В Windows также добавляет xiaoyuanNote в меню «Открыть с помощью». В Linux требуется xdg-utils.',
     language: 'Язык / Language',
     restoreSession: 'Восстанавливать вкладки и панели при запуске',
     restoreSessionHint: 'Выключите, чтобы каждый раз начинать с пустого окна.',
@@ -665,7 +687,7 @@ export const ru: I18n = {
     revealInFileTreeOnOpen: 'Показывать файл в дереве при открытии',
     revealInFileTreeOnOpenHint: "Если включено, при открытии файла дерево файлов переключается на его папку. Скрытое дерево остаётся скрытым.",
     openLinkedFilesExternally: 'Открывать связанные файлы в системном приложении',
-    openLinkedFilesExternallyHint: 'Когда включено, щелчок по Markdown-ссылке на локальный PDF / документ Office / другой документ открывает его в приложении по умолчанию. Выключите, чтобы вместо этого преобразовать его в Markdown. Ссылки на .md / текст / изображения всегда открываются в SoloMD.',
+    openLinkedFilesExternallyHint: 'Когда включено, щелчок по Markdown-ссылке на локальный PDF / документ Office / другой документ открывает его в приложении по умолчанию. Выключите, чтобы вместо этого преобразовать его в Markdown. Ссылки на .md / текст / изображения всегда открываются в xiaoyuan-note.',
     autoCheckUpdate: 'Автоматически проверять обновления',
     checkUpdate: 'Проверить обновления',
     checkingUpdate: 'Проверка…',
@@ -674,9 +696,9 @@ export const ru: I18n = {
     updateCheckFailed: 'Не удалось связаться с сервером обновлений — проверьте сеть и попробуйте снова',
     telemetry: 'Отправлять анонимную статистику использования',
     telemetryHint:
-      'Помогает улучшать SoloMD. Без IP-адреса, содержимого файлов и личных данных.',
+      'Помогает улучшать xiaoyuan-note. Без IP-адреса, содержимого файлов и личных данных.',
     telemetryNotice:
-      'SoloMD собирает анонимную статистику использования (какие функции используются, версия, ОС), чтобы улучшать продукт. Без IP-адреса, содержимого файлов и личных данных. Это можно отключить в любой момент в настройках.',
+      'xiaoyuanNote собирает анонимную статистику использования (какие функции используются, версия, ОС), чтобы улучшать продукт. Без IP-адреса, содержимого файлов и личных данных. Это можно отключить в любой момент в настройках.',
     telemetryNoticeOk: 'Понятно',
     telemetryNoticeDisable: 'Отключить',
     imageUploaderSection: 'Загрузка изображений (хостинг)',
@@ -783,7 +805,7 @@ export const ru: I18n = {
     desc: 'Лёгкий кроссплатформенный редактор Markdown и простого текста.',
   },
   help: {
-    about: 'О SoloMD',
+    about: 'О xiaoyuanNote',
     markdownGuide: 'Руководство по Markdown',
     keyboardShortcuts: 'Сочетания клавиш',
     noMatchingSyntax: "Подходящего синтаксиса нет",
@@ -792,7 +814,7 @@ export const ru: I18n = {
   toast: {
     outlineMovedToSecondary: 'Дерево файлов теперь находится в основной боковой панели. Структура перемещена во вторичную боковую панель — её можно вернуть через меню вкладки.',
     imageInsertFailed: 'Не удалось вставить изображение: {error}',
-    imageSavedOutsideVault: 'В эту папку пока нельзя сохранять изображения, поэтому изображение сохранено в папке «Документы» SoloMD и связано оттуда.',
+    imageSavedOutsideVault: 'В эту папку пока нельзя сохранять изображения, поэтому изображение сохранено в папке «Документы» xiaoyuanNote и связано оттуда.',
     newWindowFailed: 'Не удалось открыть новое окно',
     noActiveDoc: 'Нет активного документа',
     copied: 'Скопировано',
@@ -815,7 +837,7 @@ export const ru: I18n = {
     uploadedCount: 'Загружено изображений: {n}',
     noLocalImages: 'Нет локальных изображений для загрузки',
     nothingToReopen: "Нет недавно закрытых вкладок",
-    savedToIos: "Сохранено: На iPhone › SoloMD › {name}",
+    savedToIos: "Сохранено: На iPhone › xiaoyuanNote › {name}",
     exportingFormat: "Экспорт в {format}…",
     exportedTo: "Экспортировано в {format}",
     exportFailedError: "Ошибка экспорта: {error}",
@@ -863,7 +885,7 @@ export const ru: I18n = {
     selectTextForAi: "Сначала выделите текст, затем нажмите «AI-переписывание» (или {chord}).",
     shareUnsupported: "Эта версия iOS не поддерживает функцию «Поделиться»",
     shareFailed: "Не удалось поделиться: {error}",
-    androidAllFilesReturn: "Включите «Доступ ко всем файлам» и вернитесь — SoloMD перезапустится, чтобы разрешение вступило в силу.",
+    androidAllFilesReturn: "Включите «Доступ ко всем файлам» и вернитесь — xiaoyuanNote перезапустится, чтобы разрешение вступило в силу.",
     pinyinCopied: "Пиньинь скопирован в буфер обмена",
   },
   dialog: {
@@ -1108,8 +1130,8 @@ export const ru: I18n = {
   integrations: {
     heading: 'Интеграции',
     intro:
-      'SoloMD работает с терминалом и с ИИ-клиентами, поддерживающими MCP (Claude Desktop, Codex CLI, Cursor), так что читать и писать заметки можно и вне приложения.',
-    cliTitle: 'CLI (solomd)',
+      'xiaoyuanNote работает с терминалом и с ИИ-клиентами, поддерживающими MCP (Claude Desktop, Codex CLI, Cursor), так что читать и писать заметки можно и вне приложения.',
+    cliTitle: 'CLI (xiaoyuanNote)',
     cliInstalled: 'Установлен в {path}',
     cliNotInstalled: 'Не установлен',
     cliVersionLabel: 'Версия',
@@ -1121,14 +1143,14 @@ export const ru: I18n = {
       'Выполните это в терминале — для /usr/local/bin нужен sudo:',
     cliSubcommandsHeading: 'Что он умеет?',
     cliSubcommands: {
-      open: 'open <название|путь> — открыть заметку в SoloMD',
+      open: 'open <название|путь> — открыть заметку в xiaoyuanNote',
       new: 'new <название> [текст] — создать и открыть новую заметку',
       list: 'list [папка] — список файлов Markdown',
       search: 'search <запрос> — поиск по заметкам',
       cat: 'cat <название|путь> — вывести заметку в stdout',
       help: 'help — показать все команды',
     },
-    mcpTitle: 'MCP-сервер (solomd-mcp)',
+    mcpTitle: 'MCP-сервер (xiaoyuan-note-mcp)',
     mcpBundled: 'Входит в комплект: {path}',
     mcpNotBundled:
       'Не входит в комплект (эта отладочная сборка пропускает sidecar externalBin). В релизных сборках он есть всегда.',
@@ -1156,9 +1178,9 @@ export const ru: I18n = {
     },
     mcpWriteNote:
       'write_note и append_to_note по умолчанию выключены. Чтобы включить, передайте --allow-write.',
-    aiClientsTitle: 'Подключить SoloMD к вашим ИИ-клиентам',
+    aiClientsTitle: 'Подключить xiaoyuanNote к вашим ИИ-клиентам',
     aiClientsIntro:
-      'Одним щелчком SoloMD добавит свой MCP-сервер в конфигурацию каждого распознанного на этом компьютере ИИ-клиента. Запись объединяется с JSON на месте (существующие записи сохраняются), а исходный файл перед изменением копируется в <path>.bak.<timestamp>.',
+      'Одним щелчком xiaoyuanNote добавит свой MCP-сервер в конфигурацию каждого распознанного на этом компьютере ИИ-клиента. Запись объединяется с JSON на месте (существующие записи сохраняются), а исходный файл перед изменением копируется в <path>.bak.<timestamp>.',
     aiClientsNotInstalled: 'не установлен',
     aiClientsAlreadyConfigured: 'настроен ✓',
     aiClientsReady: 'готов к подключению',
@@ -1166,16 +1188,16 @@ export const ru: I18n = {
     aiClientsRemoveBtn: 'Удалить',
     aiClientsAllowWrite:
       'Разрешить запись (--allow-write для MCP-сервера)',
-    aiClientsInjectBtn: 'Подключить SoloMD к клиентам ({n})',
+    aiClientsInjectBtn: 'Подключить xiaoyuanNote к клиентам ({n})',
     aiClientsInjectBtnZero: 'Нечего подключать',
     aiClientsInjectedToast:
-      '✓ SoloMD подключён к клиентам ({n}). Перезапустите ИИ-клиенты, чтобы загрузить новый MCP-сервер.',
-    aiClientsRemovedToast: '✓ Запись SoloMD удалена из {name}.',
+      '✓ xiaoyuanNote подключён к клиентам ({n}). Перезапустите ИИ-клиенты, чтобы загрузить новый MCP-сервер.',
+    aiClientsRemovedToast: '✓ Запись xiaoyuanNote удалена из {name}.',
     aiClientsRestartHint:
       'После подключения перезапустите ИИ-клиент (или используйте его команду «Перезагрузить MCP-серверы», если она есть), чтобы загрузить новый сервер.',
     profilesHeading: 'Профили MCP',
     profilesIntro:
-      'Объедините несколько рабочих папок в одном экземпляре solomd-mcp и скопируйте готовый блок конфигурации для Claude Desktop. Каждый профиль перечисляет рабочие папки (псевдоним + путь), которые откроет MCP-сервер; первая — по умолчанию: вызовы инструментов без явного аргумента `workspace` идут к ней.',
+      'Объедините несколько рабочих папок в одном экземпляре xiaoyuan-note-mcp и скопируйте готовый блок конфигурации для Claude Desktop. Каждый профиль перечисляет рабочие папки (псевдоним + путь), которые откроет MCP-сервер; первая — по умолчанию: вызовы инструментов без явного аргумента `workspace` идут к ней.',
     profilesEmpty: 'Профилей пока нет.',
     profilesCreate: 'Новый профиль',
     profilesDuplicate: 'Дублировать',
@@ -1205,12 +1227,12 @@ export const ru: I18n = {
     profilesNamePlaceholder: 'work-and-home',
     profilesNewProfileDefault: 'Новый профиль',
     profilesNoMcpBinary:
-      'solomd-mcp не входит в эту отладочную сборку — во фрагменте указан путь-заглушка.',
+      'xiaoyuan-note-mcp не входит в эту отладочную сборку — во фрагменте указан путь-заглушка.',
   },
   recipes: {
     heading: 'Рецепты агентов',
     intro:
-      'Декларативные задания для агентов в виде YAML в вашем хранилище, в .solomd/agents/. Запускаются по расписанию cron, при сохранении, при коммите, при добавлении тега или вручную.',
+      'Декларативные задания для агентов в виде YAML в вашем хранилище, в .xiaoyuan-note/agents/. Запускаются по расписанию cron, при сохранении, при коммите, при добавлении тега или вручную.',
     openWorkspace: 'Сначала откройте папку — рецепты хранятся внутри хранилища.',
     list: 'Рецепты',
     listEmpty: 'Рецептов пока нет. Нажмите «Новый рецепт», чтобы создать.',
@@ -1378,7 +1400,7 @@ export const ru: I18n = {
     settingsHeading: 'Смысловой поиск',
     enable: 'Включить смысловой поиск (локальный RAG, ⌘⇧F)',
     enableHint:
-      'По умолчанию выключено. Когда включено, заметки индексируются локально в <workspace>/.solomd/embeddings.sqlite — без сети, для встроенного бэкенда на хешированных триграммах скачивать модель не нужно. ⌘⇧F открывает панель.',
+      'По умолчанию выключено. Когда включено, заметки индексируются локально в <workspace>/.xiaoyuan-note/embeddings.sqlite — без сети, для встроенного бэкенда на хешированных триграммах скачивать модель не нужно. ⌘⇧F открывает панель.',
     statusReady: 'Проиндексировано заметок: {indexed} / {total} · фрагментов: {chunks} · бэкенд {backend}',
     statusEmpty: 'Ещё не проиндексировано — включите, чтобы построить индекс.',
     reindexNow: 'Переиндексировать',
@@ -1481,7 +1503,7 @@ export const ru: I18n = {
     captureHeading: 'HTTP-точка приёма заметок',
     enableCapture: 'Включить точку приёма',
     enableCaptureHint:
-      'По умолчанию выключено. Когда включено, SoloMD слушает 127.0.0.1 (только локально) и принимает POST-запросы с новыми заметками от расширения браузера, быстрой команды iOS, shell-скрипта или curl. Заметки попадают в папку «Входящие» рабочей папки с `inbox: true` в YAML.',
+      'По умолчанию выключено. Когда включено, xiaoyuanNote слушает 127.0.0.1 (только локально) и принимает POST-запросы с новыми заметками от расширения браузера, быстрой команды iOS, shell-скрипта или curl. Заметки попадают в папку «Входящие» рабочей папки с `inbox: true` в YAML.',
     endpoint: 'Адрес',
     statusRunning: 'работает',
     statusStarting: 'запуск…',
@@ -1507,7 +1529,7 @@ export const ru: I18n = {
       'HTTP-интерфейс только для localhost с теми же инструментами хранилища, что и MCP. Подходит для Alfred, Raycast, n8n, shell-скриптов, быстрых команд iOS — всего, что не поддерживает MCP.',
     enable: 'Включить REST API',
     enableHint:
-      'По умолчанию выключено. Когда включено, SoloMD слушает 127.0.0.1 (только локально). Все маршруты, кроме публичного приветствия, требуют токен ниже.',
+      'По умолчанию выключено. Когда включено, xiaoyuanNote слушает 127.0.0.1 (только локально). Все маршруты, кроме публичного приветствия, требуют токен ниже.',
     endpoint: 'Адрес',
     statusRunning: 'работает',
     statusStarting: 'запуск…',
@@ -1534,7 +1556,7 @@ export const ru: I18n = {
     close: 'Закрыть',
     chooseTitle: 'Настройка ИИ-помощника',
     chooseSub:
-      'SoloMD работает и без ИИ, но для панели агента и рецептов нужна модель. Выберите вариант — изменить его можно в любой момент в «Настройки → ИИ».',
+      'xiaoyuanNote работает и без ИИ, но для панели агента и рецептов нужна модель. Выберите вариант — изменить его можно в любой момент в «Настройки → ИИ».',
     cloudTitle: 'Облако (свой ключ)',
     cloudBody:
       'Anthropic Claude, OpenAI ChatGPT, Google Gemini, DeepSeek и ещё 10+. Используйте свой ключ API.',
@@ -1547,7 +1569,7 @@ export const ru: I18n = {
     localDetecting: 'Поиск запущенного сервера Ollama…',
     localNotRunning: 'Сервер Ollama на localhost:11434 не обнаружен.',
     localNotRunningHint:
-      'Установите Ollama (~80 МБ), запустите её и нажмите «Повторить». SoloMD не включает Ollama в комплект.',
+      'Установите Ollama (~80 МБ), запустите её и нажмите «Повторить». xiaoyuanNote не включает Ollama в комплект.',
     localInstallBtn: 'Установить Ollama',
     localRetryBtn: 'Повторить поиск',
     localRunningNoModel:
@@ -1583,7 +1605,7 @@ export const ru: I18n = {
   cookbook: {
     heading: 'Книга рецептов',
     intro:
-      'Выберите стартовый рецепт — при установке YAML копируется в .solomd/agents/ и открывается для правки. Можно устанавливать несколько раз: каждая копия получает новый суффикс.',
+      'Выберите стартовый рецепт — при установке YAML копируется в .xiaoyuan-note/agents/ и открывается для правки. Можно устанавливать несколько раз: каждая копия получает новый суффикс.',
     browse: 'Открыть книгу рецептов',
     preview: 'Просмотр YAML',
     hidePreview: 'Скрыть просмотр',
@@ -1669,7 +1691,7 @@ export const ru: I18n = {
     autoEngageFocusHint: 'Запуск «помидора» включает режим фокуса на всё время; по окончании сеанса восстанавливается прежнее состояние.',
     defaultDuration: 'Длительность по умолчанию',
     customDurationLabel: 'Своя (минуты)',
-    notificationTitle: 'SoloMD — сеанс фокусировки завершён',
+    notificationTitle: 'xiaoyuanNote — сеанс фокусировки завершён',
     notificationBody: '{minutes} мин · написано слов: {words}',
   },
   quickSwitcher: {
@@ -1738,7 +1760,7 @@ export const ru: I18n = {
   cloudSync: {
     detectedTitle: 'Рабочая папка находится в {label}',
     detectedHint:
-      'Файлы, сохранённые здесь, автоматически попадают на другие ваши устройства через облачный сервис. SoloMD добавляет к этому восстановление сеанса между устройствами — откройте ту же рабочую папку на другом компьютере, и вернутся те же вкладки.',
+      'Файлы, сохранённые здесь, автоматически попадают на другие ваши устройства через облачный сервис. xiaoyuanNote добавляет к этому восстановление сеанса между устройствами — откройте ту же рабочую папку на другом компьютере, и вернутся те же вкладки.',
     siblingCount: 'Другие устройства, открывавшие эту рабочую папку: {n}.',
     restoreTitle: 'Продолжить с того же места?',
     restoreLead:
@@ -1756,7 +1778,7 @@ export const ru: I18n = {
   githubSync: {
     heading: 'Синхронизация с GitHub',
     intro:
-      'Отправляйте хранилище в приватный репозиторий GitHub, чтобы оно было с вами на всех устройствах. Данные остаются в вашем аккаунте — SoloMD просто выполняет git push и git pull.',
+      'Отправляйте хранилище в приватный репозиторий GitHub, чтобы оно было с вами на всех устройствах. Данные остаются в вашем аккаунте — xiaoyuanNote просто выполняет git push и git pull.',
     signInTitle: 'Подключить GitHub',
     signInHint:
       'Вставьте персональный токен доступа. Он хранится в системной связке ключей и отправляется только на api.github.com.',
@@ -1840,11 +1862,11 @@ export const ru: I18n = {
     conflictResolveFailed: 'Не удалось разрешить конфликт',
     keychainHintTitle: 'macOS запросит пароль — нажмите «Разрешать всегда»',
     keychainHintBody:
-      'При первой отправке на GitHub macOS покажет диалог связки ключей, чтобы SoloMD мог прочитать сохранённый токен. Если включено сквозное шифрование, появится второй запрос — для ключа шифрования. В каждом нажмите «Разрешать всегда» (а не просто «Разрешить»): так SoloMD навсегда попадёт в список разрешённых, и запрос на этом Mac больше не появится. Если нажать «Разрешить» один раз, запрос будет повторяться при каждой отправке.',
+      'При первой отправке на GitHub macOS покажет диалог связки ключей, чтобы xiaoyuanNote мог прочитать сохранённый токен. Если включено сквозное шифрование, появится второй запрос — для ключа шифрования. В каждом нажмите «Разрешать всегда» (а не просто «Разрешить»): так xiaoyuanNote навсегда попадёт в список разрешённых, и запрос на этом Mac больше не появится. Если нажать «Разрешить» один раз, запрос будет повторяться при каждой отправке.',
     proxyTitle: 'HTTPS-прокси (для корпоративных сетей и ограничений доступа)',
     proxyPlaceholder: 'http://127.0.0.1:7897 или socks5://127.0.0.1:1080',
     proxyHint:
-      'Направляет git push / pull через этот прокси. Оставьте пустым для прямого подключения. Графические приложения macOS не наследуют переменную HTTPS_PROXY из командной оболочки, поэтому задайте её здесь именно для SoloMD. Также устраняет «Operation timed out», когда github.com недоступен напрямую.',
+      'Направляет git push / pull через этот прокси. Оставьте пустым для прямого подключения. Графические приложения macOS не наследуют переменную HTTPS_PROXY из командной оболочки, поэтому задайте её здесь именно для xiaoyuan-note. Также устраняет «Operation timed out», когда github.com недоступен напрямую.',
     proxySaveBtn: 'Сохранить прокси',
     proxySaving: 'Сохранение…',
     proxySavedToast: 'Прокси сохранён.',
@@ -1862,7 +1884,7 @@ export const ru: I18n = {
     upgradeRowBtn: 'Включить шифрование',
     upgradeFormTitle: 'Включить сквозное шифрование',
     upgradeFormBody:
-      'Задайте кодовую фразу. SoloMD получит из неё ключ (Argon2id) и перешифрует каждый файл перед следующей отправкой.',
+      'Задайте кодовую фразу. xiaoyuanNote получит из неё ключ (Argon2id) и перешифрует каждый файл перед следующей отправкой.',
     upgradeForcePushWarning:
       'Зашифрованная история будет принудительно отправлена поверх удалённой — старые коммиты с открытым текстом станут недоступны на GitHub. Всем, кто уже клонировал этот репозиторий, придётся клонировать его заново. Если вы забудете кодовую фразу, данные будет невозможно восстановить.',
     upgradePassphrasePlaceholder: 'Кодовая фраза хранилища (не менее 8 символов)',
@@ -1902,7 +1924,7 @@ export const ru: I18n = {
       'Отправляйте хранилище на сервер Gitea. Для начала укажите адрес сервера и персональный токен доступа.',
     giteaUrlTitle: 'Адрес сервера Gitea',
     giteaUrlHint:
-      'Базовый адрес вашего Gitea (например, https://gitea.com или ваш собственный сервер). SoloMD автоматически добавит /api/v1.',
+      'Базовый адрес вашего Gitea (например, https://gitea.com или ваш собственный сервер). xiaoyuanNote автоматически добавит /api/v1.',
     giteaUrlValidateBtn: 'Проверить адрес',
     giteaUrlValidating: 'Проверка...',
     giteaTokenTitle: 'Персональный токен доступа Gitea',
@@ -2186,8 +2208,15 @@ export const ru: I18n = {
       checkUpdated: 'Данные о праздниках обновлены для {years}',
       checkFailed: 'Проверка не удалась — используется кеш',
     },
-    week: { header: 'W', tooltip: 'Неделя ISO {week}' },
-    day: { off: 'Выходной · {name}', work: 'Рабочий день (отработка)' },
+    week: { header: 'W', tooltip: 'Неделя ISO {week}' },
+    openPeriodic: {
+      daily: 'Double-click to open the daily note',
+      weekly: 'Double-click to open the weekly note',
+      monthly: 'Double-click to open the monthly note',
+      quarterly: 'Double-click to open the quarterly note',
+      yearly: 'Double-click to open the yearly note',
+    },
+    day: { off: 'Выходной · {name}', work: 'Рабочий день (отработка)', offShort: 'В', workShort: 'Р' },
     lunar: { tooltip: 'Лунный календарь: {value}' },
     selectedDay: {
       open: 'Открыть детали дня {date}',

@@ -5,7 +5,7 @@ import { defineStore } from 'pinia';
  *
  * The "Open file in new window" feature spawns extra Tauri webview windows.
  * Three bugs made those windows un-restorable across restarts:
- *   1. They used timestamp labels (`solomd-<Date.now()>`), so the
+ *   1. They used timestamp labels (`xiaoyuan-note-<Date.now()>`), so the
  *      window-state plugin couldn't match them on relaunch.
  *   2. Nothing tracked which auxiliary windows *should* exist, so only the
  *      main window ever came back.
@@ -13,21 +13,21 @@ import { defineStore } from 'pinia';
  *      multiple windows on one folder clobbered each other.
  *
  * This store is the persistent registry. It lives in localStorage under
- * `solomd.windows.v1` and is shared by every window instance (localStorage
- * is per-origin, and all SoloMD windows share the same origin). The main
+ * `xiaoyuan-note.windows.v1` and is shared by every window instance (localStorage
+ * is per-origin, and all xiaoyuanNote windows share the same origin). The main
  * window reads it on startup to re-spawn auxiliary windows; auxiliary
  * windows register themselves on open and unregister on close.
  *
- * Window labels are deterministic — `solomd-window-<N>` — assigned from a
+ * Window labels are deterministic — `xiaoyuan-note-window-<N>` — assigned from a
  * monotonic counter persisted here. Stable labels let
  * `tauri-plugin-window-state` restore each window's size/position reliably.
  */
 
-const LS_KEY = 'solomd.windows.v1';
+const LS_KEY = 'xiaoyuan-note.windows.v1';
 
 /** Stable label prefix for auxiliary windows. The main window keeps the
  *  fixed `main` label assigned by tauri.conf.json. */
-export const AUX_LABEL_PREFIX = 'solomd-window-';
+export const AUX_LABEL_PREFIX = 'xiaoyuan-note-window-';
 
 /** True for any auxiliary (non-main) window label. */
 export function isAuxLabel(label: string): boolean {

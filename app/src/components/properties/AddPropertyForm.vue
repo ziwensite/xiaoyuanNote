@@ -7,6 +7,7 @@
 import { ref, computed, nextTick, onMounted } from 'vue';
 import { DsSelect, type DsSelectOption } from '../../ui';
 import { useI18n } from '../../i18n';
+import DatePickerPopover from '../DatePickerPopover.vue';
 import {
   DISPLAY_MODES,
   coerceForMode,
@@ -92,6 +93,22 @@ function confirm() {
         <span class="prop-add__bool-track"><span class="prop-add__bool-thumb" /></span>
         <span>{{ boolValue ? 'true' : 'false' }}</span>
       </button>
+      <DatePickerPopover
+        v-else-if="mode === 'date'"
+        :iso="rawValue"
+        @pick="(iso: string) => (rawValue = iso)"
+      >
+        <template #trigger="{ toggle }">
+          <input
+            :value="rawValue"
+            class="rp-input"
+            type="text"
+            readonly
+            :placeholder="placeholderFor('date')"
+            @click="toggle"
+          />
+        </template>
+      </DatePickerPopover>
       <input
         v-else
         v-model="rawValue"

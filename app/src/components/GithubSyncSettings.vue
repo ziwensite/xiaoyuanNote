@@ -26,7 +26,7 @@ const toasts = useToastsStore();
 const { t } = useI18n();
 
 const PAT_HELP_URL =
-  'https://github.com/settings/tokens/new?scopes=repo&description=SoloMD%20sync';
+  'https://github.com/settings/tokens/new?scopes=repo&description=xiaoyuanNote%20sync';
 
 const tokenInput = ref('');
 const tokenSaving = ref(false);
@@ -297,7 +297,7 @@ async function decryptNow() {
   try {
     await sync.decryptNow(workspace.currentFolder);
     toasts.success(t('githubSync.decryptedToast'));
-    window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
   } catch (e) {
     toasts.error(`${t('githubSync.decryptFailed')}: ${e}`);
   } finally {
@@ -347,7 +347,7 @@ async function pullNow() {
       toasts.warning(t('githubSync.pullConflicts', { n: String(r.conflicts.length) }));
     } else {
       toasts.success(tSync('pulledToast'));
-      window.dispatchEvent(new CustomEvent('solomd:remote-pulled'));
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:remote-pulled'));
     }
   } catch (e) {
     const errType = classifyPullError(e);

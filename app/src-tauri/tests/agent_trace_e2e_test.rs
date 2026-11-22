@@ -2,7 +2,7 @@
 //!
 //! Goes through the full producer → on-disk → reader path the way the
 //! Panel will use it at runtime:
-//!   1. `Emitter::open` against a fresh `<workspace>/.solomd/agent-runs/<run_id>/`
+//!   1. `Emitter::open` against a fresh `<workspace>/.xiaoyuan-note/agent-runs/<run_id>/`
 //!   2. Emit a realistic chat run (run_started, prompt, tool call+result,
 //!      model_done, run_ended).
 //!   3. `read_trace` round-trips every line.
@@ -22,10 +22,10 @@ fn fresh_run_dir(label: &str) -> (PathBuf, String) {
         .unwrap()
         .as_nanos();
     let workspace =
-        std::env::temp_dir().join(format!("solomd-trace-e2e-{label}-{nanos}"));
+        std::env::temp_dir().join(format!("xiaoyuan-note-trace-e2e-{label}-{nanos}"));
     let run_id = format!("20260430-142307-{:06x}", (nanos & 0xFFFFFF) as u32);
     let dir = workspace
-        .join(".solomd")
+        .join(".xiaoyuanNote")
         .join("agent-runs")
         .join(&run_id);
     fs::create_dir_all(&dir).unwrap();

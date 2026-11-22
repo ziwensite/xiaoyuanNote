@@ -6,11 +6,11 @@
 //! pipeline silently dropped blockquote content (rendered as empty
 //! bordered paragraphs). This test would have caught it at PR time.
 //!
-//! Spawns the actual `solomd-mcp` binary, drives `export_note` over
+//! Spawns the actual `xiaoyuan-note-mcp` binary, drives `export_note` over
 //! stdio JSON-RPC, then unzips the resulting .docx + greps document.xml.
 //!
 //! Skipped automatically when `node` isn't on PATH or when
-//! `app/scripts/solomd-export.mjs` can't be located.
+//! `app/scripts/xiaoyuan-note-export.mjs` can't be located.
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
@@ -18,17 +18,17 @@ use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn binary_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_solomd-mcp"))
+    PathBuf::from(env!("CARGO_BIN_EXE_xiaoyuan-note-mcp"))
 }
 
-/// Locate `app/scripts/solomd-export.mjs` from the test process's cwd
+/// Locate `app/scripts/xiaoyuan-note-export.mjs` from the test process's cwd
 /// (which cargo sets to the crate dir, i.e. `mcp-server/`). Walk up to
 /// the repo root.
 fn find_export_script() -> Option<PathBuf> {
     let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let candidates = [
-        crate_dir.join("../app/scripts/solomd-export.mjs"),
-        crate_dir.join("../../app/scripts/solomd-export.mjs"),
+        crate_dir.join("../app/scripts/xiaoyuan-note-export.mjs"),
+        crate_dir.join("../../app/scripts/xiaoyuan-note-export.mjs"),
     ];
     for c in &candidates {
         if c.is_file() {
@@ -51,7 +51,7 @@ fn have_node() -> bool {
 
 fn fresh_dir(label: &str) -> PathBuf {
     let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-mcp-export-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-export-{label}-{nanos}"));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     dir.canonicalize().unwrap()
@@ -73,12 +73,12 @@ fn drive_export_flags(
     let mut child = Command::new(binary_path())
         .arg("--workspace").arg(workspace)
         .args(flags)
-        .env("SOLOMD_EXPORT_SCRIPT", script_path)
+        .env("XIAOYUAN_NOTE_EXPORT_SCRIPT", script_path)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect("spawn solomd-mcp");
+        .expect("spawn xiaoyuan-note-mcp");
     let mut stdin = child.stdin.take().unwrap();
     writeln!(stdin, r#"{{"jsonrpc":"2.0","id":0,"method":"initialize","params":{{"protocolVersion":"2025-11-25","capabilities":{{}},"clientInfo":{{"name":"export-test","version":"0"}}}}}}"#).unwrap();
     writeln!(stdin, r#"{{"jsonrpc":"2.0","method":"notifications/initialized"}}"#).unwrap();
@@ -124,7 +124,7 @@ fn extract_document_xml(docx_path: &Path) -> String {
 #[test]
 fn export_note_docx_preserves_blockquote_text() {
     let Some(script) = find_export_script() else {
-        eprintln!("skipping: app/scripts/solomd-export.mjs not found");
+        eprintln!("skipping: app/scripts/xiaoyuan-note-export.mjs not found");
         return;
     };
     if !have_node() {

@@ -95,7 +95,7 @@
 - 目标固定为 `today` 的 `daily`（D6：不读配置、不做其他类型）。
 - 行由表单字段构造 → `writeTaskLine` → `writeEntry`；重量条目另建事件笔记（只写 extras + `entry_uid`）。
 - 验证：新建 `📅 2026-11-20` 的条目，行出现在**今天**的日记里；日历在 20 日显示。
-- **实施说明**：按 spec §8 的 P3 范围，本阶段只接**轻量条目**（全日、无地点、无备注）——这类条目没有事件笔记，行写入 `ensurePeriodic('daily', today)` 返回的日记后由现有 `buildCalendarIndex` 按 `📅` 入桶。重量条目的 extras-only 事件笔记与跨文件 join 同在 P4（T4.1/T4.2）落地，否则本阶段会写出"日历看不见"的事件笔记。行内容 = 描述 + `📅` + `⏰`（来自 alarms，保序）+ `🆔`；`🆔` 与将来事件笔记的 `entry_uid` 同为 uid8。`useDailyNotes` 拆出 `ensurePeriodic`（建而不打开），`openPeriodic` 复用它。写盘沿用 `useTasks` 的约定：有打开的 tab 就改 tab 并静默保存，否则写文件 + `solomd:saved`。
+- **实施说明**：按 spec §8 的 P3 范围，本阶段只接**轻量条目**（全日、无地点、无备注）——这类条目没有事件笔记，行写入 `ensurePeriodic('daily', today)` 返回的日记后由现有 `buildCalendarIndex` 按 `📅` 入桶。重量条目的 extras-only 事件笔记与跨文件 join 同在 P4（T4.1/T4.2）落地，否则本阶段会写出"日历看不见"的事件笔记。行内容 = 描述 + `📅` + `⏰`（来自 alarms，保序）+ `🆔`；`🆔` 与将来事件笔记的 `entry_uid` 同为 uid8。`useDailyNotes` 拆出 `ensurePeriodic`（建而不打开），`openPeriodic` 复用它。写盘沿用 `useTasks` 的约定：有打开的 tab 就改 tab 并静默保存，否则写文件 + `xiaoyuan-note:saved`。
 
 ## - [x] T3.3 `entry-writer.test.ts`
 

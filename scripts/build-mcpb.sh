@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 #
-# Build the MCPB bundle of solomd-mcp for a published release, and a variant
+# Build the MCPB bundle of xiaoyuan-note-mcp for a published release, and a variant
 # for Smithery.
 #
 #   scripts/build-mcpb.sh <X.Y.Z>
 #
-# Produces dist/solomd-mcp-<ver>.mcpb (upload to the GitHub release; it is what
+# Produces dist/xiaoyuan-note-mcp-<ver>.mcpb (upload to the GitHub release; it is what
 # server.json registers in the official MCP Registry) and
-# dist/solomd-mcp-<ver>-smithery.mcpb (publish with
-# `npx @smithery/cli mcp publish <file> -n lixd220/solomd`).
+# dist/xiaoyuan-note-mcp-<ver>-smithery.mcpb (publish with
+# `npx @smithery/cli mcp publish <file> -n lixd220/xiaoyuanNote`).
 #
 # Contents:
-#   server/solomd-mcp        macOS universal, built here from mcp-server/,
+#   server/xiaoyuan-note-mcp        macOS universal, built here from mcp-server/,
 #                            signed with the Developer ID and notarized.
-#                            The sidecar inside SoloMD.app can't be reused:
+#                            The sidecar inside xiaoyuannote.app can't be reused:
 #                            it dies with SIGTRAP outside the app bundle.
-#   server/solomd-mcp.exe    Windows x64, from the release's solomd-mcp-win-x64.zip
-#   server/solomd-mcp-linux  Linux x64, from the release's solomd-mcp-linux-x64.tar.gz
+#   server/xiaoyuan-note-mcp.exe    Windows x64, from the release's xiaoyuan-note-mcp-win-x64.zip
+#   server/xiaoyuan-note-mcp-linux  Linux x64, from the release's xiaoyuan-note-mcp-linux-x64.tar.gz
 #
 # The tool list in manifest.json is regenerated from a live `tools/list`, so it
 # can't drift from the binary. Smithery additionally requires every tool to carry
@@ -31,7 +31,7 @@ cd "$(dirname "$0")/.."
 
 VER="${1:?usage: $0 <X.Y.Z>}"
 TAG="v$VER"
-REPO=zhitongblog/solomd
+REPO=zhitongblog/xiaoyuan-note
 OUT="$PWD/dist"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -48,20 +48,20 @@ fi
 source scripts/lib/asc-auth.sh
 asc_resolve_auth
 
-echo "==> Building solomd-mcp (macOS universal)"
+echo "==> Building xiaoyuan-note-mcp (macOS universal)"
 ( cd mcp-server
   cargo build --release --target aarch64-apple-darwin >/dev/null
   cargo build --release --target x86_64-apple-darwin >/dev/null )
 mkdir -p "$WORK/b/server"
 lipo -create \
-  mcp-server/target/aarch64-apple-darwin/release/solomd-mcp \
-  mcp-server/target/x86_64-apple-darwin/release/solomd-mcp \
-  -output "$WORK/b/server/solomd-mcp"
+  mcp-server/target/aarch64-apple-darwin/release/xiaoyuan-note-mcp \
+  mcp-server/target/x86_64-apple-darwin/release/xiaoyuan-note-mcp \
+  -output "$WORK/b/server/xiaoyuan-note-mcp"
 
 echo "==> Signing and notarizing"
 codesign --force --options runtime --timestamp \
-  --sign "$APPLE_SIGNING_IDENTITY" "$WORK/b/server/solomd-mcp"
-ditto -c -k "$WORK/b/server/solomd-mcp" "$WORK/notarize.zip"
+  --sign "$APPLE_SIGNING_IDENTITY" "$WORK/b/server/xiaoyuan-note-mcp"
+ditto -c -k "$WORK/b/server/xiaoyuan-note-mcp" "$WORK/notarize.zip"
 xcrun notarytool submit "$WORK/notarize.zip" "${ASC_NOTARY_AUTH[@]}" --no-s3-acceleration --wait \
   | tee "$WORK/notary.log" | grep -E "status:|id:" | tail -2
 grep -q "status: Accepted" "$WORK/notary.log" || { echo "notarization not accepted" >&2; exit 1; }
@@ -69,15 +69,15 @@ grep -q "status: Accepted" "$WORK/notary.log" || { echo "notarization not accept
 echo "==> Fetching Windows and Linux binaries from $TAG"
 for i in 1 2 3 4 5; do
   gh release download "$TAG" -R "$REPO" -D "$WORK/dl" --clobber \
-    -p solomd-mcp-win-x64.zip -p solomd-mcp-linux-x64.tar.gz && break
+    -p xiaoyuan-note-mcp-win-x64.zip -p xiaoyuan-note-mcp-linux-x64.tar.gz && break
   sleep 5
 done
-( cd "$WORK/dl" && unzip -oq solomd-mcp-win-x64.zip && tar xzf solomd-mcp-linux-x64.tar.gz )
-cp "$(find "$WORK/dl" -name 'solomd-mcp.exe' | head -1)" "$WORK/b/server/solomd-mcp.exe"
-cp "$(find "$WORK/dl" -type f -name 'solomd-mcp' | head -1)" "$WORK/b/server/solomd-mcp-linux"
-chmod +x "$WORK/b/server/solomd-mcp" "$WORK/b/server/solomd-mcp-linux"
-file "$WORK/b/server/solomd-mcp.exe" | grep -q "x86-64" || { echo "Windows binary is not x86-64" >&2; exit 1; }
-file "$WORK/b/server/solomd-mcp-linux" | grep -q "x86-64" || { echo "Linux binary is not x86-64" >&2; exit 1; }
+( cd "$WORK/dl" && unzip -oq xiaoyuan-note-mcp-win-x64.zip && tar xzf xiaoyuan-note-mcp-linux-x64.tar.gz )
+cp "$(find "$WORK/dl" -name 'xiaoyuan-note-mcp.exe' | head -1)" "$WORK/b/server/xiaoyuan-note-mcp.exe"
+cp "$(find "$WORK/dl" -type f -name 'xiaoyuan-note-mcp' | head -1)" "$WORK/b/server/xiaoyuan-note-mcp-linux"
+chmod +x "$WORK/b/server/xiaoyuan-note-mcp" "$WORK/b/server/xiaoyuan-note-mcp-linux"
+file "$WORK/b/server/xiaoyuan-note-mcp.exe" | grep -q "x86-64" || { echo "Windows binary is not x86-64" >&2; exit 1; }
+file "$WORK/b/server/xiaoyuan-note-mcp-linux" | grep -q "x86-64" || { echo "Linux binary is not x86-64" >&2; exit 1; }
 
 cp app/src-tauri/icons/128x128.png "$WORK/b/icon.png"
 
@@ -87,10 +87,10 @@ VER="$VER" python3 - "$WORK" <<'PY'
 import json, os, subprocess, sys
 work = sys.argv[1]
 # Run it the way the bundle runs: outside any source checkout and without
-# SOLOMD_EXPORT_SCRIPT, so export_note (Node + the repo's export script)
+# XIAOYUAN_NOTE_EXPORT_SCRIPT, so export_note (Node + the repo's export script)
 # is left out exactly as it is for people who install the .mcpb.
-env = {k: v for k, v in os.environ.items() if k != "SOLOMD_EXPORT_SCRIPT"}
-p = subprocess.Popen([f"{work}/b/server/solomd-mcp", "--workspace", f"{work}/ws"], cwd=work, env=env,
+env = {k: v for k, v in os.environ.items() if k != "XIAOYUAN_NOTE_EXPORT_SCRIPT"}
+p = subprocess.Popen([f"{work}/b/server/xiaoyuan-note-mcp", "--workspace", f"{work}/ws"], cwd=work, env=env,
                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
 def call(o):
     p.stdin.write(json.dumps(o) + "\n"); p.stdin.flush()
@@ -100,7 +100,7 @@ call({"jsonrpc": "2.0", "id": 1, "method": "initialize",
       "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "build-mcpb", "version": "1"}}})
 call({"jsonrpc": "2.0", "method": "notifications/initialized"})
 tools = call({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})["result"]["tools"]
-# Keep stdin open until we are done reading: solomd-mcp hangs if several
+# Keep stdin open until we are done reading: xiaoyuan-note-mcp hangs if several
 # requests arrive and stdin closes immediately.
 p.kill()
 m = json.load(open("mcp-server/mcpb/manifest.json"))
@@ -118,8 +118,8 @@ json.dump(ms, open(f"{work}/s/manifest.json", "w"), indent=2, ensure_ascii=False
 print(f"   {len(tools)} tools")
 PY
 
-BUNDLE="$OUT/solomd-mcp-$VER.mcpb"
-SMITHERY="$OUT/solomd-mcp-$VER-smithery.mcpb"
+BUNDLE="$OUT/xiaoyuan-note-mcp-$VER.mcpb"
+SMITHERY="$OUT/xiaoyuan-note-mcp-$VER-smithery.mcpb"
 rm -f "$BUNDLE" "$SMITHERY"
 ( cd "$WORK/b" && zip -qr -X "$BUNDLE" manifest.json icon.png server )
 cp -R "$WORK/b/server" "$WORK/b/icon.png" "$WORK/s/"
@@ -128,4 +128,4 @@ cp -R "$WORK/b/server" "$WORK/b/icon.png" "$WORK/s/"
 echo "==> $BUNDLE ($(wc -c < "$BUNDLE" | tr -d ' ') bytes, sha256 $(shasum -a 256 "$BUNDLE" | cut -d' ' -f1))"
 echo "==> $SMITHERY"
 echo "Next: upload the .mcpb to $TAG, then update server.json (version, identifier, fileSha256) and"
-echo "      mcp-publisher publish; and npx @smithery/cli mcp publish $SMITHERY -n lixd220/solomd"
+echo "      mcp-publisher publish; and npx @smithery/cli mcp publish $SMITHERY -n lixd220/xiaoyuanNote"

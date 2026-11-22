@@ -157,5 +157,5 @@ test('Android SAF relative and shared-storage image paths resolve cleanly (#476)
   );
 
   const rewritten = rewriteImageUrls('<img src="./assets/pic.png">', null, safNote);
-  assert.match(rewritten, /data-solomd-local-src="saf:primary:MyNotes\/assets\/pic\.png"/);
+  assert.match(rewritten, /data-xiaoyuan-note-local-src="saf:primary:MyNotes\/assets\/pic\.png"/);
 });

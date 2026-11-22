@@ -1,7 +1,7 @@
 //! v4.0 Pillar 4 — MCP profile storage.
 //!
 //! An "MCP profile" is a named bundle of `(alias, workspace path)` entries
-//! the user wants to expose through one solomd-mcp invocation. The frontend
+//! the user wants to expose through one xiaoyuan-note-mcp invocation. The frontend
 //! lets the user create / rename / reorder profiles in Settings →
 //! Integrations and then "Copy Claude Desktop config" to drop the right
 //! JSON into `~/Library/Application Support/Claude/claude_desktop_config.json`.
@@ -35,7 +35,7 @@ use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct McpWorkspaceEntry {
-    /// User-facing alias passed to `solomd-mcp --workspace alias=path`.
+    /// User-facing alias passed to `xiaoyuan-note-mcp --workspace alias=path`.
     pub alias: String,
     /// Absolute path to the workspace folder.
     pub path: String,
@@ -47,7 +47,7 @@ pub struct McpProfile {
     /// config, so we restrict the character set.
     pub name: String,
     /// Ordered list of workspaces. First entry is the *default* — matches
-    /// the solomd-mcp server's "first workspace = default" rule.
+    /// the xiaoyuan-note-mcp server's "first workspace = default" rule.
     pub entries: Vec<McpWorkspaceEntry>,
     /// Whether to pass `--allow-write` when generating the config snippet.
     /// Default false (read-only) for safety.
@@ -195,7 +195,7 @@ pub fn mcp_profiles_delete(app: AppHandle, name: String) -> Result<Vec<McpProfil
 
 /// Render a profile to the JSON snippet the user pastes into
 /// `claude_desktop_config.json`. The `mcp_path` argument is the absolute
-/// path to the bundled `solomd-mcp` binary (resolved by
+/// path to the bundled `xiaoyuan-note-mcp` binary (resolved by
 /// `integrations::mcp_path`); we keep it as an arg rather than re-resolving
 /// here so the frontend can show a placeholder when the binary isn't
 /// available (e.g. dev builds).
@@ -216,7 +216,7 @@ pub fn mcp_profiles_export_config(
 
 /// Pure rendering function — no I/O, easy to unit-test.
 pub fn render_claude_config(profile: &McpProfile, mcp_path: Option<&str>) -> String {
-    let command = mcp_path.unwrap_or("/path/to/solomd-mcp");
+    let command = mcp_path.unwrap_or("/path/to/xiaoyuan-note-mcp");
     let mut args: Vec<String> = Vec::with_capacity(profile.entries.len() * 2 + 1);
     for entry in &profile.entries {
         args.push("--workspace".to_string());
@@ -264,12 +264,12 @@ mod tests {
             &[("work", "/tmp/work"), ("home", "/tmp/home")],
             false,
         );
-        let snippet = render_claude_config(&prof, Some("/usr/local/bin/solomd-mcp"));
+        let snippet = render_claude_config(&prof, Some("/usr/local/bin/xiaoyuan-note-mcp"));
         let v: serde_json::Value = serde_json::from_str(&snippet).unwrap();
         let server = v.pointer("/mcpServers/vaults").unwrap();
         assert_eq!(
             server.get("command").unwrap().as_str().unwrap(),
-            "/usr/local/bin/solomd-mcp"
+            "/usr/local/bin/xiaoyuan-note-mcp"
         );
         let args: Vec<String> = server
             .get("args")
@@ -293,7 +293,7 @@ mod tests {
     #[test]
     fn render_claude_config_appends_allow_write_when_set() {
         let prof = p("w", &[("only", "/tmp/x")], true);
-        let snippet = render_claude_config(&prof, Some("solomd-mcp"));
+        let snippet = render_claude_config(&prof, Some("xiaoyuan-note-mcp"));
         assert!(snippet.contains("--allow-write"), "got: {snippet}");
     }
 
@@ -301,7 +301,7 @@ mod tests {
     fn render_claude_config_falls_back_to_placeholder_when_path_missing() {
         let prof = p("p", &[("only", "/tmp/x")], false);
         let snippet = render_claude_config(&prof, None);
-        assert!(snippet.contains("/path/to/solomd-mcp"), "got: {snippet}");
+        assert!(snippet.contains("/path/to/xiaoyuan-note-mcp"), "got: {snippet}");
     }
 
     #[test]

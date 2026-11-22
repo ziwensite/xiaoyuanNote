@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Build signed Android release artifacts for SoloMD.
+# Build signed Android release artifacts for xiaoyuan-note.
 #
 # Outputs (under app/src-tauri/gen/android/app/build/outputs/):
 #   - apk/{arm64-v8a,armeabi-v7a,x86_64,universal}/release/app-*-release.apk
@@ -14,9 +14,9 @@
 # Requirements (already in .env.local on alexlee's machine):
 #   ANDROID_HOME              /opt/homebrew/share/android-commandlinetools
 #   ANDROID_NDK_HOME          $ANDROID_HOME/ndk/<version>
-#   ANDROID_KEYSTORE_PATH     path to solomd-release.jks
+#   ANDROID_KEYSTORE_PATH     path to xiaoyuan-note-release.jks
 #   ANDROID_KEYSTORE_PASS     keystore password
-#   ANDROID_KEY_ALIAS         key alias (default: solomd)
+#   ANDROID_KEY_ALIAS         key alias (default: xiaoyuanNote)
 #   ANDROID_KEY_PASS          key password
 #
 # Rust Android targets: aarch64 / armv7 / i686 / x86_64-linux-android.
@@ -101,7 +101,7 @@ export CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS="$ANDROID_PAGE_FLAGS"
 
 cd app
 
-echo "==> SoloMD Android build ($([ "$DEBUG" -eq 1 ] && echo debug || echo release))"
+echo "==> xiaoyuanNote Android build ($([ "$DEBUG" -eq 1 ] && echo debug || echo release))"
 echo "    NDK:        $ANDROID_NDK_HOME"
 echo "    Keystore:   ${ANDROID_KEYSTORE_PATH:-<debug, no signing>}"
 
@@ -186,14 +186,14 @@ if [ "$DEBUG" -eq 0 ]; then
   VERSION=$(python3 -c 'import json; print(json.load(open("src-tauri/tauri.conf.json"))["version"])')
   STAGE_DIR="../dist-android"
   mkdir -p "$STAGE_DIR"
-  cp "$OUT_DIR/apk/universal/release/app-universal-universal-release.apk"   "$STAGE_DIR/SoloMD_${VERSION}_universal.apk"
-  cp "$OUT_DIR/apk/universal/release/app-universal-arm64-v8a-release.apk"   "$STAGE_DIR/SoloMD_${VERSION}_arm64-v8a.apk"
-  cp "$OUT_DIR/apk/universal/release/app-universal-armeabi-v7a-release.apk" "$STAGE_DIR/SoloMD_${VERSION}_armeabi-v7a.apk"
-  cp "$OUT_DIR/apk/universal/release/app-universal-x86_64-release.apk"      "$STAGE_DIR/SoloMD_${VERSION}_x86_64.apk"
-  cp "$OUT_DIR/bundle/universalRelease/app-universal-release.aab"           "$STAGE_DIR/SoloMD_${VERSION}.aab"
+  cp "$OUT_DIR/apk/universal/release/app-universal-universal-release.apk"   "$STAGE_DIR/XIAOYUAN_NOTE_${VERSION}_universal.apk"
+  cp "$OUT_DIR/apk/universal/release/app-universal-arm64-v8a-release.apk"   "$STAGE_DIR/XIAOYUAN_NOTE_${VERSION}_arm64-v8a.apk"
+  cp "$OUT_DIR/apk/universal/release/app-universal-armeabi-v7a-release.apk" "$STAGE_DIR/XIAOYUAN_NOTE_${VERSION}_armeabi-v7a.apk"
+  cp "$OUT_DIR/apk/universal/release/app-universal-x86_64-release.apk"      "$STAGE_DIR/XIAOYUAN_NOTE_${VERSION}_x86_64.apk"
+  cp "$OUT_DIR/bundle/universalRelease/app-universal-release.aab"           "$STAGE_DIR/XIAOYUAN_NOTE_${VERSION}.aab"
   echo ""
   echo "==> Staged canonical release files in dist-android/:"
-  ls -lh "$STAGE_DIR"/SoloMD_"${VERSION}"*
+  ls -lh "$STAGE_DIR"/XIAOYUAN_NOTE_"${VERSION}"*
   echo ""
   echo "Next:"
   echo "  - Sideload: pick the per-ABI APK matching the user's phone (arm64-v8a covers ~all 2019+ devices)."

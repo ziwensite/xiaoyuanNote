@@ -19,7 +19,7 @@ const { lang } = Astro.props;
 const tr = getT(lang);
 
 const REPO_OWNER = 'zhitongblog';
-const REPO_NAME = 'solomd';
+const REPO_NAME = 'xiaoyuanNote';
 const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 const DISCUSSIONS_URL = `${REPO_URL}/discussions`;
 const NEW_DISCUSSION_URL = `${REPO_URL}/discussions/new/choose`;
@@ -70,7 +70,7 @@ if (token) {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'solomd-website-build',
+        'User-Agent': 'xiaoyuan-note-website-build',
       },
       body: JSON.stringify({
         query: QUERY,

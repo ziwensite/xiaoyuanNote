@@ -8,7 +8,7 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD v2.2 — MCP server, AutoGit version history, 14 AI providers"
+  title="xiaoyuanNote v2.2 — MCP server, AutoGit version history, 14 AI providers"
   description="Every save is now a snapshot you can roll back from a sidebar panel. Every note is queryable from Claude Desktop / Cursor / any MCP client. AI rewrite spans 14 BYOK providers — keys live in the OS keychain, never on disk."
   lang={lang}
 >
@@ -31,7 +31,7 @@ const lang = 'en' as const;
 
       <h2>🔌 MCP server</h2>
       <p>
-        Ship-by-default Model Context Protocol server (<code>solomd-mcp</code>)
+        Ship-by-default Model Context Protocol server (<code>xiaoyuan-note-mcp</code>)
         — point Claude Desktop, Cursor, Codex CLI, or anything that speaks
         MCP at your notes folder, and it gets eight read tools out of the box:
       </p>
@@ -47,8 +47,8 @@ const lang = 'en' as const;
       </p>
       <pre><code>{`{
   "mcpServers": {
-    "solomd": {
-      "command": "/path/to/solomd-mcp",
+    "xiaoyuanNote": {
+      "command": "/path/to/xiaoyuan-note-mcp",
       "args": ["--workspace", "/path/to/notes"]
     }
   }
@@ -87,14 +87,14 @@ const lang = 'en' as const;
         Keys live in the OS keychain
         (<a href="/security/">Keychain on macOS, Credential Manager on Windows, libsecret on Linux</a>) —
         never in <code>localStorage</code>, never in any config file we write.
-        BYOK by design: SoloMD doesn't host any models, every request goes
+        BYOK by design: xiaoyuanNote doesn't host any models, every request goes
         directly from your machine to the provider you chose.
       </p>
 
       <h2>🔐 New /security page</h2>
       <p>
         A complete writeup of every place user data is touched:
-        <a href="/security/">solomd.app/security</a>. Eight numbered
+        <a href="/security/">xiaoyuannote.app/security</a>. Eight numbered
         sections covering disk-only notes, OS-keychain key storage, opt-in
         direct-to-vendor AI calls, the MCP path-traversal guard, AutoGit's
         local-only commits, content-free opt-out telemetry, Tauri sandbox
@@ -124,8 +124,8 @@ const lang = 'en' as const;
           serializes.
         </li>
         <li>
-          <strong>solomd-dev-mcp</strong> — internal-only MCP server that
-          exposes SoloMD's domain logic for end-to-end self-testing. Ships
+          <strong>xiaoyuan-note-dev-mcp</strong> — internal-only MCP server that
+          exposes xiaoyuanNote’s domain logic for end-to-end self-testing. Ships
           with the source, never with the user binary. We use it ourselves
           to verify every shipped feature actually works before tagging.
         </li>
@@ -141,9 +141,9 @@ const lang = 'en' as const;
       </p>
 
       <p>
-        <a class="btn btn--primary" href="https://github.com/zhitongblog/solomd/releases/tag/v2.2.1">Download v2.2 →</a>
+        <a class="btn btn--primary" href="https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v2.2.1">Download v2.2 →</a>
         &nbsp;
-        <a class="btn" href="https://github.com/zhitongblog/solomd/releases/tag/v2.2.1">Full release notes</a>
+        <a class="btn" href="https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v2.2.1">Full release notes</a>
       </p>
     </article>
     <Giscus lang={lang} />

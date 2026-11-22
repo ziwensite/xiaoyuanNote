@@ -4,7 +4,7 @@ A impressão não segue mais o tema do aplicativo. Um tema escuro era impresso e
 
 Excluir um arquivo dá oito segundos para desfazer. Nada é movido para outro lugar: o arquivo fica exatamente onde está até o tempo acabar.
 
-Captura rápida, de qualquer lugar. Um atalho global abre uma caixinha por cima do que você estiver fazendo. Escreva uma linha, pressione Enter, e ela cai na sua Caixa de entrada sem que o SoloMD apareça na frente.
+Captura rápida, de qualquer lugar. Um atalho global abre uma caixinha por cima do que você estiver fazendo. Escreva uma linha, pressione Enter, e ela cai na sua Caixa de entrada sem que o xiaoyuanNote apareça na frente.
 
 Um painel de Tarefas. Cada "- [ ]" do espaço de trabalho em uma única lista, com prioridades e prazos lidos tanto dos emoji do Obsidian Tasks quanto de uma notação em ASCII puro. Clique numa tarefa para ir até a linha; marque-a para gravar o arquivo.
 

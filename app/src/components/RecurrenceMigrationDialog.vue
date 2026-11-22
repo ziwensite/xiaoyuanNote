@@ -3,7 +3,7 @@
  * Batch 4 — convert legacy `🔁 FREQ=…` rules to Obsidian Tasks' natural
  * language, with a per-line before/after preview.
  *
- * Opened by the `solomd:open-recurrence-migration` window event (command
+ * Opened by the `xiaoyuan-note:open-recurrence-migration` window event (command
  * palette). The list is built from the workspace index (which already knows
  * every task line), then each candidate file is read once so the preview shows
  * the line's real bytes — index text is stripped of its bullet and indentation
@@ -32,7 +32,7 @@ import {
 import { DsButton, DsModal } from '../ui';
 import type { FileReadResult } from '../types';
 
-const OPEN_EVENT = 'solomd:open-recurrence-migration';
+const OPEN_EVENT = 'xiaoyuan-note:open-recurrence-migration';
 
 const { t } = useI18n();
 const tabs = useTabsStore();
@@ -195,7 +195,7 @@ async function apply(): Promise<void> {
             continue;
           }
           await safWrite(workspace.safTreeUri, fromSafPath(group.path), result.content);
-          window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: group.path } }));
+          window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: group.path } }));
           written += result.applied;
           skipped += result.skipped.length;
         } else {
@@ -215,7 +215,7 @@ async function apply(): Promise<void> {
             encoding: read.encoding || 'UTF-8',
             workspace: workspace.currentFolder,
           });
-          window.dispatchEvent(new CustomEvent('solomd:saved', { detail: { filePath: group.path } }));
+          window.dispatchEvent(new CustomEvent('xiaoyuan-note:saved', { detail: { filePath: group.path } }));
           written += result.applied;
           skipped += result.skipped.length;
         }

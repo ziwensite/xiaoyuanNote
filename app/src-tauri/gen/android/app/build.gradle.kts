@@ -15,10 +15,10 @@ val tauriProperties = Properties().apply {
 
 android {
     compileSdk = 36
-    namespace = "app.solomd"
+    namespace = "app.xiaoyuanNote"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "app.solomd"
+        applicationId = "app.xiaoyuanNote"
         minSdk = 24
         targetSdk = 36
         versionCode = System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull()

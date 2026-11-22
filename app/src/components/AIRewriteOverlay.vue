@@ -2,7 +2,7 @@
 /**
  * AIRewriteOverlay — v2.0 F4 inline AI rewrite floating panel.
  *
- * Triggered by the `solomd:ai-rewrite-open` custom event (dispatched from
+ * Triggered by the `xiaoyuan-note:ai-rewrite-open` custom event (dispatched from
  * `cm-ai-rewrite.ts` on Cmd-J). Lets the user pick an action (rewrite /
  * shorten / expand / translate / explain / custom prompt), streams the
  * proposed text from the chosen provider, and emits accept / cancel events
@@ -11,10 +11,10 @@
  * Streaming flow:
  *   1. User opens overlay (selection captured in `range`).
  *   2. User picks an action; we call `ai_rewrite` (returns request_id).
- *   3. We listen for `solomd://ai-chunk` / `-done` / `-error` events,
+ *   3. We listen for `xiaoyuan-note://ai-chunk` / `-done` / `-error` events,
  *      filtering by request_id, and append chunks to `proposed`.
- *   4. Accept (Cmd+Enter) → dispatch `solomd:ai-rewrite-accept`.
- *      Reject (Esc) → dispatch `solomd:ai-rewrite-cancel`.
+ *   4. Accept (Cmd+Enter) → dispatch `xiaoyuan-note:ai-rewrite-accept`.
+ *      Reject (Esc) → dispatch `xiaoyuan-note:ai-rewrite-cancel`.
  *      Re-roll → cancel + restart with same action.
  *
  * Provider config (provider id, model, base URL, key-presence) is supplied
@@ -159,7 +159,7 @@ let unlistenError: UnlistenFn | null = null;
 async function ensureListeners(): Promise<void> {
   if (unlistenChunk) return;
   unlistenChunk = await listen<{ request_id: string; chunk: string }>(
-    'solomd://ai-chunk',
+    'xiaoyuan-note://ai-chunk',
     (e) => {
       console.log('[ai] chunk', e.payload.request_id, JSON.stringify(e.payload.chunk).slice(0, 80));
       if (!requestId.value || e.payload.request_id !== requestId.value) return;
@@ -168,7 +168,7 @@ async function ensureListeners(): Promise<void> {
     },
   );
   unlistenDone = await listen<{ request_id: string; full_text: string }>(
-    'solomd://ai-done',
+    'xiaoyuan-note://ai-done',
     (e) => {
       console.log('[ai] done', e.payload.request_id, 'full length=', e.payload.full_text?.length);
       if (!requestId.value || e.payload.request_id !== requestId.value) return;
@@ -180,7 +180,7 @@ async function ensureListeners(): Promise<void> {
     },
   );
   unlistenError = await listen<{ request_id: string; error: string }>(
-    'solomd://ai-error',
+    'xiaoyuan-note://ai-error',
     (e) => {
       console.warn('[ai] error event', e.payload);
       if (!requestId.value || e.payload.request_id !== requestId.value) return;
@@ -236,7 +236,7 @@ async function startAction(a: AIAction): Promise<void> {
   // Mint the request id on the frontend so we can wire `requestId.value`
   // BEFORE invoking the command. Same race fix as AgentPanel — a fast
   // backend failure (404 / wrong key / unreachable host) can emit
-  // `solomd://ai-error` before `await invoke(...)` resolves; without a
+  // `xiaoyuan-note://ai-error` before `await invoke(...)` resolves; without a
   // pre-set `requestId.value`, the error listener's id-match check drops
   // the event and the overlay hangs on "Rewriting…" with no feedback.
   const newRequestId =

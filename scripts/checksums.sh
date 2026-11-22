@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate SHA256SUMS.txt for a SoloMD release and upload it to that release.
+# Regenerate SHA256SUMS.txt for a xiaoyuanNote release and upload it to that release.
 #
 # Why this exists: the Windows builds are unsigned, so Chrome and SmartScreen
 # treat every new version as an unknown binary. A published checksum manifest

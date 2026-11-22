@@ -1,6 +1,6 @@
 # GitHub stars + downloads on a static homepage — the pattern
 
-How [solomd.app](https://solomd.app) renders ⭐ stars and **N downloads** on its
+How [xiaoyuannote.app](https://xiaoyuannote.app) renders ⭐ stars and **N downloads** on its
 landing page without burning the visitor's GitHub rate limit, going dark when
 GitHub is slow, or showing "⭐ 0" when the API hiccups. This doc is the
 copy-pasteable reference — adapt freely.
@@ -318,6 +318,6 @@ come from the same `/releases` data you're already fetching.)
 
 - **Edge proxy:** [`web/functions/api/stats.ts`](../web/functions/api/stats.ts)
 - **Build-time SSR + client refresh:** [`web/src/components/Hero.astro`](../web/src/components/Hero.astro)
-- **Live in production:** [solomd.app](https://solomd.app) — view source, look for `#hero-stars` / `#hero-dl-count` and `/api/stats`.
+- **Live in production:** [xiaoyuannote.app](https://xiaoyuannote.app) — view source, look for `#hero-stars` / `#hero-dl-count` and `/api/stats`.
 
 MIT-licensed alongside the rest of the project — use, fork, copy, adapt.

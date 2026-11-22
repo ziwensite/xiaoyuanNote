@@ -41,7 +41,7 @@ const USER_OWNED: [&str; 3] = [
 
 /// An address that is syntactically valid but cannot connect, so every
 /// consumer fails immediately instead of waiting out a timeout.
-const DEAD_ADDRESS: &str = "unix:path=/nonexistent/solomd-a11y-unavailable";
+const DEAD_ADDRESS: &str = "unix:path=/nonexistent/xiaoyuan-note-a11y-unavailable";
 
 /// How long we give the a11y bus to answer before declaring it wedged.
 ///
@@ -129,7 +129,7 @@ pub fn guard_against_wedged_a11y_bus() {
         std::env::set_var(key, value);
     }
     eprintln!(
-        "SoloMD: the accessibility bus did not answer within {} ms — starting with \
+        "xiaoyuan-note: the accessibility bus did not answer within {} ms — starting with \
          accessibility disabled for this process so the window can't hang on it (#253).",
         PROBE_BUDGET.as_millis()
     );

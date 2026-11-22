@@ -4,7 +4,7 @@ Wydruk nie podąża już za motywem aplikacji. Ciemny motyw drukował się na ci
 
 Po usunięciu pliku masz osiem sekund na cofnięcie. Nic nie jest nigdzie przenoszone: plik zostaje dokładnie tam, gdzie był, dopóki czas nie minie.
 
-Szybkie notatki, z dowolnego miejsca. Skrót systemowy otwiera małe pole nad tym, co właśnie robisz. Wpisz linijkę, naciśnij Enter i trafi ona do skrzynki odbiorczej, a SoloMD ani razu nie wysunie się na wierzch.
+Szybkie notatki, z dowolnego miejsca. Skrót systemowy otwiera małe pole nad tym, co właśnie robisz. Wpisz linijkę, naciśnij Enter i trafi ona do skrzynki odbiorczej, a xiaoyuanNote ani razu nie wysunie się na wierzch.
 
 Panel zadań. Każde „- [ ]" w obszarze roboczym na jednej liście, z priorytetami i terminami odczytywanymi zarówno z emoji Obsidian Tasks, jak i z zapisu czysto ASCII. Kliknięcie przenosi do wiersza, zaznaczenie zapisuje plik.
 

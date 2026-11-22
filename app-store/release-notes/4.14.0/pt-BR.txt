@@ -12,6 +12,6 @@ Escolher um tema e nada mudar agora se explica: um tema do marketplace que defin
 
 O aplicativo inicia mais rápido. Tudo era compilado antes do primeiro quadro — o renderizador de diagramas, os dois dicionários chineses, as exportações para PDF e Word, a apresentação. Agora carregam quando algo os pede, e a primeira pintura é cerca de 30% mais rápida.
 
-Um arquivo alterado em outro editor — ou enquanto o SoloMD estava fechado — agora é detectado, ao iniciar e sempre que a janela volta. Alterações não salvas nunca são sobrescritas.
+Um arquivo alterado em outro editor — ou enquanto o xiaoyuanNote estava fechado — agora é detectado, ao iniciar e sempre que a janela volta. Alterações não salvas nunca são sobrescritas.
 
 O botão da barra lateral direita sempre faz algo.

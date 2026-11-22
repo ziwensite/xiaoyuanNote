@@ -6,7 +6,7 @@
 
 ### 主发布帖
 ```
-做了一个超轻量的 Markdown 编辑器：SoloMD
+做了一个超轻量的 Markdown 编辑器：xiaoyuanNote
 
 安装包只有 15MB，是 Obsidian 的十六分之一。
 
@@ -16,7 +16,7 @@
 ✓ 一键清除 AI 格式（从 ChatGPT 复制不用手动删格式）
 ✓ 完全免费开源
 
-下载：solomd.app
+下载：xiaoyuannote.app
 
 #Markdown #开源软件 #效率工具
 ```
@@ -29,7 +29,7 @@
 
 粘贴 → 点一下 → 干干净净
 
-在 SoloMD 里，免费的：solomd.app
+在 xiaoyuanNote 里，免费的：xiaoyuannote.app
 
 #ChatGPT #AI工具 #效率
 ```
@@ -41,11 +41,11 @@ Markdown 编辑器体积对比：
 Obsidian: 250MB
 MarkText: 90MB
 Typora: 80MB
-SoloMD: 15MB ✓
+xiaoyuan-note: 15MB ✓
 
 小的秘诀：不打包 Chromium，用系统自带的浏览器内核
 
-免费开源：solomd.app
+免费开源：xiaoyuannote.app
 
 #Markdown #轻量应用
 ```
@@ -65,7 +65,7 @@ SoloMD: 15MB ✓
 ```
 姐妹们/兄弟们！找到一个宝藏 Markdown 编辑器！
 
-🌟 名字叫 SoloMD
+🌟 名字叫 xiaoyuanNote
 
 ✨ 为什么推荐：
 
@@ -87,7 +87,7 @@ SoloMD: 15MB ✓
 
 📱 支持 Mac / Windows / Linux
 
-🔗 官网：solomd.app
+🔗 官网：xiaoyuannote.app
 
 #Markdown #效率工具 #学习博主 #码农日常 #开源软件
 ```
@@ -111,7 +111,7 @@ SoloMD: 15MB ✓
 ```
 考研/写论文的姐妹看过来！
 
-推荐一个免费的 Markdown 编辑器：SoloMD
+推荐一个免费的 Markdown 编辑器：xiaoyuanNote
 
 📝 为什么适合写论文/笔记：
 
@@ -130,7 +130,7 @@ $E=mc^2$ 直接渲染，不用截图
 ✅ 免费！！！
 开源软件，不用破解不用付费
 
-🔗 solomd.app
+🔗 xiaoyuannote.app
 
 #考研 #论文写作 #学习工具 #Markdown #效率提升
 ```
@@ -153,7 +153,7 @@ ChatGPT 复制内容格式乱？一键解决！
 
 🙋 我找到解决方案了！
 
-用 SoloMD 这个编辑器
+用 xiaoyuanNote 这个编辑器
 有个「清除 AI 格式」按钮
 粘贴进去 → 点一下 → 干干净净
 
@@ -162,7 +162,7 @@ ChatGPT 复制内容格式乱？一键解决！
 - 只有 15MB 超轻量
 - 完全免费
 
-🔗 solomd.app
+🔗 xiaoyuannote.app
 
 #ChatGPT #AI工具 #效率神器 #办公软件
 ```

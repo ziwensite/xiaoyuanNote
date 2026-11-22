@@ -1,9 +1,9 @@
-# SoloMD Brand Guide
+# xiaoyuanNote Brand Guide
 
 The local-first Markdown editor where agents live alongside your writing.
 
 ## Name
-**SoloMD** — "Solo" evokes single-file, single-window, distraction-free; **MD** signals Markdown.
+**xiaoyuanNote** — "Solo" evokes single-file, single-window, distraction-free; **MD** signals Markdown.
 
 ## Brand idea
 
@@ -16,8 +16,8 @@ mobile home screens.
 
 | File | Use |
 |---|---|
-| `solomd-mark.svg` | Canonical, geometry-only app mark |
-| `solomd_icon_fullbleed.png` | Cross-platform 1024px app icon master |
+| `xiaoyuan-note-mark.svg` | Canonical, geometry-only app mark |
+| `XIAOYUAN_NOTE_icon_fullbleed.png` | Cross-platform 1024px app icon master |
 | `file_icon.svg` | Canonical Markdown/plain-text document icon |
 | `gen_icons.sh` | Regenerates platform app icons and document icon bundles |
 

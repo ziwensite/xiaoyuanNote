@@ -5,7 +5,7 @@ const R = checks();
 await writeText('_work/' + CHECK + '.md', '# Html\n\n![logo](../assets/logo.png)\n\n$$\nx^2\n$$\n\n```mermaid\ngraph TD\n  A[Start] --> B[Finish]\n```\n\n| a | b |\n| - | - |\n| 1 | 2 |\n');
 await open('_work/' + CHECK + '.md');
 const out = '_work/' + CHECK + '.html';
-window.__solomdSavePathOverride = path(out);
+window.__xiaoyuanNoteSavePathOverride = path(out);
 act('export.html');
 const ok = await waitFor(async () => { try { return (await readText(out)).length > 1000; } catch { return false; } }, 20000, 250);
 if (!R.t(!!ok, 'html written')) return R.done();

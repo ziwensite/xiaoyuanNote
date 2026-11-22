@@ -70,12 +70,12 @@ async function waitBridge(ms) {
 function appPid() {
   if (!PGID) return null;
   try {
-    const out = execFileSync('pgrep', ['-g', PGID, '-f', 'target/debug/SoloMD'], { encoding: 'utf8' }).trim().split('\n')[0];
+    const out = execFileSync('pgrep', ['-g', PGID, '-f', 'target/debug/xiaoyuanNote'], { encoding: 'utf8' }).trim().split('\n')[0];
     return out ? Number(out) : null;
   } catch { return null; }
 }
 
-/** Native menu bar of OUR process (by unix id — never by name: a second SoloMD
+/** Native menu bar of OUR process (by unix id — never by name: a second xiaoyuanNote
  *  would be read instead). Lines: menu<TAB>item<TAB>cmdChar<TAB>modifiers<TAB>enabled. */
 function dumpNativeMenu() {
   const pid = appPid();

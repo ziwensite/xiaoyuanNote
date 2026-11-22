@@ -6,7 +6,7 @@
 //! working tree stays plaintext (so search / RAG / wikilinks / AI rewrite
 //! continue to work).
 //!
-//! Architecture: the workspace owns a `.solomd-encrypted/` shadow
+//! Architecture: the workspace owns a `.xiaoyuan-note-encrypted/` shadow
 //! directory whose contents mirror the workspace structure but with
 //! every text file encrypted via XChaCha20-Poly1305. The shadow dir is
 //! the actual git repo; push / pull operate on it. Before push we
@@ -15,8 +15,8 @@
 //!
 //! Key derivation: Argon2id (default params: 19MB / 2 iter / 1 lane) over
 //! the passphrase + a per-vault 16-byte salt stored in
-//! `.solomd/encryption.json`. The derived 32-byte key lives in the OS
-//! keychain (`solomd-encryption-key`); the passphrase itself is never
+//! `.xiaoyuan-note/encryption.json`. The derived 32-byte key lives in the OS
+//! keychain (`xiaoyuan-note-encryption-key`); the passphrase itself is never
 //! persisted.
 //!
 //! Per-file format: ciphertext begins with a 4-byte magic ("SLMD"), 1-byte
@@ -49,13 +49,13 @@ static KEY_CACHE: Lazy<Mutex<HashMap<String, [u8; 32]>>> = Lazy::new(|| Mutex::n
 
 /// Service name used for the OS keychain entry storing the derived key,
 /// keyed per workspace path so users can have different keys per vault.
-const KEYRING_SERVICE: &str = "solomd-encryption-key";
-const ENCRYPTION_CONFIG_FILE: &str = ".solomd/encryption.json";
-const SHADOW_DIR: &str = ".solomd-encrypted";
+const KEYRING_SERVICE: &str = "xiaoyuan-note-encryption-key";
+const ENCRYPTION_CONFIG_FILE: &str = ".xiaoyuan-note/encryption.json";
+const SHADOW_DIR: &str = ".xiaoyuan-note-encrypted";
 /// File committed inside the shadow holding the salt + KDF params, so a
 /// second device that pulls the encrypted repo can derive the same key
 /// from the user's passphrase. Salt is non-secret per Argon2id RFC9106.
-const SHADOW_SALT_FILE: &str = ".solomd-vault.json";
+const SHADOW_SALT_FILE: &str = ".xiaoyuan-note-vault.json";
 const FILE_MAGIC: &[u8; 4] = b"SLMD";
 const FILE_VERSION: u8 = 1;
 
@@ -67,7 +67,7 @@ pub struct EncryptionConfig {
     /// Hex-encoded 16-byte salt — the stable input alongside the user's
     /// passphrase to derive the same key on every device.
     pub salt: String,
-    /// Argon2id parameters — captured so a future SoloMD with bumped
+    /// Argon2id parameters — captured so a future xiaoyuanNote with bumped
     /// defaults can still decrypt old vaults.
     pub kdf: KdfParams,
     /// File extensions that should be encrypted. Defaults: `md txt`.
@@ -271,7 +271,7 @@ pub fn encrypt_bytes(key: &[u8; 32], aad_path: &str, plaintext: &[u8]) -> Result
     let cipher = XChaCha20Poly1305::new(key.into());
     let mut hasher = Sha256::new();
     hasher.update(key);
-    hasher.update(b"\x00solomd-nonce-v1\x00");
+    hasher.update(b"\x00xiaoyuan-note-nonce-v1\x00");
     hasher.update(aad_path.as_bytes());
     hasher.update(b"\x00");
     hasher.update(plaintext);
@@ -300,7 +300,7 @@ pub fn decrypt_bytes(key: &[u8; 32], aad_path: &str, blob: &[u8]) -> Result<Vec<
         return Err("ciphertext too short".into());
     }
     if &blob[..4] != FILE_MAGIC {
-        return Err("bad magic — not a SoloMD ciphertext".into());
+        return Err("bad magic — not a xiaoyuanNote ciphertext".into());
     }
     if blob[4] != FILE_VERSION {
         return Err(format!("unsupported ciphertext version {}", blob[4]));
@@ -334,7 +334,7 @@ pub struct CryptoStatus {
 /// triggers a macOS password prompt on every read, and we'd hit it just
 /// by opening Settings.
 fn key_marker_path(workspace: &Path) -> PathBuf {
-    workspace.join(".solomd/encryption.key-set")
+    workspace.join(".xiaoyuan-note/encryption.key-set")
 }
 
 #[tauri::command]
@@ -384,10 +384,10 @@ pub fn crypto_set_passphrase_blocking(folder: String, passphrase: String) -> Res
     let key = derive_key(&passphrase, &salt, &kdf)?;
 
     // Verify against an existing key by attempting to decrypt a probe
-    // blob. The probe lives in `.solomd/encryption.probe.enc`; if it
+    // blob. The probe lives in `.xiaoyuan-note/encryption.probe.enc`; if it
     // round-trips we accept the passphrase, otherwise we refuse rather
     // than silently overwrite the keyring with a wrong key.
-    let probe_path = path.join(".solomd/encryption.probe.enc");
+    let probe_path = path.join(".xiaoyuan-note/encryption.probe.enc");
     if probe_path.exists() {
         let blob = fs::read(&probe_path).map_err(|e| e.to_string())?;
         decrypt_bytes(&key, "encryption.probe", &blob)
@@ -409,8 +409,8 @@ pub fn crypto_set_passphrase_blocking(folder: String, passphrase: String) -> Res
     let _ = fs::write(key_marker_path(&path), b"1");
 
     if fresh {
-        let probe = encrypt_bytes(&key, "encryption.probe", b"SoloMD probe v1")?;
-        fs::write(path.join(".solomd/encryption.probe.enc"), probe)
+        let probe = encrypt_bytes(&key, "encryption.probe", b"xiaoyuanNote probe v1")?;
+        fs::write(path.join(".xiaoyuan-note/encryption.probe.enc"), probe)
             .map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -432,7 +432,7 @@ pub fn crypto_clear_passphrase_blocking(folder: String) -> Result<(), String> {
 }
 
 /// Walk the workspace, encrypt every file whose extension is in the
-/// vault's `encrypt_extensions` list, and write to `<workspace>/.solomd-encrypted/`.
+/// vault's `encrypt_extensions` list, and write to `<workspace>/.xiaoyuan-note-encrypted/`.
 /// Files with other extensions are mirrored as-is so binary attachments
 /// (images, PDFs) keep working through the cloud.
 ///
@@ -461,7 +461,7 @@ pub fn crypto_encrypt_for_push_inner(folder: String) -> Result<String, String> {
         if p.starts_with(&shadow) {
             continue; // never re-encrypt the shadow
         }
-        if p.starts_with(path.join(".solomd")) {
+        if p.starts_with(path.join(".xiaoyuanNote")) {
             continue; // metadata stays out of the shadow
         }
         if p.starts_with(path.join(".git")) {
@@ -523,7 +523,7 @@ fn copy_if_changed(src: &Path, dst: &Path) -> Result<(), String> {
     fs::copy(src, dst).map(|_| ()).map_err(|e| e.to_string())
 }
 
-/// Inverse of `crypto_encrypt_for_push`. Walks `<workspace>/.solomd-encrypted/`,
+/// Inverse of `crypto_encrypt_for_push`. Walks `<workspace>/.xiaoyuan-note-encrypted/`,
 /// decrypts every `*.<ext>.enc`, and writes the resulting plaintext back
 /// into the workspace at the same relative path.
 #[tauri::command]
@@ -610,7 +610,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let p = std::env::temp_dir().join(format!("solomd-crypto-{label}-{nanos}"));
+        let p = std::env::temp_dir().join(format!("xiaoyuan-note-crypto-{label}-{nanos}"));
         let _ = fs::remove_dir_all(&p);
         fs::create_dir_all(&p).unwrap();
         p
@@ -686,14 +686,14 @@ mod tests {
     fn workspace_round_trip() {
         let ws = fresh("ws");
         // Layout: notes/a.md (encrypted), assets/img.png (mirrored as-is),
-        // .solomd/sync.json (skipped — workspace metadata never enters
+        // .xiaoyuan-note/sync.json (skipped — workspace metadata never enters
         // the shadow).
         fs::create_dir_all(ws.join("notes")).unwrap();
         fs::create_dir_all(ws.join("assets")).unwrap();
-        fs::create_dir_all(ws.join(".solomd")).unwrap();
+        fs::create_dir_all(ws.join(".xiaoyuanNote")).unwrap();
         fs::write(ws.join("notes/a.md"), b"# Hello").unwrap();
         fs::write(ws.join("assets/img.png"), b"\x89PNG fake").unwrap();
-        fs::write(ws.join(".solomd/sync.json"), b"{}").unwrap();
+        fs::write(ws.join(".xiaoyuan-note/sync.json"), b"{}").unwrap();
 
         let folder = ws.to_string_lossy().to_string();
         crypto_set_passphrase_blocking(folder.clone(), "hunter2".into()).unwrap();
@@ -701,7 +701,7 @@ mod tests {
         let shadow_dir = PathBuf::from(&shadow);
         assert!(shadow_dir.join("notes/a.md.enc").exists());
         assert!(shadow_dir.join("assets/img.png").exists());
-        assert!(!shadow_dir.join(".solomd/sync.json").exists());
+        assert!(!shadow_dir.join(".xiaoyuan-note/sync.json").exists());
 
         // Wipe the plaintext to simulate a fresh device, then decrypt
         // back from the shadow.

@@ -71,15 +71,19 @@ function onReset() {
   menuOpen.value = false;
 }
 
-function onDocClick(e: MouseEvent) {
+// A mousedown anywhere (left OR right) outside the menu dismisses it, so it
+// can never sit on top of another popup. `mousedown` — not `click` — also
+// covers right-clicks. Capture phase + the `.pomo-pill__menu` guard keeps
+// clicks on the menu's own items from dismissing it.
+function onDocDown(e: MouseEvent) {
   if (!menuOpen.value) return;
   const target = e.target as HTMLElement | null;
   if (target && target.closest('.pomo-pill__menu')) return;
   closeMenu();
 }
 
-onMounted(() => document.addEventListener('click', onDocClick, true));
-onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
+onMounted(() => document.addEventListener('mousedown', onDocDown, true));
+onBeforeUnmount(() => document.removeEventListener('mousedown', onDocDown, true));
 </script>
 
 <template>

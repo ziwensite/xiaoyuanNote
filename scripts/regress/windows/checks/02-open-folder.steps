@@ -19,5 +19,5 @@ uia:A3.tree-lists-utf16|~\utf16.md@ListItem
 shot:tree
 uclick:~\save.md@ListItem
 ms:1500
-title~:A3.click-opens-file|^save\.md — SoloMD
+title~:A3.click-opens-file|^save\.md — xiaoyuanNote
 uia:A3.content-shown|~Hello world.

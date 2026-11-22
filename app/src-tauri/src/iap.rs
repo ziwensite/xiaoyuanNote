@@ -2,9 +2,9 @@
 //! and Android (Google Play).
 //!
 //! Three one-time tip tiers:
-//!   - `app.solomd.tip.coffee`  (Tier 1 — Coffee / 请喝杯咖啡)
-//!   - `app.solomd.tip.meal`    (Tier 2 — Meal   / 请吃顿便饭)
-//!   - `app.solomd.tip.feast`   (Tier 3 — Feast  / 超级支持)
+//!   - `app.xiaoyuan-note.tip.coffee`  (Tier 1 — Coffee / 请喝杯咖啡)
+//!   - `app.xiaoyuan-note.tip.meal`    (Tier 2 — Meal   / 请吃顿便饭)
+//!   - `app.xiaoyuan-note.tip.feast`   (Tier 3 — Feast  / 超级支持)
 //!
 //! Purchasing any tier permanently unlocks the user's Supporter Badge
 //! (`✨ Supporter / 支持者`) and upgrades its icon to the highest tier
@@ -16,9 +16,9 @@ use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
 pub const TIP_PRODUCT_IDS: &[&str] = &[
-    "app.solomd.tip.coffee",
-    "app.solomd.tip.meal",
-    "app.solomd.tip.feast",
+    "app.xiaoyuan-note.tip.coffee",
+    "app.xiaoyuan-note.tip.meal",
+    "app.xiaoyuan-note.tip.feast",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -68,7 +68,7 @@ mod apple {
     #[link(name = "Foundation", kind = "framework")]
     extern "C" {}
 
-    const DEFAULTS_KEY: &str = "solomd.iap.purchased_ids";
+    const DEFAULTS_KEY: &str = "xiaoyuan-note.iap.purchased_ids";
 
     static DELEGATE_PTR: AtomicUsize = AtomicUsize::new(0);
     static OBSERVER_ADDED: AtomicBool = AtomicBool::new(false);
@@ -88,17 +88,17 @@ mod apple {
         Mutex::new(None);
 
     declare_class!(
-        pub struct SoloMDIAPDelegate;
+        pub struct XiaoyuanNoteIAPDelegate;
 
-        unsafe impl ClassType for SoloMDIAPDelegate {
+        unsafe impl ClassType for XiaoyuanNoteIAPDelegate {
             type Super = NSObject;
             type Mutability = mutability::InteriorMutable;
-            const NAME: &'static str = "SoloMDIAPDelegate";
+            const NAME: &'static str = "XiaoyuanNoteIAPDelegate";
         }
 
-        impl DeclaredClass for SoloMDIAPDelegate {}
+        impl DeclaredClass for XiaoyuanNoteIAPDelegate {}
 
-        unsafe impl SoloMDIAPDelegate {
+        unsafe impl XiaoyuanNoteIAPDelegate {
             #[method(productsRequest:didReceiveResponse:)]
             fn did_receive_response(&self, _request: *mut AnyObject, response: *mut AnyObject) {
                 unsafe { handle_products_response(response) };
@@ -135,7 +135,7 @@ mod apple {
         }
     );
 
-    impl SoloMDIAPDelegate {
+    impl XiaoyuanNoteIAPDelegate {
         fn new() -> Retained<Self> {
             let this = Self::alloc().set_ivars(());
             unsafe { msg_send_id![super(this), init] }
@@ -147,7 +147,7 @@ mod apple {
         if cur != 0 {
             return cur as *mut AnyObject;
         }
-        let d = SoloMDIAPDelegate::new();
+        let d = XiaoyuanNoteIAPDelegate::new();
         let ptr = Retained::into_raw(d) as *mut AnyObject;
         DELEGATE_PTR.store(ptr as usize, Ordering::Release);
         ptr

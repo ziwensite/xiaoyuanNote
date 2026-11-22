@@ -15,7 +15,7 @@
 为什么我做了一个只有 15MB 的 Markdown 编辑器
 ```
 ```
-SoloMD：一个为中文用户设计的轻量 Markdown 编辑器
+xiaoyuanNote：一个为中文用户设计的轻量 Markdown 编辑器
 ```
 ```
 受够了臃肿的编辑器，我用 Rust 写了一个 15MB 的替代品
@@ -60,27 +60,27 @@ $14.99，说实话不贵。但作为一个程序员，我总觉得「一个文�
 4. **免费** —— 开源，MIT 协议
 5. **中文友好** —— 自动识别 GBK/Big5 编码，简繁转换
 
-于是我用 Tauri 2 + Rust + Vue 3 做了 **SoloMD**。
+于是我用 Tauri 2 + Rust + Vue 3 做了 **xiaoyuanNote**。
 
-## SoloMD 是什么
+## xiaoyuanNote 是什么
 
-SoloMD 是一个跨平台的 Markdown 编辑器。它的名字来自「Solo」（单独）和「MD」（Markdown）—— 一个文件，一个窗口，专心写作。
+xiaoyuanNote 是一个跨平台的 Markdown 编辑器。它的名字来自「Solo」（单独）和「MD」（Markdown）—— 一个文件，一个窗口，专心写作。
 
 ### 体积只有 15MB
 
-这是 SoloMD 最大的特点。
+这是 xiaoyuanNote 最大的特点。
 
 对比一下：
 - Typora：~80MB
 - MarkText：~90MB
 - Obsidian：~250MB
-- SoloMD：~15MB
+- xiaoyuanNote：~15MB
 
 为什么能做到这么小？因为 Tauri 不打包 Chromium，而是使用操作系统自带的 WebView：macOS 用 WKWebView，Windows 用 WebView2，Linux 用 WebKitGTK。
 
 ### 所见即所得
 
-和 Typora 一样，SoloMD 的 Markdown 标记符号会在光标离开后自动隐藏。你看到的就是最终渲染的效果，不需要分屏预览。
+和 Typora 一样，xiaoyuanNote 的 Markdown 标记符号会在光标离开后自动隐藏。你看到的就是最终渲染的效果，不需要分屏预览。
 
 ### 为中文用户设计
 
@@ -105,7 +105,7 @@ SoloMD 是一个跨平台的 Markdown 编辑器。它的名字来自「Solo」�
 
 ### 零遥测
 
-SoloMD 不联网，不收集任何数据。没有账号系统，没有云同步，你的文件永远只在你的电脑上。
+xiaoyuanNote 不联网，不收集任何数据。没有账号系统，没有云同步，你的文件永远只在你的电脑上。
 
 代码完全开源（MIT 协议），欢迎审查。
 
@@ -123,8 +123,8 @@ Tauri 2 是今年正式发布的，相比 Electron 最大的优势就是体积�
 
 ## 下载
 
-- 官网：https://solomd.app
-- GitHub：https://github.com/zhitongblog/solomd
+- 官网：https://xiaoyuannote.app
+- GitHub：https://github.com/zhitongblog/xiaoyuan-note
 
 支持 macOS（Intel + Apple Silicon）、Windows（x64）、Linux（AppImage / deb / rpm）。
 
@@ -132,9 +132,9 @@ Tauri 2 是今年正式发布的，相比 Electron 最大的优势就是体积�
 
 ## 写在最后
 
-SoloMD 还很年轻，可能有一些 bug 和不完善的地方。如果你在使用中遇到问题，欢迎到 GitHub 提 issue，或者直接在评论区告诉我。
+xiaoyuanNote 还很年轻，可能有一些 bug 和不完善的地方。如果你在使用中遇到问题，欢迎到 GitHub 提 issue，或者直接在评论区告诉我。
 
-如果你也在找一个轻量、简单、尊重隐私的 Markdown 编辑器，希望 SoloMD 能帮到你。
+如果你也在找一个轻量、简单、尊重隐私的 Markdown 编辑器，希望 xiaoyuanNote 能帮到你。
 ```
 
 ---

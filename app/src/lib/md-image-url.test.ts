@@ -26,10 +26,10 @@ const decodeOnce = (s: string): string => {
 };
 
 test('the #345 path renders as an image once encoded', () => {
-  const path = 'D:/Program Filejs/SoloMD/Image/image-20260924-221953-2pgx69.png';
+  const path = 'D:/Program Filejs/xiaoyuan-note/Image/image-20260924-221953-2pgx69.png';
   assert.equal(srcOf(`![](${path})`), null, 'raw form is literal text — the bug');
   const link = markdownImage(path);
-  assert.equal(link, '![](D:/Program%20Filejs/SoloMD/Image/image-20260924-221953-2pgx69.png)');
+  assert.equal(link, '![](D:/Program%20Filejs/xiaoyuan-note/Image/image-20260924-221953-2pgx69.png)');
   const src = srcOf(link);
   assert.ok(src, 'encoded form renders an <img>');
   assert.equal(decodeOnce(src!), path, 'decoding the rendered src gives back the real file');

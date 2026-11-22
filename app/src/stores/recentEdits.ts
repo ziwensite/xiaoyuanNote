@@ -7,7 +7,7 @@
  * float near the top even when they fall off the small recents list.
  *
  * Persistence:
- *   localStorage['solomd.recentEdits.v1'] = { "<absolute path>": <count> }
+ *   localStorage['xiaoyuan-note.recentEdits.v1'] = { "<absolute path>": <count> }
  *
  * Capacity: hard-capped at 1000 entries (LRU). When exceeded we drop the
  * lowest-count entries first; ties broken by lexicographic path so the
@@ -24,7 +24,7 @@
  */
 import { defineStore } from 'pinia';
 
-const LS_KEY = 'solomd.recentEdits.v1';
+const LS_KEY = 'xiaoyuan-note.recentEdits.v1';
 const LRU_CAP = 1000;
 
 interface RecentEditsState {

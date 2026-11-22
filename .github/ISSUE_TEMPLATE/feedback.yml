@@ -45,7 +45,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: "SoloMD version / 版本"
+      label: "xiaoyuanNote version / 版本"
       placeholder: "V5.0.5"
     validations:
       required: true

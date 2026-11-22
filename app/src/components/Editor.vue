@@ -15,6 +15,10 @@ import { parseInsertSnippet } from '../lib/insert-snippet';
 // `lib/code-languages.ts`: the ``` fence-language picker (#297) derives its
 // catalogue from that same list, so there is only one copy to keep in sync.
 import { codeLanguages } from '../lib/code-languages';
+import { renderFrontmatterHtml } from '../lib/frontmatter-render';
+import { extractFrontmatterYaml } from '../lib/frontmatter';
+import { parseComponentFenceRef, renderComponentTree } from '../lib/component-system';
+import { useComponentsStore } from '../stores/components';
 import { fenceLanguageComplete, fenceLanguageExtension } from '../lib/cm-fence-completion';
 import { filterFenceLanguages, isInsideFenceBefore, matchFenceOpener } from '../lib/fence-languages';
 import { vim, Vim } from '@replit/codemirror-vim';
@@ -66,7 +70,7 @@ import { useToastsStore } from '../stores/toasts';
 import type { Tab } from '../types';
 import { livePreviewExtension, richHighlightOnly } from '../lib/cm-live-preview';
 import { liveEditExtension, setLiveEditCopyLabel } from '../lib/cm-live-render';
-import { liveBlocksExtension, liveBlocksTheme, extractImageRoot, findTableCellOffsetInLine } from '../lib/cm-live-blocks';
+import { liveBlocksExtension, liveBlocksTheme, extractImageRoot, findTableCellOffsetInLine, bumpQueryDataVersion, getActiveView } from '../lib/cm-live-blocks';
 import { findTldrawFences, replaceBoardSnapshot } from '../lib/tldraw-board';
 import { dragAwareExtension } from '../lib/cm-drag-aware';
 import { imagePasteExtension, insertImageFromPath as cmInsertImageFromPath, imageTextFromPath, handleTextareaImagePaste, type ImagePasteOptions } from '../lib/cm-image-paste';
@@ -126,6 +130,7 @@ import { readText as readClipboardTextPlugin, writeText as writeClipboardTextPlu
 import { computeListContinuation, computeListSoftBreak, repairIndentedFenceEdit } from '../lib/list-continuation';
 import { mapPos, renumberAfterEdit, renumberChanges } from '../lib/list-renumber';
 import { findMarkdownLinkAt, openMarkdownHref, openRenderedLink } from '../lib/link-open';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 // Incremental find. CoreMirror's search panel only scrolls to a match when you
 // press Enter / click Next — typing in the field just repaints the highlights
@@ -228,6 +233,9 @@ let view: EditorView | null = null;
 let cleanupRelayout: (() => void) | null = null;
 let cleanupTransformCase: (() => void) | null = null;
 let cleanupPlainSelection: (() => void) | null = null;
+let cleanupOpenWikilink: (() => void) | null = null;
+let cleanupInsertQueryBlock: (() => void) | null = null;
+let unlistenIndex: UnlistenFn | null = null;
 let contentSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
@@ -367,30 +375,30 @@ const foldCompartment = new Compartment();
 // #222 — Vim's `:w` / `:wq` / `:q` were dead: @replit/codemirror-vim ships no
 // Ex-command handlers (there is no file system in the browser), so typing `:w`
 // just cleared the command line without saving. Route them through the same
-// `solomd:menu-action` bus the menu bar and Ctrl+S use, so save / save-and-close
+// `xiaoyuan-note:menu-action` bus the menu bar and Ctrl+S use, so save / save-and-close
 // / close honour the app's real save + unsaved-tab flow. Registered once on the
 // global Vim singleton (idempotent guard — defineEx would otherwise stack).
-if (!(globalThis as { __solomdVimEx?: boolean }).__solomdVimEx) {
-  (globalThis as { __solomdVimEx?: boolean }).__solomdVimEx = true;
+if (!(globalThis as { __xiaoyuanNoteVimEx?: boolean }).__xiaoyuanNoteVimEx) {
+  (globalThis as { __xiaoyuanNoteVimEx?: boolean }).__xiaoyuanNoteVimEx = true;
   const menu = (id: string) =>
-    window.dispatchEvent(new CustomEvent('solomd:menu-action', { detail: id }));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:menu-action', { detail: id }));
   // `:w` / `:write` — save the active tab.
   Vim.defineEx('write', 'w', () => menu('file.save'));
   // `:wq` / `:x` / `:xit` — save, then close only once the save actually lands.
   // saveActive() is async, so closing synchronously would hit a still-dirty tab
-  // and pop the unsaved-changes dialog; wait for the one-shot `solomd:saved`.
+  // and pop the unsaved-changes dialog; wait for the one-shot `xiaoyuan-note:saved`.
   const saveThenClose = () => {
     let timer = 0;
     const onSaved = () => {
       clearTimeout(timer);
-      window.removeEventListener('solomd:saved', onSaved);
+      window.removeEventListener('xiaoyuan-note:saved', onSaved);
       menu('file.closeTab');
     };
-    window.addEventListener('solomd:saved', onSaved);
+    window.addEventListener('xiaoyuan-note:saved', onSaved);
     // If the save is cancelled (e.g. the Save-As dialog on an untitled buffer)
-    // the `solomd:saved` never fires; drop the listener so it can't later close
+    // the `xiaoyuan-note:saved` never fires; drop the listener so it can't later close
     // an unrelated tab on the next save. 10s comfortably covers a real write.
-    timer = window.setTimeout(() => window.removeEventListener('solomd:saved', onSaved), 10000);
+    timer = window.setTimeout(() => window.removeEventListener('xiaoyuan-note:saved', onSaved), 10000);
     menu('file.save');
   };
   Vim.defineEx('wq', 'wq', saveThenClose);
@@ -399,8 +407,8 @@ if (!(globalThis as { __solomdVimEx?: boolean }).__solomdVimEx) {
   Vim.defineEx('quit', 'q', () => menu('file.closeTab'));
 
   // #447 — Sync Vim unnamed / clipboard registers (`"`, `+`, `*`) with the OS
-  // pasteboard so yanking/deleting in Vim mode can be pasted outside SoloMD,
-  // and copying outside SoloMD can be pasted with `p` / `P` in Vim mode.
+  // pasteboard so yanking/deleting in Vim mode can be pasted outside xiaoyuanNote,
+  // and copying outside xiaoyuanNote can be pasted with `p` / `P` in Vim mode.
   try {
     const regCtrl = (
       Vim as unknown as {
@@ -429,7 +437,7 @@ if (!(globalThis as { __solomdVimEx?: boolean }).__solomdVimEx) {
           text &&
           (!registerName || registerName === '"' || registerName === '+' || registerName === '*')
         ) {
-          (globalThis as { __solomdLastVimClip?: string }).__solomdLastVimClip = text;
+          (globalThis as { __xiaoyuanNoteLastVimClip?: string }).__xiaoyuanNoteLastVimClip = text;
           void writeClipboard(text);
         }
       };
@@ -442,9 +450,9 @@ async function syncSystemClipboardToVimRegister() {
   try {
     const clip = await readClipboard();
     if (!clip) return;
-    const g = globalThis as { __solomdLastVimClip?: string };
-    if (g.__solomdLastVimClip === clip) return;
-    g.__solomdLastVimClip = clip;
+    const g = globalThis as { __xiaoyuanNoteLastVimClip?: string };
+    if (g.__xiaoyuanNoteLastVimClip === clip) return;
+    g.__xiaoyuanNoteLastVimClip = clip;
     const regCtrl = (
       Vim as unknown as {
         getRegisterController?: () => {
@@ -513,7 +521,7 @@ function noteTypedInTextarea(el: HTMLTextAreaElement, event: Event) {
 }
 
 // Synchronous counterpart to the debounce below. `saveTab` broadcasts
-// `solomd:flush-content-sync` right before reading `tab.content`, because a
+// `xiaoyuan-note:flush-content-sync` right before reading `tab.content`, because a
 // save landing inside the 350ms window would otherwise write a stale document
 // — fatal for vim's `:wq` (#222), which closes the tab immediately after the
 // save and silently drops the not-yet-synced tail of the edit. While an IME
@@ -824,7 +832,7 @@ const plainBlocks = computed<PlainBlock[]>(() => {
   return splitPlainMarkdownBlocks(plainText.value || '').map((block, index) => ({
     ...block,
     id: `${block.start}:${index}`,
-    html: index === plainActiveBlock.value ? '' : renderPlainBlock(block.text),
+    html: index === plainActiveBlock.value ? '' : renderPlainBlock(block.text, block.start === 0),
   }));
 });
 
@@ -839,7 +847,37 @@ function plainTocFingerprint(source: string): string {
   return `${source.length}:${(hash >>> 0).toString(36)}`;
 }
 
-function renderPlainBlock(src: string): string {
+function renderPlainBlock(src: string, isDocumentStart = false): string {
+  // v5.0 — a standalone ```component fence renders the SAME tree HTML as the
+  // CM widget / Preview. Editable interactions stay in live-edit CM mode; here
+  // the block is read-only until clicked into (source textarea), like tables.
+  const cmMatch = /^\s*```\s*component\s*\n([\s\S]*?)\n```\s*$/.exec(src);
+  if (cmMatch) {
+    try {
+      const ref = parseComponentFenceRef(cmMatch[1]);
+      if (ref.kind === 'legacy') {
+        return '<div class="cs-hint cs-hint--legacy">旧版内联组件（待迁移）：请新建组件并把内容复制过去。</div>';
+      }
+      if (ref.kind === 'empty') return '<div class="cs-hint cs-hint--empty">空组件引用。</div>';
+      const store = useComponentsStore();
+      const file = store.get(ref.id);
+      if (file) return renderComponentTree(file.tree);
+      // Kick off async load; the workspace index update / component version
+      // bump re-renders this block on the next pass.
+      void store.load(ref.id);
+      return `<div class="cs-hint cs-hint--missing">组件 ${ref.id} 加载中…</div>`;
+    } catch {
+      return '<div class="cs-error">组件树渲染失败</div>';
+    }
+  }
+  // The leading frontmatter block is document-level syntax: render it through
+  // the SAME function as the preview instead of feeding an isolated `---`
+  // block to markdown-it. Source mode / clicking into the block still shows
+  // the raw YAML in the textarea.
+  if (isDocumentStart) {
+    const fmRaw = extractFrontmatterYaml(src);
+    if (fmRaw !== null) return renderFrontmatterHtml(fmRaw, { editable: true });
+  }
   // A standalone thematic-break block ("---" / "***" / "___") would be misread
   // as a YAML front-matter fence when rendered in isolation (each block renders
   // on its own), producing an empty md-frontmatter element instead of a rule.
@@ -975,7 +1013,7 @@ async function processPlainLiveRenderedBlocks() {
           wrap.title = t('whiteboard.openFull');
           const openFull = () => {
             window.dispatchEvent(
-              new CustomEvent('solomd:whiteboard-open', {
+              new CustomEvent('xiaoyuan-note:whiteboard-open', {
                 detail: { boardId: fence.boardId, tabId: props.tab.id, snapshot: fence.snapshot },
               }),
             );
@@ -1076,6 +1114,24 @@ function splitPlainMarkdownBlocks(
   };
 
   for (let i = 0; i < lines.length;) {
+    // A leading frontmatter block is document-level syntax. Keep
+    // `---\n…\n---` as ONE block so the live renderer can show it as
+    // properties instead of two thematic breaks with YAML text in between.
+    if (i === 0 && lines[0].text.replace(/^\uFEFF/, '').replace(/\r$/, '') === '---') {
+      let closeAt = -1;
+      for (let j = 1; j < lines.length; j += 1) {
+        const t = lines[j].text.replace(/\r$/, '');
+        if (t === '---' || t === '...') {
+          closeAt = j;
+          break;
+        }
+      }
+      if (closeAt > 0) {
+        pushRange(lines[0].start, lines[closeAt].end);
+        i = closeAt + 1;
+        continue;
+      }
+    }
     const line = lines[i];
     const kind = kindFor(line);
 
@@ -2603,7 +2659,7 @@ function handlePlainKeydownShared(event: KeyboardEvent): boolean {
     if (sel && text) {
       event.preventDefault();
       window.dispatchEvent(
-        new CustomEvent('solomd:ai-rewrite-open', { detail: { selection: text, from: sel.from, to: sel.to } }),
+        new CustomEvent('xiaoyuan-note:ai-rewrite-open', { detail: { selection: text, from: sel.from, to: sel.to } }),
       );
       return true;
     }
@@ -3068,6 +3124,9 @@ function activatePlainBlockFromClick(index: number, event: MouseEvent) {
   // Clicking a rendered task checkbox toggles its source marker instead of
   // entering edit mode.
   const target = event.target as HTMLElement | null;
+  // Frontmatter value controls are live inputs: clicking one must not swap
+  // the rendered properties block back into the raw-YAML textarea.
+  if (target?.closest?.('[data-fm-key], [data-fm-toggle], [data-fm-tag-remove], [data-fm-add], [data-fm-menu]')) return;
   if (
     target instanceof HTMLInputElement &&
     target.type === 'checkbox' &&
@@ -3713,6 +3772,11 @@ let ctxTextarea: HTMLTextAreaElement | null = null;
 // widgets and the Windows live blocks alike), for "Copy image".
 let ctxImage: HTMLImageElement | null = null;
 let ctxSavedRange: { el: HTMLTextAreaElement; start: number; end: number } | null = null;
+// A native DOM selection made inside a rendered component widget (which is
+// detached from CodeMirror's selection). The right-click menu must act on this
+// text, not on the editor's document selection — otherwise Copy/Cut operate on
+// whatever line the caret happens to be on.
+let ctxDomSelection: string | null = null;
 
 /** Right mousedown: remember the textarea selection before anything can
  *  collapse it (on WebView2 a textarea selection is mirrored into the page
@@ -3738,14 +3802,24 @@ async function onEditorContextMenu(event: MouseEvent) {
   // right-clicking a rendered image (#446) so image copy & resize work everywhere.
   if (!isWindowsEditorRuntime() && !clickedImage) return;
   event.preventDefault();
-  let hasSelection = false;
+  ctxDomSelection = null;
+  // Right-click on a rendered component: the user may have selected text with
+  // the browser's native selection (the widget is contenteditable=false and
+  // detached from CM). If the pointer is inside such a widget, prefer that
+  // DOM selection over the editor's own document selection for Copy/Cut.
+  if (target?.closest('.cm-live-block--component, .cs-wrap')) {
+    const domSel = (event.view?.getSelection?.() ?? window.getSelection?.()) ?? null;
+    const picked = domSel && !domSel.isCollapsed ? domSel.toString() : '';
+    if (picked) ctxDomSelection = picked;
+  }
+  let hasSelection = !!ctxDomSelection;
   // #376 — where to look for a misspelled word: the line under the pointer,
   // the pointer's offset in it, and where that line starts in the editor.
   let spellProbe: { el: HTMLTextAreaElement | null; line: string; offset: number; base: number; selFrom: number; selTo: number } | null = null;
   const spellOn = props.spellCheck || settings.spellcheckEnabled;
   let ltHit: LtHit | null = null;
   if (!usePlainWindowsEditor) {
-    hasSelection = !!view && !view.state.selection.main.empty;
+    hasSelection = hasSelection || (!!view && !view.state.selection.main.empty);
     ctxTextarea = null;
     const pos = view ? view.posAtCoords({ x: event.clientX, y: event.clientY }) : null;
     if (view && pos != null && settings.ltMode !== 'off') ltHit = languagetoolHitAt(view, pos);
@@ -3924,7 +3998,7 @@ function onEditorMenuResizeImage(size: string) {
   if (!usePlainWindowsEditor) {
     const v = view;
     if (!v) return;
-    let lineNum = Number.parseInt(img.dataset.solomdLine || '', 10);
+    let lineNum = Number.parseInt(img.dataset.xiaoyuanNoteLine || '', 10);
     if (!Number.isFinite(lineNum) || lineNum < 1 || lineNum > v.state.doc.lines) {
       try {
         const pos = v.posAtDOM(img);
@@ -3975,6 +4049,18 @@ async function onEditorMenuAction(id: EditorMenuAction) {
     return;
   }
   ctxImage = null;
+  if (id === 'insertQuery') {
+    // v5.0 — open the lightweight "new query block" wizard (title + rows +
+    // cols) instead of the heavy saved-view builder. QueryBlockCreateDialog
+    // listens and then emits `xiaoyuan-note:insert-query-block` to drop the fence.
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:new-query-block'));
+    return;
+  }
+  if (id === 'insertComponent') {
+    // v5.0 — drop a blank nested component tree (empty stack) at the caret.
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:new-component'));
+    return;
+  }
   if (!usePlainWindowsEditor) {
     const v = view;
     if (!v) return;
@@ -3988,6 +4074,12 @@ async function onEditorMenuAction(id: EditorMenuAction) {
         userEvent: 'select',
       });
     } else if (id === 'copy' || id === 'cut') {
+      // A native selection inside a component widget: copy its text verbatim.
+      // There is nothing to cut in the document, so Cut behaves as Copy there.
+      if (ctxDomSelection !== null) {
+        await writeClipboard(ctxDomSelection);
+        return;
+      }
       if (sel.empty) return;
       const raw = v.state.sliceDoc(sel.from, sel.to);
       const out =
@@ -4413,7 +4505,10 @@ const fontSizeTheme = (px: number, family: string) =>
     '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--accent)' },
     '.cm-cursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
     // Inactive window → neutral grey: styles/writing.css (:root.window-inactive).
-    '.cm-selectionBackground, ::selection': { backgroundColor: 'var(--accent-soft) !important' },
+    // Component widgets use native DOM selection, so include them explicitly.
+    '.cm-selectionBackground, ::selection, .cm-live-block--component ::selection': {
+      backgroundColor: 'var(--accent-soft) !important',
+    },
     // v4.3.0 issue #67: distinct current-match highlight for the Cmd+F search
     // panel. CM6 marks the active result with `.cm-searchMatch-selected` —
     // by default it's the same translucent color as the other matches so the
@@ -4650,20 +4745,64 @@ onMounted(() => {
   // to exist on ALL three editor paths, and the CodeMirror-only setup that
   // follows is unreachable on Windows. (Putting it further down is what made
   // the first attempt silently no-op on the plain editors.)
-  window.addEventListener('solomd:transform-case', onTransformCase as EventListener);
-  window.addEventListener('solomd:format-markdown', onFormatMarkdown as EventListener);
-  window.addEventListener('solomd:editor-command', onEditorCommand as EventListener);
-  window.addEventListener('solomd:editor-history', onEditorHistory as EventListener);
+  window.addEventListener('xiaoyuan-note:transform-case', onTransformCase as EventListener);
+  window.addEventListener('xiaoyuan-note:format-markdown', onFormatMarkdown as EventListener);
+  window.addEventListener('xiaoyuan-note:editor-command', onEditorCommand as EventListener);
+  window.addEventListener('xiaoyuan-note:editor-history', onEditorHistory as EventListener);
+  // Inline ```query widgets: open a row's note, and refresh them when the
+  // workspace index changes (so the live table tracks edits elsewhere).
+  const onOpenWikilink = (e: Event) => {
+    const target = (e as CustomEvent).detail?.target as string | undefined;
+    if (!target) return;
+    openMarkdownHref(`[[${target}]]`, props.tab.filePath, true);
+  };
+  window.addEventListener('xiaoyuan-note:open-wikilink', onOpenWikilink as EventListener);
+  cleanupOpenWikilink = () => {
+    window.removeEventListener('xiaoyuan-note:open-wikilink', onOpenWikilink as EventListener);
+  };
+  // v5.0 — drop a freshly created ```query fence at the caret of the focused pane.
+  const onInsertQueryBlock = (e: Event) => {
+    const fence = (e as CustomEvent).detail?.fence as string | undefined;
+    // Route to the pane that was last focused. The wizard dialog holds DOM
+    // focus by the time it dispatches, so we must NOT require `view.hasFocus`.
+    // `target !== view` makes only the last-focused pane act (every open editor
+    // receives the event, but only one should insert a copy).
+    const target = getActiveView() ?? view;
+    if (!fence || !target || target !== view) return;
+    const sel = view.state.selection.main;
+    const doc = view.state.doc;
+    const before = sel.from > 0 && doc.sliceString(sel.from - 1, sel.from) !== '\n' ? '\n' : '';
+    const after = doc.sliceString(sel.to, sel.to + 1) !== '\n' ? '\n' : '';
+    const insert = before + fence + after;
+    view.dispatch({
+      changes: { from: sel.from, to: sel.to, insert },
+      selection: { anchor: sel.from + insert.length },
+    });
+  };
+  window.addEventListener('xiaoyuan-note:insert-query-block', onInsertQueryBlock as EventListener);
+  cleanupInsertQueryBlock = () => {
+    window.removeEventListener('xiaoyuan-note:insert-query-block', onInsertQueryBlock as EventListener);
+  };
+  listen('xiaoyuan-note://index-updated', () => {
+    bumpQueryDataVersion();
+    try {
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:cm-relayout'));
+    } catch {
+      /* noop */
+    }
+  }).then((u) => {
+    unlistenIndex = u;
+  });
   window.addEventListener('keydown', onPlainWindowKeydown);
   window.addEventListener('focus', syncSystemClipboardToVimRegister);
   void syncSystemClipboardToVimRegister();
   cleanupTransformCase = () => {
     window.removeEventListener('focus', syncSystemClipboardToVimRegister);
     window.removeEventListener('keydown', onPlainWindowKeydown);
-    window.removeEventListener('solomd:editor-history', onEditorHistory as EventListener);
-    window.removeEventListener('solomd:transform-case', onTransformCase as EventListener);
-    window.removeEventListener('solomd:format-markdown', onFormatMarkdown as EventListener);
-    window.removeEventListener('solomd:editor-command', onEditorCommand as EventListener);
+    window.removeEventListener('xiaoyuan-note:editor-history', onEditorHistory as EventListener);
+    window.removeEventListener('xiaoyuan-note:transform-case', onTransformCase as EventListener);
+    window.removeEventListener('xiaoyuan-note:format-markdown', onFormatMarkdown as EventListener);
+    window.removeEventListener('xiaoyuan-note:editor-command', onEditorCommand as EventListener);
   };
 
   if (usePlainWindowsEditor) {
@@ -4731,18 +4870,18 @@ onMounted(() => {
   // harnesses. Vite injects `import.meta.env.DEV === true` only in dev
   // builds; production bundles dead-code-eliminate this entire block.
   if (import.meta.env.DEV) {
-    (window as unknown as { __solomdActiveView?: EditorView }).__solomdActiveView = view;
+    (window as unknown as { __xiaoyuanNoteActiveView?: EditorView }).__xiaoyuanNoteActiveView = view;
   }
   // Right-sidebar pane visibility / splitter drags change the available
   // editor width, but CodeMirror's ResizeObserver may lag for a frame.
   // Listen for an explicit relayout event and force a re-measure. Used
   // by the search pane toggle (PR #50) and the rs-pane-host stack.
   const onRelayout = () => view?.requestMeasure();
-  window.addEventListener('solomd:relayout', onRelayout);
-  window.addEventListener('solomd:flush-content-sync', flushContentSync);
+  window.addEventListener('xiaoyuan-note:relayout', onRelayout);
+  window.addEventListener('xiaoyuan-note:flush-content-sync', flushContentSync);
   cleanupRelayout = () => {
-    window.removeEventListener('solomd:relayout', onRelayout);
-    window.removeEventListener('solomd:flush-content-sync', flushContentSync);
+    window.removeEventListener('xiaoyuan-note:relayout', onRelayout);
+    window.removeEventListener('xiaoyuan-note:flush-content-sync', flushContentSync);
   };
 });
 
@@ -5160,7 +5299,7 @@ function onEditorCommand(e: Event) {
  * #137 — open the find/replace UI. The panel already exists on both editor
  * paths (CodeMirror's search panel + the plain-textarea find bar) behind
  * Ctrl+F, but had no toolbar / command-palette entry, so users thought it was
- * gone. PaneContent forwards `solomd:editor-find` here for the focused pane.
+ * gone. PaneContent forwards `xiaoyuan-note:editor-find` here for the focused pane.
  */
 function findPanelLabels(): FindPanelLabels {
   return {
@@ -5463,6 +5602,12 @@ onBeforeUnmount(() => {
   cleanupRelayout?.();
   cleanupTransformCase?.();
   cleanupTransformCase = null;
+  cleanupOpenWikilink?.();
+  cleanupOpenWikilink = null;
+  unlistenIndex?.();
+  unlistenIndex = null;
+  cleanupInsertQueryBlock?.();
+  cleanupInsertQueryBlock = null;
   cleanupPlainSelection?.();
   cleanupPlainSelection = null;
   cleanupPlainOverlays?.();
@@ -5485,8 +5630,8 @@ onBeforeUnmount(() => {
     }
   }
   if (import.meta.env.DEV) {
-    const w = window as unknown as { __solomdActiveView?: EditorView };
-    if (w.__solomdActiveView === view) delete w.__solomdActiveView;
+    const w = window as unknown as { __xiaoyuanNoteActiveView?: EditorView };
+    if (w.__xiaoyuanNoteActiveView === view) delete w.__xiaoyuanNoteActiveView;
   }
   view?.destroy();
   view = null;
@@ -5573,12 +5718,12 @@ function restoreCodeMirrorScroll(saved?: TabCaretSnapshot) {
     if (cancelled) return;
     cancelled = true;
     for (const ev of intentEvents) dom.removeEventListener(ev, stop);
-    window.removeEventListener('solomd:cm-relayout', onRelayout);
+    window.removeEventListener('xiaoyuan-note:cm-relayout', onRelayout);
     if (cancelCmScrollRestore === stop) cancelCmScrollRestore = null;
   };
   cancelCmScrollRestore = stop;
   for (const ev of intentEvents) dom.addEventListener(ev, stop, { passive: true });
-  window.addEventListener('solomd:cm-relayout', onRelayout);
+  window.addEventListener('xiaoyuan-note:cm-relayout', onRelayout);
   const reassert = () => {
     if (cancelled || !view) return;
     applyTargetScroll();
@@ -5810,7 +5955,7 @@ watch(
     view?.dispatch({ effects: themeCompartment.reconfigure(cmThemeFor(t, custom)) });
     // Live-edit Mermaid widgets carry their theme; rebuild the block field so
     // diagrams on screen re-render for the new light/dark family (#354).
-    window.dispatchEvent(new CustomEvent('solomd:cm-relayout'));
+    window.dispatchEvent(new CustomEvent('xiaoyuan-note:cm-relayout'));
   }
 );
 
@@ -5876,7 +6021,7 @@ watch(
   [() => settings.plantumlEnabled, () => settings.plantumlServer],
   () => {
     try {
-      window.dispatchEvent(new CustomEvent('solomd:cm-relayout'));
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:cm-relayout'));
     } catch {}
   }
 );
@@ -5930,6 +6075,11 @@ watch(
       if (usePlainWindowsEditor) {
         focusPlainEditor(true);
       } else {
+        // The editor pane was display:none while in preview. The v-show flip
+        // is applied on Vue's next tick — measuring synchronously here would
+        // still measure a hidden (0-height) editor. Re-measure after the DOM
+        // shows, otherwise the viewport stays blank until Ctrl+R.
+        nextTick(() => view?.requestMeasure());
         focusFreshCodeMirror();
       }
     }

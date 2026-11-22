@@ -1,6 +1,6 @@
-SoloMD é um editor de Markdown tranquilo e rápido para iPhone e iPad. Abra o app e comece a escrever — sem conta, sem cadastro, sem assinatura.
+xiaoyuanNote é um editor de Markdown tranquilo e rápido para iPhone e iPad. Abra o app e comece a escrever — sem conta, sem cadastro, sem assinatura.
 
-Suas notas são arquivos .md e .txt comuns. Guarde-os na pasta do SoloMD no app Arquivos ou abra uma pasta que você já usa e edite os arquivos onde eles estão. Qualquer editor em qualquer dispositivo consegue lê-los, hoje e daqui a dez anos.
+Suas notas são arquivos .md e .txt comuns. Guarde-os na pasta do xiaoyuanNote no app Arquivos ou abra uma pasta que você já usa e edite os arquivos onde eles estão. Qualquer editor em qualquer dispositivo consegue lê-los, hoje e daqui a dez anos.
 
 A ESCRITA EM PRIMEIRO LUGAR
 
@@ -44,10 +44,10 @@ EXPORTAR E COMPARTILHAR
 
 PRIVACIDADE DESDE A CONCEPÇÃO
 
-O SoloMD não coleta nenhum dado. Sem conta, sem análises, sem anúncios, sem rastreamento. Suas notas ficam em arquivos que são seus.
+O xiaoyuanNote não coleta nenhum dado. Sem conta, sem análises, sem anúncios, sem rastreamento. Suas notas ficam em arquivos que são seus.
 
-O SoloMD é de código aberto, sob a licença MIT: github.com/zhitongblog/solomd
+O xiaoyuanNote é de código aberto, sob a licença MIT: github.com/zhitongblog/xiaoyuan-note
 
 100% GRATUITO PARA SEMPRE E EMBLEMA DE APOIADOR
 
-Todos os recursos do SoloMD são 100% gratuitos para sempre — sem assinaturas ou recursos bloqueados. As compras únicas no app (Pagar um café / Pagar um almoço / Apoio generoso) são contribuições totalmente voluntárias para apoiar o desenvolvimento independente e desbloqueiam permanentemente o emblema «Apoiador».
+Todos os recursos do xiaoyuanNote são 100% gratuitos para sempre — sem assinaturas ou recursos bloqueados. As compras únicas no app (Pagar um café / Pagar um almoço / Apoio generoso) são contribuições totalmente voluntárias para apoiar o desenvolvimento independente e desbloqueiam permanentemente o emblema «Apoiador».

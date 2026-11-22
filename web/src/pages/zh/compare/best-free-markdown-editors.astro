@@ -9,22 +9,22 @@ const lang = 'zh' as const;
 const FAQ = [
   {
     q: 'Typora 最好的免费替代是什么?',
-    a: '在"无缝实时预览的写作手感"这个维度上,SoloMD 和 MarkText 是最接近 Typora 的两个免费开源选项。MarkText 自 2022 年起基本停止开发,所以想要一个持续维护、带移动端、同步和导出能力的选择,SoloMD 是更现实的答案;Obsidian 也免费,但它是知识库应用而非文件编辑器,且核心闭源。',
+    a: '在"无缝实时预览的写作手感"这个维度上,xiaoyuanNote 和 MarkText 是最接近 Typora 的两个免费开源选项。MarkText 自 2022 年起基本停止开发,所以想要一个持续维护、带移动端、同步和导出能力的选择,xiaoyuanNote 是更现实的答案;Obsidian 也免费,但它是知识库应用而非文件编辑器,且核心闭源。',
   },
   {
     q: '哪个免费 Markdown 编辑器桌面和手机都能用?',
-    a: '本文对比的六款里,只有 SoloMD 在 macOS、Windows、Linux、iOS、Android 五端都提供免费原生应用。Obsidian 桌面+移动端也免费,但官方同步需付费($5/月);Typora、MarkText、Tolaria、VS Code 均只有桌面版。',
+    a: '本文对比的六款里,只有 xiaoyuanNote 在 macOS、Windows、Linux、iOS、Android 五端都提供免费原生应用。Obsidian 桌面+移动端也免费,但官方同步需付费($5/月);Typora、MarkText、Tolaria、VS Code 均只有桌面版。',
   },
   {
     q: '有完全开源的选择吗?',
-    a: 'SoloMD(MIT)、MarkText(MIT)、Tolaria(AGPL)是完全开源的。VS Code 的底层 Code-OSS 为 MIT,但官方发行版含闭源组件;Obsidian 和 Typora 为闭源软件。',
+    a: 'xiaoyuanNote(MIT)、MarkText(MIT)、Tolaria(AGPL)是完全开源的。VS Code 的底层 Code-OSS 为 MIT,但官方发行版含闭源组件;Obsidian 和 Typora 为闭源软件。',
   },
 ];
 ---
 
 <Layout
   title="2026 年免费 Markdown 编辑器怎么选?6 款主流对比"
-  description="方法论先行的六款 Markdown 编辑器对比(2026):SoloMD、Typora、Obsidian、MarkText、Tolaria、VS Code——价格、开源程度、平台覆盖、实时预览、知识管理、AI、同步,以及每一款(包括我们自己)的真实局限,附选择决策树。"
+  description="方法论先行的六款 Markdown 编辑器对比(2026):xiaoyuanNote、Typora、Obsidian、MarkText、Tolaria、VS Code——价格、开源程度、平台覆盖、实时预览、知识管理、AI、同步,以及每一款(包括我们自己)的真实局限,附选择决策树。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -39,14 +39,14 @@ const FAQ = [
 
       <h2>评选方法与利益披露</h2>
       <ul>
-        <li><strong>利益披露:SoloMD 是我们自己的产品。</strong>为了让这页对比依然有参考价值:所有产品用同一套维度、不给自己加独有维度,每条结论都可对照官方来源核实,并且每款的「短板」一节都认真写——包括 SoloMD 的。</li>
+        <li><strong>利益披露:xiaoyuanNote 是我们自己的产品。</strong>为了让这页对比依然有参考价值:所有产品用同一套维度、不给自己加独有维度,每条结论都可对照官方来源核实,并且每款的「短板」一节都认真写——包括 xiaoyuanNote 的。</li>
         <li><strong>对比维度</strong>(等权,共 10 项):价格、源码模式、平台覆盖、安装体积、实时预览写作、知识管理、内置 AI、同步与版本、导出、项目活跃度。</li>
         <li><strong>数据来源:</strong>各产品官网、公开仓库与我们的实际安装。数据核验日期 2026-08-05;安装体积为当前 x64 桌面版下载包,取整。</li>
       </ul>
 
       <h2>对比总表</h2>
       <table class="kb-table">
-        <thead><tr><th>维度</th><th>SoloMD</th><th>Typora</th><th>Obsidian</th><th>MarkText</th><th>Tolaria</th><th>VS Code</th></tr></thead>
+        <thead><tr><th>维度</th><th>xiaoyuanNote</th><th>Typora</th><th>Obsidian</th><th>MarkText</th><th>Tolaria</th><th>VS Code</th></tr></thead>
         <tbody>
           <tr><th>价格</th><td><strong>免费</strong></td><td>$14.99 买断</td><td>免费(同步 $5/月)</td><td><strong>免费</strong></td><td><strong>免费</strong></td><td><strong>免费</strong></td></tr>
           <tr><th>源码模式</th><td>MIT 开源</td><td>闭源</td><td>核心闭源</td><td>MIT 开源</td><td>AGPL 开源</td><td>核心 MIT,发行版含闭源组件</td></tr>
@@ -64,7 +64,7 @@ const FAQ = [
 
       <h2>每一款的短板</h2>
       <ul>
-        <li><strong>SoloMD</strong> —— 年轻项目(2026 年首发):没有第三方插件生态,社区规模远小于 Obsidian;Windows 源码模式语法高亮有限(为了在 WebView2 上换取可靠的中文输入,这是刻意取舍)。</li>
+        <li><strong>xiaoyuanNote</strong> —— 年轻项目(2026 年首发):没有第三方插件生态,社区规模远小于 Obsidian;Windows 源码模式语法高亮有限(为了在 WebView2 上换取可靠的中文输入,这是刻意取舍)。</li>
         <li><strong>Typora</strong> —— 付费且闭源;无移动端、无同步、无知识管理层。但纯写作手感至今仍是标杆之一。</li>
         <li><strong>Obsidian</strong> —— 核心闭源;官方同步 $5/月;体积和内存占用偏重;赋予它力量的插件生态同时带来维护成本和安全面。它首先是知识库,其次才是文件编辑器。</li>
         <li><strong>MarkText</strong> —— 约 2022 年起实际停止维护:积压 bug 无人修,新系统无适配版本。偶尔用可以,当主力编辑器难以推荐。</li>
@@ -74,7 +74,7 @@ const FAQ = [
 
       <h2>怎么选</h2>
       <ul>
-        <li><strong>想要 Typora 的写作手感但不想付费,还要移动端</strong> → SoloMD。</li>
+        <li><strong>想要 Typora 的写作手感但不想付费,还要移动端</strong> → xiaoyuanNote。</li>
         <li><strong>在构建长期第二大脑,要最大的插件生态</strong> → Obsidian(接受核心闭源与付费同步)。</li>
         <li><strong>本来就整天在 VS Code 里,Markdown 只是偶尔写</strong> → 留在 VS Code。</li>
         <li><strong>想在纯文本文件上获得 Notion 式块编辑</strong> → Tolaria。</li>

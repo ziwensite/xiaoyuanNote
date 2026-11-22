@@ -4,7 +4,7 @@
 //! materializes a directory under the workspace at:
 //!
 //! ```text
-//! <workspace>/.solomd/agent-runs/<run-id>/
+//! <workspace>/.xiaoyuan-note/agent-runs/<run-id>/
 //! ├── meta.json     # status / provider / model / tokens (C1.1)
 //! ├── trace.jsonl   # one JSON line per step (C2)
 //! └── run.md        # human-readable transcript (C1.2)
@@ -227,7 +227,7 @@ impl RunHandle {
     ) -> Result<Self, String> {
         let run_id = mint_run_id();
         let started_at = unix_secs_now();
-        let runs_root = workspace.join(".solomd").join("agent-runs");
+        let runs_root = workspace.join(".xiaoyuanNote").join("agent-runs");
         let dir = runs_root.join(&run_id);
         fs::create_dir_all(&dir).map_err(|e| format!("agent_run mkdir: {e}"))?;
 
@@ -508,7 +508,7 @@ mod tests {
     /// "running", and the run never shows up in Pending review.
     #[test]
     fn finalize_recreates_a_run_dir_removed_by_a_checkout() {
-        let tmp = std::env::temp_dir().join(format!("solomd-test-gone-{}", mint_run_id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-test-gone-{}", mint_run_id()));
         fs::create_dir_all(&tmp).unwrap();
         let h = RunHandle::start(&tmp, RunKind::Recipe, "openai", "m", None).unwrap();
 
@@ -522,7 +522,7 @@ mod tests {
         fs::remove_dir_all(&h.dir).unwrap();
         assert!(!h.dir.exists());
 
-        let meta_raw = fs::read_to_string(tmp.join(".solomd/agent-runs").join(&h.run_id).join("meta.json"))
+        let meta_raw = fs::read_to_string(tmp.join(".xiaoyuan-note/agent-runs").join(&h.run_id).join("meta.json"))
             .unwrap_or_else(|_| "{}".to_string());
         let _ = meta_raw;
 
@@ -552,7 +552,7 @@ mod tests {
 
     #[test]
     fn start_creates_files_and_finish_updates_meta() {
-        let tmp = std::env::temp_dir().join(format!("solomd-test-run-{}", mint_run_id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-test-run-{}", mint_run_id()));
         fs::create_dir_all(&tmp).unwrap();
         let h = RunHandle::start(&tmp, RunKind::Panel, "anthropic", "claude-test", None).unwrap();
         assert!(h.dir.exists());
@@ -597,7 +597,7 @@ mod tests {
     fn finish_persists_tokens_and_cost_into_meta_and_trace() {
         // Mirrors the v4-tokens fix: build a run, call finish() with non-zero
         // numbers, assert meta.json + trace.jsonl carry them through.
-        let tmp = std::env::temp_dir().join(format!("solomd-test-tokens-{}", mint_run_id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-test-tokens-{}", mint_run_id()));
         fs::create_dir_all(&tmp).unwrap();
         let h = RunHandle::start(&tmp, RunKind::Panel, "openai", "gpt-4o", None).unwrap();
 
@@ -637,7 +637,7 @@ mod tests {
 
     #[test]
     fn append_trace_truncates_large_result() {
-        let tmp = std::env::temp_dir().join(format!("solomd-test-trunc-{}", mint_run_id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-test-trunc-{}", mint_run_id()));
         fs::create_dir_all(&tmp).unwrap();
         let h = RunHandle::start(&tmp, RunKind::Panel, "openai", "gpt-test", None).unwrap();
 
@@ -748,7 +748,7 @@ impl RunHandle {
     /// that via `emit_run_started` so they can include extra fields
     /// (recipe block, replayed_from, etc.) without us guessing.
     pub fn create(workspace: &Path, run_id: &str, meta: RunMeta) -> Result<Self, String> {
-        let runs_root = workspace.join(".solomd").join("agent-runs");
+        let runs_root = workspace.join(".xiaoyuanNote").join("agent-runs");
         let dir = runs_root.join(run_id);
         fs::create_dir_all(&dir).map_err(|e| format!("agent_run mkdir: {e}"))?;
 
@@ -907,7 +907,7 @@ impl RunHandle {
 
 /// Read every run's `meta.json` under the workspace, sorted newest-first.
 pub fn list_runs(workspace: &Path) -> Vec<RunMeta> {
-    let dir = workspace.join(".solomd").join("agent-runs");
+    let dir = workspace.join(".xiaoyuanNote").join("agent-runs");
     let entries = match fs::read_dir(&dir) {
         Ok(e) => e,
         Err(_) => return Vec::new(),
@@ -933,7 +933,7 @@ pub fn list_runs(workspace: &Path) -> Vec<RunMeta> {
 
 pub fn read_run_meta(workspace: &Path, run_id: &str) -> Result<RunMeta, String> {
     let path = workspace
-        .join(".solomd")
+        .join(".xiaoyuanNote")
         .join("agent-runs")
         .join(run_id)
         .join("meta.json");
@@ -943,7 +943,7 @@ pub fn read_run_meta(workspace: &Path, run_id: &str) -> Result<RunMeta, String> 
 
 pub fn write_run_meta(workspace: &Path, run_id: &str, meta: &RunMeta) -> Result<(), String> {
     let path = workspace
-        .join(".solomd")
+        .join(".xiaoyuanNote")
         .join("agent-runs")
         .join(run_id)
         .join("meta.json");
@@ -953,7 +953,7 @@ pub fn write_run_meta(workspace: &Path, run_id: &str, meta: &RunMeta) -> Result<
 
 pub fn read_trace(workspace: &Path, run_id: &str) -> Result<String, String> {
     let path = workspace
-        .join(".solomd")
+        .join(".xiaoyuanNote")
         .join("agent-runs")
         .join(run_id)
         .join("trace.jsonl");
@@ -962,7 +962,7 @@ pub fn read_trace(workspace: &Path, run_id: &str) -> Result<String, String> {
 
 pub fn read_run_md(workspace: &Path, run_id: &str) -> Result<String, String> {
     let path = workspace
-        .join(".solomd")
+        .join(".xiaoyuanNote")
         .join("agent-runs")
         .join(run_id)
         .join("run.md");

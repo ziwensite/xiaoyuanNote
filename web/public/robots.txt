@@ -1,5 +1,5 @@
-# SoloMD — robots.txt
-# https://solomd.app
+# xiaoyuanNote — robots.txt
+# https://xiaoyuannote.app
 #
 # Content signals (https://contentsignals.org) are declared here, in the repo,
 # rather than through Cloudflare's managed robots.txt. That feature prepended
@@ -20,7 +20,7 @@ Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 # Helpful pointers
-Sitemap: https://solomd.app/sitemap-index.xml
+Sitemap: https://xiaoyuannote.app/sitemap-index.xml
 
 # Welcome LLM crawlers — see /llms.txt for the project summary
 # and /llms-full.txt for the full docs in one file

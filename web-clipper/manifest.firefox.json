@@ -1,11 +1,11 @@
 {
   "manifest_version": 2,
-  "name": "SoloMD Web Clipper",
+  "name": "xiaoyuanNote Web Clipper",
   "version": "2.4.0",
-  "description": "Save the current page, your selection, or just the link to your local SoloMD inbox. Local-only — never phones home.",
+  "description": "Save the current page, your selection, or just the link to your local xiaoyuanNote inbox. Local-only — never phones home.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "web-clipper@solomd.app",
+      "id": "web-clipper@xiaoyuannote.app",
       "strict_min_version": "115.0"
     }
   },
@@ -15,7 +15,7 @@
     "128": "icons/icon-128.png"
   },
   "browser_action": {
-    "default_title": "SoloMD Web Clipper",
+    "default_title": "xiaoyuanNote Web Clipper",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",

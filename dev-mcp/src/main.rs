@@ -1,7 +1,7 @@
-//! solomd-dev-mcp — internal MCP server for self-testing SoloMD end-to-end.
+//! xiaoyuan-note-dev-mcp — internal MCP server for self-testing xiaoyuanNote end-to-end.
 //!
 //! NOT shipped to end users. This binary exists so Claude (and any other
-//! MCP client) can drive the SoloMD app — settings, workspace state,
+//! MCP client) can drive the xiaoyuanNote app — settings, workspace state,
 //! AutoGit operations, screenshots — without trying to coerce
 //! AppleScript into clicking on the WKWebView.
 //!
@@ -21,9 +21,9 @@ use tracing_subscriber::{EnvFilter, fmt};
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "solomd-dev-mcp",
+    name = "xiaoyuan-note-dev-mcp",
     version,
-    about = "Dev-only MCP server for end-to-end self-testing of SoloMD"
+    about = "Dev-only MCP server for end-to-end self-testing of xiaoyuanNote"
 )]
 struct Cli {
     /// Verbose stderr logging (debug level).
@@ -36,7 +36,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let default_level = if cli.verbose { "debug" } else { "info" };
-    let filter = EnvFilter::try_from_env("SOLOMD_DEV_MCP_LOG")
+    let filter = EnvFilter::try_from_env("XIAOYUAN_NOTE_DEV_MCP_LOG")
         .unwrap_or_else(|_| EnvFilter::new(default_level));
     fmt()
         .with_env_filter(filter)
@@ -45,7 +45,7 @@ async fn main() -> Result<()> {
         .with_ansi(false)
         .init();
 
-    tracing::info!(version = env!("CARGO_PKG_VERSION"), "solomd-dev-mcp starting");
+    tracing::info!(version = env!("CARGO_PKG_VERSION"), "xiaoyuan-note-dev-mcp starting");
 
     let server = tools::DevServer::new();
     let service = server.serve(stdio()).await?;

@@ -1,5 +1,5 @@
 /*
- * 新拟态（Neumorphism / Soft UI）— SoloMD 柔和浮雕主题。
+ * 新拟态（Neumorphism / Soft UI）— xiaoyuanNote 柔和浮雕主题。
  * 同色系浅色背景 + 内外柔和阴影，营造"凸起/凹陷"的立体质感。
  * 低饱和、温和、护眼。阴影需两层（高光 + 暗影）混合。
  *
@@ -80,7 +80,7 @@
 
 /* 卡片：凸起浮雕 */
 .ds-card,
-.solomd-card,
+.xiaoyuan-note-card,
 .card {
   background: var(--bg-elev) !important;
   border: none;

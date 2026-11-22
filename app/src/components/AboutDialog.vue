@@ -44,7 +44,7 @@ async function loadSponsors() {
   if (sponsorsLoaded) return;
   sponsorsLoaded = true;
   try {
-    const res = await fetch('https://solomd.app/sponsors.json', { signal: AbortSignal.timeout(5000) });
+    const res = await fetch('https://xiaoyuannote.app/sponsors.json', { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return;
     const data = await res.json();
     const names = (list: unknown) =>
@@ -70,14 +70,14 @@ watch(() => props.open, (o) => {
 }, { immediate: true });
 
 const links = {
-  website: 'https://solomd.app',
-  github: 'https://github.com/zhitongblog/solomd',
-  // Update/version-history surfaces point at solomd.app, not GitHub: the
+  website: 'https://xiaoyuannote.app',
+  github: 'https://github.com/zhitongblog/xiaoyuan-note',
+  // Update/version-history surfaces point at xiaoyuannote.app, not GitHub: the
   // site serves mainland users (Cloudflare edge + Gitee mirror links) where
   // github.com often doesn't resolve. Same policy as the update toast (#154).
-  releases: 'https://solomd.app/whats-new',
-  sponsor: 'https://solomd.app/#sponsor',
-  promote: 'https://solomd.app/promote',
+  releases: 'https://xiaoyuannote.app/whats-new',
+  sponsor: 'https://xiaoyuannote.app/#sponsor',
+  promote: 'https://xiaoyuannote.app/promote',
 };
 
 // NOTE: this function intentionally is NOT named `open` because that
@@ -100,14 +100,14 @@ async function visit(url: string) {
     <!-- Empty header slot keeps DsModal's × close button without a title bar,
          since the About content is centered branding rather than a labelled
          form. -->
-    <template #header><span class="about__hdr" aria-label="About SoloMD"></span></template>
+    <template #header><span class="about__hdr" aria-label="About xiaoyuanNote"></span></template>
 
     <div class="about">
       <div class="about__brand">
-        <BrandMark class="brand" :size="64" label="SoloMD" />
+        <BrandMark class="brand" :size="64" label="xiaoyuanNote" />
       </div>
 
-      <h2 class="about__name">SoloMD</h2>
+      <h2 class="about__name">xiaoyuanNote</h2>
       <div class="about__version-row">
         <span class="about__version">v{{ VERSION }}</span>
         <button
@@ -136,7 +136,7 @@ async function visit(url: string) {
           <Icons class="about__link-icon" name="globe" :size="16" />
           <div>
             <div class="about__link-title">Website / 官网</div>
-            <div class="about__link-url">solomd.app</div>
+            <div class="about__link-url">xiaoyuannote.app</div>
           </div>
           <Icons class="about__link-chev" name="chevron-right" :size="14" />
         </button>
@@ -144,7 +144,7 @@ async function visit(url: string) {
           <Icons class="about__link-icon" name="star" :size="16" />
           <div>
             <div class="about__link-title">Star on GitHub / 去 GitHub 点 Star</div>
-            <div class="about__link-url">zhitongblog/solomd</div>
+            <div class="about__link-url">zhitongblog/xiaoyuan-note</div>
           </div>
           <Icons class="about__link-chev" name="chevron-right" :size="14" />
         </button>
@@ -152,7 +152,7 @@ async function visit(url: string) {
           <Icons class="about__link-icon" name="sparkle" :size="16" />
           <div>
             <div class="about__link-title">What's New / 更新日志</div>
-            <div class="about__link-url">solomd.app/whats-new</div>
+            <div class="about__link-url">xiaoyuannote.app/whats-new</div>
           </div>
           <Icons class="about__link-chev" name="chevron-right" :size="14" />
         </button>
@@ -187,7 +187,7 @@ async function visit(url: string) {
         <div class="about__sponsors-names">{{ promoters.join(' · ') }}</div>
       </div>
       <button v-if="!iapUseStoreFlow" class="about__promote" @click="visit(links.promote)">
-        Help spread the word / 帮忙推广 SoloMD
+        Help spread the word / 帮忙推广 xiaoyuanNote
       </button>
 
       <div class="about__footer">

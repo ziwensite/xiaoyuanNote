@@ -4,7 +4,7 @@
  * Provides:
  *   - Decoration: `[[X]]` rendered as a styled span (resolved → green, unresolved → red dashed).
  *   - Click handling: Cmd/Ctrl+click on a wikilink resolves the target via the
- *     workspace index store and emits `solomd:wiki-open` (App.vue listens and
+ *     workspace index store and emits `xiaoyuan-note:wiki-open` (App.vue listens and
  *     opens the file).
  *   - Autocomplete: typing `[[` opens a dropdown of matching workspace files.
  *
@@ -156,7 +156,7 @@ const wikilinkPlugin = ViewPlugin.fromClass(WikilinkPluginValue, {
       if (!inner) return false;
       e.preventDefault();
       // Defer resolution to App.vue (it has access to the files composable).
-      window.dispatchEvent(new CustomEvent('solomd:wiki-open', { detail: { target: inner } }));
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:wiki-open', { detail: { target: inner } }));
       return true;
     },
   },

@@ -62,8 +62,22 @@ const props = defineProps<{
   month?: string;
   compact?: boolean;
   days?: CalendarViewDay[];
+  /** Picker mode: the panel is used inside a date-picker popover. Clicks emit
+   *  `pick` instead of writing the shared focus date, the displayed month is
+   *  driven by `month`, and week selection / grid keyboard nav are disabled so
+   *  the popover never mutates the global calendar state. */
+  picker?: boolean;
+  /** The currently-selected day (YYYY-MM-DD), used for the selected highlight
+   *  in picker mode instead of the shared focus date. */
+  iso?: string;
+  /** Hide the embedded CalendarHeader (the host popover renders its own). */
+  hideHeader?: boolean;
 }>();
-const emit = defineEmits<{ (e: 'pick', date: string): void }>();
+const emit = defineEmits<{
+  (e: 'pick', date: string): void;
+  (e: 'openDaily', date: string): void;
+  (e: 'openWeekly', date: string): void;
+}>();
 const showOpenDay = computed(() => props.showOpenDay !== false);
 
 const gridEl = ref<HTMLElement | null>(null);
@@ -97,7 +111,7 @@ const showHolidays = computed(() => settings.calendarShowHolidays);
 const showLunar = computed(() => settings.calendarShowLunar);
 const showWeeks = computed(() => settings.calendarShowIsoWeeks);
 const gridColumns = computed(() =>
-  showWeeks.value ? '18px repeat(7, minmax(0, 1fr))' : 'repeat(7, minmax(0, 1fr))',
+  showWeeks.value && !props.picker ? '18px repeat(7, minmax(0, 1fr))' : 'repeat(7, minmax(0, 1fr))',
 );
 const holidayMap = computed(() => holidays.index);
 
@@ -129,6 +143,7 @@ const selectedWeekSet = computed<Set<string> | null>(() => {
   return set;
 });
 function isInSelectedWeek(date: string): boolean {
+  if (props.picker) return false;
   return selectedWeekSet.value?.has(date) ?? false;
 }
 
@@ -192,6 +207,7 @@ function isToday(date: string): boolean {
 }
 
 function isFocus(date: string): boolean {
+  if (props.picker) return props.iso ? date === props.iso : false;
   return date === calendar.focusDate;
 }
 
@@ -210,6 +226,14 @@ function holidayOf(date: string) {
 function cornerOf(date: string): 'off' | 'work' | null {
   const hit = holidayOf(date);
   return hit ? hit.kind : null;
+}
+
+/** Tiny holiday / make-up-work marker label, localized (calendar.day.offShort /
+ *  workShort). Shown as text, not a dot, so it never reads as the task/note
+ *  density dots in the same cell. */
+function cornerLabel(date: string): string {
+  const kind = cornerOf(date);
+  return kind === 'off' ? t('calendar.day.offShort') : kind === 'work' ? t('calendar.day.workShort') : '';
 }
 
 /**
@@ -283,6 +307,7 @@ function tooltipFor(date: string): string {
   }
   if (d.events > 0) parts.push(t('calendar.tooltip.events', { count: d.events }));
   if (d.hasNote) parts.push(t('calendar.tooltip.note'));
+  if (!props.picker) parts.push(t('calendar.openPeriodic.daily'));
   return parts.join(' · ');
 }
 
@@ -300,12 +325,12 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
 }
 
-/** Arrows move the shared focus date; Enter still opens the day in the dialog. */
+/** Arrows move the shared focus date; Enter opens the focused day workspace. */
 function onGridKeydown(event: KeyboardEvent) {
-  if (props.compact || isTypingTarget(event.target)) return;
+  if (props.compact || props.picker || isTypingTarget(event.target)) return;
   if (event.key === 'Enter') {
     event.preventDefault();
-    openSelectedDay();
+    calendar.openWorkspace(calendar.focusDate, calendar.view);
     return;
   }
   const delta = ARROW_DELTAS[event.key];
@@ -321,11 +346,19 @@ function onGridKeydown(event: KeyboardEvent) {
 /** A click selects a single day (clears any week selection). In the year grid
  *  the parent decides what a click means — it opens that day view. */
 function pick(date: string) {
-  if (props.month) {
+  if (props.month || props.picker) {
     emit('pick', date);
     return;
   }
   calendar.selectDay(date);
+}
+
+function openDaily(date: string) {
+  if (!props.picker) emit('openDaily', date);
+}
+
+function openWeekly(date: string) {
+  if (!props.picker) emit('openWeekly', date);
 }
 
 
@@ -333,9 +366,9 @@ function pick(date: string) {
 
 <template>
   <div class="calendar-panel rp" :class="{ 'is-compact': props.compact }">
-    <CalendarHeader v-if="!props.compact" :preview="preview" :show-open-day="showOpenDay" />
+    <CalendarHeader v-if="!props.compact && !props.hideHeader" :preview="preview" :show-open-day="showOpenDay" />
 
-    <div v-if="!hasFolder" class="rp-empty">{{ t('calendar.openFolder') }}</div>
+    <div v-if="!hasFolder && !props.picker" class="rp-empty">{{ t('calendar.openFolder') }}</div>
 
     <template v-else>
       <div class="calendar-mini">
@@ -344,7 +377,7 @@ function pick(date: string) {
           :style="{ gridTemplateColumns: gridColumns }"
           aria-hidden="true"
         >
-          <span v-if="showWeeks" class="calendar-mini__weeknum">
+          <span v-if="showWeeks && !props.picker" class="calendar-mini__weeknum">
             {{ t('calendar.week.header') }}
           </span>
           <span v-for="(label, i) in weekdayLabels" :key="i">{{ label }}</span>
@@ -359,14 +392,15 @@ function pick(date: string) {
         >
           <template v-for="row in weeks" :key="row.week">
             <button
-              v-if="showWeeks"
+              v-if="showWeeks && !props.picker"
               type="button"
               class="calendar-mini__weeknum calendar-mini__weeknum--btn"
               :tabindex="props.compact ? -1 : undefined"
-              :title="t('calendar.week.select', { week: row.week })"
-              :aria-label="t('calendar.week.select', { week: row.week })"
+              :title="`${t('calendar.week.select', { week: row.week })} · ${t('calendar.openPeriodic.weekly')}`"
+              :aria-label="`${t('calendar.week.select', { week: row.week })} · ${t('calendar.openPeriodic.weekly')}`"
               :aria-pressed="calendar.isWeekSelected && row.days[0] === calendar.selectedWeekStart"
               @click="calendar.selectWeek(row.days[0])"
+              @dblclick.stop="openWeekly(row.days[0])"
             >
               {{ row.week }}
             </button>
@@ -387,20 +421,23 @@ function pick(date: string) {
               :aria-label="tooltipFor(date)"
               :aria-pressed="isFocus(date)"
               @click="pick(date)"
+              @dblclick.stop="openDaily(date)"
             >
-              <span
-                v-if="cornerOf(date)"
-                class="calendar-mini__corner"
-                :class="`is-${cornerOf(date)}`"
-                aria-hidden="true"
-              />
-              <span
-                class="calendar-mini__day"
-                :class="{
-                  'is-off': cornerOf(date) === 'off' && !isToday(date),
-                  'is-work': cornerOf(date) === 'work' && !isToday(date),
-                }"
-              >{{ dayNumber(date) }}</span>
+              <span class="calendar-mini__day-row">
+                <span
+                  class="calendar-mini__day"
+                  :class="{
+                    'is-off': cornerOf(date) === 'off' && !isToday(date),
+                    'is-work': cornerOf(date) === 'work' && !isToday(date),
+                  }"
+                >{{ dayNumber(date) }}</span>
+                <span
+                  v-if="cornerOf(date)"
+                  class="calendar-mini__corner"
+                  :class="`is-${cornerOf(date)}`"
+                  aria-hidden="true"
+                >{{ cornerLabel(date) }}</span>
+              </span>
               <span v-if="subLabel(date)" class="calendar-mini__sub">{{ subLabel(date) }}</span>
               <span
                 v-if="densityOf(date).hasNote || densityOf(date).total > 0"
@@ -628,15 +665,38 @@ function pick(date: string) {
   letter-spacing: -0.01em;
 }
 
-/* Corner mark: filled = day off, hollow = make-up workday. */
+/* Holiday / make-up-work marker: a tiny localized chip (休/班 …) sitting to the
+   RIGHT of the solar day number. It lives in the same flow row as the number
+   (not an absolute corner), so it can never overlap a two-digit number when the
+   cell narrows. Text, not a dot, so it never reads as the task/note density
+   dots. Red = day off, blue = make-up workday, matching the tinted number. */
+.calendar-mini__day-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Solar day number — nudged up from the 11px cell font so the date reads a
+   touch larger; tabular-nums keeps two-digit days (10–31) aligned. */
+.calendar-mini__day {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
 .calendar-mini__corner {
-  position: absolute;
-  top: 5px;
-  left: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 12px;
+  height: 11px;
+  padding: 0 2px;
   box-sizing: border-box;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+  border-radius: 3px;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0;
 }
 
 .calendar-mini__corner.is-off {
@@ -645,6 +705,18 @@ function pick(date: string) {
 
 .calendar-mini__corner.is-work {
   background: #3b82f6;
+}
+
+/* Year-view cards are tighter: shrink the chip and close the gap so the number
+   and marker still share one line without crowding. */
+.calendar-panel.is-compact .calendar-mini__day-row {
+  gap: 1px;
+}
+.calendar-panel.is-compact .calendar-mini__corner {
+  min-width: 10px;
+  height: 10px;
+  padding: 0 1px;
+  font-size: 7px;
 }
 
 /* Density dot moved out of the flow (top-right) so the lunar line owns the

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate concept B (hash mark) variants for SoloMD
+# Regenerate concept B (hash mark) variants for xiaoyuanNote
 set -e
 cd "$(dirname "$0")"
 

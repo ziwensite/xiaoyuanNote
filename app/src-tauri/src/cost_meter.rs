@@ -142,12 +142,12 @@ fn current_config_dir() -> Option<PathBuf> {
             PathBuf::from(h)
                 .join("Library")
                 .join("Application Support")
-                .join("solomd")
+                .join("xiaoyuanNote")
         })
     } else if cfg!(target_os = "windows") {
         std::env::var("APPDATA")
             .ok()
-            .map(|h| PathBuf::from(h).join("solomd"))
+            .map(|h| PathBuf::from(h).join("xiaoyuanNote"))
     } else {
         std::env::var("XDG_CONFIG_HOME")
             .ok()
@@ -157,7 +157,7 @@ fn current_config_dir() -> Option<PathBuf> {
                     .ok()
                     .map(|h| PathBuf::from(h).join(".config"))
             })
-            .map(|p| p.join("solomd"))
+            .map(|p| p.join("xiaoyuanNote"))
     };
     base
 }
@@ -282,7 +282,7 @@ mod tests {
 
     fn set_temp_config_dir() -> PathBuf {
         let tmp = env::temp_dir().join(format!(
-            "solomd-cost-test-{}",
+            "xiaoyuan-note-cost-test-{}",
             super::super::agent_run::mint_run_id()
         ));
         std::fs::create_dir_all(&tmp).unwrap();

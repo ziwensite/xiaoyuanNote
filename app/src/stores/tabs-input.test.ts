@@ -23,11 +23,11 @@ g.window = {
 if (!('navigator' in globalThis)) g.navigator = { userAgent: 'node', platform: 'MacIntel' };
 
 const SETTINGS = JSON.stringify({ restoreSession: true, perWorkspaceTabs: false });
-const TABS_KEY = 'solomd.tabs.v1';
+const TABS_KEY = 'xiaoyuan-note.tabs.v1';
 
 function reset(extra: Record<string, string> = {}) {
   mem.clear();
-  mem.set('solomd.settings.v1', SETTINGS);
+  mem.set('xiaoyuan-note.settings.v1', SETTINGS);
   for (const [k, v] of Object.entries(extra)) mem.set(k, v);
   setActivePinia(createPinia());
 }

@@ -19,7 +19,7 @@ CJK works too: **粗体**, *斜体*, **粗 体 加 空 格**.
 
 ## Links
 
-A link to [SoloMD's website](https://solomd.app) and an autolink: <https://github.com/lixd/solomd>.
+A link to [xiaoyuanNote’s website](https://xiaoyuannote.app) and an autolink: <https://github.com/lixd/xiaoyuanNote>.
 
 Move the caret onto the link line — the raw `[label](url)` markup reappears so you can edit either side, then leaves again when you click away.
 

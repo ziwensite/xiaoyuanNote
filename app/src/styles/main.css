@@ -1,4 +1,4 @@
-/* SoloMD brand styles + theme variables */
+/* xiaoyuanNote brand styles + theme variables */
 
 /* v4.6 design-token layer. Imported FIRST so main.css + the 8 named themes
  * cascade after it and win where they must. See styles/tokens.css. */
@@ -28,7 +28,7 @@
   /* light theme (default) — v4.6 warm-neutral surfaces (plan §2.4).
      --bg / --bg-elev / --border / --text / --text-muted are seeded in
      tokens.css; re-stated here so the cascade order stays explicit and
-     legible. --bg-hover / --bg-active / --text-faint stay SoloMD-tuned. */
+     legible. --bg-hover / --bg-active / --text-faint stay xiaoyuan-note-tuned. */
   --bg: #ffffff;
   --bg-elev: #f7f6f3;
   --bg-hover: rgba(31, 30, 28, 0.05);
@@ -79,13 +79,13 @@
   --syn-property: #e45649;
   --syn-operator: #0184bc;
 
-  /* SoloMD CJK is at the END of every chain on purpose. It's a 43 KB
+  /* xiaoyuanNote CJK is at the END of every chain on purpose. It's a 43 KB
      LXGW WenKai subset (unicode-range U+3400-9FFF + CJK punctuation)
      that we ship only as a last-resort fallback for environments with
      no system CJK font — most notably the iOS Simulator (no PingFang).
      On Windows / macOS / Linux / real iPad the cascade hits Microsoft
      YaHei / PingFang / Noto Sans CJK first, preserving native ClearType
-     / Quartz hinting. v3.5.0 and earlier put SoloMD CJK FIRST, which
+     / Quartz hinting. v3.5.0 and earlier put xiaoyuanNote CJK FIRST, which
      overrode Windows YaHei everywhere with the (deliberately soft,
      handwritten) LXGW glyphs and made the UI look thin/blurry — see
      issue #43. */
@@ -93,12 +93,12 @@
     "Segoe UI Variable Text", "Segoe UI",
     "PingFang SC", "PingFang TC", "Hiragino Sans GB", "Heiti SC",
     "Microsoft YaHei UI", "Microsoft YaHei", "Inter", Roboto, "Helvetica Neue", sans-serif,
-    "SoloMD CJK", "Apple Color Emoji", "Segoe UI Emoji",
+    "xiaoyuanNote CJK", "Apple Color Emoji", "Segoe UI Emoji",
     "Noto Color Emoji";
   --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Menlo",
     "Consolas", "Fira Code", "Source Code Pro", "DejaVu Sans Mono",
     "Liberation Mono", "Ubuntu Mono", "Noto Sans Mono",
-    "PingFang SC", "Hiragino Sans GB", monospace, "SoloMD CJK",
+    "PingFang SC", "Hiragino Sans GB", monospace, "xiaoyuanNote CJK",
     "Apple Color Emoji", "Segoe UI Emoji";
 
   --titlebar-h: 36px;
@@ -609,9 +609,8 @@ button:disabled {
 /* Markdown extension styles (front-matter, task list, mark, footnotes) */
 .md-frontmatter {
   margin: 0 0 1rem;
-  padding: 0.6rem 0.9rem;
+  padding: 0.4rem 0.9rem;
   border-left: 3px solid var(--accent);
-  background: var(--bg-hover);
   font-size: 0.85rem;
   border-radius: 0 4px 4px 0;
 }
@@ -635,6 +634,257 @@ button:disabled {
 .md-frontmatter--raw {
   white-space: pre-wrap;
   font-family: var(--font-mono);
+}
+
+/* Editable frontmatter properties — the same controls in preview and in both
+   live editors. Exports keep the static <dl> above. No card or input fill:
+   just the accent edge, the title row and hairline controls. */
+.md-frontmatter--editable {
+  padding: 0.3rem 0.7rem 0.45rem;
+}
+.md-frontmatter__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0 0 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.md-frontmatter__title:hover {
+  color: var(--text);
+}
+.md-frontmatter__title--static {
+  cursor: default;
+  margin-bottom: 6px;
+}
+.md-frontmatter__chevron {
+  display: inline-block;
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+.md-frontmatter--collapsed .md-frontmatter__chevron {
+  transform: rotate(-90deg);
+}
+.md-frontmatter--collapsed .md-prop__rows {
+  display: none;
+}
+.md-frontmatter--collapsed .md-prop__add {
+  display: none;
+}
+/* All rows share ONE grid so every value column starts at the same x no
+   matter how long each key is (Obsidian-style alignment). Each .md-prop
+   row dissolves into the shared grid via display:contents. */
+.md-prop__rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1.25rem;
+  row-gap: 2px;
+  align-items: center;
+}
+.md-prop {
+  display: contents;
+}
+.md-prop__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 0;
+  font-family: inherit;
+  font-size: 0.9em;
+  font-weight: 400;
+  color: var(--text);
+}
+.md-prop__type {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  margin-left: -2px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.md-prop__type:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+.md-prop__value {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92em;
+}
+.md-prop__value::placeholder {
+  color: var(--text-3);
+}
+.md-prop__value:hover {
+  border-color: var(--hairline, rgba(128, 128, 128, 0.35));
+}
+.md-prop__value:focus {
+  outline: none;
+  background: var(--bg);
+  box-shadow: var(--ring-tight);
+}
+/* Tag pills (Obsidian-style), with a small trailing "add tag" input. */
+.md-prop__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.md-prop__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text);
+  font-size: 0.92em;
+  line-height: 1.6;
+}
+.md-prop__tag-x {
+  border: none;
+  background: none;
+  padding: 0 1px;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9em;
+  line-height: 1;
+  cursor: pointer;
+}
+.md-prop__tag-x:hover {
+  color: var(--text);
+}
+.md-prop__value--tag {
+  width: 76px;
+  flex: 0 0 auto;
+  padding: 2px 4px;
+}
+/* "Add a property" row + the inline key input it spawns. */
+.md-prop__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.md-prop__add:hover {
+  color: var(--accent);
+}
+.md-prop--new {
+  border-color: var(--accent);
+}
+/* Date control: Chromium draws the calendar icon at the far right, which
+   reads as detached from the property key. Pin it to the LEFT of the value
+   instead (WebView2/Chrome shadow-DOM parts). */
+.md-prop__value[type='date'] {
+  position: relative;
+}
+.md-prop__value[type='date']::-webkit-calendar-picker-indicator {
+  position: absolute;
+  left: 5px;
+}
+.md-prop__value[type='date']::-webkit-datetime-edit {
+  padding-left: 18px;
+}
+/* Type menu (click a key's icon); appended directly to <body>. */
+.md-prop-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 170px;
+  padding: 4px;
+  border: 1px solid var(--bd-hair, rgba(128, 128, 128, 0.25));
+  border-radius: 10px;
+  background: var(--bg-pop, #fff);
+  color: var(--text);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+}
+.md-prop-menu__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 6px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.md-prop-menu__hint {
+  color: var(--text-3);
+}
+.md-prop-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.md-prop-menu__item:hover {
+  background: var(--bg-hover);
+}
+.md-prop-menu__icon {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+.md-prop-menu__check {
+  margin-left: auto;
+  color: var(--accent);
+}
+.md-prop-menu__item--danger {
+  color: #e5484d;
+}
+.md-prop-menu__item--danger:hover {
+  background: rgba(229, 72, 77, 0.08);
+}
+.md-prop-menu__item--danger .md-prop-menu__icon {
+  color: inherit;
+}
+.md-prop__value:hover {
+  border-color: var(--text-3);
+}
+.md-prop__value:focus {
+  outline: none;
+  background: var(--bg);
+  box-shadow: var(--ring-tight);
+}
+
+/* CodeMirror renders the card as a block widget, so drop the preview margin. */
+.cm-frontmatter .md-frontmatter {
+  margin: 0;
 }
 
 /* GitHub-style callouts (> [!NOTE] …) — global so preview, live-edit blocks
@@ -709,36 +959,36 @@ button:disabled {
    on-screen card, with a dotted leader to each entry's page number
    (lib/print-pages.ts fills the numbers; an entry without one drops the
    leader). */
-.solomd-print-content > .md-toc:first-child {
+.xiaoyuan-note-print-content > .md-toc:first-child {
   border: none;
   background: transparent;
   padding: 0;
   margin: 0;
 }
-.solomd-print-content .md-toc__title {
+.xiaoyuan-note-print-content .md-toc__title {
   font-size: 1.6em;
   font-weight: 700;
   margin: 0 0 0.8em;
   text-align: center; /* #347 */
   color: var(--md-h1, inherit);
 }
-.solomd-print-content .md-toc .md-toc__link {
+.xiaoyuan-note-print-content .md-toc .md-toc__link {
   display: flex;
   align-items: baseline;
   gap: 0.4em;
   color: inherit;
 }
-.solomd-print-content .md-toc__leader {
+.xiaoyuan-note-print-content .md-toc__leader {
   flex: 1 1 auto;
   min-width: 1em;
   border-bottom: 1px dotted currentColor;
   opacity: 0.45;
 }
-.solomd-print-content .md-toc__page {
+.xiaoyuan-note-print-content .md-toc__page {
   flex: none;
   font-variant-numeric: tabular-nums;
 }
-.solomd-print-content .md-toc__link:not(.md-toc__link--paged) .md-toc__leader {
+.xiaoyuan-note-print-content .md-toc__link:not(.md-toc__link--paged) .md-toc__leader {
   display: none;
 }
 
@@ -791,16 +1041,569 @@ div.mermaidTooltip {
   box-shadow: var(--sh-pop, 0 4px 14px rgba(0, 0, 0, 0.2));
 }
 
-/* Print: hide the app shell and show the #solomd-print-overlay instead. */
+/* Embedded ```query``` result (query-block fence) — table + list. Shared by the
+   rendered note (Preview) and the builder's live preview (ViewEditorDialog). */
+.qb-wrap {
+  margin: 0.8em 0;
+}
+.qb {
+  font-size: 12px;
+}
+.qb--table {
+  overflow-x: auto;
+}
+.qb--table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.qb--table th,
+.qb--table td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.qb--table th {
+  background: color-mix(in srgb, var(--bg-hover) 70%, transparent);
+  font-weight: 600;
+  color: var(--text);
+}
+.qb--table td a,
+.qb--list li a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.qb--list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.qb--list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.qb__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.qb__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: color-mix(in srgb, var(--accent) 75%, var(--text));
+  font-size: 11px;
+  white-space: nowrap;
+}
+.qb--empty,
+.qb--error {
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+}
+.qb--error {
+  color: var(--danger, #e5484d);
+  border-color: color-mix(in srgb, var(--danger, #e5484d) 50%, transparent);
+}
+
+/* Inline ```query widget rendered inside the live editor (cm-live-blocks). */
+.cm-live-block--query {
+  margin: 0.6em 0;
+}
+.cm-live-block--query .qb--table th {
+  position: relative;
+  user-select: none;
+}
+.cm-live-block--query .qb-resize {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 3;
+}
+.cm-live-block--query .qb-resize:hover {
+  background: var(--accent, #3b82f6);
+  opacity: 0.5;
+}
+/* v5.0 — hover-revealed column add / delete controls (per header). */
+.cm-live-block--query .qb-col-add,
+.cm-live-block--query .qb-col-del {
+  position: absolute;
+  top: 1px;
+  width: 15px;
+  height: 15px;
+  line-height: 13px;
+  padding: 0;
+  border: 1px solid var(--border, #ccc);
+  background: var(--bg, #fff);
+  color: var(--text, #222);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  z-index: 4;
+}
+.cm-live-block--query .qb-col-add {
+  right: 17px;
+}
+.cm-live-block--query .qb-col-del {
+  left: 1px;
+  color: var(--danger, #e5484d);
+}
+.cm-live-block--query th:hover .qb-col-add,
+.cm-live-block--query th:hover .qb-col-del {
+  opacity: 1;
+}
+.cm-live-block--query .qb-col-add:hover,
+.cm-live-block--query .qb-col-del:hover {
+  background: var(--bg-hover, #eee);
+}
+.cm-live-block--query .qb-th-menu {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  width: 16px;
+  height: 16px;
+  line-height: 14px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #888);
+  cursor: pointer;
+  font-size: 11px;
+  border-radius: 3px;
+}
+.cm-live-block--query .qb-th-menu:hover {
+  background: var(--bg-hover, #eee);
+  color: var(--text);
+}
+.cm-live-block--query .qb-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  padding: 4px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-hover, #f5f5f5) 60%, transparent);
+}
+.cm-live-block--query .qb-btn {
+  border: 1px solid var(--border, #ccc);
+  background: var(--bg, #fff);
+  color: var(--text, #222);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.cm-live-block--query .qb-btn:hover {
+  border-color: var(--accent, #3b82f6);
+  color: var(--accent, #3b82f6);
+}
+.cm-live-block--query .qb-select,
+.cm-live-block--query .qb-input {
+  border: 1px solid var(--border, #ccc);
+  background: var(--bg, #fff);
+  color: var(--text, #222);
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 12px;
+}
+.cm-live-block--query .qb-lbl {
+  font-size: 12px;
+  color: var(--text-muted, #888);
+}
+.cm-live-block--query .qb-conditions {
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  padding: 6px;
+  margin-bottom: 6px;
+  background: color-mix(in srgb, var(--bg-hover, #f5f5f5) 40%, transparent);
+}
+.cm-live-block--query .qb-cond-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin: 4px 0;
+  flex-wrap: wrap;
+}
+.cm-live-block--query .qb-menu {
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #ccc);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  min-width: 130px;
+  padding: 4px 0;
+}
+.cm-live-block--query .qb-menu-item {
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--text, #222);
+  cursor: pointer;
+}
+.cm-live-block--query .qb-menu-item:hover {
+  background: var(--bg-hover, #eee);
+}
+/* Constrain query-table width so it never overflows the editor / preview. */
+.qb--table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.qb--table > table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.qb--table th,
+.qb--table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Empty-result row — keeps a real (header-only) grid visible instead of a
+   bare text placeholder, so the block reads as a fillable empty table. */
+.qb .qb-empty-row {
+  text-align: center;
+  color: var(--text-muted, #999);
+  font-size: 12px;
+  padding: 10px 0;
+}
+
+/* ── v5.0 nested component system ─────────────────────────────────────────── */
+.cm-live-block--component,
+.cs-wrap {
+  margin: 0.8em 0;
+}
+.cs-root,
+.cs-root-inner {
+  display: block;
+}
+.cs-root-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cs-root-add {
+  align-self: flex-start;
+  font-size: 12px;
+  margin-top: 4px;
+}
+/* box props are inline; these are fallbacks for the pure renderer. */
+.cs-stack,
+.cs-grid,
+.cs-tabs-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cs-grid {
+  display: grid;
+  gap: 8px;
+}
+.cs-grid[data-cols="1"] { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.cs-grid[data-cols="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cs-grid[data-cols="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cs-grid[data-cols="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cs-grid[data-cols="5"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.cs-grid[data-cols="6"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.cs-node {
+  min-width: 0;
+}
+/* Rendered component text is read-only but selectable/copyable. CodeMirror
+   replace-widgets are atomic by default; opt their content back into native
+   selection while keeping toolbar / node chrome out of it. The same rule
+   applies to the Preview renderer (.cs-wrap) for identical behaviour. */
+.cm-live-block--component .cs-node-content,
+.cs-wrap .cs-node-content {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+.cm-live-block--component > .cs-toolbar,
+.cm-live-block--component .cs-node-bar,
+.cs-node-bar {
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* Chrome is EXPLICIT: only the small "edit" badge shows in reading mode;
+   all outlines / toolbars / controls appear once the switch is toggled on. */
+.cm-live-block--component {
+  position: relative;
+}
+/* The widget is focused programmatically only to keep CodeMirror from
+   remapping native DOM selection; it is not an interactive control and must
+   render exactly like the Preview component. */
+.cm-live-block--component:focus,
+.cm-live-block--component:focus-visible {
+  outline: none;
+}
+/* Single toggle badge, same corner in both modes: ✎ reading, ✓ editing. */
+.cm-live-block--component > .cs-toolbar {
+  position: absolute;
+  top: -15px;
+  right: 0;
+  z-index: 6;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.12s ease;
+}
+/* Reading mode is faint until hovered; edit mode stays clearly visible. */
+.cm-live-block--component:not(.cs-editing) > .cs-toolbar {
+  opacity: 0.4;
+}
+.cm-live-block--component:not(.cs-editing):hover > .cs-toolbar {
+  opacity: 1;
+}
+.cs-edit-toggle {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+.cs-toolbar-label {
+  font-size: 12px;
+  color: var(--text-muted, #888);
+}
+.cs-node {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 2px;
+  margin: 2px 0;
+  min-width: 0;
+  transition: border-color 0.12s ease;
+}
+/* Only in edit mode do nodes get visible outlines + hover emphasis. */
+.cs-editing .cs-node {
+  border-color: var(--border, #e0e0e0);
+}
+.cs-editing .cs-node:hover {
+  border-color: var(--accent, #3b82f6);
+}
+/* Edit-mode chrome is normal flow: each node's control strip occupies its own
+   row (no absolute overlay), so nested nodes never stack controls on content. */
+.cs-node-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border, #eee);
+  background: color-mix(in srgb, var(--bg-hover, #f5f5f5) 45%, transparent);
+  border-radius: 4px 4px 0 0;
+}
+.cs-node-type,
+.cs-node-add {
+  border: 1px solid var(--border, #ccc);
+  background: var(--bg, #fff);
+  color: var(--text-muted, #888);
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+.cs-node-type:hover,
+.cs-node-add:hover {
+  color: var(--accent, #3b82f6);
+  border-color: var(--accent, #3b82f6);
+}
+.cs-node-spacer {
+  flex: 1;
+}
+.cs-node-content {
+  min-width: 0;
+  gap: 6px;
+}
+.cs-drop-target {
+  outline: 2px dashed var(--accent, #3b82f6);
+  outline-offset: -2px;
+}
+.cs-placeholder {
+  padding: 12px;
+  border: 1px dashed var(--border, #ccc);
+  border-radius: 4px;
+  color: var(--text-muted, #999);
+  font-size: 12px;
+  text-align: center;
+}
+.cs-stack > .cs-node-content {
+  flex-direction: column;
+}
+.cs-grid {
+  display: block;
+}
+.cs-callout {
+  border-left: 3px solid var(--accent, #3b82f6);
+  background: color-mix(in srgb, var(--accent, #3b82f6) 6%, transparent);
+  padding: 8px 10px;
+}
+.cs-callout-title {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.cs-callout-text {
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+.cs-callout--warn {
+  border-left-color: #eab308;
+  background: color-mix(in srgb, #eab308 8%, transparent);
+}
+.cs-callout--danger {
+  border-left-color: #ef4444;
+  background: color-mix(in srgb, #ef4444 8%, transparent);
+}
+.cs-callout--success {
+  border-left-color: #22c55e;
+  background: color-mix(in srgb, #22c55e 8%, transparent);
+}
+.cs-callout--purple {
+  border-left-color: #a855f7;
+  background: color-mix(in srgb, #a855f7 8%, transparent);
+}
+.cs-callout--teal {
+  border-left-color: #14b8a6;
+  background: color-mix(in srgb, #14b8a6 8%, transparent);
+}
+.cs-callout--gray {
+  border-left-color: #6b7280;
+  background: color-mix(in srgb, #6b7280 8%, transparent);
+}
+.cs-callout--accent {
+  border-left-color: var(--accent, #3b82f6);
+  background: color-mix(in srgb, var(--accent, #3b82f6) 8%, transparent);
+}
+.cs-callout-title {
+  color: var(--accent, #3b82f6);
+}
+.cs-callout--warn .cs-callout-title { color: #ca8a04; }
+.cs-callout--danger .cs-callout-title { color: #dc2626; }
+.cs-callout--success .cs-callout-title { color: #16a34a; }
+.cs-callout--purple .cs-callout-title { color: #9333ea; }
+.cs-callout--teal .cs-callout-title { color: #0d9488; }
+.cs-callout--gray .cs-callout-title { color: #4b5563; }
+.cs-text {
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+.cs-tabs-body {
+  padding: 4px 0;
+}
+.cs-props {
+  margin-top: 6px;
+  padding: 6px;
+  border-top: 1px dashed var(--border, #ccc);
+  background: color-mix(in srgb, var(--bg-hover, #f5f5f5) 40%, transparent);
+  border-radius: 4px;
+}
+.cs-props-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.cs-props-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin: 3px 0;
+}
+.cs-props-row input,
+.cs-props-row textarea {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border, #ccc);
+  background: var(--bg, #fff);
+  color: var(--text, #222);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 12px;
+}
+.cs-error {
+  color: var(--danger, #ef4444);
+  font-size: 12px;
+}
+.cs-hint {
+  padding: 10px 12px;
+  border: 1px dashed var(--border, #ccc);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted, #888);
+  margin: 0.5em 0;
+}
+.cs-hint--legacy {
+  border-color: #eab308;
+  color: #a16207;
+  background: color-mix(in srgb, #eab308 6%, transparent);
+}
+.cs-hint--missing {
+  border-color: var(--accent, #3b82f6);
+  color: var(--accent, #3b82f6);
+}
+.cs-ref-name {
+  font-size: 12px;
+  color: var(--text-muted, #888);
+  margin-left: 2px;
+}
+/* Component style presets (style prop → cs-style--*). */
+.cs-style--plain {
+  /* default — no decoration */
+}
+.cs-style--card {
+  border: 1px solid var(--border, #e2e2e2) !important;
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 12px;
+}
+.cs-style--outlined {
+  border: 1px solid var(--border, #ccc) !important;
+  border-radius: 6px;
+  background: transparent;
+  padding: 10px;
+}
+.cs-style--filled {
+  border: none !important;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-hover, #f0f0f0) 70%, transparent);
+  padding: 12px;
+}
+.cs-style--elevated {
+  border: none !important;
+  border-radius: 12px;
+  background: var(--bg, #fff);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  padding: 14px;
+}
+
+/* Print: hide the app shell and show the #xiaoyuan-note-print-overlay instead. */
 @media print {
   /* Everything under <body> except the print overlay: not just #app —
    * dialogs, toasts and popovers are teleported to <body>, and one open
    * while printing (e.g. "file changed on disk") printed its backdrop over
    * every page, leaving them blank. */
-  body.solomd-printing > :not(#solomd-print-overlay) {
+  body.xiaoyuan-note-printing > :not(#xiaoyuan-note-print-overlay) {
     display: none !important;
   }
-  body.solomd-printing #solomd-print-overlay {
+  body.xiaoyuan-note-printing #xiaoyuan-note-print-overlay {
     display: block !important;
     position: static !important;
   }
@@ -808,24 +1611,24 @@ div.mermaidTooltip {
    * makes the printed document exactly one page tall: everything below the
    * first page was clipped, so "导出 PDF（文字）" came out as one page whatever
    * the length. Paper has to grow with the content. */
-  html.solomd-printing,
-  html.solomd-printing body.solomd-printing {
+  html.xiaoyuan-note-printing,
+  html.xiaoyuan-note-printing body.xiaoyuan-note-printing {
     height: auto !important;
     overflow: visible !important;
   }
   /* A table that runs onto the next page repeats its header row there, and a
    * row is never split between two pages. */
-  body.solomd-printing .solomd-print-content thead {
+  body.xiaoyuan-note-printing .xiaoyuan-note-print-content thead {
     display: table-header-group;
   }
-  body.solomd-printing .solomd-print-content tr {
+  body.xiaoyuan-note-printing .xiaoyuan-note-print-content tr {
     break-inside: avoid;
     page-break-inside: avoid;
   }
   /* #293 — the same "paper can't scroll" argument for prose: a paragraph
    * whose words are joined by NO-BREAK SPACE (Word / web / chat pastes) is
    * one unbreakable run to the layout engine and runs off the page. */
-  body.solomd-printing .solomd-print-content {
+  body.xiaoyuan-note-printing .xiaoyuan-note-print-content {
     overflow-wrap: break-word;
   }
   /* #370 — and for table cells. `break-word` above doesn't help there: it
@@ -835,36 +1638,36 @@ div.mermaidTooltip {
    * `word-break: break-word` for WebKit) lets such a run break, so the table
    * fits the page. Text with normal break points is laid out as before, and
    * short cells keep `.cell-nowrap` (#271). */
-  body.solomd-printing .solomd-print-content th,
-  body.solomd-printing .solomd-print-content td {
+  body.xiaoyuan-note-printing .xiaoyuan-note-print-content th,
+  body.xiaoyuan-note-printing .xiaoyuan-note-print-content td {
     overflow-wrap: anywhere;
     word-break: break-word;
   }
   /* #178: paper can't scroll — always wrap code lines in print/PDF so
    * anything wider than the page isn't silently cut off. Applies
    * regardless of the on-screen codeBlockWrap setting. */
-  body.solomd-printing .solomd-print-content pre {
+  body.xiaoyuan-note-printing .xiaoyuan-note-print-content pre {
     white-space: pre-wrap !important;
     overflow-wrap: break-word;
     word-break: break-word;
     overflow-x: visible !important;
   }
-  body.solomd-printing .md-toc {
+  body.xiaoyuan-note-printing .md-toc {
     break-inside: avoid-page;
     background: transparent;
   }
   /* #347 — a TOC at the top of the document (Settings → PDF "table of
    * contents", or a leading [TOC]) is a page of its own. */
-  body.solomd-printing .solomd-print-content > .md-toc:first-child {
+  body.xiaoyuan-note-printing .xiaoyuan-note-print-content > .md-toc:first-child {
     break-after: page;
     page-break-after: always;
   }
 }
 /* On-screen the overlay must be invisible — @media print flips it. */
-#solomd-print-overlay {
+#xiaoyuan-note-print-overlay {
   display: none;
 }
-body.solomd-printing {
+body.xiaoyuan-note-printing {
   background: white !important;
   color: black !important;
 }
@@ -881,7 +1684,7 @@ body.solomd-printing {
    The light palette has neutral accents (#332 follow-up): bars and rules
    dark gray, links blue, no beige code blocks. It matches the HTML export and
    the image PDF, so every export looks like the same document. */
-#solomd-print-overlay.print-theme-light {
+#xiaoyuan-note-print-overlay.print-theme-light {
   --bg: #ffffff;
   --bg-elev: #f6f8fa;
   --bg-elevated: #f6f8fa;
@@ -922,7 +1725,7 @@ body.solomd-printing {
   background: #ffffff;
   color: #37352f;
 }
-#solomd-print-overlay.print-theme-dark {
+#xiaoyuan-note-print-overlay.print-theme-dark {
   --bg: #1f1e1b;
   --bg-elev: #23221f;
   --bg-elevated: #23221f;
@@ -967,17 +1770,17 @@ body.solomd-printing {
    prints dark text on white; the light one needs it too — in the macOS text
    PDF code blocks lost their shading and comments / quotes came out close to
    invisible. */
-#solomd-print-overlay,
-#solomd-print-overlay.print-theme-dark,
-body.solomd-printing--dark {
+#xiaoyuan-note-print-overlay,
+#xiaoyuan-note-print-overlay.print-theme-dark,
+body.xiaoyuan-note-printing--dark {
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-body.solomd-printing--dark {
+body.xiaoyuan-note-printing--dark {
   background: #1f1e1b !important;
   color: #e6e1d8 !important;
 }
-:where(.solomd-print-content) {
+:where(.xiaoyuan-note-print-content) {
   max-width: none !important;
   padding: 0 !important;
   /* Inherit from the overlay so the print palette above decides unless a
@@ -1054,6 +1857,22 @@ body.solomd-printing--dark {
    editor). The export stylesheets carry their own copy. */
 .cell-nowrap {
   white-space: nowrap;
+}
+
+/* ── 全局统一输入框/下拉 focus 高亮 ─────────────────────────────────
+ * 取代原先各组件各自 4px 的 --ring，统一为 1px 紧致光晕 (--ring-tight，已改为
+ * inset 以彻底避免被滚动容器裁切)。覆盖 Ds 组件与所有手写输入框/下拉框；排除
+ * CodeMirror 隐藏 textarea、原生 checkbox/radio/range/file/color，以及菜单搜索
+ * 框的内部 input (.hsearch__input)——它的聚焦环由外层 .hsearch 容器的
+ * :focus-within 负责，若这里再套一圈就会变成双环（内侧那圈即"内部聚焦框"）。 */
+input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not(.cm-textarea):not(.hsearch__input):focus,
+input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not(.cm-textarea):not(.hsearch__input):focus-visible,
+select:focus,
+select:focus-visible,
+textarea:not(.cm-textarea):focus,
+textarea:not(.cm-textarea):focus-visible {
+  box-shadow: var(--ring-tight) !important;
+  outline: none;
 }
 
 /* #352 — words matched by the settings search (CSS Custom Highlight API). */

@@ -16,4 +16,4 @@ FEINSCHLIFF & FEHLERBEHEBUNGEN
 • Behoben: Tippen mit CJK-Eingabemethoden wird nicht mehr mitten in der Eingabe unterbrochen
 • Viele kleinere Fehlerbehebungen und Leistungsverbesserungen seit 4.1
 
-Gefällt dir SoloMD? Bewerte die App im App Store und empfiehl sie anderen Schreibenden!
+Gefällt dir xiaoyuanNote? Bewerte die App im App Store und empfiehl sie anderen Schreibenden!

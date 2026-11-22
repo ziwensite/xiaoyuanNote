@@ -1,4 +1,4 @@
-SoloMD 5.0 – en lugnare plats att skriva på.
+xiaoyuanNote 5.0 – en lugnare plats att skriva på.
 
 • Ett omgjort fönster: ett stillsamt sidhuvud där Live / Källa / Delad / Förhandsvisning ligger ett tryck ifrån varandra, ett sidofält för mappar och anteckningar, pillerformade flikar och en liten ordräknare i stället för ett statusfält.
 • iPhone: en startskärm för anteckningar, sökning och en knapp för ny anteckning längst ned, och en redigerare i helskärm.

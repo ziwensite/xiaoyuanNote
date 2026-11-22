@@ -1,4 +1,4 @@
-# SoloMD 5.0 候选版验收 — 2026-10-10
+# xiaoyuanNote 5.0 候选版验收 — 2026-10-10
 
 状态：截至 2026-10-11，Windows 最终候选包续验收进行中，尚未放行正式发布。
 
@@ -25,10 +25,10 @@
 
 | 检查 | 结果 | 证据 |
 |---|---|---|
-| 前端 node:test | 447 通过，0 失败 | `.local/v5-acceptance/2026-10-10/solomd-v5-acceptance-tests-final.log` |
-| Rust 库 | 214 通过，0 失败 | 同目录 `solomd-v5-acceptance-rust.log` |
-| Rust 主程序 | 235 通过，0 失败 | 同目录 `solomd-v5-acceptance-bin.log` |
-| MCP 全套 | 52 通过，0 失败 | 同目录 `solomd-v5-acceptance-mcp.log` |
+| 前端 node:test | 447 通过，0 失败 | `.local/v5-acceptance/2026-10-10/xiaoyuan-note-v5-acceptance-tests-final.log` |
+| Rust 库 | 214 通过，0 失败 | 同目录 `xiaoyuan-note-v5-acceptance-rust.log` |
+| Rust 主程序 | 235 通过，0 失败 | 同目录 `xiaoyuan-note-v5-acceptance-bin.log` |
+| MCP 全套 | 52 通过，0 失败 | 同目录 `xiaoyuan-note-v5-acceptance-mcp.log` |
 | Mac 最终源码完整回归 | 71 项通过，0 失败 | 同目录 `mac-all-final.json` |
 | Android 最终 ARM64 签名 APK | 19 项通过，0 失败（Android 14 模拟器） | 同目录 `android-final/results.json`、截图和 UI dump |
 | 最终生产前端构建 | vue-tsc + Vite 通过 | 同目录 `android-build.log` |
@@ -42,7 +42,7 @@ L01 初次失败来自 attach 模式没有取得进程组；补上正确进程�
 
 - Android：包含全部修复的 ARM64 正式签名验收 APK 已生成，安装包回归 19/19 通过。
   `apksigner verify` 确认 APK v2 签名有效；安装版本 5.0.0 / 5000000，设备与本地包 MD5 一致，包内原生库与最终构建一致且满足 16KB 对齐。
-  候选包归档为证据目录 `SoloMD_5.0.0_arm64-v8a.apk`，SHA256 见 `android-apk-sha256.txt`。
+  候选包归档为证据目录 `XIAOYUAN_NOTE_5.0.0_arm64-v8a.apk`，SHA256 见 `android-apk-sha256.txt`。
   首轮被模拟器已有的 System UI ANR 弹窗遮挡；系统事件记录显示该异常发生在测试安装之前。保留首轮截图和日志，恢复环境后从安装开始完整重跑通过。
   本轮是模拟器验证，未替代实体 Android 手机测试。
   之前多架构 APK 构建后发现后台文档关闭风险，该批 APK 没有最终关闭保护，不能作为本次最终候选包。
@@ -67,7 +67,7 @@ L01 初次失败来自 attach 模式没有取得进程组；补上正确进程�
 ## 2026-10-11 续验收（本轮本机工作完成）
 
 - 在最终修复源码上生成 Mac universal 签名、公证包及 Linux ARM64 发行包；不使用此前旧包替代。
-- 新发现 Mac MCP 打包阻断：本机 `solomd-mcp-universal-apple-darwin` 的 MCP initialize 响应为 0.1.0。原脚本仅重建 host 架构，通用包可沿用旧的通用 MCP。
+- 新发现 Mac MCP 打包阻断：本机 `xiaoyuan-note-mcp-universal-apple-darwin` 的 MCP initialize 响应为 0.1.0。原脚本仅重建 host 架构，通用包可沿用旧的通用 MCP。
   已修改 `scripts/build-mac.sh`，在 Tauri 构建前重建 ARM64 和 x86_64 MCP，再用 lipo 合并；最终 Mac app/DMG 已生成；包内 MCP 在 ARM64 和 Intel 上实际 initialize 均返回 5.0.0。
 - Linux 独立副本中的四项产品修复 SHA256 与本机一致。虚拟机 pnpm 11 的安装脚本许可配置采用临时 `allowBuilds`（esbuild 允许、core-js 禁止），未修改产品依赖。
   配置依据 [pnpm 11 官方变更说明](https://github.com/pnpm/pnpm.io/blob/main/blog/releases/11.0.md)。
@@ -79,9 +79,9 @@ L01 初次失败来自 attach 模式没有取得进程组；补上正确进程�
 
 - Mac universal Developer ID DMG：构建、签名、公证及 stapling 完成。应用、MCP、Quick Look 均含 ARM64/x86_64；Gatekeeper 接受；Quick Look 沙盒 entitlement 正常。只读挂载 DMG 后，包内三份二进制 SHA256 与已验证 app 一致。
   证据：`mac-package-verification.json`、`mac-dmg-verification.json`、`mac-build-final.log`、归档 DMG 及 SHA256。
-  签名包交互检查尚未运行：用户当前运行 `/Applications/SoloMD.app`，为避免单实例转发影响该进程，已请求用户保存后退出，尚未收到答复。
+  签名包交互检查尚未运行：用户当前运行 `/Applications/xiaoyuannote.app`，为避免单实例转发影响该进程，已请求用户保存后退出，尚未收到答复。
 - iOS 修复后发行 IPA：5.0.0 / build 5.0.1，iphoneos26.5，UIScene manifest 存在，codesign deep/strict 验证通过，发行 profile 的 get-task-allow=false。IPA 已归档，未上传。
-  证据：`ios-package-verification.json`、`ios-build.log`、`SoloMD_5.0.0_build_5.0.1.ipa`。未替代实体设备运行验收。
+  证据：`ios-package-verification.json`、`ios-build.log`、`XIAOYUAN_NOTE_5.0.0_build_5.0.1.ipa`。未替代实体设备运行验收。
 - Linux ARM64 DEB/RPM/AppImage：正式 release 构建完成并归档。URL 和表格关闭保护的真实界面补测通过；完整套件 32/32 通过。
   新增 Linux 用例初始化及 OCR 识别错误已修正，之前的测试失败及截图均保留；这几轮未修改产品逻辑。
 - Android 最终源码全架构 APK/AAB 构建完成；最终 ARM64 签名 APK 在 Android 14 模拟器安装回归 19/19 通过。
@@ -96,7 +96,7 @@ L01 初次失败来自 attach 模式没有取得进程组；补上正确进程�
 本次新增修复为 Mac 构建脚本的旧 MCP 混包问题；本轮没有新增产品逻辑修改。
 Linux 32/32、Android 最终 ARM64 APK 19/19 均通过；Mac 签名/公证 DMG、iOS 发行 IPA、Android 全架构 APK/AAB 均已生成并归档。
 仍不放行正式发布：Windows 最终 MSI 验收、iOS 真机/TestFlight 运行和 Mac 签名包交互验收尚未完成。
-本次启动的 Linux/Windows 虚拟机及 Android 模拟器已关闭。用户正在运行的 SoloMD 和原有未跟踪文件未改动。
+本次启动的 Linux/Windows 虚拟机及 Android 模拟器已关闭。用户正在运行的 xiaoyuanNote 和原有未跟踪文件未改动。
 所有代码及回归用例仍未提交；未 push、上传商店、送审或公开发布（Mac 公证已完成）。
 
 ## 2026-10-11 第二轮续验收（进行中）
@@ -118,11 +118,11 @@ Windows 最终 ARM64 MSI 构建及安装完成，SHA256 `8cc5a9972758606c6f0ee9d
    - 驱动修正并重新对齐为 UIA `@DataItem` 后，Check 25 单项验证 100% 通过（遮罩防丢、Ctrl+W 保存提示、取消保留草稿、Esc 弹出提示、应用后写回磁盘）。
    - 全套 31 项实机 UI 自动化回归重新执行完成，**31 项全数通过（31 passed, 0 failed）**。日志与产物归档于 `.local/v5-acceptance/2026-10-12/windows-final/`，结果文件为 `results.json`。
 2. **Mac Universal 签名 DMG 实机交互验收通过**：
-   - 用户退出本地运行的 `/Applications/SoloMD.app` 避免单实例冲突后，只读挂载 Universal DMG。
+   - 用户退出本地运行的 `/Applications/xiaoyuannote.app` 避免单实例冲突后，只读挂载 Universal DMG。
    - 验证 Gatekeeper、公证票据、深层签名全部通过；ARM64 / x86_64 双架构 MCP initialize 均返回 5.0.0。
    - 实机拉起应用加载测试笔记，通过 AX 成功读取 137 项原生菜单，校验保存（`⌘S`）、加粗（`⇧⌘B`）、新建（`⌘N`）及中文「关于」菜单，平稳接收信号退出。证据见 `.local/v5-acceptance/2026-10-12/mac-signed-interaction.json`。
 3. **iOS 发行包 App Store Connect 官方验证通过**：
-   - 使用团队 API Key 调用 `xcrun altool --validate-app` 对 `SoloMD_5.0.0_build_5.0.1.ipa` 执行合规性校验。
+   - 使用团队 API Key 调用 `xcrun altool --validate-app` 对 `XIAOYUAN_NOTE_5.0.0_build_5.0.1.ipa` 执行合规性校验。
    - 苹果服务器返回 `VERIFY SUCCEEDED with no errors`，代码签名、UIScene manifest 与 App Store 规范完全通过。
 
 ## 最终放行结论

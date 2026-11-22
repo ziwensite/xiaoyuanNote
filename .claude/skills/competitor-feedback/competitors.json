@@ -9,7 +9,7 @@
     { "name": "MarkText", "github": "marktext/marktext",        "note": "Typora-like WYSIWYG; mostly stalled (mine for migration pain)" },
     { "name": "MiaoYan",  "github": "tw93/MiaoYan",             "note": "lightweight Mac md editor, CN" },
     { "name": "Khoj",     "github": "khoj-ai/khoj",             "note": "RAG-over-notes; AI-feature rival" },
-    { "name": "Typora",   "github": null, "web": ["https://forum.typora.io/c/bug-report/6", "https://www.reddit.com/r/Typora/"], "note": "closed-source; THE migration source for SoloMD users" },
+    { "name": "Typora",   "github": null, "web": ["https://forum.typora.io/c/bug-report/6", "https://www.reddit.com/r/Typora/"], "note": "closed-source; THE migration source for xiaoyuanNote users" },
     { "name": "Obsidian", "github": null, "web": ["https://forum.obsidian.md/c/bug-reports/3", "https://www.reddit.com/r/ObsidianMD/"], "note": "closed-source; biggest md vault competitor" }
   ]
 }

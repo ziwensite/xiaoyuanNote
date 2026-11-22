@@ -2,14 +2,14 @@
 
 ## Why
 
-Windows 的 44px 标题行现在显示「文档名 — SoloMD」，而编辑器标签页已经能识别当前文档，这段文字是纯冗余。把这一行改成可直接输入的搜索框，并把散落的全局搜索入口收敛到一处，能让「最顶部」同时承担窗口拖动与全文检索，减少三个并存入口。
+Windows 的 44px 标题行现在显示「文档名 — xiaoyuanNote」，而编辑器标签页已经能识别当前文档，这段文字是纯冗余。把这一行改成可直接输入的搜索框，并把散落的全局搜索入口收敛到一处，能让「最顶部」同时承担窗口拖动与全文检索，减少三个并存入口。
 
 ## What Changes
 
-- Windows：`titlebar__title`（`<span aria-hidden>`，内容为「文档名 — SoloMD」）替换为内联搜索框；文档名显示消失。
+- Windows：`titlebar__title`（`<span aria-hidden>`，内容为「文档名 — xiaoyuanNote」）替换为内联搜索框；文档名显示消失。
 - 其他桌面平台（macOS / Linux）：header 左段原来的「面板名 caption」替换为同一个搜索框，位置在顶部行已有的两个面板 toggle 之后（macOS 的 80px 交通灯 inset 已由 `.toolbar` 的 `padding-left` 保证）。
 - 删除 header 右侧的搜索图标按钮；删除左侧 dock 内嵌 `Sidebar` 的「搜索」行（仅桌面 embedded；手机 `variant="phone"` 保留）；从 pane 注册表删除 `search` 面板（旧持久化数据由 `sanitizeSidebarDock` 自动丢弃未知 id）。
-- 搜索源不重写：复用 `useGlobalSearch().search()` 与 `GlobalSearch.vue` 的打开命中行为（`files.openPath` + `solomd:outline-goto`）。
+- 搜索源不重写：复用 `useGlobalSearch().search()` 与 `GlobalSearch.vue` 的打开命中行为（`files.openPath` + `xiaoyuan-note:outline-goto`）。
 - **BREAKING（视觉）**：文档名不再显示在窗口内；`search` 面板从 dock 的 `+` 列表与右键菜单消失。
 - 新增共享入口状态 `app/src/lib/header-search.ts`（响应式 prefill + focus 请求），供 TagsPanel 的 `#tag` 预填与命令/快捷键调用。
 - 新增 i18n 键（15 个语言）：`header.searchLabel`、`header.searchClear`；其余文案复用现有 `search.*`。
@@ -27,7 +27,7 @@ Windows 的 44px 标题行现在显示「文档名 — SoloMD」，而编辑器�
 - 收起/展开：顶部行左右各一个 toggle（已完成于第一段），不新增。
 - `+`：留在标签条末尾（已完成），不新增。
 - 搜索：**唯一可见入口是标题行搜索框**。header 搜索图标删除；左侧 dock 的「搜索」行（桌面 embedded）删除；dock 的 `search` pane 从注册表删除。⌘⇧F、View › Search in Folder、命令面板 `search.global` 全部映射到「聚焦搜索框」，只有 `header-search.ts` 一个状态源，不出现第二套面板开关。
-- 语义检索（RAG）：⌘⇧F 不再分支到 RAG 弹窗；新增命令 `search.semantic` 派发 `solomd:open-rag-search`，App 监听后打开现有 `RagSearch`。⌘⇧F 的注释写明“聚焦框，不开右栏面板”。
+- 语义检索（RAG）：⌘⇧F 不再分支到 RAG 弹窗；新增命令 `search.semantic` 派发 `xiaoyuan-note:open-rag-search`，App 监听后打开现有 `RagSearch`。⌘⇧F 的注释写明“聚焦框，不开右栏面板”。
 
 ### D2 窗口标题与可见文本是两回事
 
@@ -42,7 +42,7 @@ Windows 的 44px 标题行现在显示「文档名 — SoloMD」，而编辑器�
 ### D4 键盘语义
 
 - ↑ / ↓：在扁平命中列表内移动选中项（钳制，不循环）；无结果时不动。
-- Enter：打开当前选中命中（`files.openPath` + 下一 tick 派发 `solomd:outline-goto`）。
+- Enter：打开当前选中命中（`files.openPath` + 下一 tick 派发 `xiaoyuan-note:outline-goto`）。
 - Esc：第一下收起下拉（保留输入文本、保留焦点）；第二下清空输入并失焦，焦点还原给编辑器（`focusActiveEditorSoon()` 或等价现有 helper）。
 - IME：`isComposing || keyCode === 229` 时直接返回（与 QuickSwitcher / CommandPalette 一致）。
 - ⌘⇧F：聚焦并全选输入框内容（不打开右栏、不打开面板）。

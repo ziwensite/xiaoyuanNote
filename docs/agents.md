@@ -1,8 +1,8 @@
-# Agents in SoloMD
+# Agents in xiaoyuanNote
 
 > **Status:** v4.0 (May 2026). Companion to `docs/roadmap.md` § "v4.0 — Agent-native author".
 
-SoloMD treats agents as **first-class editor surfaces**, not external CLI handoffs. This doc is the
+xiaoyuanNote treats agents as **first-class editor surfaces**, not external CLI handoffs. This doc is the
 *write-your-own-agent* guide: the YAML schema, what tools exist, the safety model, and the patterns
 that work. If you just want to install a starter, open **Settings → Recipes → Browse cookbook**.
 
@@ -10,7 +10,7 @@ that work. If you just want to install a starter, open **Settings → Recipes �
 
 ## TL;DR — three things to know
 
-1. **A recipe is one YAML file** under `<workspace>/.solomd/agents/*.yml`. No build step, no plugin
+1. **A recipe is one YAML file** under `<workspace>/.xiaoyuan-note/agents/*.yml`. No build step, no plugin
    manifest. Edit, save, run.
 2. **Every run is sandboxed** on its own AutoGit branch (`agent/<recipe>/<run-id>`). Writes don't
    touch `main` until you click **Accept** in Settings → Recipes → Pending.
@@ -142,7 +142,7 @@ is 5 will get refusals starting at the 6th call, with no half-applied state.
 Every run materializes a directory:
 
 ```
-<workspace>/.solomd/agent-runs/<run-id>/
+<workspace>/.xiaoyuan-note/agent-runs/<run-id>/
 ├── meta.json     ← provider / model / status / token totals / cost estimate
 ├── trace.jsonl   ← one JSON line per step (prompt / model_call / tool_call / tool_result / done)
 └── run.md        ← human-readable transcript with tool blocks inline
@@ -224,7 +224,7 @@ By design:
   want "Recipe A then Recipe B," chain them via the trace: Recipe B reads `read_agent_trace` of
   Recipe A's run.
 - **No external HTTP calls from the prompt.** The model only has the tools listed above. If you
-  need to fetch from an external API, write a custom MCP tool (see the `solomd-mcp` source).
+  need to fetch from an external API, write a custom MCP tool (see the `xiaoyuan-note-mcp` source).
 - **No long-running background work.** Recipes are bounded by the model's context window and
   the tool-loop cap (default 8 round-trips). Long jobs should be split into multiple scheduled
   runs.

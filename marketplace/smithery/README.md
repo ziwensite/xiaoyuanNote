@@ -1,17 +1,17 @@
-# Smithery submission — `solomd-mcp`
+# Smithery submission — `xiaoyuan-note-mcp`
 
 ## Status
 
 ⏸️ **Deferred** (as of 2026-05-31). Smithery's current
 [web publish form](https://smithery.ai/new) requires an HTTP-accessible
-MCP endpoint (`https://your-server.com/mcp`). `solomd-mcp` is **stdio
+MCP endpoint (`https://your-server.com/mcp`). `xiaoyuan-note-mcp` is **stdio
 JSON-RPC** only — the same transport every reference MCP server uses, and
 the one Claude Desktop / Claude Code / Cursor / Cline / Continue / Zed
 all drive natively over a child process.
 
 Two paths to re-enable this market:
 
-1. **Build an HTTP/SSE transport wrapper** for `solomd-mcp` — a small
+1. **Build an HTTP/SSE transport wrapper** for `xiaoyuan-note-mcp` — a small
    sidecar that bridges HTTP requests to the stdio handler. Tracked for
    v4.5.
 2. **Wait for Smithery to re-open stdio submissions** — `smithery-ai/registry`
@@ -29,24 +29,24 @@ distribution exactly the same way Smithery wants it.
 |---|---|
 | [`smithery.yaml`](smithery.yaml) | The actual registry entry. Tells Smithery how to install the server (binary downloads per OS + arch), what tools it exposes, what the user has to configure, and which categories to file it under. |
 | [`Dockerfile`](Dockerfile) | Fallback runtime — built from the repo root. Used by Smithery when the user opts into Docker mode or when their platform isn't covered by the prebuilt binaries (currently macOS arm64/x64 standalone — those users hit `cargo install` instead). |
-| [`listing.md`](listing.md) | Long-form description that Smithery surfaces on the listing page. Embeds `_shared/about-solomd.md` + `_shared/tools.md`. |
+| [`listing.md`](listing.md) | Long-form description that Smithery surfaces on the listing page. Embeds `_shared/about-xiaoyuan-note.md` + `_shared/tools.md`. |
 | [`screenshots/`](screenshots/) | PNGs the listing references. **TODO** — capture from the desktop app's Agent panel + a Claude Desktop session driving the MCP. |
 
 ## Submitting
 
 1. Fork [smithery-ai/registry](https://github.com/smithery-ai/registry).
-2. Add `servers/solomd-mcp/smithery.yaml` — copy from this directory.
-3. Add `servers/solomd-mcp/listing.md` — copy from this directory.
+2. Add `servers/xiaoyuan-note-mcp/smithery.yaml` — copy from this directory.
+3. Add `servers/xiaoyuan-note-mcp/listing.md` — copy from this directory.
 4. Open a PR with:
 
-   **Title**: `Add solomd-mcp — MCP server for SoloMD Markdown vaults`
+   **Title**: `Add xiaoyuan-note-mcp — MCP server for xiaoyuanNote Markdown vaults`
 
    **Body** (paste verbatim):
 
    ```markdown
    ## What
 
-   solomd-mcp is the MCP server bundled with [SoloMD](https://solomd.app),
+   xiaoyuan-note-mcp is the MCP server bundled with [xiaoyuanNote](https://xiaoyuannote.app),
    a free MIT-licensed Markdown editor with a built-in agent surface.
 
    16 tools over stdio (JSON-RPC, 15 listed by default):
@@ -62,13 +62,13 @@ distribution exactly the same way Smithery wants it.
 
    - Prebuilt binaries on every GitHub release for linux-x64, linux-arm64,
      win-x64, win-arm64 (~4 MB each).
-   - macOS users install via `cargo install solomd-mcp` or use the bundled
-     binary inside the SoloMD.app distribution.
+   - macOS users install via `cargo install xiaoyuan-note-mcp` or use the bundled
+     binary inside the xiaoyuannote.app distribution.
    - Dockerfile included for unsupported platforms / containerised deploys.
 
    ## Why it belongs on Smithery
 
-   - Works against any folder of `.md` files — no SoloMD account or
+   - Works against any folder of `.md` files — no xiaoyuanNote account or
      server required.
    - The AutoGit, sync-status and share-URL tools are not available in
      any other MCP server we know of.
@@ -79,25 +79,25 @@ distribution exactly the same way Smithery wants it.
    ## Verification
 
    - `npm run lint` on smithery.yaml: passes locally.
-   - Docker build from repo root: `docker build -t solomd-mcp -f marketplace/smithery/Dockerfile .` — completes in ~2 min.
-   - `solomd-mcp --workspace /tmp/test-vault` followed by an MCP `initialize`
+   - Docker build from repo root: `docker build -t xiaoyuan-note-mcp -f marketplace/smithery/Dockerfile .` — completes in ~2 min.
+   - `xiaoyuan-note-mcp --workspace /tmp/test-vault` followed by an MCP `initialize`
      handshake responds with the full tool list (verified against Claude
      Desktop, Claude Code, and Cline).
 
    ## Maintainer
 
-   @zhitongblog (Alex / lixd220@gmail.com) — same as the SoloMD repo owner.
+   @zhitongblog (Alex / lixd220@gmail.com) — same as the xiaoyuanNote repo owner.
    ```
 
 5. Once merged, Smithery's indexer picks it up within ~1 hour. The listing
-   URL will be `https://smithery.ai/server/solomd-mcp`.
+   URL will be `https://smithery.ai/server/xiaoyuan-note-mcp`.
 
 ## After the listing is live
 
 - Update [`../README.md`](../README.md)'s status table.
 - Add the Smithery install badge to the root README:
   ```markdown
-  [![Install on Smithery](https://smithery.ai/badge/solomd-mcp)](https://smithery.ai/server/solomd-mcp)
+  [![Install on Smithery](https://smithery.ai/badge/xiaoyuan-note-mcp)](https://smithery.ai/server/xiaoyuan-note-mcp)
   ```
 - Tweet / post to https://x.com/anthropic + r/ClaudeAI / r/LocalLLaMA with
   the listing URL.

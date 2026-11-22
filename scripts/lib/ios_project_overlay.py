@@ -52,7 +52,7 @@ def expand(value, required):
 
 
 def walk(root, dotted, create=False):
-    """Resolve 'targets.solomd_iOS.preBuildScripts.0.script' to (container, key).
+    """Resolve 'targets.XIAOYUAN_NOTE_iOS.preBuildScripts.0.script' to (container, key).
     Numeric segments index lists."""
     node, parts = root, dotted.split(".")
     for part in parts[:-1]:

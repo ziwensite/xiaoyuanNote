@@ -1,5 +1,5 @@
-param([string]$Exe = "C:\Program Files\SoloMD\SoloMD.exe", [string]$StepsFile, [string]$Out = "C:\Users\Public\regress\o-x",
-      [string]$WinClass = "Tauri Window", [string]$ProcName = "SoloMD", [string]$Vault = "C:\Users\zhitong\Desktop\regress-vault",
+param([string]$Exe = "C:\Program Files\xiaoyuanNote\xiaoyuan-note.exe", [string]$StepsFile, [string]$Out = "C:\Users\Public\regress\o-x",
+      [string]$WinClass = "Tauri Window", [string]$ProcName = "xiaoyuanNote", [string]$Vault = "C:\Users\zhitong\Desktop\regress-vault",
       [string]$Pin = "0,0,1400,800", [string]$Engine = "cm")
 # Regression step driver — an extended copy of scripts/dev/win-ui-steps.ps1.
 # Runs INSIDE the interactive desktop (session 1) via a scheduled task; every input is real
@@ -112,8 +112,8 @@ function Launch([string]$argline = '') {
   for ($i = 0; $i -lt 60 -and $script:target -eq [IntPtr]::Zero; $i++) { Start-Sleep -Milliseconds 500; FindWin }
   $script:main = $script:target; L "window=$script:target"
   if ($script:target -eq [IntPtr]::Zero) { Check 'launch.window' $false 'no Tauri Window within 30s'; return }
-  # the web UI needs a few seconds before shortcuts register; wait for a real title (the app sets "<file> — SoloMD")
-  for ($i = 0; $i -lt 40 -and -not ((TitleOf $script:target) -match 'SoloMD'); $i++) { Start-Sleep -Milliseconds 500 }
+  # the web UI needs a few seconds before shortcuts register; wait for a real title (the app sets "<file> — xiaoyuanNote")
+  for ($i = 0; $i -lt 40 -and -not ((TitleOf $script:target) -match 'xiaoyuanNote'); $i++) { Start-Sleep -Milliseconds 500 }
   Start-Sleep -Seconds 2
   Pin; Fg
   # Chromium builds its accessibility tree lazily, on the first UIA query: prime it so uclick/uia work at once
@@ -165,7 +165,7 @@ function Unesc([string]$s) { return $s.Replace('\r', "`r").Replace('\n', "`n").R
 # fraction of sampled pixels that differ from the median colour — ~0 means a blank (all-white) window
 function Variance($bmp) { $cnt = @{}; $n = 0; for ($x = 5; $x -lt $bmp.Width; $x += 17) { for ($y = 5; $y -lt $bmp.Height; $y += 17) { $c = $bmp.GetPixel($x, $y).ToArgb(); $cnt[$c] = 1 + [int]$cnt[$c]; $n++ } }
   $top = ($cnt.Values | Measure-Object -Maximum).Maximum; return [double](1 - $top / [Math]::Max(1, $n)) }
-function WebviewWs { $wv = @(Get-CimInstance Win32_Process -Filter "Name='msedgewebview2.exe'" | ? { $_.CommandLine -match 'solomd' }); $tot = 0
+function WebviewWs { $wv = @(Get-CimInstance Win32_Process -Filter "Name='msedgewebview2.exe'" | ? { $_.CommandLine -match 'xiaoyuanNote' }); $tot = 0
   foreach ($q in $wv) { $pp = Get-Process -Id $q.ProcessId -EA SilentlyContinue; if ($pp) { $tot += $pp.WorkingSet64 } }; return [int]($tot / 1MB) }
 $vars = @{}
 function UiaName([string]$rx) { foreach ($e in (UiaAll $script:target)) { try { if ($e.Current.Name -match $rx -and -not $e.Current.IsOffscreen) { return $e.Current.Name } } catch {} }; return $null }
@@ -175,7 +175,7 @@ function TaskbarClick([string]$name) { $tb = [System.Windows.Automation.Automati
   if (-not $btn) { return $false }; $b = $btn.Current.BoundingRectangle; ClickScreen ([int]($b.X + $b.Width/2)) ([int]($b.Y + $b.Height/2)); L "taskbar click '$($btn.Current.Name)'"; return $true }
 
 Get-Process $ProcName -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
-Get-Process msedgewebview2 -EA SilentlyContinue | ? { try { (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)").CommandLine -match 'solomd' } catch { $false } } | Stop-Process -Force -EA SilentlyContinue
+Get-Process msedgewebview2 -EA SilentlyContinue | ? { try { (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)").CommandLine -match 'xiaoyuanNote' } catch { $false } } | Stop-Process -Force -EA SilentlyContinue
 Start-Sleep 1
 $lines = Get-Content -Path $StepsFile -Encoding UTF8
 foreach ($st in $lines) { $st = $st.TrimEnd("`r"); if (-not $st.Trim() -or $st.TrimStart().StartsWith('#')) { continue }

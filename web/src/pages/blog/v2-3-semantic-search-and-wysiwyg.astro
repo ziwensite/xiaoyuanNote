@@ -8,7 +8,7 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD v2.3 — Semantic search, WYSIWYG live edit, Windows portable"
+  title="xiaoyuanNote v2.3 — Semantic search, WYSIWYG live edit, Windows portable"
   description="Search your notes by meaning, not just keywords — 100% on-device, no model file download. Plus a Typora-style live edit mode, a 10× Windows file-tree speedup, a portable .zip build, and a new internal MCP-driven self-test bridge."
   lang={lang}
 >
@@ -47,7 +47,7 @@ const lang = 'en' as const;
           when off; no scanning, no index file.
         </li>
         <li>
-          Index lives at <code>&lt;workspace&gt;/.solomd/embeddings.sqlite</code>
+          Index lives at <code>&lt;workspace&gt;/.xiaoyuan-note/embeddings.sqlite</code>
           — a plain SQLite file you can <code>sqlite3 .schema</code> into. Auto-
           gitignored when AutoGit is on.
         </li>
@@ -102,10 +102,10 @@ const lang = 'en' as const;
 
       <h2>📦 Windows portable .zip</h2>
       <p>
-        Requested by <a href="https://github.com/zhitongblog/solomd/issues/27" rel="external">issue #27</a>:
+        Requested by <a href="https://github.com/zhitongblog/xiaoyuan-note/issues/27" rel="external">issue #27</a>:
         a no-installer Windows build. Each release now produces
-        <code>SoloMD_&lt;version&gt;_x64-portable.zip</code> alongside the
-        existing .msi / .exe. Just unzip and run <code>SoloMD.exe</code> — no
+        <code>XIAOYUAN_NOTE_&lt;version&gt;_x64-portable.zip</code> alongside the
+        existing .msi / .exe. Just unzip and run <code>xiaoyuan-note.exe</code> — no
         admin, no registry writes, runs from a USB stick.
       </p>
       <p>
@@ -118,14 +118,14 @@ const lang = 'en' as const;
       <ul>
         <li>
           <strong>Win11 file-tree crash on toggle</strong>
-          (<a href="https://github.com/zhitongblog/solomd/issues/25" rel="external">#25</a>)
+          (<a href="https://github.com/zhitongblog/xiaoyuan-note/issues/25" rel="external">#25</a>)
           — fixed in v2.2.1; root cause was a synchronous <code>list_dir</code>
           Tauri command blocking the main thread on slow filesystems
           (OneDrive placeholders, network drives, antivirus). Now async + spawn_blocking.
         </li>
         <li>
           <strong>Windows local images not displaying</strong>
-          (<a href="https://github.com/zhitongblog/solomd/issues/22" rel="external">#22</a>)
+          (<a href="https://github.com/zhitongblog/xiaoyuan-note/issues/22" rel="external">#22</a>)
           — fixed back in v2.0; mixed-slash paths now go through a
           <code>normalizePath</code> helper before reaching
           <code>convertFileSrc</code>.
@@ -135,7 +135,7 @@ const lang = 'en' as const;
       <h2>🤖 Engineering: the dev-bridge</h2>
       <p>
         New internal piece — not user-facing — but worth flagging. Until v2.3,
-        we had a <code>solomd-dev-mcp</code> internal MCP server that could
+        we had a <code>xiaoyuan-note-dev-mcp</code> internal MCP server that could
         drive everything <em>behind</em> the Tauri IPC layer (settings,
         workspace state, AutoGit, file IO). It couldn't drive the actual Vue
         UI — clicks, DOM reads, event dispatch — because Tauri's WKWebView
@@ -145,8 +145,8 @@ const lang = 'en' as const;
         v2.3 adds a tiny <code>#[cfg(debug_assertions)]</code>-gated localhost
         JSON-RPC bridge that runs <em>only</em> in the dev build. Bearer-token
         auth, 127.0.0.1 only, port + token written to
-        <code>~/Library/Application Support/app.solomd/dev-bridge.&#123;port,token&#125;</code>.
-        dev-mcp gains 6 new tools: <code>solomd_dev_eval / click / text /
+        <code>~/Library/Application Support/app.xiaoyuan-note/dev-bridge.&#123;port,token&#125;</code>.
+        dev-mcp gains 6 new tools: <code>XIAOYUAN_NOTE_dev_eval / click / text /
         dispatch / url / wait_for</code>. Verified zero footprint in release
         binaries (<code>nm | grep dev_bridge</code> returns 0 matches).
       </p>
@@ -159,9 +159,9 @@ const lang = 'en' as const;
 
       <h2>📥 Download</h2>
       <p>
-        <a class="btn btn--primary" href="https://github.com/zhitongblog/solomd/releases/latest">Download latest →</a>
+        <a class="btn btn--primary" href="https://github.com/zhitongblog/xiaoyuan-note/releases/latest">Download latest →</a>
         &nbsp;
-        <a class="btn" href="https://github.com/zhitongblog/solomd/releases">All releases</a>
+        <a class="btn" href="https://github.com/zhitongblog/xiaoyuan-note/releases">All releases</a>
       </p>
 
       <h2>What's next</h2>

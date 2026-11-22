@@ -175,7 +175,7 @@ export const IMPLEMENTED_SIDEBAR_PANE_IDS: readonly ImplementedSidebarPaneId[] =
   - `onSidebarResize(ev)`（L2235–2258，`delta = side === 'right' ? -dx : dx`，
     `settings.setSideSidebarWidth`）
   - 需要 import `useSettingsStore`、`useI18n`（`rsPane.dragToReorder`）、`RsSplitter`
-- 不迁入：`watch(visibleRsPanes → solomd:relayout)`、`sideSidebarStyle` 的 440 自动加宽
+- 不迁入：`watch(visibleRsPanes → xiaoyuan-note:relayout)`、`sideSidebarStyle` 的 440 自动加宽
   （这两项留在 `App.vue`，因为依赖 App 内的 computed 与全局副作用）。
 
 ### 4.4 修改 `app/src/App.vue`

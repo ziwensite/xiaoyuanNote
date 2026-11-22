@@ -5,7 +5,7 @@
 //! get_outline, get_backlinks, list_tags, append_to_note) is exercised
 //! end-to-end without mocking the filesystem.
 //!
-//! Self-test obligation per /tmp/solomd-v4-contracts.md C7: this test is the
+//! Self-test obligation per /tmp/xiaoyuan-note-v4-contracts.md C7: this test is the
 //! Rust integration test the panel agent ships with.
 
 use app_lib::agent_tools::dispatch_tool_inner;
@@ -19,7 +19,7 @@ fn make_workspace(label: &str) -> PathBuf {
         .map(|d| d.as_nanos())
         .unwrap_or(0);
     let dir = std::env::temp_dir().join(format!(
-        "solomd-agent-tools-e2e-{}-{}-{}",
+        "xiaoyuan-note-agent-tools-e2e-{}-{}-{}",
         label,
         std::process::id(),
         stamp
@@ -38,7 +38,7 @@ fn make_workspace(label: &str) -> PathBuf {
         "# Today\n\n#topic\n\nA needle line about apples.\n\n[[Welcome]]\n",
     )
     .unwrap();
-    fs::create_dir_all(dir.join(".solomd")).unwrap();
+    fs::create_dir_all(dir.join(".xiaoyuanNote")).unwrap();
     dir
 }
 

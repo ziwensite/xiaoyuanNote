@@ -40,8 +40,8 @@ fi
 
 : "${GITEE_TOKEN:?Set GITEE_TOKEN (export or in .env.local)}"
 GITEE_USER="${GITEE_USER:-zhitong45}"
-REPO_GH="zhitongblog/solomd"
-REPO_GITEE="$GITEE_USER/solomd"
+REPO_GH="zhitongblog/xiaoyuan-note"
+REPO_GITEE="$GITEE_USER/xiaoyuanNote"
 API="https://gitee.com/api/v5/repos/$REPO_GITEE"
 
 echo "==> Sync $TAG  ($REPO_GH → gitee.com/$REPO_GITEE)"

@@ -14,7 +14,7 @@
  * The sidebar owns the width (settings.fileTreeWidth) and the resize handle;
  * only the middle part scrolls.
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Icon from './Icons.vue';
 import FileTree from './FileTree.vue';
 import ViewsPanel from './ViewsPanel.vue';
@@ -104,7 +104,7 @@ const unsavedNotes = computed(() =>
 );
 function openUnsaved(id: string) {
   tabs.activate(id);
-  window.dispatchEvent(new CustomEvent('solomd:file-opened', { detail: {} }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:file-opened', { detail: {} }));
 }
 
 // 最近 — a small popover listing workspace.recentFiles (spec §6 menu style).
@@ -195,19 +195,27 @@ const currentFileFolder = computed(() => {
   };
 });
 
-// ── outside click / Escape closes the recent popover ────────────────────────
-function onWindowClick() {
+// ── outside press / Escape closes the recent popover ────────────────────────
+// `mousedown` (capture) instead of `click` (bubble): the trigger button uses
+// `@click.stop`, which would stop `click` reaching `window` and leave this
+// popover open when another popup opens. A press on the popover's own trigger
+// is ignored so its toggle handler still works.
+function onDocDown(e: MouseEvent) {
+  if (!recentOpen.value) return;
+  const t = e.target as Node | null;
+  if (t && recentEl.value && recentEl.value.contains(t)) return;
+  if (t && (t as HTMLElement).closest('[data-sb-recent-trigger]')) return;
   recentOpen.value = false;
 }
 function onWindowKey(e: KeyboardEvent) {
   if (e.key === 'Escape') recentOpen.value = false;
 }
 onMounted(() => {
-  window.addEventListener('click', onWindowClick);
+  document.addEventListener('mousedown', onDocDown, true);
   window.addEventListener('keydown', onWindowKey);
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('click', onWindowClick);
+  document.removeEventListener('mousedown', onDocDown, true);
   window.removeEventListener('keydown', onWindowKey);
 });
 </script>
@@ -264,7 +272,7 @@ onBeforeUnmount(() => {
           <span class="sb__card-label">{{ t('sidebar.inbox') }}</span>
           <span class="sb__card-sub">{{ t('phone.count', { n: inbox.inboxCount.value }) }}</span>
         </button>
-        <button class="sb__card" type="button" aria-haspopup="menu" :aria-expanded="recentOpen" @click.stop="toggleRecent">
+        <button class="sb__card" type="button" aria-haspopup="menu" :aria-expanded="recentOpen" data-sb-recent-trigger @click.stop="toggleRecent">
           <Icon name="recent" :size="20" class="sb__card-icon" />
           <span class="sb__card-label">{{ t('sidebar.recent') }}</span>
           <span class="sb__card-sub">{{ t('phone.count', { n: recentList.length }) }}</span>
@@ -307,6 +315,7 @@ onBeforeUnmount(() => {
           type="button"
           aria-haspopup="menu"
           :aria-expanded="recentOpen"
+          data-sb-recent-trigger
           @click.stop="toggleRecent"
         >
           <Icon name="recent" :size="16" class="sb__row-icon" />
@@ -329,23 +338,6 @@ onBeforeUnmount(() => {
       </section>
       <template v-if="hasFolder">
         <FileTree embedded />
-
-        <section v-if="topTags.length" class="sb__tags">
-          <div class="sb__label">{{ t('sidebar.tags') }}</div>
-          <div class="sb__chips">
-            <button
-              v-for="tg in topTags"
-              :key="tg.tag"
-              class="sb__chip"
-              type="button"
-              :title="`#${tg.tag} · ${tg.count}`"
-              @click="emit('filter-tag', tg.tag)"
-            >#{{ tg.tag }}</button>
-            <button class="sb__chip sb__chip--all" type="button" @click="openTagsPanel">
-              {{ t('sidebar.allTags') }}
-            </button>
-          </div>
-        </section>
       </template>
 
       <div v-else class="sb__empty">

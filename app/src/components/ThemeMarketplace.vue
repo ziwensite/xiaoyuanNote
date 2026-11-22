@@ -230,7 +230,7 @@ const visible = computed(() => themes.visibleThemes);
         <p class="tm__footer">
           {{ t('themes.publishHint') }}
           <a
-            href="https://github.com/zhitongblog/solomd/blob/main/web/public/themes/index.json"
+            href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/web/public/themes/index.json"
             target="_blank"
             rel="noopener"
           >{{ t('themes.publishHintLink') }}</a>

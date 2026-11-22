@@ -4,10 +4,10 @@
 
 ## V2EX · 「分享创造」节点
 
-**标题：** 做了一个开源的 Markdown 编辑器 SoloMD：Typora 式实时预览，五个平台都能用，大部分代码由 Claude Code 写
+**标题：** 做了一个开源的 Markdown 编辑器 xiaoyuanNote：Typora 式实时预览，五个平台都能用，大部分代码由 Claude Code 写
 
 ```
-SoloMD 是一个免费开源（MIT）的 Markdown 编辑器，基于 Tauri 2 + Vue 3 + CodeMirror 6。
+xiaoyuanNote 是一个免费开源（MIT）的 Markdown 编辑器，基于 Tauri 2 + Vue 3 + CodeMirror 6。
 
 - Typora 式实时预览：光标离开的那一行，Markdown 标记会自动隐藏；也可以切换分栏或源码视图
 - KaTeX 公式、Mermaid / PlantUML 图表、tldraw 白板
@@ -19,8 +19,8 @@ SoloMD 是一个免费开源（MIT）的 Markdown 编辑器，基于 Tauri 2 + V
 
 说个实话：这个项目的代码、测试、发版，甚至 GitHub issue 的回复，大部分都是 Claude Code 写的，我负责方向和把关，README 开头就写明了。
 
-下载（国内走 Gitee 镜像更快）：https://solomd.app
-源码：https://github.com/zhitongblog/solomd
+下载（国内走 Gitee 镜像更快）：https://xiaoyuannote.app
+源码：https://github.com/zhitongblog/xiaoyuan-note
 
 欢迎拍砖，尤其是从 Typora、Obsidian 转过来的朋友。
 ```
@@ -46,7 +46,7 @@ SoloMD 是一个免费开源（MIT）的 Markdown 编辑器，基于 Tauri 2 + V
 
 发现频道由用户推荐，填软件名、官网、一句话介绍：
 
-- 名称：SoloMD
-- 官网：https://solomd.app
+- 名称：xiaoyuanNote
+- 官网：https://xiaoyuannote.app
 - 一句话：免费开源的 Typora 式 Markdown 编辑器，支持 Windows / macOS / Linux / iOS / Android，Windows 安装包 13 MB
 - 介绍：沿用 V2EX 稿的功能列表，去掉「由 Claude Code 编写」那一段（小众软件的读者更关心软件本身）

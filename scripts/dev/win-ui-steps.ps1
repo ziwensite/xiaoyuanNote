@@ -1,5 +1,5 @@
-﻿param([string]$Exe, [string]$Steps, [string]$Out = "C:\Users\Public\ui-steps", [string]$WinClass = "Tauri Window", [string]$ProcName = "SoloMD")
-# Drive SoloMD in the Windows VM through a list of steps, with real input:
+param([string]$Exe, [string]$Steps, [string]$Out = "C:\Users\Public\ui-steps", [string]$WinClass = "Tauri Window", [string]$ProcName = "xiaoyuanNote")
+# Drive xiaoyuanNote in the Windows VM through a list of steps, with real input:
 #   launch | open:<file> | open2:<file> | kill | wait:<s> | ms:<ms> | key:<combo> (ctrl+b, alt+f4, ctrl+shift+b, enter, esc…)
 #   type:<ascii> | wheel:<x>,<y>,<notches down> | click:<x>,<y> (window-relative CSS-ish px) | shot:<name> | fg
 # Steps are ';'-separated. Screenshots land at <Out>-<name>.png, the log at <Out>.txt.

@@ -16,4 +16,4 @@ PULIDO Y CORRECCIONES
 • Corregido: escribir con métodos de entrada CJK ya no se interrumpe a mitad de la composición
 • Muchas correcciones menores y mejoras de rendimiento
 
-¿Disfrutas de SoloMD? ¡Valóralo en el App Store y compártelo con otros escritores!
+¿Disfrutas de xiaoyuanNote? ¡Valóralo en el App Store y compártelo con otros escritores!

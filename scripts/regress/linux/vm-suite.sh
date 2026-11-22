@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# In-box part of the SoloMD Linux regression suite. Runs on the Linux machine
+# In-box part of the xiaoyuanNote Linux regression suite. Runs on the Linux machine
 # itself (the Lima VM, or a GitHub Actions ubuntu runner under Xvfb).
 #
 #   vm-suite.sh all  [CHECK…]   rig up → install → run checks → report → rig down
@@ -11,9 +11,9 @@
 #
 # CHECK is a file name prefix under checks/ (e.g. L04 or L04-type-save).
 # Environment knobs (all optional):
-#   SOLOMD_DEB=/path/x.deb        install with dpkg before running
-#   SOLOMD_APPIMAGE=/path/x.AppImage  used by the AppImage check
-#   SOLOMD_BIN=/usr/bin/SoloMD    binary under test
+#   XIAOYUAN_NOTE_DEB=/path/x.deb        install with dpkg before running
+#   XIAOYUAN_NOTE_APPIMAGE=/path/x.AppImage  used by the AppImage check
+#   XIAOYUAN_NOTE_BIN=/usr/bin/xiaoyuanNote    binary under test
 #   RG_ROOT=/tmp/rg2  RG_DISPLAY=:94  CHECK_TIMEOUT=240
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,7 +26,7 @@ export RG_SUITE="$HERE"
 . "$HERE/lib/fixtures.sh"
 
 # The tag must be stable across sub-invocations (up / run / down) of one rig.
-if [ -f "$RG_ROOT/tag" ]; then SOLOMD_REGRESS_TAG=$(cat "$RG_ROOT/tag"); export SOLOMD_REGRESS_TAG; fi
+if [ -f "$RG_ROOT/tag" ]; then XIAOYUAN_NOTE_REGRESS_TAG=$(cat "$RG_ROOT/tag"); export XIAOYUAN_NOTE_REGRESS_TAG; fi
 
 need_tools() {
   local missing=() t
@@ -54,21 +54,21 @@ cmd_deps() {
 }
 
 install_deb() {
-  [ -n "${SOLOMD_DEB:-}" ] || return 0
-  log "installing $SOLOMD_DEB"
-  if ! sudo -n dpkg -i "$SOLOMD_DEB" >"$RG_OUT/logs/dpkg.log" 2>&1; then
+  [ -n "${XIAOYUAN_NOTE_DEB:-}" ] || return 0
+  log "installing $XIAOYUAN_NOTE_DEB"
+  if ! sudo -n dpkg -i "$XIAOYUAN_NOTE_DEB" >"$RG_OUT/logs/dpkg.log" 2>&1; then
     sudo -n apt-get -y -f install >>"$RG_OUT/logs/dpkg.log" 2>&1 || { log "dpkg failed (see logs/dpkg.log)"; return 1; }
   fi
-  { basename "$SOLOMD_DEB"; sha256sum "$SOLOMD_DEB" | cut -c1-16; } | tr '\n' ' ' >"$RG_OUT/build.txt"
-  dpkg-deb -f "$SOLOMD_DEB" Package Version | tr '\n' ' ' >>"$RG_OUT/build.txt"
+  { basename "$XIAOYUAN_NOTE_DEB"; sha256sum "$XIAOYUAN_NOTE_DEB" | cut -c1-16; } | tr '\n' ' ' >"$RG_OUT/build.txt"
+  dpkg-deb -f "$XIAOYUAN_NOTE_DEB" Package Version | tr '\n' ' ' >>"$RG_OUT/build.txt"
   echo >>"$RG_OUT/build.txt"
-  md5sum "$SOLOMD_BIN" >>"$RG_OUT/build.txt"
+  md5sum "$XIAOYUAN_NOTE_BIN" >>"$RG_OUT/build.txt"
 }
 
 cmd_up() {
   mkdir -p "$RG_ROOT" "$RG_OUT/logs" "$RG_OUT/results" "$SHOTS"
   [ -f "$RG_ROOT/tag" ] || echo "rg2-$(date +%s)-$$" >"$RG_ROOT/tag"
-  SOLOMD_REGRESS_TAG=$(cat "$RG_ROOT/tag"); export SOLOMD_REGRESS_TAG
+  XIAOYUAN_NOTE_REGRESS_TAG=$(cat "$RG_ROOT/tag"); export XIAOYUAN_NOTE_REGRESS_TAG
   need_tools || return 1
   rig_up
 }

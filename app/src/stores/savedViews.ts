@@ -1,7 +1,7 @@
 /**
  * Saved filtered views (F5) — Pinia store.
  *
- * Each view is a YAML file at `{workspace}/.solomd/views/{slug}.yml`. This
+ * Each view is a YAML file at `{workspace}/.xiaoyuan-note/views/{slug}.yml`. This
  * store owns the in-memory list, disk persistence (via the existing generic
  * `read_file` / `write_file` / `list_dir` / `fs_create_dir` Tauri commands —
  * NO new Rust command), and evaluation of the active view's note list.
@@ -89,7 +89,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
       if (folder) await this.loadFromDisk(folder);
     },
 
-    /** Read every `.solomd/views/*.yml` for the given folder. */
+    /** Read every `.xiaoyuan-note/views/*.yml` for the given folder. */
     async loadFromDisk(folder: string) {
       this.loading = true;
       try {
@@ -130,7 +130,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
       }
     },
 
-    /** Ensure `.solomd/views/` exists (idempotent). */
+    /** Ensure `.xiaoyuan-note/views/` exists (idempotent). */
     async ensureDir(folder: string): Promise<string> {
       const dir = joinPath(folder, VIEWS_DIR);
       try {
@@ -144,7 +144,7 @@ export const useSavedViewsStore = defineStore('savedViews', {
 
     /**
      * Write a view to disk and merge it into the in-memory list. Creates the
-     * `.solomd/views/` folder on first save. Returns the saved ViewFile.
+     * `.xiaoyuan-note/views/` folder on first save. Returns the saved ViewFile.
      */
     async save(view: ViewFile): Promise<ViewFile> {
       const folder = this.folder;

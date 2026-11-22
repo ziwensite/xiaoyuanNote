@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Entitlements for the bundled `solomd-mcp` Rust sidecar in MAS builds.
+  Entitlements for the bundled `xiaoyuan-note-mcp` Rust sidecar in MAS builds.
 
-  The sidecar runs as a child of the sandboxed SoloMD app. Apple's TestFlight
+  The sidecar runs as a child of the sandboxed xiaoyuanNote app. Apple's TestFlight
   validator rejects (error ITMS-90885) any nested executable whose code
   signature carries `com.apple.application-identifier` but lacks its own
   embedded provisioning profile — because that combination is reserved for
@@ -15,7 +15,7 @@
       grants (file access, network, etc.) at spawn time
   …and explicitly NO application-identifier.
 
-  Used by `scripts/build-mas.sh` when signing `Contents/MacOS/solomd-mcp`.
+  Used by `scripts/build-mas.sh` when signing `Contents/MacOS/xiaoyuan-note-mcp`.
 -->
 <plist version="1.0">
 <dict>

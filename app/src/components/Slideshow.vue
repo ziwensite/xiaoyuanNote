@@ -8,11 +8,11 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import Reveal from 'reveal.js';
 import 'reveal.js/reveal.css';
 
-const STORAGE_KEY = 'solomd:slideshow:content';
-const TITLE_KEY = 'solomd:slideshow:title';
-const THEME_KEY = 'solomd:slideshow:theme';
-const SCALE_KEY = 'solomd:slideshow:scale';
-const SETTINGS_KEY = 'solomd:settings';
+const STORAGE_KEY = 'xiaoyuan-note:slideshow:content';
+const TITLE_KEY = 'xiaoyuan-note:slideshow:title';
+const THEME_KEY = 'xiaoyuan-note:slideshow:theme';
+const SCALE_KEY = 'xiaoyuan-note:slideshow:scale';
+const SETTINGS_KEY = 'xiaoyuan-note:settings';
 
 const SCALE_MIN = 60;
 const SCALE_MAX = 180;
@@ -355,7 +355,7 @@ onMounted(async () => {
     }
     source = source.slice(fmMatch[0].length);
   }
-  document.title = `${title.value} — SoloMD Slideshow`;
+  document.title = `${title.value} — xiaoyuanNote Slideshow`;
 
   // Build the DOM once into the .slides container, then init Reveal on
   // the wrapper. Reveal expects the structure to be present at init time.
@@ -411,8 +411,8 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="containerRef"
-    class="solomd-slideshow reveal"
-    :class="`solomd-slideshow--${slideTheme}`"
+    class="xiaoyuan-note-slideshow reveal"
+    :class="`xiaoyuan-note-slideshow--${slideTheme}`"
     :style="slideStyle"
   >
     <div ref="slidesRef" class="slides"></div>
@@ -487,7 +487,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.solomd-slideshow {
+.xiaoyuan-note-slideshow {
   --slide-scale: 1;
   --slide-bg: #1a1a1a;
   --slide-fg: #f0f0f0;
@@ -507,7 +507,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   transition: background-color 0.18s ease, color 0.18s ease;
 }
-.solomd-slideshow--light {
+.xiaoyuan-note-slideshow--light {
   --slide-bg: #ffffff;
   --slide-fg: #1f1e1c;
   --slide-muted: #5e5b55;
@@ -522,62 +522,62 @@ onBeforeUnmount(() => {
 }
 /*
  * Reveal injects its own classes (.reveal, .slides). We override visuals
- * to match the SoloMD slideshow look-and-feel — dark or light canvas,
+ * to match the xiaoyuanNote slideshow look-and-feel — dark or light canvas,
  * scalable font size, accent-orange links — without pulling in reveal's
  * bundled themes.
  */
-.solomd-slideshow :deep(.slides) {
+.xiaoyuan-note-slideshow :deep(.slides) {
   text-align: left !important;
 }
-.solomd-slideshow :deep(.slides section) {
+.xiaoyuan-note-slideshow :deep(.slides section) {
   font-size: calc(clamp(20px, 2.4vw, 32px) * var(--slide-scale, 1));
   line-height: 1.55;
   padding: 40px 60px;
   text-align: left;
   color: var(--slide-fg);
 }
-.solomd-slideshow :deep(h1),
-.solomd-slideshow :deep(h2),
-.solomd-slideshow :deep(h3),
-.solomd-slideshow :deep(h4),
-.solomd-slideshow :deep(h5),
-.solomd-slideshow :deep(h6) {
+.xiaoyuan-note-slideshow :deep(h1),
+.xiaoyuan-note-slideshow :deep(h2),
+.xiaoyuan-note-slideshow :deep(h3),
+.xiaoyuan-note-slideshow :deep(h4),
+.xiaoyuan-note-slideshow :deep(h5),
+.xiaoyuan-note-slideshow :deep(h6) {
   color: var(--slide-fg);
 }
-.solomd-slideshow :deep(h1) {
+.xiaoyuan-note-slideshow :deep(h1) {
   font-size: 2.4em;
   margin: 0 0 0.6em;
   text-align: center;
   font-weight: 700;
   text-transform: none;
 }
-.solomd-slideshow :deep(h2) {
+.xiaoyuan-note-slideshow :deep(h2) {
   font-size: 1.8em;
   margin: 0 0 0.5em;
   font-weight: 600;
   text-transform: none;
 }
-.solomd-slideshow :deep(h3) {
+.xiaoyuan-note-slideshow :deep(h3) {
   font-size: 1.4em;
   margin: 0.4em 0;
   text-transform: none;
 }
-.solomd-slideshow :deep(p),
-.solomd-slideshow :deep(ul),
-.solomd-slideshow :deep(ol),
-.solomd-slideshow :deep(blockquote) {
+.xiaoyuan-note-slideshow :deep(p),
+.xiaoyuan-note-slideshow :deep(ul),
+.xiaoyuan-note-slideshow :deep(ol),
+.xiaoyuan-note-slideshow :deep(blockquote) {
   font-size: 1em;
   margin: 0.6em 0;
 }
-.solomd-slideshow :deep(li) { margin: 0.25em 0; }
-.solomd-slideshow :deep(code) {
+.xiaoyuan-note-slideshow :deep(li) { margin: 0.25em 0; }
+.xiaoyuan-note-slideshow :deep(code) {
   background: var(--slide-code-bg);
   color: var(--slide-fg);
   padding: 0.1em 0.35em;
   border-radius: 4px;
   font-size: 0.85em;
 }
-.solomd-slideshow :deep(pre) {
+.xiaoyuan-note-slideshow :deep(pre) {
   background: var(--slide-pre-bg);
   color: var(--slide-fg);
   padding: 16px 20px;
@@ -586,35 +586,35 @@ onBeforeUnmount(() => {
   font-size: 0.7em;
   line-height: 1.5;
 }
-.solomd-slideshow :deep(pre code) {
+.xiaoyuan-note-slideshow :deep(pre code) {
   background: transparent;
   padding: 0;
   font-size: 1em;
   display: block;
 }
-.solomd-slideshow :deep(blockquote) {
+.xiaoyuan-note-slideshow :deep(blockquote) {
   border-left: 4px solid var(--slide-accent);
   padding-left: 16px;
   color: var(--slide-muted);
   font-style: italic;
 }
-.solomd-slideshow :deep(table) {
+.xiaoyuan-note-slideshow :deep(table) {
   border-collapse: collapse;
   margin: 1em 0;
   font-size: 0.85em;
 }
-.solomd-slideshow :deep(th),
-.solomd-slideshow :deep(td) {
+.xiaoyuan-note-slideshow :deep(th),
+.xiaoyuan-note-slideshow :deep(td) {
   border: 1px solid var(--slide-border);
   padding: 8px 14px;
 }
-.solomd-slideshow :deep(img) {
+.xiaoyuan-note-slideshow :deep(img) {
   max-width: 100%;
   height: auto;
   border-radius: 6px;
 }
-.solomd-slideshow :deep(a) { color: var(--slide-accent); }
-.solomd-slideshow :deep(hr) { border-color: var(--slide-border); }
+.xiaoyuan-note-slideshow :deep(a) { color: var(--slide-accent); }
+.xiaoyuan-note-slideshow :deep(hr) { border-color: var(--slide-border); }
 .slide__hud {
   position: fixed;
   bottom: 16px;

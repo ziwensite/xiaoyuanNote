@@ -7,7 +7,7 @@ import { codeLanguages } from './code-languages.ts';
  *
  * Three groups, in the order the user sees them before typing anything:
  *
- *  1. `SPECIAL_FENCES` — fences SoloMD renders itself (mermaid, tldraw,
+ *  1. `SPECIAL_FENCES` — fences xiaoyuanNote renders itself (mermaid, tldraw,
  *     plantuml). Nobody guesses that `tldraw` is what opens a whiteboard, so
  *     they go first.
  *  2. The code-editor languages, *derived* from `codeLanguages` rather than
@@ -29,7 +29,7 @@ export interface FenceLanguage {
   aliases: string[];
   /** Muted text on the right of the row. */
   hint?: string;
-  /** SoloMD renders this fence itself instead of syntax-highlighting it. */
+  /** xiaoyuanNote renders this fence itself instead of syntax-highlighting it. */
   special?: boolean;
   /** Extra words the filter matches but never shows: `flowchart` → mermaid. */
   keywords: string[];
@@ -180,7 +180,7 @@ export interface FenceOpener {
 
 /** An unterminated fence opener at the very end of `before`, if there is one.
  *
- *  Backticks only: SoloMD's live blocks (`cm-live-blocks.ts`) and the
+ *  Backticks only: xiaoyuanNote’s live blocks (`cm-live-blocks.ts`) and the
  *  mermaid/tldraw renderers all key off ``` fences, so offering a language for
  *  a ~~~ fence would promise diagrams that never appear. */
 const FENCE_OPENER_RE = /(?:^|\n)[ \t]*(`{3,})([A-Za-z0-9_+.#-]*)$/;

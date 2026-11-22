@@ -8,8 +8,8 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD 设置参考 — 每个选项都讲清楚"
-  description="逐节浏览 SoloMD 的设置：搜索与逐条跳转、将首行作为标签页标题、保存前检查原文件是否存在、标题自动编号、粘贴图片预设宽度、Typora/Word 快捷键预设、网盘同步与一键升级。"
+  title="xiaoyuanNote 设置参考 — 每个选项都讲清楚"
+  description="逐节浏览 xiaoyuanNote 的设置：搜索与逐条跳转、将首行作为标签页标题、保存前检查原文件是否存在、标题自动编号、粘贴图片预设宽度、Typora/Word 快捷键预设、网盘同步与一键升级。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -29,7 +29,7 @@ const lang = 'zh' as const;
         <li><strong>将文档首行作为标签页标题</strong>（默认关闭）：开启后，标签栏优先显示文档第一行非空正文（自动跳过 YAML Front-matter），非常适合打开由第三方软件生成的随机/UUID 临时文件名笔记。</li>
         <li><strong>保存时检查原文件是否存在</strong>（默认关闭）：专为配合第三方软件编辑临时文件设计。开启后，如果磁盘上的原始文件已被外部软件移动或清理，自动保存将静默跳过，手动保存（<kbd>Ctrl/⌘ + S</kbd>）则会弹窗询问是否重新创建文件，防止把内容存成孤立文件或被外部软件后续覆盖导致丢失。</li>
         <li><strong>自动为 1–6 级标题添加多级数字编号</strong>（默认关闭）：开启后，新增、删除或修改标题时会自动维护全文的 <code>1 / 1.1 / 1.1.1</code> 多级章节编号。</li>
-        <li><strong>只读文件保存保护</strong>：当编辑系统只读文件并尝试保存时，SoloMD 会醒目提示并自动引导「另存为」<code>-copy.md</code> 副本；关闭含未保存修改的只读标签页时同样会弹窗确认。</li>
+        <li><strong>只读文件保存保护</strong>：当编辑系统只读文件并尝试保存时，xiaoyuanNote 会醒目提示并自动引导「另存为」<code>-copy.md</code> 副本；关闭含未保存修改的只读标签页时同样会弹窗确认。</li>
         <li><strong>恢复会话与按工作区记住标签页</strong>：启动时恢复上次打开的标签页与精确滚动位置；每个工作区文件夹各自独立记住属于它的打开标签集。</li>
         <li><strong>自动重载外部改动</strong>：当标签页没有未保存修改时，外部程序（如 Syncthing、Git）更新磁盘文件会自动无感刷新；有未保存修改时一定会先询问你。</li>
       </ul>
@@ -65,12 +65,12 @@ const lang = 'zh' as const;
 
       <h2>六、应用内一键更新（国内自动切 Gitee 高速镜像）</h2>
       <p>
-        在「设置 → 关于」（或顶部更新提示胶囊）中点击更新时，SoloMD 会自动识别网络所在地区：中国大陆用户优先从 <strong>Gitee 国内高速镜像</strong>下载对应架构的原生安装包（与 GitHub Release 互为自动容灾回退），下载完成后自动拉起安装向导。
+        在「设置 → 关于」（或顶部更新提示胶囊）中点击更新时，xiaoyuanNote 会自动识别网络所在地区：中国大陆用户优先从 <strong>Gitee 国内高速镜像</strong>下载对应架构的原生安装包（与 GitHub Release 互为自动容灾回退），下载完成后自动拉起安装向导。
       </p>
 
       <h2>七、恢复出厂默认设置</h2>
       <p>
-        如需重置全部设置，退出 SoloMD 后删除配置目录即可 —— Windows 位于 <code>%APPDATA%\app.solomd</code>（便携版位于程序旁边的 <code>data/</code> 目录），macOS 位于 <code>~/Library/Application Support/app.solomd</code>，Linux 位于 <code>~/.config/app.solomd</code>。你的笔记文件存放在你自己的文件夹中，不受任何影响。
+        如需重置全部设置，退出 xiaoyuanNote 后删除配置目录即可 —— Windows 位于 <code>%APPDATA%\app.xiaoyuanNote</code>（便携版位于程序旁边的 <code>data/</code> 目录），macOS 位于 <code>~/Library/Application Support/app.xiaoyuanNote</code>，Linux 位于 <code>~/.config/app.xiaoyuanNote</code>。你的笔记文件存放在你自己的文件夹中，不受任何影响。
       </p>
 
       <Giscus />

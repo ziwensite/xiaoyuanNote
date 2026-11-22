@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SoloMD macOS regression suite — see scripts/regress/README.md.
+# xiaoyuanNote macOS regression suite — see scripts/regress/README.md.
 #
 #   scripts/regress/mac-suite.sh                 # build+launch, run every check, stop
 #   scripts/regress/mac-suite.sh find split      # only checks whose file name contains "find" or "split"
@@ -12,7 +12,7 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
 APP="$REPO/app"
-IDENT="app.solomd.regress"
+IDENT="app.xiaoyuan-note.regress"
 PORT_VITE="${REGRESS_VITE_PORT:-1450}"
 DATA="$HOME/Library/Application Support/$IDENT"
 OUT="${REGRESS_OUT:-$HERE/out}"
@@ -58,7 +58,7 @@ else
   fi
   # Fresh app-side state: session file, workspace, index — this identifier is ours alone.
   rm -rf "$DATA"
-  CONFIG=$(printf '{"identifier":"%s","productName":"SoloMD-regress","build":{"devUrl":"http://localhost:%s","beforeDevCommand":"npx vite --port %s --strictPort"}}' "$IDENT" "$PORT_VITE" "$PORT_VITE")
+  CONFIG=$(printf '{"identifier":"%s","productName":"xiaoyuan-note-regress","build":{"devUrl":"http://localhost:%s","beforeDevCommand":"npx vite --port %s --strictPort"}}' "$IDENT" "$PORT_VITE" "$PORT_VITE")
   say "launching tauri dev ($IDENT, vite :$PORT_VITE) — log: $LOG"
   # New session/process group so we can stop exactly what we started (vite + cargo + app).
   # --no-watch: an edit under src-tauri/ (yours, mid-run) must not rebuild and
@@ -79,7 +79,7 @@ fi
 # Fixture vault in a fresh temp dir (the checks never touch your real notes).
 # Canonical path (/private/var/…): FSEvents reports real paths, and a /var/… symlinked
 # vault would make the file watcher miss every event.
-T="${TMPDIR:-/tmp}"; VAULT="$(cd "$(mktemp -d "${T%/}/solomd-regress.XXXXXX")" && pwd -P)/vault"
+T="${TMPDIR:-/tmp}"; VAULT="$(cd "$(mktemp -d "${T%/}/xiaoyuan-note-regress.XXXXXX")" && pwd -P)/vault"
 python3 "$HERE/lib/make_fixture.py" "$VAULT" || { say "fixture creation failed"; exit 2; }
 say "fixture vault: $VAULT"
 echo "$VAULT" >"$OUT/last-vault"

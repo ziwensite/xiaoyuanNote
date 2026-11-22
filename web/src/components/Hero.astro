@@ -6,7 +6,7 @@ const { lang } = Astro.props;
 const tr = getT(lang);
 
 const VERSION = '5.0.13';
-const REPO = 'zhitongblog/solomd';
+const REPO = 'zhitongblog/xiaoyuan-note';
 const baseUrl = `https://github.com/${REPO}/releases/download/v${VERSION}`;
 const GITHUB_URL = `https://github.com/${REPO}`;
 const langPrefix = lang === 'en' ? '' : `/${lang}`;
@@ -17,20 +17,20 @@ const agentsHref = lang === 'zh' ? '/zh/agents/' : '/agents/';
 // (/promote). It replaced the v4.11.3 new-logo announcement.
 const promoteHref = lang === 'zh' ? '/zh/promote' : '/promote';
 const PROMOTE_BANNER = {
-  en: { eyebrow: 'PROMOTER PROGRAM', title: 'Tell people about SoloMD — your name goes in it.', cta: 'How it works' },
-  zh: { eyebrow: '推广者计划', title: '帮 SoloMD 说句话，你的名字就会写进它里面。', cta: '看看怎么参与' },
-  ja: { eyebrow: 'プロモーター・プログラム', title: 'SoloMD を紹介すると、あなたの名前が刻まれます。', cta: '参加方法を見る' },
-  ko: { eyebrow: '프로모터 프로그램', title: 'SoloMD를 알려 주세요 — 이름이 함께 실립니다.', cta: '참여 방법 보기' },
-  de: { eyebrow: 'PROMOTER-PROGRAMM', title: 'Erzähl von SoloMD — und dein Name steht drin.', cta: 'So funktioniert es' },
-  fr: { eyebrow: 'PROGRAMME AMBASSADEURS', title: 'Parlez de SoloMD — votre nom y figurera.', cta: 'Comment ça marche' },
-  es: { eyebrow: 'PROGRAMA DE DIFUSIÓN', title: 'Habla de SoloMD y tu nombre quedará en él.', cta: 'Cómo funciona' },
-  pt: { eyebrow: 'PROGRAMA DE DIVULGAÇÃO', title: 'Fale do SoloMD e seu nome fica nele.', cta: 'Como funciona' },
-  it: { eyebrow: 'PROGRAMMA PROMOTORI', title: 'Parla di SoloMD: il tuo nome ci resterà.', cta: 'Come funziona' },
-  pl: { eyebrow: 'PROGRAM PROMOTORÓW', title: 'Opowiedz o SoloMD — Twoje imię w nim zostanie.', cta: 'Jak to działa' },
-  nl: { eyebrow: 'PROMOTERPROGRAMMA', title: 'Vertel over SoloMD — je naam komt erin.', cta: 'Zo werkt het' },
-  tr: { eyebrow: 'TANITIM PROGRAMI', title: "SoloMD'yi anlat, adın onda yer alsın.", cta: 'Nasıl çalışır' },
-  sv: { eyebrow: 'PROMOTORPROGRAM', title: 'Berätta om SoloMD — ditt namn hamnar i den.', cta: 'Så funkar det' },
-  uk: { eyebrow: 'ПРОГРАМА ПРОМОУТЕРІВ', title: 'Розкажіть про SoloMD — і ваше ім’я буде в ньому.', cta: 'Як це працює' },
+  en: { eyebrow: 'PROMOTER PROGRAM', title: 'Tell people about xiaoyuanNote — your name goes in it.', cta: 'How it works' },
+  zh: { eyebrow: '推广者计划', title: '帮 xiaoyuanNote 说句话，你的名字就会写进它里面。', cta: '看看怎么参与' },
+  ja: { eyebrow: 'プロモーター・プログラム', title: 'xiaoyuanNote を紹介すると、あなたの名前が刻まれます。', cta: '参加方法を見る' },
+  ko: { eyebrow: '프로모터 프로그램', title: 'xiaoyuan-note를 알려 주세요 — 이름이 함께 실립니다.', cta: '참여 방법 보기' },
+  de: { eyebrow: 'PROMOTER-PROGRAMM', title: 'Erzähl von xiaoyuanNote — und dein Name steht drin.', cta: 'So funktioniert es' },
+  fr: { eyebrow: 'PROGRAMME AMBASSADEURS', title: 'Parlez de xiaoyuanNote — votre nom y figurera.', cta: 'Comment ça marche' },
+  es: { eyebrow: 'PROGRAMA DE DIFUSIÓN', title: 'Habla de xiaoyuanNote y tu nombre quedará en él.', cta: 'Cómo funciona' },
+  pt: { eyebrow: 'PROGRAMA DE DIVULGAÇÃO', title: 'Fale do xiaoyuanNote e seu nome fica nele.', cta: 'Como funciona' },
+  it: { eyebrow: 'PROGRAMMA PROMOTORI', title: 'Parla di xiaoyuan-note: il tuo nome ci resterà.', cta: 'Come funziona' },
+  pl: { eyebrow: 'PROGRAM PROMOTORÓW', title: 'Opowiedz o xiaoyuanNote — Twoje imię w nim zostanie.', cta: 'Jak to działa' },
+  nl: { eyebrow: 'PROMOTERPROGRAMMA', title: 'Vertel over xiaoyuanNote — je naam komt erin.', cta: 'Zo werkt het' },
+  tr: { eyebrow: 'TANITIM PROGRAMI', title: "xiaoyuanNote'yi anlat, adın onda yer alsın.", cta: 'Nasıl çalışır' },
+  sv: { eyebrow: 'PROMOTORPROGRAM', title: 'Berätta om xiaoyuanNote — ditt namn hamnar i den.', cta: 'Så funkar det' },
+  uk: { eyebrow: 'ПРОГРАМА ПРОМОУТЕРІВ', title: 'Розкажіть про xiaoyuanNote — і ваше ім’я буде в ньому.', cta: 'Як це працює' },
 }[lang];
 const ONE_LINE_LABEL = {
   en: 'Or one-line install',
@@ -50,7 +50,7 @@ const ONE_LINE_LABEL = {
 }[lang];
 
 // Default (SSR / no-JS / unknown OS) → mac dmg link
-const defaultDownload = `${baseUrl}/SoloMD_${VERSION}_universal.dmg`;
+const defaultDownload = `${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`;
 
 // ---- Fetch stats at BUILD time (Cloudflare Pages runs this fresh) ----
 // This guarantees the numbers render even if the client-side API call
@@ -64,7 +64,7 @@ let initialStars = 0;
 let initialDownloads = 0;
 const GH_TOKEN = (typeof process !== 'undefined' && process.env && process.env.GITHUB_TOKEN) || '';
 const GH_HEADERS: Record<string, string> = {
-  'User-Agent': 'SoloMD-build-stats',
+  'User-Agent': 'xiaoyuan-note-build-stats',
   Accept: 'application/vnd.github+json',
 };
 if (GH_TOKEN) GH_HEADERS.Authorization = `Bearer ${GH_TOKEN}`;
@@ -72,7 +72,7 @@ if (GH_TOKEN) GH_HEADERS.Authorization = `Bearer ${GH_TOKEN}`;
 // behind the production /api/stats, which reads the store numbers from D1.
 // Fall back to GitHub alone if the live endpoint can't be reached at build.
 try {
-  const live = await fetch('https://solomd.app/api/stats', { headers: { 'User-Agent': 'SoloMD-build-stats' } });
+  const live = await fetch('https://xiaoyuannote.app/api/stats', { headers: { 'User-Agent': 'xiaoyuan-note-build-stats' } });
   if (live.ok) {
     const j = (await live.json()) as { stars?: number | null; downloads?: number | null };
     if (typeof j.stars === 'number') initialStars = j.stars;
@@ -143,11 +143,11 @@ const initialDownloadsText = initialDownloads > 0 ? fmtDownloads(initialDownload
         data-linux-text={tr.hero.ctaForLinux}
         data-android-text={lang === 'zh' ? '下载 Android 版本 (.apk)' : 'Download for Android (.apk)'}
         data-ios-text={lang === 'zh' ? '在 App Store 获取 (iOS)' : 'Get on App Store (iOS)'}
-        data-mac-href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}
-        data-win-href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}
-        data-win-arm-href={`${baseUrl}/SoloMD_${VERSION}_arm64_en-US.msi`}
-        data-linux-href={`${baseUrl}/SoloMD_${VERSION}_amd64.AppImage`}
-        data-android-href={`${baseUrl}/SoloMD_${VERSION}_arm64-v8a.apk`}
+        data-mac-href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}
+        data-win-href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}
+        data-win-arm-href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_arm64_en-US.msi`}
+        data-linux-href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_amd64.AppImage`}
+        data-android-href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_arm64-v8a.apk`}
         data-ios-href="https://apps.apple.com/app/id6762498874"
       >
         ⬇ {tr.hero.ctaPrimary}
@@ -204,12 +204,12 @@ const initialDownloadsText = initialDownloads > 0 ? fmtDownloads(initialDownload
         <button class="hi-tab" data-hi-tab="win">Windows</button>
       </div>
       <div class="hi-panel hi-panel--active" data-hi-panel="unix">
-        <code class="hi-code">curl -fsSL https://solomd.app/install.sh | bash</code>
-        <button class="hi-copy" data-hi-copy="curl -fsSL https://solomd.app/install.sh | bash" title="Copy">📋</button>
+        <code class="hi-code">curl -fsSL https://xiaoyuannote.app/install.sh | bash</code>
+        <button class="hi-copy" data-hi-copy="curl -fsSL https://xiaoyuannote.app/install.sh | bash" title="Copy">📋</button>
       </div>
       <div class="hi-panel" data-hi-panel="win">
-        <code class="hi-code">irm https://solomd.app/install.ps1 | iex</code>
-        <button class="hi-copy" data-hi-copy="irm https://solomd.app/install.ps1 | iex" title="Copy">📋</button>
+        <code class="hi-code">irm https://xiaoyuannote.app/install.ps1 | iex</code>
+        <button class="hi-copy" data-hi-copy="irm https://xiaoyuannote.app/install.ps1 | iex" title="Copy">📋</button>
       </div>
     </div>
     <a href="#download" class="hero__all-platforms">{tr.hero.ctaAllPlatforms}</a>
@@ -217,7 +217,7 @@ const initialDownloadsText = initialDownloads > 0 ? fmtDownloads(initialDownload
       <div class="hero__mirrors">
         🪞 国内用户高速下载：
         <a
-          href={`https://atomgit.com/zhitongblog/solomd/releases/tag/v${VERSION}`}
+          href={`https://atomgit.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}
           class="hero__gitee"
           rel="noopener"
         >
@@ -225,7 +225,7 @@ const initialDownloadsText = initialDownloads > 0 ? fmtDownloads(initialDownload
         </a>
         {' · '}
         <a
-          href={`https://gitee.com/zhitong45/solomd/releases/tag/v${VERSION}`}
+          href={`https://gitee.com/zhitong45/xiaoyuan-note/releases/tag/v${VERSION}`}
           class="hero__gitee"
           rel="noopener"
         >
@@ -240,7 +240,7 @@ const initialDownloadsText = initialDownloads > 0 ? fmtDownloads(initialDownload
   </div>
 </section>
 
-<!-- Post-download star prompt: the moment someone has just chosen SoloMD is
+<!-- Post-download star prompt: the moment someone has just chosen xiaoyuanNote is
      the one moment asking for a star is reasonable. Shown once; "later"
      hides it for 30 days, starring hides it for good. -->
 <aside class="star-nudge" id="star-nudge" hidden aria-live="polite">
@@ -257,7 +257,7 @@ const initialDownloadsText = initialDownloads > 0 ? fmtDownloads(initialDownload
 
 <script is:inline>
   (function () {
-    var KEY = 'solomd.starNudge';
+    var KEY = 'xiaoyuan-note.starNudge';
     var LATER_MS = 30 * 24 * 3600 * 1000;
     var card = document.getElementById('star-nudge');
     if (!card) return;
@@ -280,9 +280,9 @@ const initialDownloadsText = initialDownloads > 0 ? fmtDownloads(initialDownload
       card.classList.remove('star-nudge--in');
       card.hidden = true;
     }
-    // Any way of getting SoloMD counts: an installer, a store page, the
+    // Any way of getting xiaoyuanNote counts: an installer, a store page, the
     // Gitee mirror, or copying the one-line install command.
-    var DOWNLOAD = /\/releases\/download\/|apps\.apple\.com|play\.google\.com\/store|apps\.microsoft\.com|(?:gitee|atomgit)\.com\/[^/]+\/solomd\/releases/;
+    var DOWNLOAD = /\/releases\/download\/|apps\.apple\.com|play\.google\.com\/store|apps\.microsoft\.com|(?:gitee|atomgit)\.com\/[^/]+\/xiaoyuanNote\/releases/;
     document.addEventListener('click', function (e) {
       var t = e.target;
       if (!t || !t.closest) return;

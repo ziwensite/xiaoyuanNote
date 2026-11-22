@@ -25,7 +25,7 @@
  *
  * Props:
  *   workspace: absolute path of the workspace
- *   run_id:    the run id under .solomd/agent-runs/
+ *   run_id:    the run id under .xiaoyuan-note/agent-runs/
  *   live?:     true while the run is still streaming; we re-fetch every
  *              2s so the user sees new steps appear. Off = static read.
  */

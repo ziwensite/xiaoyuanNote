@@ -9,7 +9,7 @@ const lang = 'en' as const;
 
 <Layout
   title="Images, Sizing & Image Hosting — Attachment Folders, Width Presets, Typora Templates & S3/GitHub Upload"
-  description="How SoloMD saves, resizes, and uploads images: _assets and per-note folders, Typora path templates, pasted image default width presets, right-click scaling, PicGo/S3/GitHub hosting, and anti-hotlink rendering."
+  description="How xiaoyuanNote saves, resizes, and uploads images: _assets and per-note folders, Typora path templates, pasted image default width presets, right-click scaling, PicGo/S3/GitHub hosting, and anti-hotlink rendering."
   lang={lang}
 >
   <Header lang={lang} />
@@ -24,7 +24,7 @@ const lang = 'en' as const;
 
       <h2>1. What happens when you paste</h2>
       <p>
-        Copy a screenshot to the clipboard, place the caret in a note, and press <kbd>Ctrl/⌘ + V</kbd> (or drag an image file into the window) — SoloMD writes the image next to your note and inserts a relative Markdown link (automatically encoding spaces and normalizing Windows backslashes):
+        Copy a screenshot to the clipboard, place the caret in a note, and press <kbd>Ctrl/⌘ + V</kbd> (or drag an image file into the window) — xiaoyuanNote writes the image next to your note and inserts a relative Markdown link (automatically encoding spaces and normalizing Windows backslashes):
       </p>
       <pre><code>my-folder/
 ├── note.md          ← you pasted here
@@ -68,7 +68,7 @@ const lang = 'en' as const;
 
       <h2>5. Anti-hotlink external images &amp; Android SAF support</h2>
       <ul>
-        <li><strong>Anti-hotlink <code>no-referrer</code></strong>: SoloMD sets <code>referrerpolicy="no-referrer"</code> before loading external images and decodes HTML-escaped <code>&amp;amp;</code> query strings, so Gitee, signed cloud URLs, and anti-hotlink image hosts render cleanly across Live Edit and Preview.</li>
+        <li><strong>Anti-hotlink <code>no-referrer</code></strong>: xiaoyuanNote sets <code>referrerpolicy="no-referrer"</code> before loading external images and decodes HTML-escaped <code>&amp;amp;</code> query strings, so Gitee, signed cloud URLs, and anti-hotlink image hosts render cleanly across Live Edit and Preview.</li>
         <li><strong>Android &amp; iOS</strong>: pick photos from the system picker on Android SAF vaults and resolve relative paths (<code>./pic/foo.png</code>, <code>../assets/bar.jpg</code>) seamlessly in Live Edit, Preview, and PDF/DOCX exports.</li>
       </ul>
 

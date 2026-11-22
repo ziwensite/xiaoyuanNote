@@ -1,5 +1,5 @@
 {
-  "note": "Supporters and contributors of SoloMD. The website (homepage, /thanks, /promote), the README (scripts/update-sponsors-readme.py, incl. the All Contributors table) and the app's About dialog all read this file. sponsors: name, since (YYYY-MM), optional github (username, for the README avatar) and url. promoters: name, since, platform, url (the piece itself), optional ref (their ?ref= code), github, featured + quote (shown on the homepage). testers: name, since, contribution {en, zh} — people who test SoloMD carefully and send detailed bug reports and analysis; optional github. contributors: name, optional github, optional url, since, kind ('code' | 'theme' | 'packaging'), optional prs, contribution {en, zh}. communityReporters: GitHub usernames or {name, gitee} objects for everyone who submitted issue reports and feature ideas.",
+  "note": "Supporters and contributors of xiaoyuan-note. The website (homepage, /thanks, /promote), the README (scripts/update-sponsors-readme.py, incl. the All Contributors table) and the app's About dialog all read this file. sponsors: name, since (YYYY-MM), optional github (username, for the README avatar) and url. promoters: name, since, platform, url (the piece itself), optional ref (their ?ref= code), github, featured + quote (shown on the homepage). testers: name, since, contribution {en, zh} — people who test xiaoyuanNote carefully and send detailed bug reports and analysis; optional github. contributors: name, optional github, optional url, since, kind ('code' | 'theme' | 'packaging'), optional prs, contribution {en, zh}. communityReporters: GitHub usernames or {name, gitee} objects for everyone who submitted issue reports and feature ideas.",
   "sponsors": [
     {
       "name": "tyysoft(太阳雨)",
@@ -23,13 +23,13 @@
       "url": "https://blog.csdn.net/stereohomology/article/details/167864282",
       "github": "lcfactorization",
       "featured": true,
-      "quote": "SoloMD已完全替代Typora等、且更优雅！"
+      "quote": "xiaoyuan-note已完全替代Typora等、且更优雅！"
     },
     {
       "name": "^9星守辰^",
       "since": "2026-04",
       "platform": "统信玲珑",
-      "url": "https://store.linyaps.org.cn/apps/app.solomd?arch=x86_64"
+      "url": "https://store.linyaps.org.cn/apps/app.xiaoyuanNote?arch=x86_64"
     }
   ],
   "testers": [
@@ -335,8 +335,8 @@
       "kind": "packaging",
       "prs": ["#241"],
       "contribution": {
-        "en": "Maintains the Arch Linux AUR package (solomd-bin) and automated version sync workflow (#241).",
-        "zh": "维护 Arch Linux AUR 软件包（solomd-bin）并贡献了版本同步配置（#241）。"
+        "en": "Maintains the Arch Linux AUR package (xiaoyuan-note-bin) and automated version sync workflow (#241).",
+        "zh": "维护 Arch Linux AUR 软件包（xiaoyuan-note-bin）并贡献了版本同步配置（#241）。"
       }
     },
     {
@@ -352,13 +352,13 @@
     },
     {
       "name": "^9星守辰^",
-      "url": "https://store.linyaps.org.cn/apps/app.solomd?arch=x86_64",
+      "url": "https://store.linyaps.org.cn/apps/app.xiaoyuanNote?arch=x86_64",
       "since": "2026-04",
       "kind": "packaging",
       "prs": ["Linyaps"],
       "contribution": {
-        "en": "Packaged and maintains SoloMD (app.solomd) in the Linyaps (统信玲珑) Linux application store.",
-        "zh": "制作并维护统信玲珑（Linyaps）Linux 应用商店软件包（app.solomd）。"
+        "en": "Packaged and maintains xiaoyuanNote (app.xiaoyuanNote) in the Linyaps (统信玲珑) Linux application store.",
+        "zh": "制作并维护统信玲珑（Linyaps）Linux 应用商店软件包（app.xiaoyuanNote）。"
       }
     },
     {

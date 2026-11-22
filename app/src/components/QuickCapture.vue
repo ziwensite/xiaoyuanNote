@@ -104,7 +104,7 @@ onMounted(async () => {
   focusBox();
   try {
     // Reopening the box must not present the last capture's leftovers.
-    unlistenReset = await listen('solomd://quick-capture-reset', () => {
+    unlistenReset = await listen('xiaoyuan-note://quick-capture-reset', () => {
       text.value = '';
       error.value = '';
       focusBox();

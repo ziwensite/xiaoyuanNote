@@ -1,12 +1,12 @@
-# SoloMD iOS Shortcuts presets
+# xiaoyuanNote iOS Shortcuts presets
 
-Three ready-to-build Shortcuts that hit the SoloMD desktop app's `/capture` HTTP endpoint over your local network. They run on iPhone and iPad (iOS 15+) and need nothing more than the app's bearer token.
+Three ready-to-build Shortcuts that hit the xiaoyuanNote desktop app's `/capture` HTTP endpoint over your local network. They run on iPhone and iPad (iOS 15+) and need nothing more than the app's bearer token.
 
 These are step-by-step recipes, not signed `.shortcut` files. The Shortcuts app guards every imported action against URL-scheme injection, and Apple's iCloud share links require the original author's developer account. Building once on your own device gives you ownership and avoids any third-party trust step.
 
 ## Before you start
 
-1. Open **SoloMD on your Mac/Windows/Linux machine**.
+1. Open **xiaoyuanNote on your Mac/Windows/Linux machine**.
 2. Go to **Settings → Capture endpoint**.
 3. Toggle **Enable** on. Note the URL (default `http://127.0.0.1:7777`) and the **bearer token** (tap the copy button).
 4. Make sure your iPhone/iPad and your computer are on the **same Wi-Fi network**. Replace `127.0.0.1` in the URL below with your computer's LAN IP (System Settings → Network → look for `192.168.x.x` or `10.0.x.x`). If you only ever capture while at your desk, you can run a Shortcut over a cable + Personal Hotspot too.
@@ -15,7 +15,7 @@ The endpoint is bound to `0.0.0.0` only when you tick "Allow LAN access" in the 
 
 ## The three recipes
 
-### 1. Quick capture — `solomd-quick-capture`
+### 1. Quick capture — `xiaoyuan-note-quick-capture`
 
 Action chain in Shortcuts:
 
@@ -36,7 +36,7 @@ Action chain in Shortcuts:
 
 Add to **Share Sheet** so any selected text on iOS triggers it. Add to **Home Screen** for a one-tap launcher.
 
-### 2. Append to today's daily note — `solomd-append-daily`
+### 2. Append to today's daily note — `xiaoyuan-note-append-daily`
 
 Reuses v2.4's new `append_path` mode so you don't accumulate a new file per thought.
 
@@ -51,9 +51,9 @@ Reuses v2.4's new `append_path` mode so you don't accumulate a new file per thou
 
 If `daily/<date>.md` doesn't exist yet, the endpoint creates it. The directory layout matches the desktop app's daily-note convention.
 
-### 3. Clip a URL from Safari — `solomd-clip-url`
+### 3. Clip a URL from Safari — `xiaoyuan-note-clip-url`
 
-Run this from Safari → Share → Shortcuts → SoloMD: Clip URL. Or paste a URL into Shortcuts manually.
+Run this from Safari → Share → Shortcuts → xiaoyuan-note: Clip URL. Or paste a URL into Shortcuts manually.
 
 1. **Get Contents of Web Page** (input: URL from share sheet).
 2. **Make Rich Text from HTML** (article body extracted by iOS).
@@ -77,8 +77,8 @@ iOS's HTML-to-markdown is not great with code blocks; for technical articles pre
 
 ## Hand-build vs. iCloud share links
 
-This README is the canonical source. If a future SoloMD release ships iCloud share links, they'll appear at <https://solomd.app/ios-shortcuts/> with QR codes. Until then, a 30-second hand-build is the fastest path. Built shortcuts are local to your iCloud account; nobody else's Shortcuts app can change them.
+This README is the canonical source. If a future xiaoyuanNote release ships iCloud share links, they'll appear at <https://xiaoyuannote.app/ios-shortcuts/> with QR codes. Until then, a 30-second hand-build is the fastest path. Built shortcuts are local to your iCloud account; nobody else's Shortcuts app can change them.
 
 ## Privacy
 
-Every action goes to `http://YOUR-LAN-IP:7777/capture` on your own LAN. No third-party server is involved. No telemetry. The shortcuts only ever talk to the URL you typed into them, with the token you pasted, and only when you tap them. See <https://solomd.app/security/#capture> for the endpoint's full protocol.
+Every action goes to `http://YOUR-LAN-IP:7777/capture` on your own LAN. No third-party server is involved. No telemetry. The shortcuts only ever talk to the URL you typed into them, with the token you pasted, and only when you tap them. See <https://xiaoyuannote.app/security/#capture> for the endpoint's full protocol.

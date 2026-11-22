@@ -8,8 +8,8 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD v1.1.6 — File Icons & Native Print"
-  description="What shipped in SoloMD 1.1.6: a proper document icon for .md files on Mac and Windows, and a native system print dialog on all three desktop platforms."
+  title="xiaoyuanNote v1.1.6 — File Icons & Native Print"
+  description="What shipped in xiaoyuanNote 1.1.6: a proper document icon for .md files on Mac and Windows, and a native system print dialog on all three desktop platforms."
   lang={lang}
 >
   <Header lang={lang} />
@@ -28,7 +28,7 @@ const lang = 'en' as const;
       <h2>1. A proper document icon</h2>
       <p>
         Before v1.1.6 every <code>.md</code> file on your desktop looked identical
-        to the SoloMD app icon — same solid black square with the orange #MD.
+        to the xiaoyuanNote app icon — same solid black square with the orange #MD.
         You could confuse a document with the app itself at a glance.
       </p>
       <p>
@@ -46,7 +46,7 @@ const lang = 'en' as const;
       </p>
       <p>
         On <strong>Windows</strong> we added an NSIS installer hook
-        (<code>installer.nsh</code>) that registers a separate <code>SoloMD.md</code>
+        (<code>installer.nsh</code>) that registers a separate <code>xiaoyuan-note.md</code>
         ProgID with <code>DefaultIcon</code> pointing to <code>file_icon.ico</code>
         bundled as a resource, then nudges Explorer to refresh its icon cache.
       </p>

@@ -14,7 +14,7 @@
  * Write actions go through the existing `read_file` + `write_file` Tauri
  * commands and the frontmatter splice helpers in `lib/frontmatter.ts`, so we
  * never re-serialize a whole document or touch off-limits stores. The Rust
- * file-watcher emits `solomd://index-updated` after each write, which the
+ * file-watcher emits `xiaoyuan-note://index-updated` after each write, which the
  * workspace-index store listens to — so the sidebar refreshes for free.
  */
 import { defineStore } from 'pinia';

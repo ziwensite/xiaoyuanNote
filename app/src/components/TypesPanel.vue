@@ -7,7 +7,7 @@
  * definition note (`type: Type`) supplies the section's icon / color / order
  * / label / pinned properties. Built on the pure registry in
  * `lib/types-registry.ts` via the `types` store, so it refreshes for free on
- * every `solomd://index-updated` event.
+ * every `xiaoyuan-note://index-updated` event.
  *
  * v4.6.1 — migrated to the `ui/` design system (DsPanel / DsButton / DsListRow
  * / DsChip), and a type section can now be expanded into a full-pane lens

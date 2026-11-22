@@ -309,7 +309,7 @@ async fn handle_conn(mut stream: TcpStream, _app: AppHandle) -> Result<(), Strin
             "OK",
             &json!({
                 "ok": true,
-                "server": "solomd-rest",
+                "server": "xiaoyuan-note-rest",
                 "version": env!("CARGO_PKG_VERSION"),
             })
             .to_string(),
@@ -402,7 +402,7 @@ async fn handle_conn(mut stream: TcpStream, _app: AppHandle) -> Result<(), Strin
                 write_err(
                     &mut stream,
                     503,
-                    "no workspace folder open in SoloMD; open a folder first",
+                    "no workspace folder open in xiaoyuanNote; open a folder first",
                 )
                 .await;
                 return Ok(());
@@ -699,7 +699,7 @@ mod tests {
                 &mut stream,
                 200,
                 "OK",
-                &json!({"ok": true, "server": "solomd-rest"}).to_string(),
+                &json!({"ok": true, "server": "xiaoyuan-note-rest"}).to_string(),
             )
             .await;
             return Ok(());
@@ -834,7 +834,7 @@ mod tests {
         assert_eq!(code, 200, "body: {body}");
         let v: Value = serde_json::from_str(&body).unwrap();
         assert_eq!(v["ok"], true);
-        assert_eq!(v["server"], "solomd-rest");
+        assert_eq!(v["server"], "xiaoyuan-note-rest");
     }
 
     #[tokio::test]
@@ -877,7 +877,7 @@ mod tests {
     async fn write_tool_403_when_allow_write_false() {
         let _g = TEST_LOCK.lock().unwrap();
         // Spin a temp workspace so we don't 503 on missing workspace.
-        let tmp = std::env::temp_dir().join(format!("solomd-rest-test-{}", super::super::agent_run::mint_run_id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-rest-test-{}", super::super::agent_run::mint_run_id()));
         fs::create_dir_all(&tmp).unwrap();
         _test_set("tok-C", false, Some(tmp.clone()));
         let port = _test_bind().await.unwrap();
@@ -897,7 +897,7 @@ mod tests {
     async fn read_tool_round_trips_via_http() {
         let _g = TEST_LOCK.lock().unwrap();
         // Seed a tiny workspace with one markdown file so list_notes returns it.
-        let tmp = std::env::temp_dir().join(format!("solomd-rest-rt-{}", super::super::agent_run::mint_run_id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-rest-rt-{}", super::super::agent_run::mint_run_id()));
         fs::create_dir_all(&tmp).unwrap();
         fs::write(tmp.join("note.md"), "# title\n\nhello\n").unwrap();
         _test_set("tok-D", false, Some(tmp.clone()));

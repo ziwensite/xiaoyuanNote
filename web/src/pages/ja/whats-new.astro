@@ -6,11 +6,11 @@ import Giscus from '../../components/Giscus.astro';
 
 const lang = 'ja' as const;
 const VERSION = '4.1.0';
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 ---
 
 <Layout
-  title="SoloMD v4.0 アップデート — Agent が住みつくエディタ"
+  title="xiaoyuanNote v4.0 アップデート — Agent が住みつくエディタ"
   description="v4.0 は agent-native author メジャーリリース。5 つの柱: 内蔵 Agent パネル(ストリーミング chat-with-vault)、定時 Recipe(cron / on-save / on-commit, AutoGit ブランチサンドボックス + accept/reject)、リプレイ可能な Trace View、多 vault MCP Federation、Ollama 一等公民。さらに: REST API、BYOK コストメーター、11 個の Recipe テンプレート、初回起動ウィザード、ja/ko ローカリゼーション。"
   lang={lang}
 >
@@ -35,9 +35,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
       </p>
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>⬇ v{VERSION} をダウンロード (Mac)</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>ダウンロード (Windows)</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>すべてのプラットフォーム →</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>⬇ v{VERSION} をダウンロード (Mac)</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>ダウンロード (Windows)</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>すべてのプラットフォーム →</a>
       </div>
 
       <section>
@@ -59,14 +59,14 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
               <strong>挿入</strong> と <strong>コピー</strong> ボタンで段落全体を
               現在のエディタに —— 選択範囲があれば置換、なければカーソル位置に挿入。
               実行履歴はプレーン markdown として
-              <code>.solomd/agent-runs/</code> に保存、grep 可、git 追跡可。
+              <code>.xiaoyuan-note/agent-runs/</code> に保存、grep 可、git 追跡可。
             </p>
           </div>
           <div class="pillar">
             <h3>2 · Agent Recipe / 定時実行</h3>
             <p>
               宣言的 agent ジョブ、YAML ファイルを
-              <code>&lt;workspace&gt;/.solomd/agents/*.yml</code> に配置。
+              <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code> に配置。
               トリガー: <code>schedule</code> (cron)、<code>on-save</code>、
               <code>on-commit</code>、<code>on-tag-add</code>、手動。
               <strong>安全レールは妥協なし</strong>: 各実行が専用 AutoGit
@@ -98,7 +98,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           <div class="pillar">
             <h3>4 · 多 Vault MCP Federation</h3>
             <p>
-              <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+              <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
               —— 1 MCP セッション、複数 vault。ツールシグネチャに任意の
               <code>workspace</code> パラメータ追加、デフォルト = 最初に渡された
               vault (単一 vault クライアントとの完全後方互換)。
@@ -206,7 +206,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           </li>
           <li>
             <strong>macOS 起動 UX。</strong>起動アクティベーションタイミング修正
-            —— SoloMD コールドスタートで本当にフォアグラウンドへ、Finder の後ろに
+            —— xiaoyuanNote コールドスタートで本当にフォアグラウンドへ、Finder の後ろに
             隠れません。ウィンドウ位置復元は常に現在の表示器のワークスペース内に着地;
             副ディスプレイ切断後の壊れた状態からの復元時には自動再センタリング、
             画面外に開きません。
@@ -264,7 +264,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             の 2 タブ追加</strong>、<em>統合</em> 配下。既存設定の場所は不変。
           </li>
           <li>
-            <strong>MCP サーバー (<code>solomd-mcp</code>) に
+            <strong>MCP サーバー (<code>xiaoyuan-note-mcp</code>) に
             <code>--workspace</code> パラメータ追加</strong> (繰り返し可)。
             元の単一 workspace MCP クライアントは引き続き動作;
             federation はオプトインです。
@@ -277,10 +277,10 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
         <p>
           5 大柱 + クオリティバーがこのリリースの主な内容。<em>v4.x
           以降</em> のオープン方向はすべて
-          <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmap</a>
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmap</a>
           に: サンドボックス化されたスクリプト API、CLI v2 (ターミナルから
           rewrite / commit / セマンティック検索 / Recipe トリガー)、そして
-          ずっと先送りしている <em>「SoloMD は商業製品にすべきか?」</em>
+          ずっと先送りしている <em>「xiaoyuanNote は商業製品にすべきか?」</em>
           問題 (有料同期 —— v3.0 時代からの古い問題、まだ未回答、
           決まるまでこのエリアのエンジニアリングには手を付けません)。
         </p>

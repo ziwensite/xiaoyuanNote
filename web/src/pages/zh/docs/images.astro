@@ -9,7 +9,7 @@ const lang = 'zh' as const;
 
 <Layout
   title="图片、缩放与图床 — 粘贴截图保存位置、默认宽度预设、防盗链与图床上传"
-  description="SoloMD 如何保存与渲染图片：默认的 _assets 目录、每篇笔记独立目录、兼容 Typora 的自定义路径模板、粘贴图片默认宽度预设与右键缩放、PicGo/S3/GitHub 图床以及防盗链外链渲染。"
+  description="xiaoyuanNote 如何保存与渲染图片：默认的 _assets 目录、每篇笔记独立目录、兼容 Typora 的自定义路径模板、粘贴图片默认宽度预设与右键缩放、PicGo/S3/GitHub 图床以及防盗链外链渲染。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -24,7 +24,7 @@ const lang = 'zh' as const;
 
       <h2>一、粘贴截图时发生了什么</h2>
       <p>
-        截图到剪贴板，把光标放进笔记，按 <kbd>Ctrl/⌘ + V</kbd>（或把图片拖进窗口）—— SoloMD 会把图片文件写到笔记旁边的磁盘上，并自动插入 Markdown 相对路径链接（即使文件夹路径含空格或 Windows 反斜杠也能自动编码与正常显示）：
+        截图到剪贴板，把光标放进笔记，按 <kbd>Ctrl/⌘ + V</kbd>（或把图片拖进窗口）—— xiaoyuanNote 会把图片文件写到笔记旁边的磁盘上，并自动插入 Markdown 相对路径链接（即使文件夹路径含空格或 Windows 反斜杠也能自动编码与正常显示）：
       </p>
       <pre><code>我的文件夹/
 ├── 笔记.md          ← 在这里粘贴
@@ -44,7 +44,7 @@ const lang = 'zh' as const;
           <tr>
             <th>每篇笔记独立</th>
             <td>每篇笔记旁的 <code>&lt;笔记名&gt;.assets/</code>（如 <code>周报.md</code> 对应 <code>周报.assets/</code>）。</td>
-            <td>单篇笔记自包含；在 SoloMD 文件树中重命名笔记时，对应的 <code>.assets/</code> 文件夹与正文图片链接会自动同步改名。</td>
+            <td>单篇笔记自包含；在 xiaoyuanNote 文件树中重命名笔记时，对应的 <code>.assets/</code> 文件夹与正文图片链接会自动同步改名。</td>
           </tr>
           <tr>
             <th>自定义路径（兼容 Typora）</th>
@@ -72,7 +72,7 @@ const lang = 'zh' as const;
 
       <h2>五、网络图片防盗链与移动端本地图片</h2>
       <ul>
-        <li><strong>防盗链外链直接显示</strong>：SoloMD 在实时编辑与预览中为所有图片启用了 <code>referrerpolicy="no-referrer"</code>，并兼容含 <code>&amp;amp;</code> 签名参数的 URL，因此 Gitee 仓库外链、百度文心/BOS 签名图片及各类防盗链图床均可直接显示，不会报 403。</li>
+        <li><strong>防盗链外链直接显示</strong>：xiaoyuanNote 在实时编辑与预览中为所有图片启用了 <code>referrerpolicy="no-referrer"</code>，并兼容含 <code>&amp;amp;</code> 签名参数的 URL，因此 Gitee 仓库外链、百度文心/BOS 签名图片及各类防盗链图床均可直接显示，不会报 403。</li>
         <li><strong>Android 与 iOS 原生支持</strong>：Android 端支持通过相册选图插入 SAF 工作区 <code>_assets/</code> 目录，并原生解析 <code>./pic/a.png</code>、<code>../assets/b.jpg</code> 等相对路径图片，导出 PDF / Word 时同样完整内联。</li>
       </ul>
 

@@ -1,4 +1,4 @@
-/* Quick Look preview. Same reading look as SoloMD's preview, light and dark. */
+/* Quick Look preview. Same reading look as xiaoyuanNote’s preview, light and dark. */
 :root {
   color-scheme: light dark;
   --fg: #1f2328; --muted: #656d76; --bg: #ffffff; --code: #f6f8fa;

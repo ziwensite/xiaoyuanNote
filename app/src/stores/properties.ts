@@ -8,7 +8,7 @@
  *   - `pinned`: keys the user pinned to the top of the inspector.
  *
  * This config is NEVER written into notes. It persists to a workspace-scoped
- * file `.solomd/properties.json` (mirroring Bases' `.solomd/views/*` and
+ * file `.xiaoyuan-note/properties.json` (mirroring Bases' `.xiaoyuan-note/views/*` and
  * Tolaria's vault-config approach), so a recast/pin survives restarts without
  * polluting git-tracked note diffs.
  *
@@ -33,7 +33,7 @@ interface State {
   loaded: boolean;
 }
 
-const CONFIG_REL = '.solomd/properties.json';
+const CONFIG_REL = '.xiaoyuan-note/properties.json';
 
 function joinPath(folder: string, rel: string): string {
   const sep = folder.includes('\\') ? '\\' : '/';
@@ -105,7 +105,7 @@ export const usePropertiesStore = defineStore('properties', {
       return this.pinned.includes(key);
     },
 
-    /** Bind to a workspace folder and load its `.solomd/properties.json`. */
+    /** Bind to a workspace folder and load its `.xiaoyuan-note/properties.json`. */
     async setFolder(folder: string | null) {
       if (folder === this.folder && this.loaded) return;
       this.folder = folder;
@@ -143,7 +143,7 @@ export const usePropertiesStore = defineStore('properties', {
         pinned: this.pinned,
       };
       try {
-        // Ensure `.solomd/` exists, then write.
+        // Ensure `.xiaoyuan-note/` exists, then write.
         await invoke('fs_create_dir', { path: dirOf(path) }).catch(() => {});
         await invoke('write_file', {
           path,

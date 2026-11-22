@@ -7,8 +7,8 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD Sync — Personal Cloud Drive E2EE Backup, WebDAV & GitHub Sync. Free, Zero-Knowledge."
-  description="The v5.0 sync & encrypted backup layer. End-to-end encrypted sync via Baidu Netdisk, Aliyun Drive, OneDrive, Dropbox, Nutstore, WebDAV, or your own GitHub repo. No SoloMD server, no subscription."
+  title="xiaoyuanNote Sync — Personal Cloud Drive E2EE Backup, WebDAV & GitHub Sync. Free, Zero-Knowledge."
+  description="The v5.0 sync & encrypted backup layer. End-to-end encrypted sync via Baidu Netdisk, Aliyun Drive, OneDrive, Dropbox, Nutstore, WebDAV, or your own GitHub repo. No xiaoyuanNote server, no subscription."
   lang={lang}
 >
   <Header lang={lang} />
@@ -18,13 +18,13 @@ const lang = 'en' as const;
         <span class="sync-tag">v5.0</span>
         <h1>Sync &amp; Encrypted Backup.<br/><span class="muted">Your Cloud Drive. Your GitHub. Free.</span></h1>
         <p class="sync-lead">
-          We never wanted SoloMD to become a subscription SaaS.
+          We never wanted xiaoyuanNote to become a subscription SaaS.
           In <strong>v5.0</strong>, alongside GitHub / Gitea sync, we added <strong>three zero-knowledge end-to-end encrypted personal cloud drive backup &amp; sync modes</strong> (sponsored by <em>@tyysoft 太阳雨</em>) — whether you use OneDrive, Dropbox, iCloud, Nutstore, Baidu Netdisk, Aliyun Drive, Nextcloud, or Synology NAS, your cloud provider only ever sees <code>XChaCha20-Poly1305</code> ciphertext.
         </p>
         <div class="sync-cta">
           <a class="btn btn--primary" href="/docs/sync/">Step-by-step Sync Setup Guide →</a>
           <a class="btn" href="/whats-new/">v5.0 Release Notes</a>
-          <a class="btn" href="/#download">Download SoloMD</a>
+          <a class="btn" href="/#download">Download xiaoyuanNote</a>
         </div>
       </div>
     </section>
@@ -36,8 +36,8 @@ const lang = 'en' as const;
           <h2>Personal Cloud Drive E2EE Vault &amp; Direct OpenAPI (New in v5.0)</h2>
           <p>
             Three end-to-end encrypted (<code>Argon2id + XChaCha20-Poly1305</code>) personal cloud drive modes built right in:
-            (1) <strong>Local Cloud Drive Encrypted Vault</strong> (point SoloMD at any folder synced by OneDrive, iCloud Drive, Dropbox, Google Drive, Baidu Netdisk, Aliyun Drive, Quark Drive, or Nutstore to write <code>.enc</code> ciphertext);
-            (2) <strong>Direct Cloud Drive OpenAPI</strong> (clientless encrypted archive <code>solomd-vault.enc</code> hiding even filenames via OneDrive Graph API, Dropbox API, Baidu Netdisk OpenAPI, or Aliyun Drive OpenAPI);
+            (1) <strong>Local Cloud Drive Encrypted Vault</strong> (point xiaoyuanNote at any folder synced by OneDrive, iCloud Drive, Dropbox, Google Drive, Baidu Netdisk, Aliyun Drive, Quark Drive, or Nutstore to write <code>.enc</code> ciphertext);
+            (2) <strong>Direct Cloud Drive OpenAPI</strong> (clientless encrypted archive <code>xiaoyuan-note-vault.enc</code> hiding even filenames via OneDrive Graph API, Dropbox API, Baidu Netdisk OpenAPI, or Aliyun Drive OpenAPI);
             (3) <strong>WebDAV E2EE Sync</strong> (Nutstore, Nextcloud, Synology NAS, AList/OpenList).
           </p>
           <p class="sync-pillar__sub">
@@ -50,7 +50,7 @@ const lang = 'en' as const;
           <h2>GitHub-backed sync</h2>
           <p>
             Paste a Personal Access Token (kept in your OS keychain). Pick an
-            existing repo or let SoloMD create a fresh private one. Auto-push
+            existing repo or let xiaoyuanNote create a fresh private one. Auto-push
             5s after every save, auto-pull on a 5/15/30/60min interval.
             Conflict resolver in the History panel: Use Mine / Use GitHub /
             Keep Both, per file.
@@ -87,7 +87,7 @@ const lang = 'en' as const;
           </p>
           <p class="sync-pillar__sub">
             We add per-device session restore on top:
-            <code>.solomd/session.&lt;deviceId&gt;.json</code> tracks open tabs;
+            <code>.xiaoyuan-note/session.&lt;deviceId&gt;.json</code> tracks open tabs;
             another device opens the same workspace and gets a one-click
             "Restore tabs from <em>Mac mini</em>" prompt.
           </p>
@@ -98,10 +98,10 @@ const lang = 'en' as const;
           <h2>Public read-only share</h2>
           <p>
             One command-palette entry copies a
-            <code>solomd.app/share/?repo=you/notes&amp;path=note.md</code>
+            <code>xiaoyuannote.app/share/?repo=you/notes&amp;path=note.md</code>
             link. Anyone with the URL gets a clean Markdown render — fetched
             from <code>raw.githubusercontent.com</code>, sanitized via
-            DOMPurify, no SoloMD server in the loop.
+            DOMPurify, no xiaoyuanNote server in the loop.
           </p>
           <p class="sync-pillar__sub">
             Public repos only — for private notes, the page surfaces a clear
@@ -116,7 +116,7 @@ const lang = 'en' as const;
         <h2>vs. the alternatives</h2>
         <table>
           <thead>
-            <tr><th></th><th>SoloMD v5.0</th><th>Obsidian Sync</th><th>iCloud-only</th></tr>
+            <tr><th></th><th>xiaoyuanNote v5.0</th><th>Obsidian Sync</th><th>iCloud-only</th></tr>
           </thead>
           <tbody>
             <tr><th>Data lives on</th><td>Your Cloud Drive / WebDAV / GitHub</td><td>Obsidian's servers</td><td>Apple's servers</td></tr>
@@ -135,7 +135,7 @@ const lang = 'en' as const;
       <div class="container">
         <h2>Get started in 60 seconds</h2>
         <ol>
-          <li>Open SoloMD → <strong>Settings → GitHub Sync</strong>.</li>
+          <li>Open xiaoyuanNote → <strong>Settings → GitHub Sync</strong>.</li>
           <li>Click <strong>Get a token</strong> — opens GitHub's token page with the right scope (<code>repo</code>) pre-filled.</li>
           <li>Paste the <code>ghp_…</code> token, save.</li>
           <li>Pick an existing repo or click <strong>Create &amp; link</strong> for a fresh private one.</li>
@@ -153,7 +153,7 @@ const lang = 'en' as const;
           <p>Your encrypted vault is unrecoverable. We can't help — that's the entire point of E2EE. Write the passphrase down somewhere safe BEFORE you encrypt anything.</p>
         </div>
         <div class="faq">
-          <h3>What if SoloMD shuts down?</h3>
+          <h3>What if xiaoyuanNote shuts down?</h3>
           <p>Your vault is a normal git repo on GitHub. Clone it with <code>git clone</code>. Open the <code>.md</code> files in any editor. Even with E2EE on, the format is documented above and the encryption is standard XChaCha20-Poly1305 — you can write a 30-line decrypt script if you have to.</p>
         </div>
         <div class="faq">
@@ -162,20 +162,20 @@ const lang = 'en' as const;
         </div>
         <div class="faq">
           <h3>Will sync ever cost money?</h3>
-          <p>The sync feature won't. There's no SoloMD-side infrastructure that needs paying for — your data flows between you and GitHub, and we just orchestrate. (GitHub itself charges for &gt;1 GB private storage; that's between you and them.)</p>
+          <p>The sync feature won't. There's no xiaoyuan-note-side infrastructure that needs paying for — your data flows between you and GitHub, and we just orchestrate. (GitHub itself charges for &gt;1 GB private storage; that's between you and them.)</p>
         </div>
         <div class="faq">
           <h3>Does sync work on iPad?</h3>
-          <p>SoloMD for iPad / iOS is on the App Store now. Notes live in the Files app, so any folder the Files app can reach — iCloud Drive first among them — syncs across devices; open the same folder on macOS and cloud-folder mode picks it up.</p>
+          <p>xiaoyuanNote for iPad / iOS is on the App Store now. Notes live in the Files app, so any folder the Files app can reach — iCloud Drive first among them — syncs across devices; open the same folder on macOS and cloud-folder mode picks it up.</p>
         </div>
         <div class="faq">
           <h3>The first time I push, macOS asks me for my password — what is that?</h3>
-          <p>That's macOS Keychain Access asking SoloMD's permission to read your saved GitHub token. Two prompts may appear: one for the GitHub token, one for the encryption key (only if you turned on E2EE). <strong>Click "Always Allow" (not "Allow")</strong> on each — that whitelists SoloMD permanently and you'll never see the prompt again. If you click "Allow" once, every push re-prompts because Keychain treats one-time authorization literally.</p>
-          <p>SoloMD never sends your password anywhere. It's macOS's authorization dialog, not ours; we don't even see what you typed.</p>
+          <p>That's macOS Keychain Access asking xiaoyuanNote’s permission to read your saved GitHub token. Two prompts may appear: one for the GitHub token, one for the encryption key (only if you turned on E2EE). <strong>Click "Always Allow" (not "Allow")</strong> on each — that whitelists xiaoyuanNote permanently and you'll never see the prompt again. If you click "Allow" once, every push re-prompts because Keychain treats one-time authorization literally.</p>
+          <p>xiaoyuanNote never sends your password anywhere. It's macOS's authorization dialog, not ours; we don't even see what you typed.</p>
         </div>
         <div class="faq">
           <h3>I'm in China and push times out — what do I do?</h3>
-          <p>github.com is unreliable from mainland China. SoloMD has a built-in proxy field: <strong>Settings → GitHub Sync → Advanced → HTTPS proxy</strong>. Paste your local proxy URL like <code>http://127.0.0.1:7897</code> (Clash/Surge default) or <code>socks5://127.0.0.1:1080</code>. push and pull will route through that proxy.</p>
+          <p>github.com is unreliable from mainland China. xiaoyuanNote has a built-in proxy field: <strong>Settings → GitHub Sync → Advanced → HTTPS proxy</strong>. Paste your local proxy URL like <code>http://127.0.0.1:7897</code> (Clash/Surge default) or <code>socks5://127.0.0.1:1080</code>. push and pull will route through that proxy.</p>
           <p>Don't bother with shell <code>HTTPS_PROXY</code> exports — Tauri apps launched from Finder/Dock don't inherit shell env. The Settings field is the right place.</p>
         </div>
       </div>
@@ -191,11 +191,11 @@ const lang = 'en' as const;
   '@type': 'FAQPage',
   mainEntity: [
     { '@type': 'Question', name: 'What if I lose my passphrase?', acceptedAnswer: { '@type': 'Answer', text: "Your encrypted vault is unrecoverable. We can't help — that's the entire point of end-to-end encryption. Write the passphrase down somewhere safe BEFORE you encrypt anything." } },
-    { '@type': 'Question', name: 'What if SoloMD shuts down?', acceptedAnswer: { '@type': 'Answer', text: 'Your vault is a normal git repo on GitHub — clone it and open the .md files in any editor. Even with E2EE on, the format is documented and the encryption is standard XChaCha20-Poly1305 with an Argon2id-derived key; a short script can decrypt it.' } },
-    { '@type': 'Question', name: 'Why GitHub specifically?', acceptedAnswer: { '@type': 'Answer', text: "Most of the user base already has a GitHub account, and there is no SoloMD server to depend on. GitLab, Gitea, or any HTTPS git URL work as first-class fallbacks." } },
-    { '@type': 'Question', name: 'Will sync ever cost money?', acceptedAnswer: { '@type': 'Answer', text: "No — there is no SoloMD-side infrastructure to pay for. Data flows between you and GitHub. (GitHub itself charges for >1 GB private storage; that's between you and them.)" } },
-    { '@type': 'Question', name: 'Does sync work on iPad?', acceptedAnswer: { '@type': 'Answer', text: 'SoloMD for iPad / iOS is on the App Store. Notes live in the Files app, so any folder the Files app reaches — iCloud Drive first among them — syncs across devices; cloud-folder mode picks up the same folder on macOS.' } },
-    { '@type': 'Question', name: 'The first time I push, macOS asks me for my password — what is that?', acceptedAnswer: { '@type': 'Answer', text: 'That is macOS Keychain Access asking permission for SoloMD to read your saved GitHub token (and encryption key if E2EE is on). Click "Always Allow" so the prompt never returns. SoloMD never sees or sends your password.' } },
+    { '@type': 'Question', name: 'What if xiaoyuanNote shuts down?', acceptedAnswer: { '@type': 'Answer', text: 'Your vault is a normal git repo on GitHub — clone it and open the .md files in any editor. Even with E2EE on, the format is documented and the encryption is standard XChaCha20-Poly1305 with an Argon2id-derived key; a short script can decrypt it.' } },
+    { '@type': 'Question', name: 'Why GitHub specifically?', acceptedAnswer: { '@type': 'Answer', text: "Most of the user base already has a GitHub account, and there is no xiaoyuanNote server to depend on. GitLab, Gitea, or any HTTPS git URL work as first-class fallbacks." } },
+    { '@type': 'Question', name: 'Will sync ever cost money?', acceptedAnswer: { '@type': 'Answer', text: "No — there is no xiaoyuan-note-side infrastructure to pay for. Data flows between you and GitHub. (GitHub itself charges for >1 GB private storage; that's between you and them.)" } },
+    { '@type': 'Question', name: 'Does sync work on iPad?', acceptedAnswer: { '@type': 'Answer', text: 'xiaoyuanNote for iPad / iOS is on the App Store. Notes live in the Files app, so any folder the Files app reaches — iCloud Drive first among them — syncs across devices; cloud-folder mode picks up the same folder on macOS.' } },
+    { '@type': 'Question', name: 'The first time I push, macOS asks me for my password — what is that?', acceptedAnswer: { '@type': 'Answer', text: 'That is macOS Keychain Access asking permission for xiaoyuanNote to read your saved GitHub token (and encryption key if E2EE is on). Click "Always Allow" so the prompt never returns. xiaoyuanNote never sees or sends your password.' } },
     { '@type': 'Question', name: "I'm in China and push times out — what do I do?", acceptedAnswer: { '@type': 'Answer', text: 'Use the built-in proxy field: Settings → GitHub Sync → Advanced → HTTPS proxy, e.g. http://127.0.0.1:7897 or socks5://127.0.0.1:1080. Shell HTTPS_PROXY exports do not reach apps launched from Finder/Dock.' } },
   ],
 })} />

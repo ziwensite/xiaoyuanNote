@@ -20,7 +20,7 @@ fn fresh_workspace(label: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("solomd-autogit-{label}-{nanos}"));
+    let dir = std::env::temp_dir().join(format!("xiaoyuan-note-autogit-{label}-{nanos}"));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir

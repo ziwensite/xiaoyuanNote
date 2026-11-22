@@ -1,7 +1,7 @@
-# Sample SoloMD Agent Recipe — Weekly review
+# Sample xiaoyuanNote Agent Recipe — Weekly review
 #
 # Drop a copy of this file (without the `.example` suffix) under
-# `<your vault>/.solomd/agents/` to enable it. SoloMD watches that
+# `<your vault>/.xiaoyuan-note/agents/` to enable it. xiaoyuanNote watches that
 # directory and reloads recipes on save.
 #
 # This recipe is the canonical example from the v4.0 spec. Adjust the
@@ -10,7 +10,7 @@
 name: Weekly review
 trigger: schedule
 # Standard 5-field cron (min hour day-of-month month day-of-week).
-# Sundays at 18:00 local time. SoloMD also accepts 6/7-field expressions
+# Sundays at 18:00 local time. xiaoyuanNote also accepts 6/7-field expressions
 # with seconds / year if you need finer-grained control.
 schedule: "0 18 * * SUN"
 

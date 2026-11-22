@@ -21,7 +21,7 @@ watch(
 );
 const query = ref('');
 const today = new Date().toISOString().slice(0, 10);
-const cliExampleNew = `solomd new "daily-${today}" "今日待办："`;
+const cliExampleNew = `xiaoyuanNote new "daily-${today}" "今日待办："`;
 
 interface Shortcut {
   keys: string;
@@ -70,7 +70,7 @@ const builtinRows = computed(() => {
 });
 function changeShortcuts(): void {
   emit('close');
-  window.dispatchEvent(new CustomEvent('solomd:open-settings', { detail: { section: 'keys' } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:open-settings', { detail: { section: 'keys' } }));
 }
 
 /** Keys that are not bindable actions, so no table knows about them. */
@@ -439,43 +439,43 @@ async function copyExample(text: string) {
 
         <template v-if="activeTab === 'cli'">
           <p class="help__lead">
-            SoloMD 自带一个 <code>solomd</code> 命令行工具，方便从终端开 / 建 / 搜笔记。
+            xiaoyuanNote 自带一个 <code>xiaoyuanNote</code> 命令行工具，方便从终端开 / 建 / 搜笔记。
           </p>
           <section class="help__section">
             <h3>安装 / Install</h3>
-            <pre class="help__code" @click="copyExample('curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash')" :title="t('help.clickToCopy')">curl -fsSL https://raw.githubusercontent.com/zhitongblog/solomd/main/scripts/install-cli.sh | bash</pre>
+            <pre class="help__code" @click="copyExample('curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash')" :title="t('help.clickToCopy')">curl -fsSL https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/scripts/install-cli.sh | bash</pre>
             <p class="help__hint">
-              脚本会装到 <code>/usr/local/bin/solomd</code>（或 <code>~/.local/bin</code>）。装完直接 <code>solomd help</code>。
+              脚本会装到 <code>/usr/local/bin/xiaoyuanNote</code>（或 <code>~/.local/bin</code>）。装完直接 <code>xiaoyuanNote help</code>。
             </p>
           </section>
           <section class="help__section">
             <h3>子命令 / Commands</h3>
             <table class="help__keys">
               <tbody>
-              <tr><td class="help__keys-key"><code>solomd open &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>在 SoloMD 中打开指定笔记</div><div class="help__keys-en">Open note in SoloMD</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd new &lt;title&gt; [text]</code></td><td class="help__keys-desc"><div>在笔记目录创建新笔记并打开</div><div class="help__keys-en">Create + open new note</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd list [folder]</code></td><td class="help__keys-desc"><div>列出文件夹内的 markdown 文件</div><div class="help__keys-en">List markdown files in a folder</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd search &lt;query&gt;</code></td><td class="help__keys-desc"><div>在笔记目录搜索文本（自动用 ripgrep）</div><div class="help__keys-en">Search markdown content (uses ripgrep if available)</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd cat &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>在终端打印笔记内容</div><div class="help__keys-en">Print note content to stdout</div></td></tr>
-              <tr><td class="help__keys-key"><code>solomd help</code></td><td class="help__keys-desc"><div>显示帮助</div><div class="help__keys-en">Show help</div></td></tr>
+              <tr><td class="help__keys-key"><code>xiaoyuanNote open &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>在 xiaoyuanNote 中打开指定笔记</div><div class="help__keys-en">Open note in xiaoyuanNote</div></td></tr>
+              <tr><td class="help__keys-key"><code>xiaoyuanNote new &lt;title&gt; [text]</code></td><td class="help__keys-desc"><div>在笔记目录创建新笔记并打开</div><div class="help__keys-en">Create + open new note</div></td></tr>
+              <tr><td class="help__keys-key"><code>xiaoyuanNote list [folder]</code></td><td class="help__keys-desc"><div>列出文件夹内的 markdown 文件</div><div class="help__keys-en">List markdown files in a folder</div></td></tr>
+              <tr><td class="help__keys-key"><code>xiaoyuanNote search &lt;query&gt;</code></td><td class="help__keys-desc"><div>在笔记目录搜索文本（自动用 ripgrep）</div><div class="help__keys-en">Search markdown content (uses ripgrep if available)</div></td></tr>
+              <tr><td class="help__keys-key"><code>xiaoyuanNote cat &lt;title|path&gt;</code></td><td class="help__keys-desc"><div>在终端打印笔记内容</div><div class="help__keys-en">Print note content to stdout</div></td></tr>
+              <tr><td class="help__keys-key"><code>xiaoyuanNote help</code></td><td class="help__keys-desc"><div>显示帮助</div><div class="help__keys-en">Show help</div></td></tr>
               </tbody>
             </table>
           </section>
           <section class="help__section">
             <h3>笔记目录 / Notes directory</h3>
             <p class="help__hint">
-              默认 <code>~/Documents/SoloMD</code>。用环境变量 <code>SOLOMD_NOTES</code> 改：
+              默认 <code>~/Documents/xiaoyuanNote</code>。用环境变量 <code>XIAOYUAN_NOTE_NOTES</code> 改：
             </p>
-            <pre class="help__code" @click="copyExample('export SOLOMD_NOTES=$HOME/Notes')" :title="t('help.clickToCopy')">export SOLOMD_NOTES=$HOME/Notes</pre>
+            <pre class="help__code" @click="copyExample('export XIAOYUAN_NOTE_NOTES=$HOME/Notes')" :title="t('help.clickToCopy')">export XIAOYUAN_NOTE_NOTES=$HOME/Notes</pre>
             <p class="help__hint">
-              <code>title</code> 参数会自动解析为 <code>$SOLOMD_NOTES/&lt;title&gt;.md</code>；如果带 <code>/</code> 或 <code>.md</code>/<code>.txt</code> 后缀，则按路径处理。
+              <code>title</code> 参数会自动解析为 <code>$XIAOYUAN_NOTE_NOTES/&lt;title&gt;.md</code>；如果带 <code>/</code> 或 <code>.md</code>/<code>.txt</code> 后缀，则按路径处理。
             </p>
           </section>
           <section class="help__section">
             <h3>常用范例 / Examples</h3>
             <pre class="help__code" @click="copyExample(cliExampleNew)" :title="t('help.clickToCopy')">{{ cliExampleNew }}</pre>
-            <pre class="help__code" @click="copyExample('solomd search 重要')" :title="t('help.clickToCopy')">solomd search 重要</pre>
-            <pre class="help__code" @click="copyExample('solomd open ./my-doc.md')" :title="t('help.clickToCopy')">solomd open ./my-doc.md</pre>
+            <pre class="help__code" @click="copyExample('xiaoyuanNote search 重要')" :title="t('help.clickToCopy')">xiaoyuanNote search 重要</pre>
+            <pre class="help__code" @click="copyExample('xiaoyuanNote open ./my-doc.md')" :title="t('help.clickToCopy')">xiaoyuanNote open ./my-doc.md</pre>
           </section>
         </template>
       </div>

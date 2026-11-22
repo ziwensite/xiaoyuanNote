@@ -4,7 +4,7 @@
 //! Settings) read access to run traces and the ability to mint a "replay
 //! from step N" run-dir prefix. The pure trace I/O lives in `trace.rs`;
 //! this module just bridges to the Tauri command system, resolves the
-//! workspace's `.solomd/agent-runs/<run_id>/` path, and serializes outputs.
+//! workspace's `.xiaoyuan-note/agent-runs/<run_id>/` path, and serializes outputs.
 //!
 //! ### Boundary with P1
 //!
@@ -16,7 +16,7 @@
 //!
 //! ### Workspace path resolution
 //!
-//! `<workspace>/.solomd/agent-runs/<run_id>/`. We canonicalize `workspace`
+//! `<workspace>/.xiaoyuan-note/agent-runs/<run_id>/`. We canonicalize `workspace`
 //! to defend against `..` escapes; the run_id is validated as
 //! `[A-Za-z0-9_-]+` only.
 
@@ -62,7 +62,7 @@ pub async fn agent_trace_read(
 }
 
 // --------------------------------------------------------------------------
-// agent_trace_list — scans .solomd/agent-runs/*
+// agent_trace_list — scans .xiaoyuan-note/agent-runs/*
 // --------------------------------------------------------------------------
 
 #[tauri::command]
@@ -198,7 +198,7 @@ fn resolve_runs_root(workspace: &str) -> Result<PathBuf, String> {
     let canonical = ws
         .canonicalize()
         .map_err(|e| format!("canonicalize {workspace}: {e}"))?;
-    Ok(canonical.join(".solomd").join("agent-runs"))
+    Ok(canonical.join(".xiaoyuanNote").join("agent-runs"))
 }
 
 fn resolve_run_dir(workspace: &str, run_id: &str) -> Result<PathBuf, String> {

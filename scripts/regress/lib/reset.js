@@ -12,7 +12,7 @@ for (const k of Object.keys(APP)) {
 const pomo = st('pomodoro');
 try { if (pomo.active) pomo.stop(); } catch {}
 // 2. Dev-only hooks a check may have left behind.
-delete window.__solomdSavePathOverride;
+delete window.__xiaoyuanNoteSavePathOverride;
 window.__regressToasts = [];
 // 3. Settings back to the baseline (replace, don't merge: keybindings is an object).
 if (snap) {

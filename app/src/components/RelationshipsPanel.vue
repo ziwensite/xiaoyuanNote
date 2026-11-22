@@ -20,7 +20,7 @@
  * the guard is *visible* before a click — not just a toast after the failed write.
  *
  * All edits go through useRelationships → write_file; after the watcher emits
- * `solomd://index-updated`, idx.entries refreshes and both sections recompute.
+ * `xiaoyuan-note://index-updated`, idx.entries refreshes and both sections recompute.
  */
 import { computed, onMounted, ref, watch, nextTick } from 'vue';
 import { useTabsStore } from '../stores/tabs';

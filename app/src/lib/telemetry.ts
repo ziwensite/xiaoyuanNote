@@ -1,7 +1,7 @@
 /**
  * Telemetry wrapper. All events go through `track()` which checks the
  * user's opt-out setting before POSTing to our self-hosted analytics
- * endpoint at solomd.app/api/track.
+ * endpoint at xiaoyuannote.app/api/track.
  *
  * Privacy model:
  *   - We never send IP, User-Agent, fingerprint, or any OS identifier.
@@ -23,7 +23,7 @@
  *   - 2s timeout via AbortController — telemetry must never delay the
  *     user's action. Drop the event if the network is slow or offline.
  *
- * Set `localStorage.solomd.telemetryDebug = '1'` to log every track()
+ * Set `localStorage.xiaoyuan-note.telemetryDebug = '1'` to log every track()
  * in the devtools console.
  */
 import { getVersion } from '@tauri-apps/api/app';
@@ -32,16 +32,16 @@ import { IS_APP_STORE_BUILD } from './app-build';
 
 type EventProps = Record<string, string | number | boolean>;
 
-const DEFAULT_ENDPOINT = 'https://solomd.app/api/track';
+const DEFAULT_ENDPOINT = 'https://xiaoyuannote.app/api/track';
 const ENDPOINT =
   (import.meta.env.VITE_ANALYTICS_ENDPOINT as string | undefined) || DEFAULT_ENDPOINT;
 
 const POST_TIMEOUT_MS = 2000;
-const ANON_ID_KEY = 'solomd.anonId';
+const ANON_ID_KEY = 'xiaoyuan-note.anonId';
 
 const TELEMETRY_DEBUG = (() => {
   try {
-    return localStorage.getItem('solomd.telemetryDebug') === '1';
+    return localStorage.getItem('xiaoyuan-note.telemetryDebug') === '1';
   } catch {
     return false;
   }

@@ -13,22 +13,22 @@ const FAQ = [
   },
   {
     q: '导出到 Word (.docx) 后，数学公式、高亮、流程图和列表编号还能保留吗？',
-    a: '全部保留。SoloMD 导出的是原生 .docx 结构：KaTeX 数学公式会转换为 Word 原生可编辑公式 (MathML)，Mermaid 与 PlantUML 图表会嵌入高清图片，==高亮==、上下标、提示块 (Callout)、任务列表 (☐/☑) 和多段独立的有序列表编号都会完整还原。',
+    a: '全部保留。xiaoyuanNote 导出的是原生 .docx 结构：KaTeX 数学公式会转换为 Word 原生可编辑公式 (MathML)，Mermaid 与 PlantUML 图表会嵌入高清图片，==高亮==、上下标、提示块 (Callout)、任务列表 (☐/☑) 和多段独立的有序列表编号都会完整还原。',
   },
   {
     q: '怎么把写好的内容带排版和公式直接粘贴到 Word、WPS 或微信公众号？',
     a: '粘贴到 Word / WPS 请在编辑菜单或右键菜单点击「复制为 Word」——它会专门清洗 MathML 公式层与列表悬挂缩进，直接 Ctrl+V 进 Word 就是标准排版；粘贴到微信公众号、Notion、飞书或语雀请使用「复制为富文本 HTML」。',
   },
   {
-    q: '从 Excel、WPS 表格复制单元格粘贴到 SoloMD 为什么不会变成图片？',
-    a: 'SoloMD 会优先解析剪贴板里的 HTML <table> 与 TSV 数据（含合并单元格与单元格内换行），直接转换为对齐的 Markdown 表格，自动忽略办公软件附带的位图截图。',
+    q: '从 Excel、WPS 表格复制单元格粘贴到 xiaoyuanNote 为什么不会变成图片？',
+    a: 'xiaoyuanNote 会优先解析剪贴板里的 HTML <table> 与 TSV 数据（含合并单元格与单元格内换行），直接转换为对齐的 Markdown 表格，自动忽略办公软件附带的位图截图。',
   },
 ];
 ---
 
 <Layout
-  title="SoloMD 导出与复制指南 — PDF、Word (.docx)、HTML、打印、复制为 Word 与 Excel 粘贴"
-  description="SoloMD 导出 Markdown 为矢量 PDF、原生 Word (.docx)、独立单文件 HTML、高清长图 PNG，以及「复制为 Word」、微信公众号富文本复制和 Excel/WPS 表格互转。"
+  title="xiaoyuanNote 导出与复制指南 — PDF、Word (.docx)、HTML、打印、复制为 Word 与 Excel 粘贴"
+  description="xiaoyuanNote 导出 Markdown 为矢量 PDF、原生 Word (.docx)、独立单文件 HTML、高清长图 PNG，以及「复制为 Word」、微信公众号富文本复制和 Excel/WPS 表格互转。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -92,10 +92,10 @@ const FAQ = [
         </tbody>
       </table>
 
-      <h2>从 Word / Excel / WPS 导入与粘贴到 SoloMD</h2>
+      <h2>从 Word / Excel / WPS 导入与粘贴到 xiaoyuanNote</h2>
       <ul>
-        <li><strong>Excel / WPS 表格直接粘贴为 Markdown 表格</strong>：在 Excel、WPS、Numbers 或网页表格中框选复制单元格，在 SoloMD 里按 <kbd>Ctrl/⌘ V</kbd>，会自动转换为排好版的 Markdown 表格（支持多行单元格 <code>&lt;br&gt;</code> 与合并单元格），不会变成图片。</li>
-        <li><strong>Word 多级列表粘贴</strong>：从 Word 或 WPS 复制带编号或项目符号的段落粘贴进 SoloMD，会自动还原为标准 Markdown 列表。</li>
+        <li><strong>Excel / WPS 表格直接粘贴为 Markdown 表格</strong>：在 Excel、WPS、Numbers 或网页表格中框选复制单元格，在 xiaoyuanNote 里按 <kbd>Ctrl/⌘ V</kbd>，会自动转换为排好版的 Markdown 表格（支持多行单元格 <code>&lt;br&gt;</code> 与合并单元格），不会变成图片。</li>
+        <li><strong>Word 多级列表粘贴</strong>：从 Word 或 WPS 复制带编号或项目符号的段落粘贴进 xiaoyuanNote，会自动还原为标准 Markdown 列表。</li>
         <li><strong>直接打开 .docx / .html 文件</strong>：在文件树或「文件 → 打开」中选择 Word 或 HTML 文档，可一键导入转换为干净的 Markdown 笔记。</li>
       </ul>
 

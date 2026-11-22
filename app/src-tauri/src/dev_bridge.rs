@@ -1,8 +1,8 @@
 //! Tauri WebDriver bridge (debug-only) — v2.3.
 //!
 //! A tiny localhost JSON-RPC server that accepts a JS string, runs it inside
-//! the SoloMD WebView, and returns whatever the script resolves to. This is
-//! how `solomd-dev-mcp` drives the actual Vue UI from outside the app.
+//! the xiaoyuanNote WebView, and returns whatever the script resolves to. This is
+//! how `xiaoyuan-note-dev-mcp` drives the actual Vue UI from outside the app.
 //!
 //! Why not WebDriver / CDP?
 //! - macOS WKWebView (used by Tauri 2 here) doesn't expose CDP.
@@ -28,7 +28,7 @@
 //!
 //! Compiled in **only** under `#[cfg(debug_assertions)]`. Release builds
 //! never see this module — verify with
-//! `nm app/src-tauri/target/release/SoloMD | grep dev_bridge` and you
+//! `nm app/src-tauri/target/release/xiaoyuanNote | grep dev_bridge` and you
 //! should get zero matches.
 
 #![cfg(debug_assertions)]
@@ -206,7 +206,7 @@ async fn handle_conn(
             &mut stream,
             200,
             "OK",
-            "{\"ok\":true,\"server\":\"solomd-dev-bridge\"}",
+            "{\"ok\":true,\"server\":\"xiaoyuan-note-dev-bridge\"}",
             true,
         )
         .await
@@ -308,7 +308,7 @@ async fn handle_eval(req: &Request, app: &AppHandle, port: u16) -> Result<JsonVa
     // back to the foreground. There's no Tauri 2 API to bypass this; the
     // platform itself is gating execution. If a self-test times out,
     // bring the window forward (cmd+tab, or `osascript -e 'tell
-    // application "SoloMD" to activate'`) and retry. We tried dispatching
+    // application "xiaoyuanNote" to activate'`) and retry. We tried dispatching
     // via `run_on_main_thread` to see if direct main-loop scheduling
     // helped — it didn't, because the same main loop is the one being
     // throttled by AppKit when the window isn't keyWindow.

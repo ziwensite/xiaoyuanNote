@@ -9,7 +9,7 @@ const lang = 'en' as const;
 const FAQ = [
   {
     q: 'Which of the three Personal Cloud Drive E2EE sync modes should I choose?',
-    a: '(1) Choose WebDAV E2EE Sync if you use Nextcloud, Synology NAS, Nutstore (坚果云), or AList/OpenList — it syncs per-note over HTTPS without any desktop client. (2) Choose Local Cloud Drive Encrypted Vault Folder if you already have iCloud Drive, OneDrive, Dropbox, Google Drive, Baidu Netdisk, Aliyun Drive, or Quark Drive installed locally — SoloMD writes .enc ciphertext into that synced folder. (3) Choose Direct Cloud Drive OpenAPI Sync if you want a clientless single-bundle encrypted backup (solomd-vault.enc) that hides even your filenames and folder structure on OneDrive, Dropbox, Baidu Netdisk, or Aliyun Drive.',
+    a: '(1) Choose WebDAV E2EE Sync if you use Nextcloud, Synology NAS, Nutstore (坚果云), or AList/OpenList — it syncs per-note over HTTPS without any desktop client. (2) Choose Local Cloud Drive Encrypted Vault Folder if you already have iCloud Drive, OneDrive, Dropbox, Google Drive, Baidu Netdisk, Aliyun Drive, or Quark Drive installed locally — xiaoyuanNote writes .enc ciphertext into that synced folder. (3) Choose Direct Cloud Drive OpenAPI Sync if you want a clientless single-bundle encrypted backup (xiaoyuan-note-vault.enc) that hides even your filenames and folder structure on OneDrive, Dropbox, Baidu Netdisk, or Aliyun Drive.',
   },
   {
     q: 'Why does Nutstore (坚果云) return 401 / 403 on WebDAV?',
@@ -17,7 +17,7 @@ const FAQ = [
   },
   {
     q: 'Can I recover my vault if I forget my E2EE passphrase?',
-    a: 'No. SoloMD uses zero-knowledge Argon2id key derivation + XChaCha20-Poly1305 authenticated encryption entirely on your device. Neither cloud providers nor GitHub ever see your plaintext or passphrase. Store your passphrase safely in a password manager.',
+    a: 'No. xiaoyuanNote uses zero-knowledge Argon2id key derivation + XChaCha20-Poly1305 authenticated encryption entirely on your device. Neither cloud providers nor GitHub ever see your plaintext or passphrase. Store your passphrase safely in a password manager.',
   },
   {
     q: 'Why do I get a 401 error when connecting GitHub?',
@@ -27,8 +27,8 @@ const FAQ = [
 ---
 
 <Layout
-  title="Sync, History & Encrypted Cloud Backup in SoloMD — WebDAV, OneDrive, Dropbox, GitHub & Git"
-  description="Set up SoloMD's three zero-knowledge Personal Cloud Drive E2EE sync modes (WebDAV, Local Encrypted Vault Folder, and Direct Cloud OpenAPI), GitHub sync with E2EE, and local Git history snapshots."
+  title="Sync, History & Encrypted Cloud Backup in xiaoyuanNote — WebDAV, OneDrive, Dropbox, GitHub & Git"
+  description="Set up xiaoyuanNote’s three zero-knowledge Personal Cloud Drive E2EE sync modes (WebDAV, Local Encrypted Vault Folder, and Direct Cloud OpenAPI), GitHub sync with E2EE, and local Git history snapshots."
   lang={lang}
 >
   <Header lang={lang} />
@@ -58,7 +58,7 @@ const FAQ = [
             <li><strong>Synology NAS / AList / OpenList</strong>: your WebDAV endpoint URL (e.g. <code>http://host:5244/dav/</code>).</li>
           </ul>
         </li>
-        <li><strong>Remote folder</strong>: e.g. <code>/SoloMD</code>.</li>
+        <li><strong>Remote folder</strong>: e.g. <code>/xiaoyuanNote</code>.</li>
         <li><strong>Enable End-to-End Encryption (recommended)</strong>: toggle on E2EE and set an encryption passphrase so every note is encrypted locally before upload.</li>
         <li>Click <strong>Test Connection</strong>, then use <strong>Upload to WebDAV</strong> or <strong>Download from WebDAV</strong> across your devices.</li>
       </ol>
@@ -71,7 +71,7 @@ const FAQ = [
         <li>Open <strong>Settings → Sync → Local Cloud Drive Encrypted Vault</strong>.</li>
         <li>Click <strong>Auto-Detect Cloud Drive Folders</strong> (automatically finds iCloud Drive, OneDrive, Dropbox, Google Drive, Baidu Netdisk, Aliyun Drive, Quark Drive, and Nutstore folders on your machine) or pick any custom synced folder.</li>
         <li>Set your <strong>encryption passphrase</strong>.</li>
-        <li>Click <strong>Encrypt &amp; Backup to Vault Folder</strong>: SoloMD encrypts every note in your workspace into <code>.enc</code> ciphertext inside that synced folder, and your cloud client uploads it in the background.</li>
+        <li>Click <strong>Encrypt &amp; Backup to Vault Folder</strong>: xiaoyuanNote encrypts every note in your workspace into <code>.enc</code> ciphertext inside that synced folder, and your cloud client uploads it in the background.</li>
         <li><strong>Restore on another computer</strong>: select the synced vault folder, enter your passphrase, and click <strong>Decrypt &amp; Restore to Workspace</strong>.</li>
       </ol>
 
@@ -82,8 +82,8 @@ const FAQ = [
       <ol>
         <li>Open <strong>Settings → Sync → Direct Cloud Drive OpenAPI</strong>.</li>
         <li>Select your provider: <strong>Microsoft OneDrive (Graph API)</strong>, <strong>Dropbox API</strong>, <strong>Baidu Netdisk OpenAPI</strong>, or <strong>Aliyun Drive OpenAPI</strong>.</li>
-        <li>Enter your <strong>Access Token</strong>, remote bundle path (e.g. <code>/apps/SoloMD/solomd-vault.enc</code>), and your <strong>encryption passphrase</strong>.</li>
-        <li>Click <strong>Pack, Encrypt &amp; Upload</strong>: SoloMD compresses and encrypts your entire workspace into a single <code>solomd-vault.enc</code> ciphertext bundle and uploads it directly via HTTPS API. Even your note titles, count, and directory tree remain completely hidden.</li>
+        <li>Enter your <strong>Access Token</strong>, remote bundle path (e.g. <code>/apps/xiaoyuan-note/xiaoyuan-note-vault.enc</code>), and your <strong>encryption passphrase</strong>.</li>
+        <li>Click <strong>Pack, Encrypt &amp; Upload</strong>: xiaoyuanNote compresses and encrypts your entire workspace into a single <code>xiaoyuan-note-vault.enc</code> ciphertext bundle and uploads it directly via HTTPS API. Even your note titles, count, and directory tree remain completely hidden.</li>
         <li>On any other device, enter the same token and passphrase and click <strong>Download &amp; Decrypt to Workspace</strong>.</li>
       </ol>
 
@@ -97,14 +97,14 @@ const FAQ = [
       <h2>3. GitHub Sync (with Optional E2EE)</h2>
       <ol>
         <li><strong>Create a Personal Access Token</strong> at <code>github.com → Settings → Developer settings → Personal access tokens</code> (Fine-grained with <strong>Contents: Read and write</strong>, or Classic with <strong><code>repo</code></strong> scope).</li>
-        <li>Paste the token in <strong>Settings → Sync → GitHub</strong> and link an existing repo or let SoloMD create a private vault repository.</li>
-        <li><strong>Optional E2EE</strong>: enable a passphrase so SoloMD pushes an encrypted shadow copy to GitHub instead of plaintext.</li>
+        <li>Paste the token in <strong>Settings → Sync → GitHub</strong> and link an existing repo or let xiaoyuanNote create a private vault repository.</li>
+        <li><strong>Optional E2EE</strong>: enable a passphrase so xiaoyuanNote pushes an encrypted shadow copy to GitHub instead of plaintext.</li>
       </ol>
 
       <h2>4. Mobile Sync (iCloud / Android SAF / Syncthing)</h2>
       <ul>
         <li><strong>iPhone / iPad + Mac (iCloud)</strong>: place your notes folder in iCloud Drive and open the same folder via the Files app on iOS/iPadOS (see <a href="/docs/icloud/">Sync with iCloud</a>).</li>
-        <li><strong>Android + Desktop (Syncthing / FolderSync)</strong>: grant folder access via Android’s system folder picker; SoloMD automatically reloads externally synced changes when you return to the app.</li>
+        <li><strong>Android + Desktop (Syncthing / FolderSync)</strong>: grant folder access via Android’s system folder picker; xiaoyuanNote automatically reloads externally synced changes when you return to the app.</li>
       </ul>
 
       <CompareFaq heading="Frequently asked questions" items={FAQ} />

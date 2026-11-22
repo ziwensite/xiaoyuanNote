@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** v4.6 F1 — display-mode menu. A dropdown on a property's label that lets the
  *  user re-cast how the value is rendered/edited (text → status → date …). The
- *  chosen mode is an out-of-band override (persisted to `.solomd/properties.json`
+ *  chosen mode is an out-of-band override (persisted to `.xiaoyuan-note/properties.json`
  *  via the properties store) — it is NEVER written into the note. When the new
  *  mode implies a different JS shape (e.g. text → tags), we also coerce + write
  *  the value so the persisted frontmatter matches the new mode. */

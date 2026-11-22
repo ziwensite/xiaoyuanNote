@@ -3,7 +3,7 @@
  *
  * Quick capture registers a *global* chord (Rust, tauri-plugin-global-shortcut),
  * so it is answered before the webview ever sees the key — including while
- * SoloMD itself is focused. Its default must therefore never equal a chord an
+ * xiaoyuanNote itself is focused. Its default must therefore never equal a chord an
  * in-app action ships with: the old default `CmdOrCtrl+Alt+M` was also
  * `editor.formulaEditor`'s `Mod+Alt+M`, and the global registration won on
  * every platform, so the formula editor's accelerator opened Quick Capture

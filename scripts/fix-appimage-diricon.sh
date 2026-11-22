@@ -4,14 +4,14 @@
 #
 # #291 — every AppImage we have shipped carries this at the AppDir root:
 #
-#   .DirIcon -> /home/runner/work/solomd/solomd/app/src-tauri/target/release/\
-#               bundle/appimage/SoloMD.AppDir/SoloMD.png
+#   .DirIcon -> /home/runner/work/xiaoyuan-note/xiaoyuan-note/app/src-tauri/target/release/\
+#               bundle/appimage/xiaoyuan-note.AppDir/xiaoyuan-note.png
 #
 # an absolute path to the CI runner's build directory, which exists on no
 # user's machine. Running the AppImage directly is unaffected — nothing
 # resolves .DirIcon at launch — but installers that unpack it (AppManager,
 # Gear Lever, and anything else walking the AppDir) refuse the package:
-# "Symlink target not found". The sibling `SoloMD.png` symlink right next to
+# "Symlink target not found". The sibling `xiaoyuan-note.png` symlink right next to
 # it is relative and correct, so this is purely tauri-bundler writing the
 # wrong one of the two. Reported upstream against other Tauri apps too.
 #

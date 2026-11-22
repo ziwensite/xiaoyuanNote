@@ -9,7 +9,7 @@ flagged. Stay around to answer comments.
 **Title:** I made a free, open-source Typora-style Markdown editor that also runs on iOS and Android
 
 ```
-SoloMD is a Markdown editor with Typora-style live preview (markers fade
+xiaoyuanNote is a Markdown editor with Typora-style live preview (markers fade
 when the cursor leaves a line), plus split and source views. It's MIT and
 free, with no account. It sends anonymous usage stats (no file contents, no
 IP address), on by default and off with one switch in Settings.
@@ -20,14 +20,14 @@ IP address), on by default and off with one switch in Settings.
 - Windows, macOS, Linux, iOS and Android. Windows installer 13 MB, Mac dmg 26 MB
 - reliable CJK input on Windows (it uses native text boxes there)
 
-Download: https://solomd.app. Source: https://github.com/zhitongblog/solomd
+Download: https://xiaoyuannote.app. Source: https://github.com/zhitongblog/xiaoyuan-note
 
 Feedback on the editing feel is very welcome, especially from Typora users.
 ```
 
 ## r/opensource
 
-**Title:** SoloMD: an MIT Markdown editor for five platforms, mostly written by Claude Code
+**Title:** xiaoyuan-note: an MIT Markdown editor for five platforms, mostly written by Claude Code
 
 Lead with the development story: an agent writes, tests and releases it, and
 a human reviews. r/opensource cares about the licence, the build and the

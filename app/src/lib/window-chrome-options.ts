@@ -2,7 +2,7 @@ import { LogicalPosition } from '@tauri-apps/api/dpi';
 import { isMacOS, isWindowsDesktop } from './platform';
 
 /**
- * Chrome options for windows created at runtime, so every SoloMD window looks
+ * Chrome options for windows created at runtime, so every xiaoyuanNote window looks
  * like the main one (tauri.conf.json): on macOS the traffic lights float over
  * our 36px header row (y = 12 centres the 12px buttons); Windows is frameless
  * with our own 36px title bar.

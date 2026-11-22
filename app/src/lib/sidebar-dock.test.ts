@@ -55,7 +55,7 @@ function lookup(dict: unknown, key: string): unknown {
   }, dict);
 }
 
-/** Legacy blob shaped like the pre-S2 `solomd.settings.v1`. */
+/** Legacy blob shaped like the pre-S2 `xiaoyuan-note.settings.v1`. */
 function legacy(overrides: Record<string, unknown> = {}) {
   return {
     outlineSide: 'right',

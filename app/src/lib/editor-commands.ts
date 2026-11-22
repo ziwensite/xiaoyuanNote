@@ -3,7 +3,7 @@
  * word, select line, and heading level up / down / back to a paragraph.
  *
  * Same contract as lib/md-format.ts: pure text in, one edit (or one range)
- * out. SoloMD runs three editors — CodeMirror, and on Windows the plain block
+ * out. xiaoyuanNote runs three editors — CodeMirror, and on Windows the plain block
  * editor and the plain flat editor — and a command written against one of
  * them is silently dead in the other two (IK6JCC, #316). So *what* changes is
  * decided here, and Editor.vue only reads the selection and applies the

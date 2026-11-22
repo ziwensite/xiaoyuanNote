@@ -55,14 +55,14 @@ export const useRemindersStore = defineStore('reminders', {
       const { t } = useI18n();
 
       try {
-        unlistenFired = await listen<FiredPayload>('solomd://calendar-reminder', (event) => {
+        unlistenFired = await listen<FiredPayload>('xiaoyuan-note://calendar-reminder', (event) => {
           // A delivered notification needs no in-app duplicate. The event
           // still fires so future UI (banner, history) can hook in.
           if (!event.payload.notified) {
             toasts.warning(t('calendar.reminders.notificationFailed'));
           }
         });
-        unlistenError = await listen<{ id: string }>('solomd://calendar-reminder-error', () => {
+        unlistenError = await listen<{ id: string }>('xiaoyuan-note://calendar-reminder-error', () => {
           // Visible fallback: never let a failed notification disappear
           // silently behind an app-internal-only reminder.
           toasts.warning(t('calendar.reminders.notificationFailed'));

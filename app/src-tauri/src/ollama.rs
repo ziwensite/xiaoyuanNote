@@ -15,7 +15,7 @@
 //!     fails.
 //!
 //! All three are exposed as Tauri commands at the bottom of the file. The
-//! base URL can be overridden for tests via the `SOLOMD_OLLAMA_BASE_URL`
+//! base URL can be overridden for tests via the `XIAOYUAN_NOTE_OLLAMA_BASE_URL`
 //! env var, which is the hook the integration tests use to point `detect`
 //! at a fixture HTTP server on a random port.
 
@@ -129,12 +129,12 @@ pub fn normalize_base_url(raw: &str) -> Option<String> {
 
 /// Returns the Ollama base URL to probe / pull from.
 ///
-/// Precedence: the `SOLOMD_OLLAMA_BASE_URL` env var (used by integration
+/// Precedence: the `XIAOYUAN_NOTE_OLLAMA_BASE_URL` env var (used by integration
 /// tests to point at a fixture server on a random port, and as an escape
 /// hatch for packaged deployments) → the caller-supplied override, which
 /// is the Base URL field in AI Settings → `http://localhost:11434`.
 pub fn base_url(override_base: Option<&str>) -> String {
-    if let Some(env) = std::env::var("SOLOMD_OLLAMA_BASE_URL")
+    if let Some(env) = std::env::var("XIAOYUAN_NOTE_OLLAMA_BASE_URL")
         .ok()
         .and_then(|s| normalize_base_url(&s))
     {
@@ -356,7 +356,7 @@ struct PullEvent {
     done: bool,
 }
 
-/// Pull `model` from the Ollama registry, emitting `solomd://ollama-pull`
+/// Pull `model` from the Ollama registry, emitting `xiaoyuan-note://ollama-pull`
 /// events tagged with `request_id`. Resolves once the stream finishes (or
 /// the user cancels via `ollama_cancel_pull`); the final event has
 /// `done: true`.
@@ -372,7 +372,7 @@ pub async fn ollama_pull(
     let id_for_chunks = request_id.clone();
     let result = pull(&model, base_url.as_deref(), cancel.clone(), move |p| {
         let _ = app_for_chunks.emit(
-            "solomd://ollama-pull",
+            "xiaoyuan-note://ollama-pull",
             PullEvent {
                 request_id: id_for_chunks.clone(),
                 status: p.status,
@@ -469,7 +469,7 @@ mod tests {
         addr
     }
 
-    /// Guard that sets SOLOMD_OLLAMA_BASE_URL on construct and unsets on
+    /// Guard that sets XIAOYUAN_NOTE_OLLAMA_BASE_URL on construct and unsets on
     /// drop. Tests run on multiple threads by default, but we still want
     /// each test to see its own URL — so we serialize via the same env var
     /// + a process-wide mutex.
@@ -480,13 +480,13 @@ mod tests {
         fn set(url: String) -> Self {
             static LOCK: Lazy<std::sync::Mutex<()>> = Lazy::new(|| std::sync::Mutex::new(()));
             let lock = LOCK.lock().unwrap_or_else(|e| e.into_inner());
-            std::env::set_var("SOLOMD_OLLAMA_BASE_URL", url);
+            std::env::set_var("XIAOYUAN_NOTE_OLLAMA_BASE_URL", url);
             EnvGuard { _lock: lock }
         }
     }
     impl Drop for EnvGuard {
         fn drop(&mut self) {
-            std::env::remove_var("SOLOMD_OLLAMA_BASE_URL");
+            std::env::remove_var("XIAOYUAN_NOTE_OLLAMA_BASE_URL");
         }
     }
 

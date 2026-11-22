@@ -60,6 +60,8 @@ import { usePhoneStore } from './stores/phone';
 // v4.6 F5 — Saved filtered views (sidebar panel + filtered list + editor).
 import ViewNoteList from './components/ViewNoteList.vue';
 import ViewEditorDialog from './components/ViewEditorDialog.vue';
+import QueryBlockCreateDialog from './components/QueryBlockCreateDialog.vue';
+import QueryCtxMenuBridge from './components/QueryCtxMenuBridge.vue';
 import RecurrenceMigrationDialog from './components/RecurrenceMigrationDialog.vue';
 import { VIEW_OPEN_EVENT, VIEW_CLOSE_EVENT } from './composables/useSavedViews';
 import GlobalSearch from './components/GlobalSearch.vue';
@@ -96,6 +98,7 @@ import { openWelcomeTour } from './lib/welcome-tour';
 import { useWorkspaceStore } from './stores/workspace';
 import { useWorkspaceIndexStore } from './stores/workspaceIndex';
 import { useSavedViewsStore } from './stores/savedViews';
+import { useComponentsStore } from './stores/components';
 import { useHolidaysStore } from './stores/holidays';
 import { usePropertiesStore } from './stores/properties';
 import { useRagStore } from './stores/rag';
@@ -105,6 +108,8 @@ import { MERMAID_INSERT_SNIPPET } from './lib/insert-snippet';
 import { focusActiveEditorSoon } from './lib/editor-focus';
 import { requestHeaderSearch } from './lib/header-search';
 import { measureMenu, placeMenuFromPoint } from './lib/menu-position';
+import DatePickerPopover from './components/DatePickerPopover.vue';
+import { writeFrontmatterValue } from './lib/frontmatter-editing';
 const UiPreview = defineAsyncComponent(() => import('./components/UiPreview.vue'));
 
 /* v4.6 dev-only UI gallery. `?uikit` renders ONLY the design-system preview
@@ -119,6 +124,23 @@ const windowsStore = useWindowsStore();
 const tiles = useTilesStore();
 const files = useFiles();
 const workspace = useWorkspaceStore();
+
+// v4.6 — frontmatter date-control bridge. The preview / live-edit renderers
+// (frontmatter-render + frontmatter-editing) emit `xiaoyuan-note:open-fm-date`; we own
+// the picker here so it runs inside the active Pinia/i18n context shared by the
+// rest of the app, and the chosen date is written back through writeFrontmatterValue.
+const fmDatePicker = ref<{ key: string; iso: string; x: number; y: number } | null>(null);
+function onFmDateOpen(e: Event) {
+  const d = (e as CustomEvent<{ key: string; iso: string; x: number; y: number }>).detail;
+  fmDatePicker.value = d;
+}
+function onFmDatePick(iso: string) {
+  const k = fmDatePicker.value?.key;
+  if (k) writeFrontmatterValue(k, iso);
+  fmDatePicker.value = null;
+}
+onMounted(() => window.addEventListener('xiaoyuan-note:open-fm-date', onFmDateOpen));
+onBeforeUnmount(() => window.removeEventListener('xiaoyuan-note:open-fm-date', onFmDateOpen));
 
 // #148 / #151 — Android real-folder vault picking. useFiles.openFolder()
 // dispatches these events; the picker modal + permission request live here so
@@ -150,7 +172,7 @@ async function requestAndroidStorage() {
     // with the permission held, the onMounted visibilitychange handler restarts
     // the app so the storage sandbox re-mounts (grant alone doesn't remount a
     // running process — see android_restart_app).
-    localStorage.setItem('solomd:android-storage-pending', '1');
+    localStorage.setItem('xiaoyuan-note:android-storage-pending', '1');
     await invoke('android_request_all_files_access');
     toasts.info(t('toast.androidAllFilesReturn'));
   } catch (e) {
@@ -158,12 +180,13 @@ async function requestAndroidStorage() {
   }
 }
 const workspaceIndex = useWorkspaceIndexStore();
+const components = useComponentsStore();
 const properties = usePropertiesStore();
 const rag = useRagStore();
 const autoCommit = useAutoCommit();
 autoCommit.start();
 // v2.6: GitHub sync rides on top of AutoGit — push commits AutoGit creates,
-// pull on a timer. Dormant unless the workspace has a `.solomd/sync.json`.
+// pull on a timer. Dormant unless the workspace has a `.xiaoyuan-note/sync.json`.
 const githubSync = useGithubSync();
 githubSync.start();
 // v2.6.1: session-restore listens for cloud-folder workspace changes and
@@ -188,7 +211,7 @@ const cursorCol = ref(1);
 // block at the top of the focused pane's preview) instead of the editor
 // cursor, which doesn't move while reading. Null until the preview reports.
 const previewTopLine = ref<number | null>(null);
-window.addEventListener('solomd:preview-topline', (e: Event) => {
+window.addEventListener('xiaoyuan-note:preview-topline', (e: Event) => {
   const { line, paneId } = (e as CustomEvent).detail || {};
   if (paneId && paneId !== tiles.focusedPaneId) return;
   if (typeof line === 'number' && line > 0) previewTopLine.value = line;
@@ -204,9 +227,9 @@ const selectionText = ref('');
 const paletteOpen = ref(false);
 const quickSwitcherOpen = ref(false);
 const settingsOpen = ref(false);
-// "Image from URL" dialog (网络图片). Opened via the `solomd:open-image-url-
+// "Image from URL" dialog (网络图片). Opened via the `xiaoyuan-note:open-image-url-
 // dialog` window event (toolbar Insert menu / command palette); on confirm it
-// dispatches `solomd:insert-image-url` to the focused pane's editor.
+// dispatches `xiaoyuan-note:insert-image-url` to the focused pane's editor.
 const imageUrlDialogOpen = ref(false);
 function onOpenImageUrlDialog() {
   imageUrlDialogOpen.value = true;
@@ -214,7 +237,7 @@ function onOpenImageUrlDialog() {
 function onImageUrlConfirm(url: string, alt: string) {
   imageUrlDialogOpen.value = false;
   window.dispatchEvent(
-    new CustomEvent('solomd:insert-image-url', {
+    new CustomEvent('xiaoyuan-note:insert-image-url', {
       detail: { url, alt, paneId: tiles.focusedPaneId },
     }),
   );
@@ -343,7 +366,7 @@ function onUnsavedAction(action: 'save' | 'discard' | 'cancel') {
  *  and the session-restore snapshot (500 ms). Without it, a close or quit
  *  landing inside those windows lost the last thing typed. */
 function flushPendingEdits() {
-  window.dispatchEvent(new Event('solomd:flush-content-sync'));
+  window.dispatchEvent(new Event('xiaoyuan-note:flush-content-sync'));
 }
 
 /** Closing an editor window: ask about each unsaved tab, the way closing a
@@ -372,7 +395,7 @@ async function confirmCloseWithUnsavedTabs(isMainWindow = false): Promise<boolea
 
 // Expose to child composables (useFiles) via provide/inject
 provide('showUnsavedDialog', showUnsavedDialog);
-(window as any).__solomd_showUnsavedDialog = showUnsavedDialog;
+(window as any).__XIAOYUAN_NOTE_showUnsavedDialog = showUnsavedDialog;
 
 // File-changed dialog state
 const fileChangedOpen = ref(false);
@@ -491,7 +514,7 @@ function onSelection(text: string) {
 
 function onOutlineGoto(line: number) {
   // Dispatch a custom event that PaneContent listens for
-  window.dispatchEvent(new CustomEvent('solomd:outline-goto', {
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:outline-goto', {
     detail: { line, paneId: tiles.focusedPaneId },
   }));
 }
@@ -535,13 +558,13 @@ watch(
   },
 );
 
-// Window title — keep "<filename> — SoloMD" so the OS taskbar /
-// dock / Cmd-Tab can distinguish multiple SoloMD windows. Falls back
-// to "SoloMD" when no document is active. Issue #53.
+// Window title — keep "<filename> — xiaoyuanNote" so the OS taskbar /
+// dock / Cmd-Tab can distinguish multiple xiaoyuanNote windows. Falls back
+// to "xiaoyuanNote" when no document is active. Issue #53.
 //
 // Win11-ARM regression (v4.5 report, but pre-existing since v4.4.x — the
 // cold-start-with-file path is byte-identical): the document loaded but
-// the title stayed "SoloMD". On Windows the JS `setTitle()` issued during
+// the title stayed "xiaoyuanNote". On Windows the JS `setTitle()` issued during
 // the cold-start mount burst didn't land (the window isn't ready to accept
 // it yet, and the rejected promise was swallowed), whereas macOS WKWebView
 // applied it fine. Two-pronged, platform-agnostic fix:
@@ -552,7 +575,7 @@ watch(
 //   2. Await `setTitle()` so a rejection is actually caught + logged,
 //      instead of floating off as an unhandled promise.
 const applyWindowTitle = async (name?: string) => {
-  const title = name ? `${name} — SoloMD` : 'SoloMD';
+  const title = name ? `${name} — xiaoyuanNote` : 'xiaoyuanNote';
   document.title = title;
   // macOS uses `titleBarStyle: "Overlay"` + `hiddenTitle: true` — the in-app
   // header owns that strip (top row = the inline search box; the document
@@ -785,8 +808,21 @@ watchEffect(() => {
   workspaceIndex.setFolder(workspace.currentFolder).catch(() => {});
 });
 
+// v5.0: bind the reference-based component store to the active workspace so
+// `cmp_<id>` fences can resolve to their external .md notes.
+watchEffect(() => {
+  components.setFolder(workspace.currentFolder).catch(() => {});
+});
+// v5.0: re-scan when the component folder is changed in Settings → Writing.
+watch(
+  () => settings.componentsDirName,
+  () => {
+    if (workspace.currentFolder) void components.reload();
+  },
+);
+
 // v4.6.1 F1: bind the properties store to the workspace so display-mode
-// overrides + pinned list load/save from .solomd/properties.json (the store
+// overrides + pinned list load/save from .xiaoyuan-note/properties.json (the store
 // shipped in 4.6 but setFolder was never called → persistence silently no-op'd).
 watchEffect(() => {
   properties.setFolder(workspace.currentFolder).catch(() => {});
@@ -852,20 +888,20 @@ watchEffect(() => {
 // deletions, and rebuild git history caches so the History panel reflects
 // the merge commit. Active editor tabs reload from disk only if they're
 // clean (we never blow away a user's unsaved edits, even from a sync).
-window.addEventListener('solomd:remote-pulled', () => {
+window.addEventListener('xiaoyuan-note:remote-pulled', () => {
   void workspaceIndex.rescan();
-  // gitHistory's own listener on `solomd://index-updated` rebuilds caches,
+  // gitHistory's own listener on `xiaoyuan-note://index-updated` rebuilds caches,
   // but rescan() above doesn't re-emit that event. Bust the caches here.
   // (Keep this scoped — we don't want to re-fetch every commit on every
   // remote-pull; the panel will lazy-reload as the user opens it.)
 });
 
-// Listen for the `solomd://index-updated` event the workspace_index
+// Listen for the `xiaoyuan-note://index-updated` event the workspace_index
 // emits on watcher debounces. When semantic search is on, mirror that
 // event into a single-file rescan so the embeddings stay fresh without
 // a full reindex on every save.
 window.addEventListener(
-  'solomd:rag-bus',
+  'xiaoyuan-note:rag-bus',
   (e) => {
     if (!settings.ragEnabled) return;
     const detail = (e as CustomEvent).detail || {};
@@ -984,12 +1020,12 @@ async function runEditHistory(kind: 'undo' | 'redo') {
     document.execCommand(kind);
     return;
   }
-  window.dispatchEvent(new CustomEvent('solomd:editor-history', { detail: { op: kind } }));
+  window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-history', { detail: { op: kind } }));
 }
 
 /**
- * Every menu click — native (`solomd://menu`) and the Windows title-bar
- * menubar (`solomd:menu-action`) — lands here. Ids are the bindable action ids
+ * Every menu click — native (`xiaoyuan-note://menu`) and the Windows title-bar
+ * menubar (`xiaoyuan-note:menu-action`) — lands here. Ids are the bindable action ids
  * wherever one exists, so a menu item runs exactly what its shortcut runs
  * (`shortcuts.runAction`); then palette commands by id; the rest are the
  * menu-only entries below.
@@ -999,7 +1035,7 @@ function dispatchMenuAction(id: string) {
   // accelerators must not close or change that view underneath the dialog.
   if (tableEditor.session) {
     if (id === 'file.closeTab' || id === 'file.exit') {
-      window.dispatchEvent(new Event('solomd:table-close-request'));
+      window.dispatchEvent(new Event('xiaoyuan-note:table-close-request'));
     }
     return;
   }
@@ -1018,7 +1054,7 @@ function dispatchMenuAction(id: string) {
   }
   if (INSERT_SNIPPETS[id]) {
     window.dispatchEvent(
-      new CustomEvent('solomd:insert-markdown', {
+      new CustomEvent('xiaoyuan-note:insert-markdown', {
         detail: { snippet: INSERT_SNIPPETS[id], paneId: tiles.focusedPaneId },
       }),
     );
@@ -1038,7 +1074,7 @@ function dispatchMenuAction(id: string) {
       workspace.clearRecent();
       return;
     case 'window.new':
-      // #280 — this used to dispatch a `solomd:new-window` event that nothing
+      // #280 — this used to dispatch a `xiaoyuan-note:new-window` event that nothing
       // listened for, so the menu item did nothing at all.
       void openNewWindow().catch(async (e) => {
         console.error('failed to create window', e);
@@ -1082,15 +1118,15 @@ function dispatchMenuAction(id: string) {
     // AI rewrite reads the selection the way the toolbar button does (it
     // handles the plain editor, AI-off and empty-selection cases).
     case 'editor.aiRewrite':
-      window.dispatchEvent(new CustomEvent('solomd:toolbar-ai-rewrite'));
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:toolbar-ai-rewrite'));
       return;
     // Same routing as the Ctrl+F shortcut: preview has its own find, every
     // editor mode opens the editor's find/replace bar.
     case 'edit.find':
       if (settings.viewMode === 'preview' && tabs.activeTab?.language === 'markdown') {
-        window.dispatchEvent(new CustomEvent('solomd:preview-search', { detail: { paneId: tiles.focusedPaneId } }));
+        window.dispatchEvent(new CustomEvent('xiaoyuan-note:preview-search', { detail: { paneId: tiles.focusedPaneId } }));
       } else {
-        window.dispatchEvent(new CustomEvent('solomd:editor-find', { detail: { paneId: tiles.focusedPaneId } }));
+        window.dispatchEvent(new CustomEvent('xiaoyuan-note:editor-find', { detail: { paneId: tiles.focusedPaneId } }));
       }
       return;
     case 'edit.replace':
@@ -1140,7 +1176,7 @@ function dispatchMenuAction(id: string) {
 /**
  * Backstop for any external link a component renders without handling the
  * click itself (the preview and the live-edit blocks do): the webview must
- * never navigate away from SoloMD — the UI is replaced by the page, and on
+ * never navigate away from xiaoyuanNote — the UI is replaced by the page, and on
  * Windows nothing short of right-click → Back gets out. Runs after the
  * components' own handlers, so anything they prevented is left alone.
  */
@@ -1165,7 +1201,7 @@ function onDomMenuAction(e: Event) {
 // visible" bug that the old localStorage approach had.
 // Remove stale localStorage entry from earlier versions on first run.
 try {
-  localStorage.removeItem('solomd.window.v1');
+  localStorage.removeItem('xiaoyuan-note.window.v1');
 } catch {}
 
 // #85 — auto-save dirty tabs when the app window loses focus. Gated on the
@@ -1222,10 +1258,10 @@ async function reconcileIosFolder() {
 
 /**
  * Ask for a GitHub star (an App Store rating in App Store builds) once,
- * after SoloMD has been opened on several different days (lib/star-prompt) — never on day one, never twice, and not
+ * after xiaoyuanNote has been opened on several different days (lib/star-prompt) — never on day one, never twice, and not
  * in the first minute of a session, when the user came to write.
  */
-const STAR_PROMPT_KEY = 'solomd.starPrompt';
+const STAR_PROMPT_KEY = 'xiaoyuan-note.starPrompt';
 function scheduleStarPrompt() {
   const today = new Date().toISOString().slice(0, 10);
   let state: StarPromptState | null = null;
@@ -1259,7 +1295,7 @@ function scheduleStarPrompt() {
         t('starPrompt.message'),
         'info',
         20000,
-        () => void openUrl('https://github.com/zhitongblog/solomd').catch(() => {}),
+        () => void openUrl('https://github.com/zhitongblog/xiaoyuan-note').catch(() => {}),
         { actionLabel: t('starPrompt.action') },
       );
     });
@@ -1332,10 +1368,10 @@ onMounted(async () => {
     // #148 — resolve a SAF folder pick after the system picker returns. The
     // picker is a separate activity that backgrounds our WebView, so the result
     // (onActivityResult → native AtomicReference) can't be awaited inline; we
-    // drain it on resume. The 'solomd:saf-picking' flag (set in openFolder)
+    // drain it on resume. The 'xiaoyuan-note:saf-picking' flag (set in openFolder)
     // scopes this to an in-flight pick.
     const resolveSafPick = async () => {
-      if (localStorage.getItem('solomd:saf-picking') !== '1') return;
+      if (localStorage.getItem('xiaoyuan-note:saf-picking') !== '1') return;
       const { safResolvePicked } = await import('./lib/saf-fs');
       for (let i = 0; i < 12; i++) {
         let r: Awaited<ReturnType<typeof safResolvePicked>>;
@@ -1348,7 +1384,7 @@ onMounted(async () => {
           await new Promise((res) => setTimeout(res, 300));
           continue;
         }
-        localStorage.removeItem('solomd:saf-picking');
+        localStorage.removeItem('xiaoyuan-note:saf-picking');
         if (r) {
           workspace.setSafVault(r.treeUri, `saf:${r.rootDocId}`, r.name);
           if (!settings.showFileTree) settings.toggleFileTree();
@@ -1393,10 +1429,10 @@ onMounted(async () => {
   window.addEventListener('wheel', onWheelZoom, { passive: false, capture: true });
   window.addEventListener('blur', onWindowBlur);
   window.addEventListener('focus', onWindowFocus);
-  window.addEventListener('solomd:open-help', onOpenHelpEvent as EventListener);
-  window.addEventListener('solomd:open-global-search', onOpenSearchEvent as EventListener);
-  window.addEventListener('solomd:open-rag-search', onOpenRagSearchEvent as EventListener);
-  window.addEventListener('solomd:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
+  window.addEventListener('xiaoyuan-note:open-help', onOpenHelpEvent as EventListener);
+  window.addEventListener('xiaoyuan-note:open-global-search', onOpenSearchEvent as EventListener);
+  window.addEventListener('xiaoyuan-note:open-rag-search', onOpenRagSearchEvent as EventListener);
+  window.addEventListener('xiaoyuan-note:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
 
   track('app_launched', {
     locale: settings.language,
@@ -1407,7 +1443,7 @@ onMounted(async () => {
   // OS file association — an OS-level file-open always belongs in the current
   // window (this window was just spawned for it). Bypass new-window routing.
   try {
-    unlistenOpened = await listen<string>('solomd://opened-file', async (e) => {
+    unlistenOpened = await listen<string>('xiaoyuan-note://opened-file', async (e) => {
       if (e.payload) await files.openPath(e.payload, { bypassNewWindow: true });
     });
   } catch (err) {
@@ -1415,13 +1451,13 @@ onMounted(async () => {
   }
 
   // #148 / #151 — Android real-folder vault picking wiring.
-  window.addEventListener('solomd:android-folder-picker', () => {
+  window.addEventListener('xiaoyuan-note:android-folder-picker', () => {
     androidPickerOpen.value = true;
   });
-  window.addEventListener('solomd:android-request-storage', () => {
+  window.addEventListener('xiaoyuan-note:android-request-storage', () => {
     void requestAndroidStorage();
   });
-  window.addEventListener('solomd:android-restart-needed', () => {
+  window.addEventListener('xiaoyuan-note:android-restart-needed', () => {
     androidRestartNeeded.value = true;
   });
 
@@ -1451,7 +1487,7 @@ onMounted(async () => {
     await handleUrls(initial);
   } catch (err) {
     // Plugin only present on mobile + matching platforms; harmless to
-    // skip on macOS/Linux/Windows (those use 'solomd://opened-file' above).
+    // skip on macOS/Linux/Windows (those use 'xiaoyuan-note://opened-file' above).
     console.debug('deep-link plugin not active', err);
   }
 
@@ -1518,8 +1554,8 @@ onMounted(async () => {
   // Settings → AI's "Run setup wizard again" button asks here. Registered
   // as a named handler (see `onOpenAgentWizard` below) so onBeforeUnmount
   // can detach it — otherwise every HMR remount stacks another listener.
-  window.addEventListener('solomd:open-agent-wizard', onOpenAgentWizard);
-  window.addEventListener('solomd:open-image-url-dialog', onOpenImageUrlDialog);
+  window.addEventListener('xiaoyuan-note:open-agent-wizard', onOpenAgentWizard);
+  window.addEventListener('xiaoyuan-note:open-image-url-dialog', onOpenImageUrlDialog);
 
   // Initialize tile layout: validate persisted state or create default
   tiles.validate(tabs.tabs);
@@ -1532,11 +1568,11 @@ onMounted(async () => {
   // the one being closed in the payload — the event reaches every window, and
   // each must only act on its own close.
   try {
-    await listen<string>('solomd://close-requested', async (e) => {
+    await listen<string>('xiaoyuan-note://close-requested', async (e) => {
       const me = getCurrentWindow().label;
       if (e.payload && e.payload !== me) return;
       if (tableEditor.session) {
-        window.dispatchEvent(new Event('solomd:table-close-request'));
+        window.dispatchEvent(new Event('xiaoyuan-note:table-close-request'));
         return;
       }
       // Editors sync their document into the store on a debounce; text typed
@@ -1562,14 +1598,14 @@ onMounted(async () => {
   // #103 — backstop registry cleanup. The destroyed window normally
   // unregisters itself via onCloseRequested, but a webview teardown that
   // skips CloseRequested would leave a stale entry that resurrects on the
-  // next launch. Rust emits `solomd://window-destroyed` with the label so
+  // next launch. Rust emits `xiaoyuan-note://window-destroyed` with the label so
   // any surviving window drops it from the registry.
   try {
-    unlistenWindowDestroyed = await listen<string>('solomd://window-destroyed', (e) => {
+    unlistenWindowDestroyed = await listen<string>('xiaoyuan-note://window-destroyed', (e) => {
       if (e.payload && isAuxLabel(e.payload)) windowsStore.unregister(e.payload);
       // Back from the slideshow window: the caret was nowhere and typing
       // went to <body> until a click. Hand the keyboard back to the editor.
-      if (e.payload?.startsWith('solomd-slideshow-')) {
+      if (e.payload?.startsWith('xiaoyuan-note-slideshow-')) {
         void getCurrentWindow().setFocus().catch(() => {});
         focusActiveEditorSoon(() => tiles.focusedPaneId, { timeoutMs: 1500 });
       }
@@ -1580,7 +1616,7 @@ onMounted(async () => {
 
   // Native menu bar
   try {
-    unlistenMenu = await listen<string>('solomd://menu', (e) => {
+    unlistenMenu = await listen<string>('xiaoyuan-note://menu', (e) => {
       if (e.payload) dispatchMenuAction(e.payload);
     });
   } catch (err) {
@@ -1588,7 +1624,7 @@ onMounted(async () => {
   }
   // Windows unified title bar: the in-app menubar (Toolbar.vue) dispatches
   // the same action ids through a DOM event — no Tauri round-trip needed.
-  window.addEventListener('solomd:menu-action', onDomMenuAction);
+  window.addEventListener('xiaoyuan-note:menu-action', onDomMenuAction);
 
   // Drag-drop file open
   try {
@@ -1605,7 +1641,7 @@ onMounted(async () => {
             // insertImageFromPath, which copies it into the note's assets dir
             // and inserts a Markdown image link.
             window.dispatchEvent(
-              new CustomEvent('solomd:insert-image-path', {
+              new CustomEvent('xiaoyuan-note:insert-image-path', {
                 detail: { path, paneId: tiles.focusedPaneId },
               }),
             );
@@ -1663,7 +1699,7 @@ function onAIRewriteAccept(e: Event) {
   // The Editor doesn't expose its EditorView directly, so route through the
   // existing insert-markdown channel — `cm-image-paste`'s insertMarkdown helper
   // replaces the current selection. We piggyback on the same convention.
-  const ev = new CustomEvent('solomd:insert-markdown', {
+  const ev = new CustomEvent('xiaoyuan-note:insert-markdown', {
     detail: { snippet: replacement, paneId: tiles.focusedPaneId, replaceFrom: from, replaceTo: to },
   });
   window.dispatchEvent(ev);
@@ -1695,7 +1731,19 @@ function onCloseView() { viewOpen.value = false; }
 
 async function onWikiOpen(e: Event) {
   const detail = (e as CustomEvent).detail || {};
-  const target: string = detail.target || '';
+  const raw: string = detail.target || '';
+  if (!raw) return;
+  // v5.0 — pull an optional line anchor (`#L12` or `#12`) off the target; the
+  // rest resolves as a normal wikilink. Accepts both `[[note#L12]]` (embedded
+  // query block) and bare `note#L12` (preview / CM click).
+  let line: number | null = null;
+  const lineM = raw.match(/#L(\d+)\s*$/i) ?? raw.match(/#(\d+)\s*$/);
+  if (lineM) line = parseInt(lineM[1], 10);
+  const target = raw
+    .replace(/^\[\[/, '')
+    .replace(/\]\]\s*$/, '')
+    .replace(/#.*$/, '')
+    .trim();
   if (!target) return;
   // #116 — a path-like target (`./sub/foo.md`, `../notes/bar.md`, `dir/x.md`)
   // is a RELATIVE reference, not a bare wiki stem. Resolve it against the
@@ -1714,7 +1762,12 @@ async function onWikiOpen(e: Event) {
       // filesystem normalizes dir + "../…" itself.
       const cleaned = target.startsWith('./') ? target.slice(2) : target;
       try {
-        await files.openPath(dir + cleaned, { bypassNewWindow: true });
+        await files.openPath(dir + cleaned, { bypassNewWindow: true, line: line ?? undefined });
+        if (line) {
+          window.dispatchEvent(
+            new CustomEvent('xiaoyuan-note:outline-goto', { detail: { line, path: dir + cleaned } }),
+          );
+        }
         return;
       } catch (err) {
         console.warn('[wiki-open] relative openPath failed:', dir + cleaned, err);
@@ -1724,7 +1777,12 @@ async function onWikiOpen(e: Event) {
   }
   const path = await workspaceIndex.resolve(target);
   if (path) {
-    await files.openPath(path, { bypassNewWindow: true });
+    await files.openPath(path, { bypassNewWindow: true, line: line ?? undefined });
+    if (line) {
+      // Jump in any pane already showing this file; a freshly opened pane
+      // relies on the launch-cursor set inside openPath.
+      window.dispatchEvent(new CustomEvent('xiaoyuan-note:outline-goto', { detail: { line, path } }));
+    }
   } else {
     // #278 — the index can miss a folder-style target (a file created since
     // the last scan, or a path the scanner normalized differently). Try it
@@ -1737,7 +1795,10 @@ async function onWikiOpen(e: Event) {
         : [`${base}/${target}.md`, `${base}/${target}`];
       for (const cand of candidates) {
         try {
-          await files.openPath(cand, { bypassNewWindow: true });
+          await files.openPath(cand, { bypassNewWindow: true, line: line ?? undefined });
+          if (line) {
+            window.dispatchEvent(new CustomEvent('xiaoyuan-note:outline-goto', { detail: { line, path: cand } }));
+          }
           return;
         } catch {
           // try the next candidate
@@ -1768,9 +1829,9 @@ function onLeaveCenterOverlay() {
   if (viewOpen.value) viewOpen.value = false;
 }
 
-window.addEventListener('solomd:wiki-open', onWikiOpen as EventListener);
-window.addEventListener('solomd:ai-rewrite-accept', onAIRewriteAccept as EventListener);
-window.addEventListener('solomd:ai-rewrite-cancel', onAIRewriteCancel as EventListener);
+window.addEventListener('xiaoyuan-note:wiki-open', onWikiOpen as EventListener);
+window.addEventListener('xiaoyuan-note:ai-rewrite-accept', onAIRewriteAccept as EventListener);
+window.addEventListener('xiaoyuan-note:ai-rewrite-cancel', onAIRewriteCancel as EventListener);
 window.addEventListener(BASES_OPEN_EVENT, onOpenBases as EventListener);
 window.addEventListener(BASES_CLOSE_EVENT, onCloseBases as EventListener);
 window.addEventListener(INBOX_OPEN_EVENT, onOpenInbox as EventListener);
@@ -1779,8 +1840,8 @@ window.addEventListener(TYPE_LENS_OPEN_EVENT, onOpenTypeLens as EventListener);
 window.addEventListener(TYPE_LENS_CLOSE_EVENT, onCloseTypeLens as EventListener);
 window.addEventListener(VIEW_OPEN_EVENT, onOpenView as EventListener);
 window.addEventListener(VIEW_CLOSE_EVENT, onCloseView as EventListener);
-window.addEventListener('solomd:leave-center-overlay', onLeaveCenterOverlay);
-window.addEventListener('solomd:open-settings', onOpenSettingsEvent as EventListener);
+window.addEventListener('xiaoyuan-note:leave-center-overlay', onLeaveCenterOverlay);
+window.addEventListener('xiaoyuan-note:open-settings', onOpenSettingsEvent as EventListener);
 
 function onPageHide() {
   flushPendingEdits();
@@ -1798,25 +1859,25 @@ onBeforeUnmount(() => {
   window.removeEventListener('wheel', onWheelZoom, { capture: true } as EventListenerOptions);
   window.removeEventListener('blur', onWindowBlur);
   window.removeEventListener('focus', onWindowFocus);
-  window.removeEventListener('solomd:open-help', onOpenHelpEvent as EventListener);
-  window.removeEventListener('solomd:open-global-search', onOpenSearchEvent as EventListener);
-  window.removeEventListener('solomd:open-rag-search', onOpenRagSearchEvent as EventListener);
-  window.removeEventListener('solomd:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
-  window.removeEventListener('solomd:wiki-open', onWikiOpen as EventListener);
-  window.removeEventListener('solomd:ai-rewrite-accept', onAIRewriteAccept as EventListener);
-  window.removeEventListener('solomd:ai-rewrite-cancel', onAIRewriteCancel as EventListener);
+  window.removeEventListener('xiaoyuan-note:open-help', onOpenHelpEvent as EventListener);
+  window.removeEventListener('xiaoyuan-note:open-global-search', onOpenSearchEvent as EventListener);
+  window.removeEventListener('xiaoyuan-note:open-rag-search', onOpenRagSearchEvent as EventListener);
+  window.removeEventListener('xiaoyuan-note:open-cjk-proofread', onOpenCjkProofreadEvent as EventListener);
+  window.removeEventListener('xiaoyuan-note:wiki-open', onWikiOpen as EventListener);
+  window.removeEventListener('xiaoyuan-note:ai-rewrite-accept', onAIRewriteAccept as EventListener);
+  window.removeEventListener('xiaoyuan-note:ai-rewrite-cancel', onAIRewriteCancel as EventListener);
   window.removeEventListener(BASES_OPEN_EVENT, onOpenBases as EventListener);
   window.removeEventListener(BASES_CLOSE_EVENT, onCloseBases as EventListener);
-  window.removeEventListener('solomd:leave-center-overlay', onLeaveCenterOverlay);
+  window.removeEventListener('xiaoyuan-note:leave-center-overlay', onLeaveCenterOverlay);
   window.removeEventListener(INBOX_OPEN_EVENT, onOpenInbox as EventListener);
   window.removeEventListener(INBOX_CLOSE_EVENT, onCloseInbox as EventListener);
   window.removeEventListener(TYPE_LENS_OPEN_EVENT, onOpenTypeLens as EventListener);
   window.removeEventListener(TYPE_LENS_CLOSE_EVENT, onCloseTypeLens as EventListener);
   window.removeEventListener(VIEW_OPEN_EVENT, onOpenView as EventListener);
   window.removeEventListener(VIEW_CLOSE_EVENT, onCloseView as EventListener);
-  window.removeEventListener('solomd:open-settings', onOpenSettingsEvent as EventListener);
-  window.removeEventListener('solomd:open-agent-wizard', onOpenAgentWizard);
-  window.removeEventListener('solomd:open-image-url-dialog', onOpenImageUrlDialog);
+  window.removeEventListener('xiaoyuan-note:open-settings', onOpenSettingsEvent as EventListener);
+  window.removeEventListener('xiaoyuan-note:open-agent-wizard', onOpenAgentWizard);
+  window.removeEventListener('xiaoyuan-note:open-image-url-dialog', onOpenImageUrlDialog);
   if (unlistenOpened) {
     unlistenOpened();
     unlistenOpened = null;
@@ -1825,7 +1886,7 @@ onBeforeUnmount(() => {
     unlistenMenu();
     unlistenMenu = null;
   }
-  window.removeEventListener('solomd:menu-action', onDomMenuAction);
+  window.removeEventListener('xiaoyuan-note:menu-action', onDomMenuAction);
   if (unlistenWindowDestroyed) {
     unlistenWindowDestroyed();
     unlistenWindowDestroyed = null;
@@ -2047,7 +2108,7 @@ watch(isNarrow, (narrow, wasNarrow) => {
 // Opening or switching to a note is what moves a phone to the editor — but
 // not the session restore at launch: a cold start lands on 笔记, the way
 // Notes does. (Opening a file from another app still goes straight to it,
-// through 'solomd:file-opened' below.)
+// through 'xiaoyuan-note:file-opened' below.)
 let phoneTabWatchArmed = false;
 onMounted(() => setTimeout(() => { phoneTabWatchArmed = true; }, 1500));
 watch(() => tabs.activeId, () => {
@@ -2055,7 +2116,7 @@ watch(() => tabs.activeId, () => {
   // An empty Untitled that appears on its own — opening a folder starts its
   // session with one — is not the user opening a note: picking a folder
   // landed on a blank editor instead of the folder's notes. New notes and
-  // opened files announce themselves through 'solomd:file-opened'.
+  // opened files announce themselves through 'xiaoyuan-note:file-opened'.
   const t = tabs.activeTab;
   if (t && !t.filePath && t.content === '') return;
   phoneShowEditor();
@@ -2069,7 +2130,7 @@ watch(
   },
   { immediate: true },
 );
-window.addEventListener('solomd:file-opened', phoneShowEditor);
+window.addEventListener('xiaoyuan-note:file-opened', phoneShowEditor);
 // Android's back button: the WebView goes back in its history and only
 // finishes the activity when there is none — and the phone shell never made
 // any, so Back from a note quit the app. Leaving 笔记 for the editor or
@@ -2081,8 +2142,8 @@ watch(
   (v, old) => {
     if (!isNarrow.value) return;
     if (old === 'home' && v !== 'home') {
-      history.pushState({ solomdPhone: v }, '');
-    } else if (v === 'home' && old !== 'home' && history.state?.solomdPhone) {
+      history.pushState({ xiaoyuanNotePhone: v }, '');
+    } else if (v === 'home' && old !== 'home' && history.state?.xiaoyuanNotePhone) {
       phoneHistoryOps++;
       history.back();
     }
@@ -2094,7 +2155,7 @@ window.addEventListener('popstate', () => {
     return;
   }
   if (isNarrow.value && phone.view !== 'home') {
-    window.dispatchEvent(new Event('solomd:close-menus'));
+    window.dispatchEvent(new Event('xiaoyuan-note:close-menus'));
     phone.show('home');
   }
 });
@@ -2165,13 +2226,13 @@ function closeNarrowDrawer(): void {
 
 // Dock visibility / composition changes the editor's available width.
 // CodeMirror's ResizeObserver may lag for a frame, so dispatch
-// solomd:relayout on the next paint and let Editor.vue requestMeasure().
+// xiaoyuan-note:relayout on the next paint and let Editor.vue requestMeasure().
 watch(
   [() => settings.sidebarDock, dockPaneVisible, dockPaneAvailable],
   () => {
     nextTick(() => {
       requestAnimationFrame(() => {
-        window.dispatchEvent(new CustomEvent('solomd:relayout'));
+        window.dispatchEvent(new CustomEvent('xiaoyuan-note:relayout'));
       });
     });
   },
@@ -2313,7 +2374,7 @@ const viewOpen = ref(false);
  * the `v-else` branch: a blank pane with no way back, surviving every attempt
  * to open a file. Files still opened — the toast fired and the status bar
  * counted the lines — but nothing could draw them. Reported on Android, where
- * a SAF-mounted workspace that can't read `.solomd/views/` hits it easily,
+ * a SAF-mounted workspace that can't read `.xiaoyuan-note/views/` hits it easily,
  * though it is not Android-specific.
  */
 const savedViewsStore = useSavedViewsStore();
@@ -2357,7 +2418,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
          sidebar's top inset, or over the header when the sidebar is hidden. -->
     <Toolbar
       v-if="winTitleBar"
-      v-show="settings.viewMode !== 'reading'"
+      :visible="settings.viewMode !== 'reading'"
       variant="titlebar"
       @open-palette="paletteOpen = true"
       @open-settings="openSettingsAt()"
@@ -2514,6 +2575,22 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
         />
       </Teleport>
 
+      <!-- v4.6 — frontmatter date picker: bridge for the preview / live-edit
+           date control. The renderer (frontmatter-render) emits
+           `xiaoyuan-note:open-fm-date`; this picker runs inside the active Pinia/i18n
+           context and writes the chosen date back via writeFrontmatterValue. -->
+      <Teleport to="body">
+        <DatePickerPopover
+          v-if="fmDatePicker"
+          :iso="fmDatePicker?.iso ?? ''"
+          mode="date"
+          :anchor="{ x: fmDatePicker?.x ?? 0, y: fmDatePicker?.y ?? 0 }"
+          auto-open
+          @pick="onFmDatePick"
+          @close="fmDatePicker = null"
+        />
+      </Teleport>
+
       <!-- v4.3.0 PR #75 — right-click context menu for sidebar pane toggles. -->
       <Teleport to="body">
         <div
@@ -2631,6 +2708,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
     <CalendarDialog v-if="isNarrow || isTabletOverlay" />
     <!-- v4.6 F5 — saved-view create/edit modal (self-mounts via window events). -->
     <ViewEditorDialog />
+    <!-- v5.0 — insert-query-block wizard (self-mounts via window events). -->
+    <QueryBlockCreateDialog />
+    <!-- v5.0 — bridges query-widget menus to the app's shared ContextMenu. -->
+    <QueryCtxMenuBridge />
     <!-- Legacy `🔁 FREQ=…` → Tasks natural language, with preview + confirm. -->
     <RecurrenceMigrationDialog />
     <WhiteboardOverlay />
@@ -2666,11 +2747,11 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
         <div class="arn__title">重启一次即可读取文件夹</div>
         <p class="arn__body">
           文件访问权限已开启 ✅。安卓要求 App 重启后才能真正读取手机存储。<br /><br />
-          点「关闭 SoloMD」→ 从后台任务里划掉 → 重新打开 App,再点「打开文件夹」就能选你的笔记文件夹了。
+          点「关闭 xiaoyuanNote」→ 从后台任务里划掉 → 重新打开 App,再点「打开文件夹」就能选你的笔记文件夹了。
         </p>
         <div class="arn__foot">
           <button class="arn__btn" @click="androidRestartNeeded = false">稍后</button>
-          <button class="arn__btn arn__btn--primary" @click="doAndroidRestart">关闭 SoloMD</button>
+          <button class="arn__btn arn__btn--primary" @click="doAndroidRestart">关闭 xiaoyuanNote</button>
         </div>
       </div>
     </div>

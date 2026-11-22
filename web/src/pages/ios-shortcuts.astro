@@ -7,8 +7,8 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="SoloMD on iOS — Shortcuts presets for capture from anywhere"
-  description="Three Apple Shortcuts that hit the SoloMD desktop capture endpoint over your LAN — quick capture, append-to-daily, and Safari-share clip. iOS 15+, no third-party servers, no signed apps required."
+  title="xiaoyuanNote on iOS — Shortcuts presets for capture from anywhere"
+  description="Three Apple Shortcuts that hit the xiaoyuanNote desktop capture endpoint over your LAN — quick capture, append-to-daily, and Safari-share clip. iOS 15+, no third-party servers, no signed apps required."
   lang={lang}
 >
   <Header lang={lang} />
@@ -17,10 +17,10 @@ const lang = 'en' as const;
       <nav class="breadcrumbs">
         <a href="/">Home</a> / <span>iOS Shortcuts</span>
       </nav>
-      <h1>iOS Shortcuts for SoloMD</h1>
+      <h1>iOS Shortcuts for xiaoyuanNote</h1>
       <p class="lead">
         Three ready-to-build Shortcuts that send notes from your iPhone or iPad
-        to the SoloMD desktop app on your laptop, over your local Wi-Fi —
+        to the xiaoyuanNote desktop app on your laptop, over your local Wi-Fi —
         no cloud account, no third-party server, no signed extension.
         v2.4 ships the receiver; this page is the sender.
       </p>
@@ -35,7 +35,7 @@ const lang = 'en' as const;
 
       <h2>Before you start (one-time setup)</h2>
       <ol>
-        <li>Open <strong>SoloMD</strong> on your Mac/Windows/Linux.</li>
+        <li>Open <strong>xiaoyuanNote</strong> on your Mac/Windows/Linux.</li>
         <li>Go to <strong>Settings → Capture endpoint</strong>.</li>
         <li>Toggle <strong>Enable</strong> on. Tick <strong>Allow LAN access</strong>.</li>
         <li>Copy the bearer token. Note your computer's LAN IP
@@ -49,7 +49,7 @@ const lang = 'en' as const;
 
       <h2>Recipe 1 — Quick capture</h2>
       <p>
-        Type a thought, hit Run, it lands in your SoloMD inbox.
+        Type a thought, hit Run, it lands in your xiaoyuanNote inbox.
         Add to the Share Sheet so highlighted text from any app
         (Safari, Mail, Messages) triggers a one-tap save.
       </p>
@@ -94,7 +94,7 @@ const lang = 'en' as const;
 
       <h2>Recipe 3 — Clip a Safari URL via Share Sheet</h2>
       <p>
-        Highlight nothing — just hit Share → SoloMD: Clip URL on a Safari
+        Highlight nothing — just hit Share → xiaoyuan-note: Clip URL on a Safari
         page. iOS extracts the article body, converts to markdown,
         prepends YAML front matter, and POSTs to the inbox.
       </p>
@@ -108,7 +108,7 @@ const lang = 'en' as const;
       </ol>
       <p>
         For technical pages with code blocks, the desktop browser
-        <a href="https://github.com/zhitongblog/solomd/releases/latest">web clipper extension</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/releases/latest">web clipper extension</a>
         gives a much cleaner conversion (uses Mozilla Readability + turndown).
         The iOS path is best for blog posts, news, recipes.
       </p>
@@ -117,7 +117,7 @@ const lang = 'en' as const;
       <p>
         Every Shortcut talks to the URL you typed and only that URL — there
         is no third-party server, no telemetry, no Apple-side relay. The
-        token authorises a single SoloMD desktop instance on your LAN.
+        token authorises a single xiaoyuanNote desktop instance on your LAN.
         Anyone on the same LAN who guesses the token (it's 32 hex chars)
         could write to your workspace; rotate the token in
         Settings → Capture endpoint if you ever share Wi-Fi with people

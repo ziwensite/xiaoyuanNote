@@ -36,7 +36,7 @@ const collapsedByTab = ref<Record<string, number[]>>({});
 // line-jump mode trigger.
 //
 // The jump emits `goto(line)` — same path the click handler uses — so the
-// existing solomd:outline-goto event keeps everything else (scroll sync,
+// existing xiaoyuan-note:outline-goto event keeps everything else (scroll sync,
 // preview-mode goto, focus restore) wired identically.
 
 const LABEL_ALPHABET = 'abcdefhijklmnopqrstuvwxyz123456789'.split(''); // skip 'g'

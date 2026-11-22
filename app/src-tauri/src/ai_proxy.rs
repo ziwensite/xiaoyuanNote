@@ -8,14 +8,14 @@
 //!
 //! The `ai_rewrite` command kicks off a streaming chat completion request to
 //! the chosen provider. Chunks are forwarded to the frontend via the
-//! `solomd://ai-chunk` event, with `solomd://ai-done` terminating a clean
-//! stream and `solomd://ai-error` surfacing any failure. Each request gets a
+//! `xiaoyuan-note://ai-chunk` event, with `xiaoyuan-note://ai-done` terminating a clean
+//! stream and `xiaoyuan-note://ai-error` surfacing any failure. Each request gets a
 //! unique `request_id` (returned synchronously) so the overlay can match
 //! events to its own pending stream and cancel via `ai_cancel`.
 //!
 //! Cancellation is cooperative: a per-request `Arc<AtomicBool>` flag is
 //! checked on every parsed chunk; setting it makes the streaming task exit on
-//! the next iteration and emit `solomd://ai-error` with `"cancelled"`.
+//! the next iteration and emit `xiaoyuan-note://ai-error` with `"cancelled"`.
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -293,7 +293,7 @@ struct ToolResultEvent {
     error: Option<String>,
 }
 
-/// Emitted alongside `solomd://ai-done` — gives the frontend the run_id so
+/// Emitted alongside `xiaoyuan-note://ai-done` — gives the frontend the run_id so
 /// it can stash a "view trace" pointer per assistant message. The legacy
 /// `DoneEvent` keeps shipping for backwards compat with the existing UI.
 #[derive(Debug, Clone, Serialize)]
@@ -712,17 +712,17 @@ pub fn ai_cancel(request_id: String) -> Result<(), String> {
 /// v4.0 pillar 1 — multi-turn chat streaming entrypoint with tool-call loop.
 ///
 /// Returns a request id; events are emitted on:
-///   - `solomd://ai-chunk` — streaming text deltas
-///   - `solomd://ai-tool-call` — about to dispatch a tool (C3.2 step 1)
-///   - `solomd://ai-tool-result` — tool returned (C3.2 step 3)
-///   - `solomd://ai-done` — final assistant turn ended cleanly
-///   - `solomd://ai-error` — any failure
-///   - `solomd://ai-run-started` — emitted right after run dir is created;
+///   - `xiaoyuan-note://ai-chunk` — streaming text deltas
+///   - `xiaoyuan-note://ai-tool-call` — about to dispatch a tool (C3.2 step 1)
+///   - `xiaoyuan-note://ai-tool-result` — tool returned (C3.2 step 3)
+///   - `xiaoyuan-note://ai-done` — final assistant turn ended cleanly
+///   - `xiaoyuan-note://ai-error` — any failure
+///   - `xiaoyuan-note://ai-run-started` — emitted right after run dir is created;
 ///                                 carries the run_id for trace replay UI
 ///
 /// Workspace persistence: when `run_id` is absent and `workspace` is
 /// provided, ai_chat mints a new run dir under
-/// `<workspace>/.solomd/agent-runs/<run-id>/` and persists the conversation
+/// `<workspace>/.xiaoyuan-note/agent-runs/<run-id>/` and persists the conversation
 /// + every tool call to `trace.jsonl` + `run.md` per C1 / C2.
 ///
 /// Ollama path stays single-turn — we don't wire tools because the open
@@ -786,7 +786,7 @@ pub async fn ai_chat(app: AppHandle, request: ChatRequest) -> Result<String, Str
                 Ok(h) => {
                     let h = Arc::new(h);
                     let _ = app.emit(
-                        "solomd://ai-run-started",
+                        "xiaoyuan-note://ai-run-started",
                         RunStartedEvent {
                             request_id: request_id.clone(),
                             run_id: h.run_id.clone(),
@@ -880,7 +880,7 @@ pub async fn ai_chat(app: AppHandle, request: ChatRequest) -> Result<String, Str
                     let _ = rh.finish("ok", *tokens_in, *tokens_out, cost, None);
                 }
                 let _ = app_clone.emit(
-                    "solomd://ai-done",
+                    "xiaoyuan-note://ai-done",
                     DoneEvent {
                         request_id: id_for_task.clone(),
                         full_text: full_text.clone(),
@@ -898,7 +898,7 @@ pub async fn ai_chat(app: AppHandle, request: ChatRequest) -> Result<String, Str
                     let _ = rh.finish(status, 0, 0, 0.0, Some(err.clone()));
                 }
                 let _ = app_clone.emit(
-                    "solomd://ai-error",
+                    "xiaoyuan-note://ai-error",
                     ErrorEvent {
                         request_id: id_for_task.clone(),
                         error: err.clone(),
@@ -913,8 +913,8 @@ pub async fn ai_chat(app: AppHandle, request: ChatRequest) -> Result<String, Str
 }
 
 /// Kicks off a streaming AI rewrite. Returns the synthetic request id; the
-/// caller listens for `solomd://ai-chunk`, `solomd://ai-done`, and
-/// `solomd://ai-error` events filtered by that id.
+/// caller listens for `xiaoyuan-note://ai-chunk`, `xiaoyuan-note://ai-done`, and
+/// `xiaoyuan-note://ai-error` events filtered by that id.
 #[tauri::command]
 pub async fn ai_rewrite(app: AppHandle, request: RewriteRequest) -> Result<String, String> {
     // #102 — prime the config dir so the Android encrypted-file key backend
@@ -968,7 +968,7 @@ pub async fn ai_rewrite(app: AppHandle, request: RewriteRequest) -> Result<Strin
         match result {
             Ok(full_text) => {
                 let _ = app.emit(
-                    "solomd://ai-done",
+                    "xiaoyuan-note://ai-done",
                     DoneEvent {
                         request_id: id_for_task.clone(),
                         full_text,
@@ -977,7 +977,7 @@ pub async fn ai_rewrite(app: AppHandle, request: RewriteRequest) -> Result<Strin
             }
             Err(err) => {
                 let _ = app.emit(
-                    "solomd://ai-error",
+                    "xiaoyuan-note://ai-error",
                     ErrorEvent {
                         request_id: id_for_task.clone(),
                         error: err,
@@ -1017,7 +1017,7 @@ fn emit_chunk(app: &AppHandle, request_id: &str, chunk: &str) {
         return;
     }
     let _ = app.emit(
-        "solomd://ai-chunk",
+        "xiaoyuan-note://ai-chunk",
         ChunkEvent {
             request_id: request_id.to_string(),
             chunk: chunk.to_string(),
@@ -1858,7 +1858,7 @@ pub async fn run_chat_anthropic_loop(
         for (id, name, args) in outcome.tool_uses.iter() {
             // Emit tool-call event.
             let _ = app.emit(
-                "solomd://ai-tool-call",
+                "xiaoyuan-note://ai-tool-call",
                 ToolCallEvent {
                     request_id: request_id.to_string(),
                     run_id: run_handle
@@ -1898,7 +1898,7 @@ pub async fn run_chat_anthropic_loop(
             let preview = json_preview(&result_value);
             // Emit tool-result event.
             let _ = app.emit(
-                "solomd://ai-tool-result",
+                "xiaoyuan-note://ai-tool-result",
                 ToolResultEvent {
                     request_id: request_id.to_string(),
                     run_id: run_handle
@@ -2313,7 +2313,7 @@ pub async fn run_chat_openai_loop(
         // Dispatch each tool, append one `tool` role message per call.
         for (id, name, args) in outcome.tool_uses.iter() {
             let _ = app.emit(
-                "solomd://ai-tool-call",
+                "xiaoyuan-note://ai-tool-call",
                 ToolCallEvent {
                     request_id: request_id.to_string(),
                     run_id: run_handle
@@ -2352,7 +2352,7 @@ pub async fn run_chat_openai_loop(
             };
             let preview = json_preview(&result_value);
             let _ = app.emit(
-                "solomd://ai-tool-result",
+                "xiaoyuan-note://ai-tool-result",
                 ToolResultEvent {
                     request_id: request_id.to_string(),
                     run_id: run_handle
@@ -2486,8 +2486,8 @@ async fn openai_one_turn(
     // DEBUG (gemini thought_signature hunt): if the env var is set, dump
     // every raw SSE line to that file so we can see what fields Gemini's
     // OpenAI-compat layer puts on tool_call deltas. Set with:
-    //   SOLOMD_OPENAI_DEBUG_DUMP=/tmp/openai-stream.log pnpm tauri dev
-    let debug_dump_path: Option<std::path::PathBuf> = std::env::var("SOLOMD_OPENAI_DEBUG_DUMP")
+    //   XIAOYUAN_NOTE_OPENAI_DEBUG_DUMP=/tmp/openai-stream.log pnpm tauri dev
+    let debug_dump_path: Option<std::path::PathBuf> = std::env::var("XIAOYUAN_NOTE_OPENAI_DEBUG_DUMP")
         .ok()
         .map(std::path::PathBuf::from);
 

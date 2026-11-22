@@ -1,6 +1,6 @@
 # Mac App Store Build Notes — READ BEFORE SUBMITTING
 
-The current Mac build of SoloMD is **Developer ID-signed for direct distribution**. Shipping to the Mac App Store requires several changes. None are one-line — expect to spend some time here before first submission.
+The current Mac build of xiaoyuanNote is **Developer ID-signed for direct distribution**. Shipping to the Mac App Store requires several changes. None are one-line — expect to spend some time here before first submission.
 
 ## Required changes
 
@@ -15,7 +15,7 @@ Create both certs in App Store Connect → Certificates, Identifiers & Profiles 
 
 ### 2. Provisioning profile
 
-Create a **Mac App Store Distribution** provisioning profile that matches bundle id `app.solomd` (or whatever you use for the MAS SKU). Download to `~/Library/MobileDevice/Provisioning Profiles/`.
+Create a **Mac App Store Distribution** provisioning profile that matches bundle id `app.xiaoyuannote` (or whatever you use for the MAS SKU). Download to `~/Library/MobileDevice/Provisioning Profiles/`.
 
 ### 3. Sandbox entitlements
 
@@ -77,14 +77,14 @@ Once the above is in place:
 cd app
 # Build with MAS env
 VITE_MAS_BUILD=1 pnpm tauri build --bundles app --target universal-apple-darwin
-# Tauri produces SoloMD.app signed with the 3rd Party Mac Developer Application cert
+# Tauri produces xiaoyuannote.app signed with the 3rd Party Mac Developer Application cert
 # Create the pkg:
 productbuild --sign "3rd Party Mac Developer Installer: xiangdong li (6NQM3XP5RF)" \
-  --component src-tauri/target/universal-apple-darwin/release/bundle/macos/SoloMD.app /Applications \
-  SoloMD-MAS-0.1.12.pkg
+  --component src-tauri/target/universal-apple-darwin/release/bundle/macos/xiaoyuannote.app /Applications \
+  xiaoyuan-note-MAS-0.1.12.pkg
 # Upload via Transporter.app or:
-xcrun altool --upload-app -f SoloMD-MAS-0.1.12.pkg -t macos \
-  -u slushy@139.com -p "@keychain:solomd"
+xcrun altool --upload-app -f xiaoyuan-note-MAS-0.1.12.pkg -t macos \
+  -u slushy@139.com -p "@keychain:xiaoyuanNote"
 ```
 
 ### 8. First-submission gotchas
@@ -96,7 +96,7 @@ xcrun altool --upload-app -f SoloMD-MAS-0.1.12.pkg -t macos \
 
 ## Recommended order of operations
 
-1. Decide if MAS build shares the iOS bundle id (`app.solomd`) or gets its own (e.g. `app.solomd.mac`). Sharing is fine for Universal Purchase later.
+1. Decide if MAS build shares the iOS bundle id (`app.xiaoyuannote`) or gets its own (e.g. `app.xiaoyuan-note.mac`). Sharing is fine for Universal Purchase later.
 2. Register certs + provisioning profile on developer.apple.com.
 3. Write the MAS entitlements file.
 4. Add the `MAS_BUILD` flag and gate auto-update.

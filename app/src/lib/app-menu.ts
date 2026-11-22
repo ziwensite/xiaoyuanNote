@@ -1,7 +1,7 @@
 /**
  * The application menu, as data (bug/C1).
  *
- * SoloMD has two menu bars: the native one (macOS menubar, Linux window menu —
+ * xiaoyuanNote has two menu bars: the native one (macOS menubar, Linux window menu —
  * built in Rust, runner.rs) and the in-app one in the Windows title bar
  * (Toolbar.vue; Windows runs frameless). They used to be two hand-written
  * lists that drifted apart — different items, and accelerators baked in as
@@ -500,7 +500,7 @@ export function buildAppMenu(ctx: MenuContext): TopMenu[] {
     ...(ctx.updateCheckAvailable ? [sep, item('help.checkUpdate', t('menubar.checkUpdate'))] : []),
     sep,
     // Inside Help the context is clear, so Windows / Linux say just "About"
-    // (user feedback 2026-10-14); macOS keeps the HIG "About SoloMD".
+    // (user feedback 2026-10-14); macOS keeps the HIG "About xiaoyuanNote".
     item('help.about', mac ? t('menubar.about') : t('menubar.aboutShort')),
   ];
 
@@ -519,9 +519,9 @@ export function buildAppMenu(ctx: MenuContext): TopMenu[] {
   // and without it ⌘Q does nothing — #31), and Window sits before Help.
   const appMenu: TopMenu = {
     id: 'app',
-    label: 'SoloMD',
+    label: 'xiaoyuanNote',
     items: [
-      // Without a label macOS falls back to its own English "About SoloMD".
+      // Without a label macOS falls back to its own English "About xiaoyuanNote".
       { type: 'predefined', role: 'about', label: t('menubar.about') },
       sep,
       item('settings.open', t('menubar.settings')),

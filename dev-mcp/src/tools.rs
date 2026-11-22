@@ -1,22 +1,22 @@
-//! Tool definitions for solomd-dev-mcp.
+//! Tool definitions for xiaoyuan-note-dev-mcp.
 //!
 //! Tools roughly mirror the user-facing GUI flow:
 //!
-//!   * `solomd_get_settings` / `solomd_set_setting` — read/write
+//!   * `XIAOYUAN_NOTE_get_settings` / `XIAOYUAN_NOTE_set_setting` — read/write
 //!     localStorage settings (autoGitEnabled, aiEnabled, etc.).
-//!   * `solomd_get_workspace` / `solomd_set_workspace` — read/write the
-//!     currentFolder. Must be called while SoloMD is closed (WebKit
+//!   * `XIAOYUAN_NOTE_get_workspace` / `XIAOYUAN_NOTE_set_workspace` — read/write the
+//!     currentFolder. Must be called while xiaoyuanNote is closed (WebKit
 //!     holds the SQLite open).
-//!   * `solomd_get_tabs` / `solomd_set_tabs` — read/write the open-tabs
+//!   * `XIAOYUAN_NOTE_get_tabs` / `XIAOYUAN_NOTE_set_tabs` — read/write the open-tabs
 //!     state.
-//!   * `solomd_git_status|init|commit|log|rollback|file_at` —
+//!   * `XIAOYUAN_NOTE_git_status|init|commit|log|rollback|file_at` —
 //!     functional equivalents of the seven `git_history` Tauri commands
 //!     in app/src-tauri. Drives the same backend logic the GUI uses.
-//!   * `solomd_read_file` / `solomd_write_file` — convenience for
+//!   * `XIAOYUAN_NOTE_read_file` / `XIAOYUAN_NOTE_write_file` — convenience for
 //!     verifying disk state.
-//!   * `solomd_screenshot` — full-screen `screencapture -x` to a temp
+//!   * `XIAOYUAN_NOTE_screenshot` — full-screen `screencapture -x` to a temp
 //!     file. Path returned for the caller to read.
-//!   * `solomd_app_status` — list running SoloMD processes (dev vs
+//!   * `XIAOYUAN_NOTE_app_status` — list running xiaoyuanNote processes (dev vs
 //!     installed) so the caller knows which build it's testing against.
 //!
 //! All git operations are implemented inline in this crate (small,
@@ -74,11 +74,11 @@ fn ls_path(bundle: &str) -> Result<PathBuf> {
     let home = std::env::var("HOME").context("HOME not set")?;
     let (folder, hash) = match bundle {
         "dev" => (
-            "solomd",
+            "xiaoyuanNote",
             "y_a-QbuPa1QmlFcuFGdl2gs24bBFFTCBTT8ilCLEsu0",
         ),
         "prod" => (
-            "app.solomd",
+            "app.xiaoyuannote",
             "bvB3gbOLx5VDrjmfAOI5KBKeMsCcGefh6CxQA9MFkBM",
         ),
         other => return Err(anyhow!("unknown bundle: {other} (use dev or prod)")),
@@ -147,12 +147,12 @@ fn build_signature(repo: &Repository) -> Result<Signature<'static>> {
         .get_string("user.name")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "SoloMD".to_string());
+        .unwrap_or_else(|| "xiaoyuanNote".to_string());
     let email = cfg
         .get_string("user.email")
         .ok()
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| "solomd@local".to_string());
+        .unwrap_or_else(|| "xiaoyuanNote@local".to_string());
     Signature::now(&name, &email).map_err(Into::into)
 }
 
@@ -315,7 +315,7 @@ pub struct EmptyArgs {}
 // ---------------------------------------------------------------------------
 // RAG (v2.3) — re-implementation of `app/src-tauri/src/rag.rs` so this
 // crate stays decoupled from the Tauri app. The on-disk schema MUST match
-// — both sides write into <workspace>/.solomd/embeddings.sqlite.
+// — both sides write into <workspace>/.xiaoyuan-note/embeddings.sqlite.
 // ---------------------------------------------------------------------------
 
 const RAG_EMBED_DIM: usize = 256;
@@ -346,7 +346,7 @@ CREATE TABLE IF NOT EXISTS rag_files (
 "#;
 
 fn rag_db_path(folder: &str) -> PathBuf {
-    Path::new(folder).join(".solomd").join("embeddings.sqlite")
+    Path::new(folder).join(".xiaoyuanNote").join("embeddings.sqlite")
 }
 
 fn rag_open_db(folder: &str) -> Result<Connection> {
@@ -567,7 +567,7 @@ fn rag_list_markdown(folder: &str) -> Vec<PathBuf> {
         };
         for entry in entries.flatten() {
             let p = entry.path();
-            if p.file_name().and_then(|s| s.to_str()) == Some(".solomd") {
+            if p.file_name().and_then(|s| s.to_str()) == Some(".xiaoyuanNote") {
                 continue;
             }
             if p.is_dir() {
@@ -641,13 +641,13 @@ pub struct RagSearchArgs {
 }
 
 // ---------------------------------------------------------------------------
-// Dev-bridge (v2.3) — talks to the localhost JSON-RPC server inside SoloMD's
+// Dev-bridge (v2.3) — talks to the localhost JSON-RPC server inside xiaoyuanNote’s
 // debug build. See app/src-tauri/src/dev_bridge.rs for the protocol.
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct DevEvalArgs {
-    /// JavaScript source to run in SoloMD's main WebView. The script runs
+    /// JavaScript source to run in xiaoyuanNote’s main WebView. The script runs
     /// inside an `async` IIFE — you can use `await`. Whatever the IIFE
     /// returns (or its last expression) is JSON-serialised and sent back.
     pub script: String,
@@ -689,24 +689,24 @@ pub struct DevWaitForArgs {
     pub timeout_ms: Option<u64>,
 }
 
-/// Look up the SoloMD app config dir (where dev_bridge writes port/token).
+/// Look up the xiaoyuanNote app config dir (where dev_bridge writes port/token).
 /// Mirrors what `app.path().app_config_dir()` returns under tauri 2 — it
-/// uses the bundle identifier from `tauri.conf.json` (`app.solomd`), the
+/// uses the bundle identifier from `tauri.conf.json` (`app.xiaoyuannote`), the
 /// same path for both `pnpm tauri dev` and the installed dmg. Only debug
 /// builds actually write the file though, so a stale prod install won't
 /// produce one.
 fn dev_bridge_config_dir() -> Result<PathBuf> {
     let home = std::env::var("HOME").context("HOME not set")?;
     #[cfg(target_os = "macos")]
-    let dir = PathBuf::from(home).join("Library/Application Support/app.solomd");
+    let dir = PathBuf::from(home).join("Library/Application Support/app.xiaoyuannote");
     #[cfg(target_os = "linux")]
-    let dir = PathBuf::from(&home).join(".config/app.solomd");
+    let dir = PathBuf::from(&home).join(".config/app.xiaoyuannote");
     #[cfg(target_os = "windows")]
     let dir = {
         let appdata = std::env::var("APPDATA")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from(home.clone()).join("AppData/Roaming"));
-        appdata.join("app.solomd")
+        appdata.join("app.xiaoyuannote")
     };
     Ok(dir)
 }
@@ -717,7 +717,7 @@ fn read_dev_bridge_endpoint() -> Result<(u16, String)> {
     let token_path = dir.join("dev-bridge.token");
     if !port_path.exists() || !token_path.exists() {
         return Err(anyhow!(
-            "SoloMD dev build not running — start with `pnpm tauri dev` from app/. \
+            "xiaoyuanNote dev build not running — start with `pnpm tauri dev` from app/. \
              (looked for {} and {})",
             port_path.display(),
             token_path.display()
@@ -821,70 +821,70 @@ fn js_string(s: &str) -> String {
 
 #[tool_router]
 impl DevServer {
-    #[tool(description = "Read SoloMD's persisted settings (settings.v1) from WebKit LocalStorage. Args: { bundle?: 'dev'|'prod' = 'dev' }.")]
-    pub async fn solomd_get_settings(
+    #[tool(description = "Read xiaoyuanNote’s persisted settings (settings.v1) from WebKit LocalStorage. Args: { bundle?: 'dev'|'prod' = 'dev' }.")]
+    pub async fn XIAOYUAN_NOTE_get_settings(
         &self,
         Parameters(args): Parameters<BundleArgs>,
     ) -> Result<CallToolResult, McpError> {
-        let v = ls_get(&args.bundle, "solomd.settings.v1")
+        let v = ls_get(&args.bundle, "xiaoyuan-note.settings.v1")
             .map_err(|e| err(format!("get_settings failed: {e}")))?;
         Ok(json_result(v))
     }
 
-    #[tool(description = "Set a single key in SoloMD's settings.v1. SoloMD must be CLOSED (WebKit holds the SQLite). Args: { bundle?, key, value }.")]
-    pub async fn solomd_set_setting(
+    #[tool(description = "Set a single key in xiaoyuanNote’s settings.v1. xiaoyuanNote must be CLOSED (WebKit holds the SQLite). Args: { bundle?, key, value }.")]
+    pub async fn XIAOYUAN_NOTE_set_setting(
         &self,
         Parameters(args): Parameters<SetSettingArgs>,
     ) -> Result<CallToolResult, McpError> {
-        let mut current = ls_get(&args.bundle, "solomd.settings.v1")
+        let mut current = ls_get(&args.bundle, "xiaoyuan-note.settings.v1")
             .map_err(|e| err(format!("read settings: {e}")))?;
         if !current.is_object() { current = JsonValue::Object(Default::default()); }
         if let Some(obj) = current.as_object_mut() {
             obj.insert(args.key.clone(), args.value.clone());
         }
-        ls_put(&args.bundle, "solomd.settings.v1", &current)
+        ls_put(&args.bundle, "xiaoyuan-note.settings.v1", &current)
             .map_err(|e| err(format!("write settings: {e}")))?;
         Ok(text_result(format!("set {} = {}", args.key, args.value)))
     }
 
-    #[tool(description = "Read SoloMD's workspace state (currentFolder, recentFiles).")]
-    pub async fn solomd_get_workspace(
+    #[tool(description = "Read xiaoyuanNote’s workspace state (currentFolder, recentFiles).")]
+    pub async fn XIAOYUAN_NOTE_get_workspace(
         &self,
         Parameters(args): Parameters<BundleArgs>,
     ) -> Result<CallToolResult, McpError> {
-        let v = ls_get(&args.bundle, "solomd.workspace.v1")
+        let v = ls_get(&args.bundle, "xiaoyuan-note.workspace.v1")
             .map_err(|e| err(format!("get_workspace: {e}")))?;
         Ok(json_result(v))
     }
 
-    #[tool(description = "Set SoloMD's currentFolder. SoloMD must be CLOSED. Args: { bundle?, folder }.")]
-    pub async fn solomd_set_workspace(
+    #[tool(description = "Set xiaoyuanNote’s currentFolder. xiaoyuanNote must be CLOSED. Args: { bundle?, folder }.")]
+    pub async fn XIAOYUAN_NOTE_set_workspace(
         &self,
         Parameters(args): Parameters<SetWorkspaceArgs>,
     ) -> Result<CallToolResult, McpError> {
-        let mut ws = ls_get(&args.bundle, "solomd.workspace.v1")
+        let mut ws = ls_get(&args.bundle, "xiaoyuan-note.workspace.v1")
             .unwrap_or(JsonValue::Object(Default::default()));
         if !ws.is_object() { ws = JsonValue::Object(Default::default()); }
         if let Some(obj) = ws.as_object_mut() {
             obj.insert("currentFolder".into(), JsonValue::String(args.folder.clone()));
         }
-        ls_put(&args.bundle, "solomd.workspace.v1", &ws)
+        ls_put(&args.bundle, "xiaoyuan-note.workspace.v1", &ws)
             .map_err(|e| err(format!("write workspace: {e}")))?;
         Ok(text_result(format!("workspace.currentFolder = {}", args.folder)))
     }
 
-    #[tool(description = "Read SoloMD's tabs state (open tabs + activeTabId).")]
-    pub async fn solomd_get_tabs(
+    #[tool(description = "Read xiaoyuanNote’s tabs state (open tabs + activeTabId).")]
+    pub async fn XIAOYUAN_NOTE_get_tabs(
         &self,
         Parameters(args): Parameters<BundleArgs>,
     ) -> Result<CallToolResult, McpError> {
-        let v = ls_get(&args.bundle, "solomd.tabs.v1")
+        let v = ls_get(&args.bundle, "xiaoyuan-note.tabs.v1")
             .map_err(|e| err(format!("get_tabs: {e}")))?;
         Ok(json_result(v))
     }
 
-    #[tool(description = "Replace SoloMD's tabs state with a single open tab pointing at the given file. SoloMD must be CLOSED. Args: { bundle?, file_path }.")]
-    pub async fn solomd_set_tabs(
+    #[tool(description = "Replace xiaoyuanNote’s tabs state with a single open tab pointing at the given file. xiaoyuanNote must be CLOSED. Args: { bundle?, file_path }.")]
+    pub async fn XIAOYUAN_NOTE_set_tabs(
         &self,
         Parameters(args): Parameters<SetTabsArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -901,13 +901,13 @@ impl DevServer {
             "cursorLine": 1, "cursorCol": 1,
         });
         let v = serde_json::json!({ "tabs": [tab], "activeTabId": id });
-        ls_put(&args.bundle, "solomd.tabs.v1", &v)
+        ls_put(&args.bundle, "xiaoyuan-note.tabs.v1", &v)
             .map_err(|e| err(format!("write tabs: {e}")))?;
         Ok(text_result(format!("active tab -> {}", args.file_path)))
     }
 
     #[tool(description = "Run git_workspace_status against a folder (initialized? head_sha? dirty?).")]
-    pub async fn solomd_git_status(
+    pub async fn XIAOYUAN_NOTE_git_status(
         &self,
         Parameters(args): Parameters<GitFolderArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -944,7 +944,7 @@ impl DevServer {
     }
 
     #[tool(description = "Initialize a folder as a git repo and make an initial commit. Args: { folder }.")]
-    pub async fn solomd_git_init(
+    pub async fn XIAOYUAN_NOTE_git_init(
         &self,
         Parameters(args): Parameters<GitFolderArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -959,14 +959,14 @@ impl DevServer {
         }
         stage(&repo, None).map_err(|e| err(e.to_string()))?;
         let sig = build_signature(&repo).map_err(|e| err(e.to_string()))?;
-        let sha = commit_staged(&repo, &sig, "init: SoloMD workspace")
+        let sha = commit_staged(&repo, &sig, "init: xiaoyuanNote workspace")
             .map_err(|e| err(e.to_string()))?
             .unwrap_or_default();
         Ok(text_result(format!("init ok (sha: {})", sha)))
     }
 
     #[tool(description = "Run git_auto_commit. Stages and commits. Returns the new sha or null if tree unchanged. Args: { folder, file_path?, message? }.")]
-    pub async fn solomd_git_commit(
+    pub async fn XIAOYUAN_NOTE_git_commit(
         &self,
         Parameters(args): Parameters<GitCommitArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -986,7 +986,7 @@ impl DevServer {
     }
 
     #[tool(description = "List commits that touched a single file, newest first. Args: { folder, file_path, limit? }.")]
-    pub async fn solomd_git_log(
+    pub async fn XIAOYUAN_NOTE_git_log(
         &self,
         Parameters(args): Parameters<GitFileArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1024,7 +1024,7 @@ impl DevServer {
     }
 
     #[tool(description = "Read a file's content at a specific commit (without modifying disk). Args: { folder, file_path, sha }.")]
-    pub async fn solomd_git_file_at(
+    pub async fn XIAOYUAN_NOTE_git_file_at(
         &self,
         Parameters(args): Parameters<GitFileShaArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1043,7 +1043,7 @@ impl DevServer {
     }
 
     #[tool(description = "Roll back a single file's working-copy content to a specific commit. Args: { folder, file_path, sha }.")]
-    pub async fn solomd_git_rollback(
+    pub async fn XIAOYUAN_NOTE_git_rollback(
         &self,
         Parameters(args): Parameters<GitFileShaArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1067,7 +1067,7 @@ impl DevServer {
     }
 
     #[tool(description = "Read a file from disk. Args: { path }.")]
-    pub async fn solomd_read_file(
+    pub async fn XIAOYUAN_NOTE_read_file(
         &self,
         Parameters(args): Parameters<PathArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1077,7 +1077,7 @@ impl DevServer {
     }
 
     #[tool(description = "Write a file to disk. Args: { path, content }.")]
-    pub async fn solomd_write_file(
+    pub async fn XIAOYUAN_NOTE_write_file(
         &self,
         Parameters(args): Parameters<WriteFileArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1087,11 +1087,11 @@ impl DevServer {
     }
 
     #[tool(description = "Take a full-screen screenshot. Returns the absolute path to a PNG that the caller can read.")]
-    pub async fn solomd_screenshot(
+    pub async fn XIAOYUAN_NOTE_screenshot(
         &self,
         Parameters(_args): Parameters<EmptyArgs>,
     ) -> Result<CallToolResult, McpError> {
-        let path = format!("/tmp/solomd-dev-mcp-{}.png", chrono_secs());
+        let path = format!("/tmp/xiaoyuan-note-dev-mcp-{}.png", chrono_secs());
         let status = AsyncCommand::new("screencapture")
             .args(["-x", "-o", &path])
             .stdout(Stdio::null())
@@ -1104,7 +1104,7 @@ impl DevServer {
     }
 
     #[tool(description = "v2.3 live-edit self-test. Reports current viewMode, the contract of CSS class names the live-edit extension is expected to emit (so the caller can grep for them in a screenshot or DOM dump), and the active tab's markdown so the caller can know which classes SHOULD be present. Args: { bundle?: 'dev'|'prod' }.")]
-    pub async fn solomd_get_editor_decorations(
+    pub async fn XIAOYUAN_NOTE_get_editor_decorations(
         &self,
         Parameters(args): Parameters<BundleArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1127,7 +1127,7 @@ impl DevServer {
             "cm-md-fenced-line",
         ];
 
-        let settings = ls_get(&args.bundle, "solomd.settings.v1")
+        let settings = ls_get(&args.bundle, "xiaoyuan-note.settings.v1")
             .unwrap_or(JsonValue::Null);
         let view_mode = settings
             .get("viewMode")
@@ -1139,7 +1139,7 @@ impl DevServer {
         // Pull the active tab's content so the caller can correlate
         // expected decorations (e.g. "this doc has a `# H1` so the DOM
         // should contain `.cm-md-heading-line-1`").
-        let tabs = ls_get(&args.bundle, "solomd.tabs.v1").unwrap_or(JsonValue::Null);
+        let tabs = ls_get(&args.bundle, "xiaoyuan-note.tabs.v1").unwrap_or(JsonValue::Null);
         let active_id = tabs
             .get("activeTabId")
             .and_then(|v| v.as_str())
@@ -1203,12 +1203,12 @@ impl DevServer {
             "active_tab_chars": active_content.chars().count(),
             "live_edit_classes": live_edit_classes,
             "expected_classes_from_active_doc": expected,
-            "note": "Live edit decorations only render when view_mode == 'liveEdit'. Take a screenshot via solomd_screenshot and verify the listed classes appear in the rendered DOM (Inspector). To self-test programmatically, use the existing chrome-devtools MCP to evaluate `document.querySelectorAll('.cm-md-heading-line-1').length > 0` on the WebView.",
+            "note": "Live edit decorations only render when view_mode == 'liveEdit'. Take a screenshot via XIAOYUAN_NOTE_screenshot and verify the listed classes appear in the rendered DOM (Inspector). To self-test programmatically, use the existing chrome-devtools MCP to evaluate `document.querySelectorAll('.cm-md-heading-line-1').length > 0` on the WebView.",
         })))
     }
 
     #[tool(description = "v2.3 RAG: report semantic-index status for a workspace folder. Args: { folder }.")]
-    pub async fn solomd_rag_status(
+    pub async fn XIAOYUAN_NOTE_rag_status(
         &self,
         Parameters(args): Parameters<RagFolderArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1244,8 +1244,8 @@ impl DevServer {
         })))
     }
 
-    #[tool(description = "v2.3 RAG: full reindex of a workspace folder (writes <folder>/.solomd/embeddings.sqlite). Args: { folder }.")]
-    pub async fn solomd_rag_reindex(
+    #[tool(description = "v2.3 RAG: full reindex of a workspace folder (writes <folder>/.xiaoyuan-note/embeddings.sqlite). Args: { folder }.")]
+    pub async fn XIAOYUAN_NOTE_rag_reindex(
         &self,
         Parameters(args): Parameters<RagFolderArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1269,7 +1269,7 @@ impl DevServer {
     }
 
     #[tool(description = "v2.3 RAG: semantic search over an indexed workspace. Top-K results by cosine similarity. Args: { folder, query, limit? }.")]
-    pub async fn solomd_rag_search(
+    pub async fn XIAOYUAN_NOTE_rag_search(
         &self,
         Parameters(args): Parameters<RagSearchArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1281,7 +1281,7 @@ impl DevServer {
         }
         let db_p = rag_db_path(&folder);
         if !db_p.exists() {
-            return Err(err("index not built yet — run solomd_rag_reindex first"));
+            return Err(err("index not built yet — run XIAOYUAN_NOTE_rag_reindex first"));
         }
         let conn = rag_open_db(&folder).map_err(|e| err(e.to_string()))?;
         let qv = rag_embed(&q);
@@ -1339,7 +1339,7 @@ impl DevServer {
     }
 
     #[tool(description = "v2.4 Integrations: probe the live app via the dev bridge to verify Settings → Integrations is wired up. Returns { cli: {installed, path, version}, mcp: {path, bundled}, claude_config: <path> }. Requires `pnpm tauri dev` and the SettingsPanel to be openable. Args: none.")]
-    pub async fn solomd_integrations_status(
+    pub async fn XIAOYUAN_NOTE_integrations_status(
         &self,
         Parameters(_args): Parameters<EmptyArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1365,14 +1365,14 @@ impl DevServer {
         }
     }
 
-    #[tool(description = "List running SoloMD processes (dev = `target/debug/SoloMD`, prod = `/Applications/SoloMD.app`).")]
-    pub async fn solomd_app_status(
+    #[tool(description = "List running xiaoyuanNote processes (dev = `target/debug/xiaoyuanNote`, prod = `/Applications/xiaoyuannote.app`).")]
+    pub async fn XIAOYUAN_NOTE_app_status(
         &self,
         Parameters(_args): Parameters<EmptyArgs>,
     ) -> Result<CallToolResult, McpError> {
         let out = AsyncCommand::new("/bin/sh")
             .arg("-c")
-            .arg("ps -ax -o pid,etime,command | grep -E 'target/debug/SoloMD|/Applications/SoloMD.app/Contents/MacOS/SoloMD' | grep -v grep")
+            .arg("ps -ax -o pid,etime,command | grep -E 'target/debug/xiaoyuanNote|/Applications/xiaoyuannote.app/Contents/MacOS/xiaoyuanNote' | grep -v grep")
             .output().await.map_err(|e| err(format!("ps: {e}")))?;
         let s = String::from_utf8_lossy(&out.stdout).to_string();
         let lines: Vec<HashMap<&str, String>> = s.lines().map(|line| {
@@ -1393,12 +1393,12 @@ impl DevServer {
 
     // -----------------------------------------------------------------
     // v2.3 Dev Bridge — drive the live Vue UI (clicks, DOM reads, etc.).
-    // Talks to the localhost JSON-RPC server inside SoloMD's debug build
+    // Talks to the localhost JSON-RPC server inside xiaoyuanNote’s debug build
     // (see app/src-tauri/src/dev_bridge.rs).
     // -----------------------------------------------------------------
 
-    #[tool(description = "v2.3 dev-bridge: evaluate arbitrary JavaScript inside SoloMD's main WebView and return the result. Script runs inside an `async` IIFE — `await` is allowed. Use a `return` statement (or just leave a trailing expression evaluated via async return) to send a value back. Args: { script, timeout_ms? }. Requires `pnpm tauri dev` running.")]
-    pub async fn solomd_dev_eval(
+    #[tool(description = "v2.3 dev-bridge: evaluate arbitrary JavaScript inside xiaoyuanNote’s main WebView and return the result. Script runs inside an `async` IIFE — `await` is allowed. Use a `return` statement (or just leave a trailing expression evaluated via async return) to send a value back. Args: { script, timeout_ms? }. Requires `pnpm tauri dev` running.")]
+    pub async fn XIAOYUAN_NOTE_dev_eval(
         &self,
         Parameters(args): Parameters<DevEvalArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1410,7 +1410,7 @@ impl DevServer {
     }
 
     #[tool(description = "v2.3 dev-bridge: click the first DOM element matching `selector`. Returns { matched: bool, selector }. Args: { selector }.")]
-    pub async fn solomd_dev_click(
+    pub async fn XIAOYUAN_NOTE_dev_click(
         &self,
         Parameters(args): Parameters<DevSelectorArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1428,7 +1428,7 @@ impl DevServer {
     }
 
     #[tool(description = "v2.3 dev-bridge: read the textContent of one or all DOM elements matching `selector`. With `all: true` returns an array; default returns the first match (or null). Args: { selector, all? }.")]
-    pub async fn solomd_dev_text(
+    pub async fn XIAOYUAN_NOTE_dev_text(
         &self,
         Parameters(args): Parameters<DevTextArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1451,7 +1451,7 @@ impl DevServer {
     }
 
     #[tool(description = "v2.3 dev-bridge: dispatch a DOM event on the first matching element. Use this for keyboard input, custom events, etc. that `.click()` can't synthesise. `init` is the EventInit dict (e.g. `{ key: 'Enter', bubbles: true }`). Args: { selector, event, init? }.")]
-    pub async fn solomd_dev_dispatch(
+    pub async fn XIAOYUAN_NOTE_dev_dispatch(
         &self,
         Parameters(args): Parameters<DevDispatchArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1483,8 +1483,8 @@ impl DevServer {
         }
     }
 
-    #[tool(description = "v2.3 dev-bridge: report `location.href` of the SoloMD WebView. Use this to confirm the app is on the right route after navigation.")]
-    pub async fn solomd_dev_url(
+    #[tool(description = "v2.3 dev-bridge: report `location.href` of the xiaoyuanNote WebView. Use this to confirm the app is on the right route after navigation.")]
+    pub async fn XIAOYUAN_NOTE_dev_url(
         &self,
         Parameters(_args): Parameters<EmptyArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1496,7 +1496,7 @@ impl DevServer {
     }
 
     #[tool(description = "v2.3 dev-bridge: poll until `selector` matches at least one element, or the timeout fires. Returns { matched, elapsed_ms } on success, errors on timeout. Args: { selector, timeout_ms? } (default 5000ms, polled at 100ms).")]
-    pub async fn solomd_dev_wait_for(
+    pub async fn XIAOYUAN_NOTE_dev_wait_for(
         &self,
         Parameters(args): Parameters<DevWaitForArgs>,
     ) -> Result<CallToolResult, McpError> {
@@ -1527,23 +1527,23 @@ impl DevServer {
 #[tool_handler]
 impl ServerHandler for DevServer {
     fn get_info(&self) -> ServerInfo {
-        let implementation = Implementation::new("solomd-dev-mcp", env!("CARGO_PKG_VERSION"))
-            .with_title("SoloMD dev test harness");
+        let implementation = Implementation::new("xiaoyuan-note-dev-mcp", env!("CARGO_PKG_VERSION"))
+            .with_title("xiaoyuanNote dev test harness");
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(implementation)
             .with_instructions(
-                "Internal MCP server for end-to-end self-testing of SoloMD. \
-                 Tools: solomd_get_settings/solomd_set_setting, \
-                 solomd_get_workspace/solomd_set_workspace, \
-                 solomd_get_tabs/solomd_set_tabs, \
-                 solomd_git_status/init/commit/log/rollback/file_at, \
-                 solomd_rag_status/solomd_rag_reindex/solomd_rag_search, \
-                 solomd_read_file/solomd_write_file, \
-                 solomd_get_editor_decorations (v2.3 live-edit self-test), \
-                 solomd_integrations_status (v2.4 CLI/MCP wiring check), \
-                 solomd_screenshot, solomd_app_status, \
-                 solomd_dev_eval/click/text/dispatch/url/wait_for (v2.3 live UI bridge — needs `pnpm tauri dev`). \
-                 Settings/workspace/tabs writes require SoloMD be closed.",
+                "Internal MCP server for end-to-end self-testing of xiaoyuan-note. \
+                 Tools: XIAOYUAN_NOTE_get_settings/XIAOYUAN_NOTE_set_setting, \
+                 XIAOYUAN_NOTE_get_workspace/XIAOYUAN_NOTE_set_workspace, \
+                 XIAOYUAN_NOTE_get_tabs/XIAOYUAN_NOTE_set_tabs, \
+                 XIAOYUAN_NOTE_git_status/init/commit/log/rollback/file_at, \
+                 XIAOYUAN_NOTE_rag_status/XIAOYUAN_NOTE_rag_reindex/XIAOYUAN_NOTE_rag_search, \
+                 XIAOYUAN_NOTE_read_file/XIAOYUAN_NOTE_write_file, \
+                 XIAOYUAN_NOTE_get_editor_decorations (v2.3 live-edit self-test), \
+                 XIAOYUAN_NOTE_integrations_status (v2.4 CLI/MCP wiring check), \
+                 XIAOYUAN_NOTE_screenshot, XIAOYUAN_NOTE_app_status, \
+                 XIAOYUAN_NOTE_dev_eval/click/text/dispatch/url/wait_for (v2.3 live UI bridge — needs `pnpm tauri dev`). \
+                 Settings/workspace/tabs writes require xiaoyuanNote be closed.",
             )
     }
 }

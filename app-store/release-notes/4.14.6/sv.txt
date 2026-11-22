@@ -4,6 +4,6 @@ Fetstil, kursiv, genomstruken och kod över flera stycken formaterar nu varje st
 
 Menyer: Sök och ersätt i menyn Redigera, zoomkommandona i undermenyn Visa › Zooma, och Hjälp-menyn listar Markdown-lathunden, kortkommandona och kommandoraden var för sig. Menyn Infoga får rubriker 4–6.
 
-Länkar i anteckningar öppnas alltid i webbläsaren, aldrig inne i SoloMD.
+Länkar i anteckningar öppnas alltid i webbläsaren, aldrig inne i xiaoyuan-note.
 
-Efter några dagars användning frågar SoloMD en gång — och bara en gång — om du vill stjärnmärka den på GitHub.
+Efter några dagars användning frågar xiaoyuanNote en gång — och bara en gång — om du vill stjärnmärka den på GitHub.

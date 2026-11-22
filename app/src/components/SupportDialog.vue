@@ -73,7 +73,7 @@ async function handleSelectTier(tier: TipTierSpec) {
         feedbackKind.value = 'ok';
         feedbackMsg.value = isZh.value
           ? '🎉 感谢你的支持！已为你点亮专属「✨ 支持者」徽章。'
-          : '🎉 Thank you for supporting SoloMD! Your "✨ Supporter" badge is now active.';
+          : '🎉 Thank you for supporting xiaoyuanNote! Your "✨ Supporter" badge is now active.';
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err || '');
@@ -90,7 +90,7 @@ async function handleSelectTier(tier: TipTierSpec) {
   // Non-store desktop builds (GitHub DMG / Windows / Linux): open sponsor page
   // and unlock the Supporter badge locally.
   try {
-    await openUrl('https://solomd.app/#sponsor');
+    await openUrl('https://xiaoyuannote.app/#sponsor');
   } catch {
     /* ignore */
   }
@@ -98,7 +98,7 @@ async function handleSelectTier(tier: TipTierSpec) {
   feedbackKind.value = 'ok';
   feedbackMsg.value = isZh.value
     ? '✨ 已为你点亮「支持者」徽章，感谢支持独立开发！'
-    : '✨ Your "Supporter" badge is now active. Thank you for supporting SoloMD!';
+    : '✨ Your "Supporter" badge is now active. Thank you for supporting xiaoyuanNote!';
 }
 
 async function handleRestore() {
@@ -136,7 +136,7 @@ async function handleRestore() {
   >
     <template #header>
       <span class="support-hdr__title">
-        {{ isZh ? '支持 SoloMD 独立开发' : 'Support SoloMD' }}
+        {{ isZh ? '支持 xiaoyuanNote 独立开发' : 'Support xiaoyuanNote' }}
       </span>
     </template>
 
@@ -171,8 +171,8 @@ async function handleRestore() {
           <template v-else>
             {{
               isZh
-                ? 'SoloMD 所有功能永久免费、无广告。选择任意一档支持，即可永久点亮专属「支持者」徽章。'
-                : 'All SoloMD features are free forever. Pick any tier below to permanently unlock your Supporter badge.'
+                ? 'xiaoyuanNote 所有功能永久免费、无广告。选择任意一档支持，即可永久点亮专属「支持者」徽章。'
+                : 'All xiaoyuanNote features are free forever. Pick any tier below to permanently unlock your Supporter badge.'
             }}
           </template>
         </p>

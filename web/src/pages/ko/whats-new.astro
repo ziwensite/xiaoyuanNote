@@ -6,11 +6,11 @@ import Giscus from '../../components/Giscus.astro';
 
 const lang = 'ko' as const;
 const VERSION = '4.1.0';
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 ---
 
 <Layout
-  title="SoloMD v4.0 업데이트 — Agent가 머무는 에디터"
+  title="xiaoyuanNote v4.0 업데이트 — Agent가 머무는 에디터"
   description="v4.0은 agent-native author 메이저 릴리스. 5가지 기둥: 내장 Agent 패널(스트리밍 chat-with-vault), 정시 Recipe(cron / on-save / on-commit, AutoGit 브랜치 샌드박스 + 승인/거부), 재생 가능한 Trace View, 다중 vault MCP Federation, Ollama 일등 시민. 또한: REST API, BYOK 비용 미터, 11개 Recipe 템플릿, 첫 실행 마법사, ja/ko 로컬라이제이션."
   lang={lang}
 >
@@ -34,9 +34,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
       </p>
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>⬇ v{VERSION} 다운로드 (Mac)</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>다운로드 (Windows)</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>모든 플랫폼 →</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>⬇ v{VERSION} 다운로드 (Mac)</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>다운로드 (Windows)</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>모든 플랫폼 →</a>
       </div>
 
       <section>
@@ -58,14 +58,14 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
               <strong>삽입</strong>과 <strong>복사</strong> 버튼으로 단락 전체를
               현재 에디터에 —— 선택 영역이 있으면 대체, 없으면 커서 위치에 삽입.
               실행 기록은 평범한 markdown으로
-              <code>.solomd/agent-runs/</code>에 저장, grep 가능, git 추적 가능.
+              <code>.xiaoyuan-note/agent-runs/</code>에 저장, grep 가능, git 추적 가능.
             </p>
           </div>
           <div class="pillar">
             <h3>2 · Agent Recipe / 정시 실행</h3>
             <p>
               선언적 agent 작업, YAML 파일을
-              <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>에 배치.
+              <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>에 배치.
               트리거: <code>schedule</code> (cron), <code>on-save</code>,
               <code>on-commit</code>, <code>on-tag-add</code>, 수동.
               <strong>안전 가드는 타협 없음</strong>: 각 실행은 자체 AutoGit
@@ -96,7 +96,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           <div class="pillar">
             <h3>4 · 다중 Vault MCP Federation</h3>
             <p>
-              <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+              <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
               —— 한 MCP 세션, 여러 vault. 도구 시그니처에 선택적
               <code>workspace</code> 매개변수, 기본값 = 처음 전달된 vault
               (단일 vault 클라이언트와 완벽 후방 호환). AutoGit 브랜치는
@@ -201,7 +201,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           </li>
           <li>
             <strong>macOS 시작 UX.</strong>시작 활성화 타이밍 수정 ——
-            SoloMD 콜드 스타트가 진짜 포그라운드로, Finder 뒤에 숨지 않습니다.
+            xiaoyuanNote 콜드 스타트가 진짜 포그라운드로, Finder 뒤에 숨지 않습니다.
             창 위치 복원은 항상 현재 디스플레이 워크스페이스에 착지;
             보조 디스플레이 분리 후 깨진 상태에서 복원 시 자동 재중심화,
             화면 밖에 열리지 않습니다.
@@ -259,7 +259,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             두 탭 추가, <em>통합</em> 아래. 기존 설정 위치는 변경 없음.
           </li>
           <li>
-            <strong>MCP 서버 (<code>solomd-mcp</code>)에
+            <strong>MCP 서버 (<code>xiaoyuan-note-mcp</code>)에
             <code>--workspace</code> 매개변수 추가</strong> (반복 가능).
             기존 단일 workspace MCP 클라이언트는 계속 작동;
             federation은 옵트인.
@@ -272,9 +272,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
         <p>
           5대 기둥 + 품질 기준이 이번 릴리스의 주요 내용. <em>v4.x
           및 그 이후</em>의 열린 방향은 모두
-          <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmap</a>에:
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmap</a>에:
           샌드박스화된 스크립트 API, CLI v2 (터미널에서 rewrite / commit /
-          시맨틱 검색 / Recipe 트리거), 그리고 계속 미루던 <em>"SoloMD를 상업
+          시맨틱 검색 / Recipe 트리거), 그리고 계속 미루던 <em>"xiaoyuan-note를 상업
           제품으로 만들어야 할까?"</em> 문제 (유료 동기화 —— v3.0 시대부터의
           오래된 문제, 아직 답 없음, 결정 전까지는 이 영역의 엔지니어링에
           손대지 않습니다).

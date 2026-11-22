@@ -50,7 +50,7 @@ test('the preview-only rows are languages highlight.js really resolves', () => {
   }
 });
 
-test('the SoloMD-specific fences come first, before anything is typed', () => {
+test('the xiaoyuan-note-specific fences come first, before anything is typed', () => {
   assert.deepEqual(
     filterFenceLanguages('').slice(0, 3).map((l) => l.name),
     ['mermaid', 'tldraw', 'plantuml'],

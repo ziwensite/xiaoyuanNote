@@ -69,7 +69,7 @@ function toBytes(data: unknown): Uint8Array {
 /** Bytes of the image behind `img`, as a Blob, from wherever it lives. */
 async function fetchImageBlob(img: HTMLImageElement): Promise<Blob> {
   const src = img.currentSrc || img.src || '';
-  return loadImageBlob(src, img.dataset.solomdLocalSrc || null);
+  return loadImageBlob(src, img.dataset.xiaoyuanNoteLocalSrc || null);
 }
 
 /**

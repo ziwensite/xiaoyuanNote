@@ -1,8 +1,8 @@
 /**
  * Custom CSS theme injection.
  *
- * Lets the user point SoloMD at any .css file on disk; we read it via Tauri
- * and inject as a <style id="solomd-custom-theme"> element. Re-applying
+ * Lets the user point xiaoyuanNote at any .css file on disk; we read it via Tauri
+ * and inject as a <style id="xiaoyuan-note-custom-theme"> element. Re-applying
  * replaces the previous content. Empty path removes the style element.
  */
 
@@ -10,11 +10,11 @@ import { invoke } from '@tauri-apps/api/core';
 import { useToastsStore } from '../stores/toasts';
 import { useI18n } from '../i18n';
 
-const STYLE_ID = 'solomd-custom-theme';
+const STYLE_ID = 'xiaoyuan-note-custom-theme';
 
 /**
  * A selector that (also) targets `body` — `body`, `body:root`, `html body`,
- * `body, .foo`, `body[data-theme]`, … SoloMD forces
+ * `body, .foo`, `body[data-theme]`, … xiaoyuanNote forces
  * `background-attachment: scroll !important` on body to stop drag flicker; a
  * theme that (re)sets it to `fixed` on body would override that and make the
  * whole viewport re-rasterize on every frame while dragging → flicker.
@@ -99,7 +99,7 @@ export function removeCustomTheme() {
 
 /**
  * #439 — Return the currently active custom CSS text (injected in
- * `<style id="solomd-custom-theme">`), or `""` when no custom theme is active.
+ * `<style id="xiaoyuan-note-custom-theme">`), or `""` when no custom theme is active.
  */
 export function getActiveCustomCss(): string {
   if (typeof document === 'undefined') return '';
@@ -109,11 +109,11 @@ export function getActiveCustomCss(): string {
 
 /**
  * #439 — Prepare custom CSS for an export/print container (`containerSelector`,
- * e.g. `.pdf-page` or `#solomd-print-overlay, .solomd-print-content`).
+ * e.g. `.pdf-page` or `#xiaoyuan-note-print-overlay, .xiaoyuan-note-print-content`).
  *
  * Custom themes often define CSS variables or base typography on `:root` or
  * `body`, while PDF/print containers re-seed variables on their own wrapper
- * (`#solomd-print-overlay.print-theme-light`, `.pdf-page`). Mirroring `:root` /
+ * (`#xiaoyuan-note-print-overlay.print-theme-light`, `.pdf-page`). Mirroring `:root` /
  * `html` / `body` rule blocks onto `containerSelector` ensures both CSS custom
  * properties and direct typography overrides take effect in exported HTML/PDF.
  */

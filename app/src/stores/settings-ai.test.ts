@@ -18,7 +18,7 @@ const { useSettingsStore } = await import('./settings');
 
 test('loading MiniMax settings keeps explicit M3, legacy and custom models', () => {
   for (const model of ['MiniMax-M3', 'MiniMax-M2.7', 'my-custom-model', '']) {
-    storage.set('solomd.settings.v1', JSON.stringify({ aiProvider: 'minimax', aiModel: model }));
+    storage.set('xiaoyuan-note.settings.v1', JSON.stringify({ aiProvider: 'minimax', aiModel: model }));
     setActivePinia(createPinia());
     const settings = useSettingsStore();
     assert.equal(settings.aiModel, model);

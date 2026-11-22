@@ -7,8 +7,8 @@ const lang = 'zh' as const;
 ---
 
 <Layout
-  title="SoloMD 在 iOS 上 — 用 Apple 快捷指令从任何地方采集"
-  description="三个一键搭建的 Apple Shortcuts 配方,通过 Wi-Fi 把笔记从 iPhone/iPad 直接发送到桌面端 SoloMD —— 快速记录、追加到今天的日记、Safari 分享剪藏。iOS 15+,无第三方服务器,无需签名应用。"
+  title="xiaoyuanNote 在 iOS 上 — 用 Apple 快捷指令从任何地方采集"
+  description="三个一键搭建的 Apple Shortcuts 配方,通过 Wi-Fi 把笔记从 iPhone/iPad 直接发送到桌面端 xiaoyuanNote —— 快速记录、追加到今天的日记、Safari 分享剪藏。iOS 15+,无第三方服务器,无需签名应用。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -20,7 +20,7 @@ const lang = 'zh' as const;
       <h1>iOS 快捷指令配方</h1>
       <p class="lead">
         三个一键搭建的 Apple Shortcuts 配方,通过你的局域网把笔记从 iPhone /
-        iPad 直接发送到桌面端 SoloMD —— 不走云、不绕第三方、不依赖签名扩展。
+        iPad 直接发送到桌面端 xiaoyuanNote —— 不走云、不绕第三方、不依赖签名扩展。
         v2.4 上线了接收端;这个页面是发送端。
       </p>
 
@@ -32,7 +32,7 @@ const lang = 'zh' as const;
 
       <h2>开始之前(只配一次)</h2>
       <ol>
-        <li>桌面打开 <strong>SoloMD</strong>(Mac / Windows / Linux 都行)。</li>
+        <li>桌面打开 <strong>xiaoyuanNote</strong>(Mac / Windows / Linux 都行)。</li>
         <li>进入 <strong>设置 → 采集端点 (Capture endpoint)</strong>。</li>
         <li>开启 <strong>启用</strong>,勾上 <strong>允许局域网访问</strong>。</li>
         <li>复制 bearer token。看一下电脑的局域网 IP(macOS 系统设置 → 网络)。</li>
@@ -45,7 +45,7 @@ const lang = 'zh' as const;
 
       <h2>配方 1 — 快速记录</h2>
       <p>
-        敲一行想法,运行,直接进 SoloMD 收件箱。加到 <strong>共享菜单</strong>
+        敲一行想法,运行,直接进 xiaoyuanNote 收件箱。加到 <strong>共享菜单</strong>
         以后,在 Safari、邮件、消息里选中文字一键就能存。
       </p>
       <ol class="steps">
@@ -88,7 +88,7 @@ const lang = 'zh' as const;
 
       <h2>配方 3 — 通过共享菜单剪藏 Safari URL</h2>
       <p>
-        什么都不选 —— 在 Safari 页面上 <strong>分享 → SoloMD: 剪藏 URL</strong>
+        什么都不选 —— 在 Safari 页面上 <strong>分享 → xiaoyuan-note: 剪藏 URL</strong>
         即可。iOS 自己抽出正文、转成 markdown、补上 YAML front matter、
         POST 到收件箱。
       </p>
@@ -102,7 +102,7 @@ const lang = 'zh' as const;
       </ol>
       <p>
         对带代码块的技术文章,iOS 这套转换不太干净 —— 桌面浏览器
-        <a href="https://github.com/zhitongblog/solomd/releases/latest">web clipper 扩展</a>
+        <a href="https://github.com/zhitongblog/xiaoyuan-note/releases/latest">web clipper 扩展</a>
         用 Mozilla Readability + turndown 转出来效果更好。iOS 这套配方做博文、
         新闻、菜谱足够好。
       </p>
@@ -110,7 +110,7 @@ const lang = 'zh' as const;
       <h2>隐私</h2>
       <p>
         每个 Shortcut 只跟你输入的那一个 URL 通信 —— 无第三方服务器、无
-        telemetry、不绕 Apple 中转。Token 授权一台桌面 SoloMD;
+        telemetry、不绕 Apple 中转。Token 授权一台桌面 xiaoyuanNote;
         在同一局域网里能猜中你 32 位 hex token 的人才能往你工作区写东西。
         在不可信 Wi-Fi 环境下顺手在 设置 → 采集端点 重新生成 token 即可。
       </p>

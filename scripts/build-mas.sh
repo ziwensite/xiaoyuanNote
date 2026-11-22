@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Mac App Store distribution build for SoloMD.
+# Mac App Store distribution build for xiaoyuan-note.
 #
 # Differences from build-mac.sh:
 #   - Signed with `Apple Distribution: ...` instead of `Developer ID Application:`
 #   - Embeds `entitlements.mas.plist` (app-sandbox + JIT + network + sidecar)
 #   - Embeds the Mac App Store provisioning profile at
-#     SoloMD.app/Contents/embedded.provisionprofile
+#     xiaoyuannote.app/Contents/embedded.provisionprofile
 #   - Wraps the .app in a signed .pkg via `productbuild` instead of `hdiutil`
 #   - Does NOT notarize (MAS submissions go through Apple's review pipeline
 #     after upload, which performs its own notarization)
@@ -27,7 +27,7 @@
 #                     resubmission of the same version)
 #
 # Usage: ./scripts/build-mas.sh
-# Output: dist-mas/SoloMD_<MAS_VERSION>_<MAS_BUILD_NUMBER>.pkg
+# Output: dist-mas/XIAOYUAN_NOTE_<MAS_VERSION>_<MAS_BUILD_NUMBER>.pkg
 
 set -euo pipefail
 
@@ -58,7 +58,7 @@ SIDECAR_ENTITLEMENTS="app/src-tauri/entitlements.mas-sidecar.plist"
 [ -f "$ENTITLEMENTS" ]         || { echo "ERROR: $ENTITLEMENTS missing" >&2; exit 1; }
 [ -f "$SIDECAR_ENTITLEMENTS" ] || { echo "ERROR: $SIDECAR_ENTITLEMENTS missing" >&2; exit 1; }
 
-echo "==> SoloMD MAS build"
+echo "==> xiaoyuanNote MAS build"
 echo "    Short version: $MAS_VERSION"
 echo "    Build number:  $MAS_BUILD_NUMBER"
 echo "    App cert:      $MAS_SIGNING_IDENTITY"
@@ -76,15 +76,15 @@ echo "==> Building .app (universal)"
 # Developer ID cert; we unset it for this build.
 unset APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
 # App Store distribution: strip the AI / Agent / Recipe surface (Apple 3.1.1
-# rejected 1.0.3 on this point). SOLOMD_APP_STORE_BUILD gates Rust commands
+# rejected 1.0.3 on this point). XIAOYUAN_NOTE_APP_STORE_BUILD gates Rust commands
 # (option_env! in app_build.rs); VITE_APP_STORE_BUILD gates the Vue UI.
 # VITE_MAS_BUILD stays set for the legacy update-banner gate.
-export SOLOMD_APP_STORE_BUILD=1
+export XIAOYUAN_NOTE_APP_STORE_BUILD=1
 export VITE_APP_STORE_BUILD=true
 export VITE_MAS_BUILD=1
 pnpm tauri build --target universal-apple-darwin --bundles app
 
-APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/SoloMD.app"
+APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/xiaoyuannote.app"
 [ -d "$APP" ] || { echo "ERROR: .app not found at $APP" >&2; exit 1; }
 
 cd ..
@@ -93,7 +93,7 @@ echo "==> Patching Info.plist with MAS version fields"
 PLIST="app/$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $MAS_VERSION" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $MAS_BUILD_NUMBER" "$PLIST"
-# Per-file-type icons (mirrors build-mac.sh): use SoloMD's bundled icon for
+# Per-file-type icons (mirrors build-mac.sh): use xiaoyuanNote’s bundled icon for
 # .md / .txt associations so MAS users see the brand icon when previewing.
 cp app/src-tauri/icons/file_icon.icns "app/$APP/Contents/Resources/file_icon.icns"
 for i in 0 1; do
@@ -134,7 +134,7 @@ find "app/$APP" -type f \( -perm -u+x -o -name "*.dylib" -o -name "*.framework" 
 codesign --remove-signature "app/$APP" 2>/dev/null || true
 
 echo "==> Signing sidecar binaries with MAS identity"
-# Sidecars in Contents/MacOS/ — solomd-mcp universal binary. Must be signed
+# Sidecars in Contents/MacOS/ — xiaoyuan-note-mcp universal binary. Must be signed
 # with the same identity as the parent or library validation rejects it.
 #
 # IMPORTANT: use the SIDECAR entitlements (sandbox + inherit only) — NOT the
@@ -146,14 +146,14 @@ echo "==> Signing sidecar binaries with MAS identity"
 # launch via `com.apple.security.inherit`; they must not declare their own.
 #
 # Also: do NOT pass a custom --identifier for child binaries — Apple's MAS
-# validator rejects sub-identifiers like "app.solomd.solomd-mcp" with ITMS
+# validator rejects sub-identifiers like "app.xiaoyuan-note.xiaoyuan-note-mcp" with ITMS
 # errors. Let codesign derive the identifier from the binary name. No
 # --options runtime either: hardened runtime conflicts with MAS sandbox
 # enforcement (Apple wants one security model per submission, not both).
 for bin in app/$APP/Contents/MacOS/*; do
   [ -f "$bin" ] || continue
   # Skip the main executable — it gets signed last (after frameworks).
-  if [ "$(basename "$bin")" = "SoloMD" ]; then continue; fi
+  if [ "$(basename "$bin")" = "xiaoyuanNote" ]; then continue; fi
   echo "    signing sidecar: $(basename "$bin")"
   codesign --force --sign "$MAS_SIGNING_IDENTITY" \
     --entitlements "$SIDECAR_ENTITLEMENTS" \
@@ -175,7 +175,7 @@ echo "==> Signing .app bundle"
 # distribution validator to flag the binary on upload.
 codesign --force --sign "$MAS_SIGNING_IDENTITY" \
   --entitlements "$ENTITLEMENTS" \
-  --identifier app.solomd \
+  --identifier app.xiaoyuannote \
   "app/$APP"
 
 echo "==> Verifying signature"
@@ -183,7 +183,7 @@ codesign --verify --strict --deep --verbose=2 "app/$APP"
 
 echo "==> Building .pkg"
 mkdir -p dist-mas
-PKG="dist-mas/SoloMD_${MAS_VERSION}_${MAS_BUILD_NUMBER}.pkg"
+PKG="dist-mas/XIAOYUAN_NOTE_${MAS_VERSION}_${MAS_BUILD_NUMBER}.pkg"
 rm -f "$PKG"
 productbuild --component "app/$APP" /Applications \
   --sign "$MAS_INSTALLER_IDENTITY" \

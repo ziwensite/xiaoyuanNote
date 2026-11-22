@@ -8,10 +8,10 @@
 //! Architecture:
 //!   1. User pastes a GitHub Personal Access Token into Settings. We
 //!      store it in the OS keychain via the `keyring` crate (same backend
-//!      as v2.0 AI keys) under service `solomd-github`.
+//!      as v2.0 AI keys) under service `xiaoyuan-note-github`.
 //!   2. User picks an existing repo or creates a fresh private one
 //!      (`github_create_vault_repo`). The remote URL is written into
-//!      `<workspace>/.solomd/sync.json` so we can pick up the binding on
+//!      `<workspace>/.xiaoyuan-note/sync.json` so we can pick up the binding on
 //!      relaunch without depending on git's remote config alone.
 //!   3. Each save still triggers AutoGit's local commit. After the local
 //!      commit lands we optionally `git push` to the remote (the frontend
@@ -31,7 +31,7 @@
 //!   * `github_user` — `/user` API
 //!   * `github_list_repos` — `/user/repos` (owner+private)
 //!   * `github_create_vault_repo` — `POST /user/repos`
-//!   * `github_link_workspace` — write `.solomd/sync.json`, set remote
+//!   * `github_link_workspace` — write `.xiaoyuan-note/sync.json`, set remote
 //!   * `github_unlink_workspace`
 //!   * `github_sync_status` — fast read-only summary
 //!   * `github_push`
@@ -47,11 +47,11 @@ use git2::{AutotagOption, FetchOptions, PushOptions, Repository, Signature};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-const KEYRING_SERVICE: &str = "solomd-github";
+const KEYRING_SERVICE: &str = "xiaoyuan-note-github";
 const KEYRING_USER: &str = "personal-access-token";
-const SYNC_CONFIG_FILE: &str = ".solomd/sync.json";
+const SYNC_CONFIG_FILE: &str = ".xiaoyuan-note/sync.json";
 const GITHUB_API: &str = "https://api.github.com";
-const USER_AGENT: &str = "SoloMD-sync/2.6";
+const USER_AGENT: &str = "xiaoyuan-note-sync/2.6";
 
 /// v3.0 — process-local token cache. Auto-push fires every save and
 /// auto-pull every N minutes; without this each call would re-read the
@@ -69,7 +69,7 @@ fn keyring_entry() -> Result<keyring::Entry, String> {
     keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER).map_err(|e| e.to_string())
 }
 
-/// `~/.solomd/github-token-set` — a non-secret marker file written
+/// `~/.xiaoyuan-note/github-token-set` — a non-secret marker file written
 /// alongside `github_set_token` and removed by `github_clear_token`.
 /// Lets `github_has_token()` answer the "did the user log in?" question
 /// WITHOUT touching the OS keychain. macOS's keyring fires a
@@ -81,7 +81,7 @@ fn token_marker_path() -> Option<std::path::PathBuf> {
     std::env::var_os("HOME")
         .map(std::path::PathBuf::from)
         .or_else(|| std::env::var_os("USERPROFILE").map(std::path::PathBuf::from))
-        .map(|h| h.join(".solomd").join("github-token-set"))
+        .map(|h| h.join(".xiaoyuanNote").join("github-token-set"))
 }
 
 fn write_token_marker() {
@@ -180,7 +180,7 @@ pub fn github_has_token() -> Result<bool, String> {
 // so users can keep different PATs for GitHub and Gitea.
 // ---------------------------------------------------------------------------
 
-const KEYRING_SERVICE_GITEA: &str = "solomd-gitea";
+const KEYRING_SERVICE_GITEA: &str = "xiaoyuan-note-gitea";
 
 static GITEA_TOKEN_CACHE: Lazy<Mutex<Option<String>>> = Lazy::new(|| Mutex::new(None));
 
@@ -192,7 +192,7 @@ fn gitea_token_marker_path() -> Option<std::path::PathBuf> {
     std::env::var_os("HOME")
         .map(std::path::PathBuf::from)
         .or_else(|| std::env::var_os("USERPROFILE").map(std::path::PathBuf::from))
-        .map(|h| h.join(".solomd").join("gitea-token-set"))
+        .map(|h| h.join(".xiaoyuanNote").join("gitea-token-set"))
 }
 
 fn gitea_write_token_marker() {
@@ -377,7 +377,7 @@ pub async fn github_create_vault_repo(name: String, private: bool) -> Result<Git
         // remote, which simplifies the first push. Without it a brand-new
         // vault would have to push --set-upstream into nothing.
         auto_init: true,
-        description: "Notes vault — synced by SoloMD",
+        description: "Notes vault — synced by xiaoyuanNote",
     };
     api_post("/user/repos", &token, &req).await
 }
@@ -397,7 +397,7 @@ pub struct SyncConfig {
     /// Unix epoch seconds.
     pub last_push_at: Option<i64>,
     pub last_pull_at: Option<i64>,
-    /// v2.6.3 — when true, push/pull operate on `<workspace>/.solomd-encrypted/`
+    /// v2.6.3 — when true, push/pull operate on `<workspace>/.xiaoyuan-note-encrypted/`
     /// instead of the workspace itself, and we run encrypt-before-push +
     /// decrypt-after-pull around every sync. Old configs without this
     /// field deserialize to `false`, preserving v2.6.0/v2.6.1 behavior.
@@ -413,7 +413,7 @@ fn default_provider() -> String {
     "github".into()
 }
 
-const ENCRYPTED_SHADOW: &str = ".solomd-encrypted";
+const ENCRYPTED_SHADOW: &str = ".xiaoyuan-note-encrypted";
 
 /// Resolve the directory the git repo actually lives in. With E2EE on
 /// that's the encrypted shadow; otherwise it's the workspace itself.
@@ -453,24 +453,24 @@ fn save_config(workspace: &Path, cfg: &SyncConfig) -> Result<(), String> {
     fs::write(&path, body).map_err(|e| e.to_string())
 }
 
-/// Ensure SoloMD's per-device runtime state is in the workspace's git
+/// Ensure xiaoyuanNote’s per-device runtime state is in the workspace's git
 /// ignore list. Each device has its own sync.json (different timestamps,
 /// possibly different remote URL across forks), so committing it would
 /// produce a conflict on every pull. Idempotent — safe to call before every
 /// push.
 ///
-/// Only the runtime subpaths are ignored: `.solomd/agents/*.yml` are user
+/// Only the runtime subpaths are ignored: `.xiaoyuan-note/agents/*.yml` are user
 /// recipes and are expected to travel with the repo. An older build wrote a
-/// bare `.solomd/` rule, which also hid those recipes; replace it with the
+/// bare `.xiaoyuan-note/` rule, which also hid those recipes; replace it with the
 /// granular rules here.
-fn ensure_gitignore_excludes_solomd(workspace: &Path) -> Result<(), String> {
+fn ensure_gitignore_excludes_xiaoyuan_note(workspace: &Path) -> Result<(), String> {
     const RULES: &[&str] = &[
-        ".solomd/agent-runs/",
-        ".solomd/session.*.json",
-        ".solomd/encryption.*",
-        ".solomd/*.json",
+        ".xiaoyuan-note/agent-runs/",
+        ".xiaoyuan-note/session.*.json",
+        ".xiaoyuan-note/encryption.*",
+        ".xiaoyuan-note/*.json",
     ];
-    const HEADER: &str = "# SoloMD runtime state (per-device, do not commit).";
+    const HEADER: &str = "# xiaoyuanNote runtime state (per-device, do not commit).";
     let gitignore = workspace.join(".gitignore");
     let existing = fs::read_to_string(&gitignore).unwrap_or_default();
     let mut lines: Vec<String> = existing.lines().map(|l| l.to_string()).collect();
@@ -478,7 +478,7 @@ fn ensure_gitignore_excludes_solomd(workspace: &Path) -> Result<(), String> {
     // Drop the legacy whole-directory rule; the granular rules replace it.
     lines.retain(|l| {
         let t = l.trim();
-        let bare = t == ".solomd/" || t == ".solomd";
+        let bare = t == ".xiaoyuan-note/" || t == ".xiaoyuanNote";
         if bare {
             changed = true;
         }
@@ -556,12 +556,12 @@ pub async fn github_link_workspace(
             provider,
         };
         save_config(&path, &cfg)?;
-        // .solomd/ holds per-device state — never committed.
-        // .solomd-encrypted/ is the shadow git repo when E2EE is on —
+        // .xiaoyuan-note/ holds per-device state — never committed.
+        // .xiaoyuan-note-encrypted/ is the shadow git repo when E2EE is on —
         // never committed into the workspace's own (optional AutoGit)
         // history, otherwise a local AutoGit pass would scoop up the
         // ciphertext mirror as duplicate noise.
-        ensure_gitignore_excludes_solomd(&path)?;
+        ensure_gitignore_excludes_xiaoyuan_note(&path)?;
         Ok(cfg)
     })
     .await
@@ -599,7 +599,7 @@ pub async fn github_set_config(
 /// if any step fails:
 /// 1. Sets the passphrase via `crypto_set_passphrase` (idempotent if
 ///    the same passphrase is used; refuses on mismatch).
-/// 2. Initialises the encrypted shadow at `<workspace>/.solomd-encrypted/`
+/// 2. Initialises the encrypted shadow at `<workspace>/.xiaoyuan-note-encrypted/`
 ///    with the same `origin` URL the workspace was linked to.
 /// 3. Runs `crypto_encrypt_for_push` to populate the shadow.
 /// 4. Stages + commits in the shadow.
@@ -668,12 +668,12 @@ pub async fn github_enable_encryption(
                     .map_err(|e| e.to_string())?;
             }
         }
-        // Local .gitignore inside the shadow — the shadow's own `.solomd/`
+        // Local .gitignore inside the shadow — the shadow's own `.xiaoyuan-note/`
         // metadata (in case anyone ever drops one there) shouldn't be
         // committed to the encrypted repo.
         let shadow_gi = shadow.join(".gitignore");
         if !shadow_gi.exists() {
-            fs::write(&shadow_gi, ".solomd/\n").map_err(|e| e.to_string())?;
+            fs::write(&shadow_gi, ".xiaoyuan-note/\n").map_err(|e| e.to_string())?;
         }
         drop(shadow_repo);
 
@@ -885,7 +885,7 @@ fn now_secs() -> i64 {
 // v3.0 — global proxy URL for users in regions where direct GitHub is
 // blocked (China). We can't rely on launchctl-set env vars because Tauri
 // apps started from Finder/Dock don't inherit the user's shell env.
-// Storage: ~/.solomd/proxy (single-line URL like
+// Storage: ~/.xiaoyuan-note/proxy (single-line URL like
 // `http://127.0.0.1:7897` or `socks5://127.0.0.1:1080`). Empty file = no
 // proxy = direct connect. Read on every push/pull (dirt-cheap).
 // ---------------------------------------------------------------------------
@@ -894,7 +894,7 @@ fn proxy_path() -> Option<PathBuf> {
     std::env::var_os("HOME")
         .map(PathBuf::from)
         .or_else(|| std::env::var_os("USERPROFILE").map(PathBuf::from))
-        .map(|h| h.join(".solomd").join("proxy"))
+        .map(|h| h.join(".xiaoyuanNote").join("proxy"))
 }
 
 fn read_proxy_url() -> Option<String> {
@@ -964,7 +964,7 @@ fn make_proxy_options() -> git2::ProxyOptions<'static> {
 
 // ---------------------------------------------------------------------------
 // Gitea instance URL (global setting) — used for Gitea API calls before
-// linking. Stored as a single-line URL in ~/.solomd/gitea-url. Empty or
+// linking. Stored as a single-line URL in ~/.xiaoyuan-note/gitea-url. Empty or
 // missing = no Gitea instance configured.
 // ---------------------------------------------------------------------------
 
@@ -972,7 +972,7 @@ fn gitea_url_path() -> Option<PathBuf> {
     std::env::var_os("HOME")
         .map(PathBuf::from)
         .or_else(|| std::env::var_os("USERPROFILE").map(PathBuf::from))
-        .map(|h| h.join(".solomd").join("gitea-url"))
+        .map(|h| h.join(".xiaoyuanNote").join("gitea-url"))
 }
 
 fn read_gitea_url() -> Option<String> {
@@ -1091,7 +1091,7 @@ pub async fn gitea_create_vault_repo(
         name: &name,
         private,
         auto_init: true,
-        description: "Notes vault — synced by SoloMD",
+        description: "Notes vault — synced by xiaoyuanNote",
     };
     // Gitea uses the same POST /api/v1/user/repos endpoint.
     gitea_api_post(&base, "/api/v1/user/repos", &token, &req).await
@@ -1207,7 +1207,7 @@ pub async fn github_push(
 /// One-time master → main rewrite, shared by push AND pull (#147).
 ///
 /// The init path (link_workspace) does this for fresh inits, but a vault
-/// initialized on a different machine (or pre-v3.0 SoloMD) can still be on
+/// initialized on a different machine (or pre-v3.0 xiaoyuanNote) can still be on
 /// `master`. Push has always normalized before pushing — which meant the
 /// remote ends up with `main` — but pull used the raw local HEAD name, so a
 /// second device stuck on `master` fetched the nonexistent `origin/master`
@@ -1351,7 +1351,7 @@ pub fn github_pull_inner(folder: String, token: String) -> Result<PullResult, St
                 .map_err(|e| e.to_string())?;
             let upstream_oid = upstream_commit.id();
             head_ref
-                .set_target(upstream_oid, "fast-forward via SoloMD GitHub sync")
+                .set_target(upstream_oid, "fast-forward via xiaoyuanNote GitHub sync")
                 .map_err(|e| e.to_string())?;
             repo.set_head(&format!("refs/heads/{}", branch_name))
                 .map_err(|e| e.to_string())?;
@@ -1466,7 +1466,7 @@ fn signature(repo: &Repository) -> Result<Signature<'static>, String> {
     if let Ok(sig) = repo.signature() {
         return Ok(sig.to_owned());
     }
-    Signature::now("SoloMD", "solomd@local").map_err(|e| e.to_string())
+    Signature::now("xiaoyuanNote", "xiaoyuanNote@local").map_err(|e| e.to_string())
 }
 
 #[tauri::command]

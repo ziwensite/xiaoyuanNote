@@ -7,7 +7,7 @@
 //
 // `scripts/build-mas.sh` and `scripts/build-ios.sh` export
 // `VITE_APP_STORE_BUILD=true` before invoking the Vite build. The Rust
-// side mirrors this with `SOLOMD_APP_STORE_BUILD=1` (see
+// side mirrors this with `XIAOYUAN_NOTE_APP_STORE_BUILD=1` (see
 // `app/src-tauri/src/app_build.rs`).
 
 const raw = (import.meta as any).env?.VITE_APP_STORE_BUILD;

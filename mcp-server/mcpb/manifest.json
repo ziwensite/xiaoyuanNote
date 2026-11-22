@@ -1,20 +1,20 @@
 {
   "manifest_version": "0.3",
-  "name": "solomd-mcp",
-  "display_name": "SoloMD",
+  "name": "xiaoyuan-note-mcp",
+  "display_name": "xiaoyuanNote",
   "version": "5.0.13",
   "description": "Read and search a folder of Markdown notes from an MCP client: notes, full-text search, backlinks, tags, tasks, outlines and version history.",
-  "long_description": "The MCP server that ships with SoloMD, a free, open-source Markdown editor (solomd.app). It works on any plain folder of .md files, with or without the editor installed. Tools list and read notes, search them (literal or regex), follow wikilink backlinks, collect tags and checkbox tasks, return heading outlines, export a note to HTML, Markdown, text or Word, and read SoloMD's per-note AutoGit history and diffs. This bundle is read-only: writing, appending and rolling back need the server started with --allow-write, which you can add to the arguments yourself.",
+  "long_description": "The MCP server that ships with xiaoyuanNote, a free, open-source Markdown editor (xiaoyuannote.app). It works on any plain folder of .md files, with or without the editor installed. Tools list and read notes, search them (literal or regex), follow wikilink backlinks, collect tags and checkbox tasks, return heading outlines, export a note to HTML, Markdown, text or Word, and read xiaoyuanNote’s per-note AutoGit history and diffs. This bundle is read-only: writing, appending and rolling back need the server started with --allow-write, which you can add to the arguments yourself.",
   "author": {
     "name": "xiangdong li",
-    "url": "https://solomd.app"
+    "url": "https://xiaoyuannote.app"
   },
-  "homepage": "https://solomd.app",
-  "documentation": "https://github.com/zhitongblog/solomd/tree/main/mcp-server#readme",
-  "support": "https://github.com/zhitongblog/solomd/issues",
+  "homepage": "https://xiaoyuannote.app",
+  "documentation": "https://github.com/zhitongblog/xiaoyuan-note/tree/main/mcp-server#readme",
+  "support": "https://github.com/zhitongblog/xiaoyuan-note/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zhitongblog/solomd"
+    "url": "https://github.com/zhitongblog/xiaoyuan-note"
   },
   "license": "MIT",
   "icon": "icon.png",
@@ -30,9 +30,9 @@
   ],
   "server": {
     "type": "binary",
-    "entry_point": "server/solomd-mcp",
+    "entry_point": "server/xiaoyuan-note-mcp",
     "mcp_config": {
-      "command": "${__dirname}/server/solomd-mcp",
+      "command": "${__dirname}/server/xiaoyuan-note-mcp",
       "args": [
         "--workspace",
         "${user_config.workspace}"
@@ -40,10 +40,10 @@
       "env": {},
       "platform_overrides": {
         "win32": {
-          "command": "${__dirname}/server/solomd-mcp.exe"
+          "command": "${__dirname}/server/xiaoyuan-note-mcp.exe"
         },
         "linux": {
-          "command": "${__dirname}/server/solomd-mcp-linux"
+          "command": "${__dirname}/server/xiaoyuan-note-mcp-linux"
         }
       }
     }
@@ -67,7 +67,7 @@
     },
     {
       "name": "autogit_log",
-      "description": "List the commit history for a single note from SoloMD's AutoGit repo (saves are auto-committed). Returns sha + short_sha + author + time (unix seconds) + summary, newest first. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+      "description": "List the commit history for a single note from xiaoyuanNote’s AutoGit repo (saves are auto-committed). Returns sha + short_sha + author + time (unix seconds) + summary, newest first. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     },
     {
       "name": "autogit_rollback",
@@ -83,7 +83,7 @@
     },
     {
       "name": "list_notes",
-      "description": "List Markdown notes in a SoloMD workspace. Returns metadata only (path, name, title, mtime, size, summary). Use read_note to fetch full content. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+      "description": "List Markdown notes in a xiaoyuanNote workspace. Returns metadata only (path, name, title, mtime, size, summary). Use read_note to fetch full content. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     },
     {
       "name": "list_tags",
@@ -95,7 +95,7 @@
     },
     {
       "name": "read_agent_trace",
-      "description": "Return the agent run trace as an array of step objects. Lines from `<workspace>/.solomd/agent-runs/<run_id>/trace.jsonl`; an unknown run id is an error. Each step has ts (unix ms), seq (1-based), kind, plus kind-specific fields (provider/model/tool/result/...). See SoloMD v4 contracts C2 for the schema."
+      "description": "Return the agent run trace as an array of step objects. Lines from `<workspace>/.xiaoyuan-note/agent-runs/<run_id>/trace.jsonl`; an unknown run id is an error. Each step has ts (unix ms), seq (1-based), kind, plus kind-specific fields (provider/model/tool/result/...). See xiaoyuanNote v4 contracts C2 for the schema."
     },
     {
       "name": "read_note",
@@ -107,11 +107,11 @@
     },
     {
       "name": "share_url",
-      "description": "Return the public solomd.app/share/ URL for a note. Only resolves to a real page if the workspace's linked repo is public; for private repos the URL exists but raw.githubusercontent.com will 404. Use sync_status first to check `private`. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+      "description": "Return the public xiaoyuannote.app/share/ URL for a note. Only resolves to a real page if the workspace's linked repo is public; for private repos the URL exists but raw.githubusercontent.com will 404. Use sync_status first to check `private`. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     },
     {
       "name": "sync_status",
-      "description": "Return SoloMD's GitHub-sync configuration for a workspace: linked remote, current branch, encryption flag, last push/pull timestamps. Reads .solomd/sync.json — does not require credentials. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
+      "description": "Return xiaoyuanNote’s GitHub-sync configuration for a workspace: linked remote, current branch, encryption flag, last push/pull timestamps. Reads .xiaoyuan-note/sync.json — does not require credentials. Pass `workspace` (alias or absolute path) to target a non-default workspace; omit it to use the first registered workspace."
     },
     {
       "name": "write_note",

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SoloMD 构建/清理脚本（Linux/macOS）
+# xiaoyuanNote 构建/清理脚本（Linux/macOS）
 #
 # 用法:
 #   bash scripts/ubuntu-build.sh                     # 完整构建
@@ -25,12 +25,12 @@ show_help() {
   local cores
   cores="$(nproc 2>/dev/null || echo N)"
   cat <<EOF
-SoloMD 构建/清理脚本
+xiaoyuanNote 构建/清理脚本
 
 用法:
   bash scripts/ubuntu-build.sh                    完整构建（vue-tsc → vite → MCP sidecar → tauri）
   bash scripts/ubuntu-build.sh clean              清理中间产物，保留最终二进制
-                                          （bundle/ 安装包、release/SoloMD、sidecar）
+                                          （bundle/ 安装包、release/xiaoyuanNote、sidecar）
   bash scripts/ubuntu-build.sh clean all          清理所有中间产物，含二进制与 node_modules
   bash scripts/ubuntu-build.sh help | -h | --help 显示本帮助
 
@@ -41,8 +41,8 @@ SoloMD 构建/清理脚本
 
 产物位置:
   app/src-tauri/target/release/bundle/   安装包（.AppImage / .deb 等）
-  app/src-tauri/target/release/SoloMD    未打包可执行文件
-  app/src-tauri/binaries/solomd-mcp-*    MCP sidecar 二进制
+  app/src-tauri/target/release/xiaoyuanNote    未打包可执行文件
+  app/src-tauri/binaries/xiaoyuan-note-mcp-*    MCP sidecar 二进制
 
 前置依赖（Linux）:
   sudo apt update && sudo apt install -y \\
@@ -58,7 +58,7 @@ EOF
 # ---------------------------------------------------------------------------
 do_clean() {
   local all="${1:-}"
-  echo "=== SoloMD clean ${all:+($all)} ==="
+  echo "=== xiaoyuanNote clean ${all:+($all)} ==="
 
   # Rust 编译中间产物（fingerprint/deps/incremental 等），保留 release 最终产物
   for tgt in "$APP/src-tauri/target" "$MCP/target"; do
@@ -74,12 +74,12 @@ do_clean() {
     # 彻底清理：target 全目录 + 前端产物 + sidecar 二进制 + 依赖。
     # 注意：binaries/ 目录本身被 git 跟踪（.gitignore + README.md），只删产物文件。
     rm -rf "$APP/src-tauri/target" "$MCP/target" "$DIST" "$APP/node_modules" 2>/dev/null || true
-    rm -f "$BINARIES"/solomd-mcp-* 2>/dev/null || true
+    rm -f "$BINARIES"/xiaoyuan-note-mcp-* 2>/dev/null || true
     echo "  已清理: 全部 target / dist / node_modules / sidecar 二进制"
   else
     rm -rf "$DIST" 2>/dev/null || true
     echo "  已清理: $DIST（前端产物）"
-    echo "  保留:   $BUNDLE、release/SoloMD、$BINARIES"
+    echo "  保留:   $BUNDLE、release/xiaoyuanNote、$BINARIES"
   fi
   echo "=== clean 完成 ==="
 }
@@ -108,7 +108,7 @@ if [[ "${FAST:-0}" == "1" ]]; then
   export CARGO_PROFILE_RELEASE_CODEGEN_UNITS="16"
 fi
 
-echo "=== SoloMD build（并行度: $JOBS）==="
+echo "=== xiaoyuanNote build（并行度: $JOBS）==="
 
 # ---------- 1. 平台依赖检查 ----------
 if [[ "$(uname)" == "Linux" ]]; then
@@ -148,8 +148,8 @@ command -v pnpm >/dev/null 2>&1 || { echo "错误：未找到 pnpm，请先安�
 echo "[3/5] 前端 build（vue-tsc --noEmit && vite build）..."
 (cd "$APP" && pnpm build)
 
-# ---------- 4. MCP sidecar（solomd-mcp，编译期被 build.rs 校验，必须先于 tauri build）----------
-echo "[4/5] 构建 MCP sidecar（solomd-mcp）..."
+# ---------- 4. MCP sidecar（xiaoyuan-note-mcp，编译期被 build.rs 校验，必须先于 tauri build）----------
+echo "[4/5] 构建 MCP sidecar（xiaoyuan-note-mcp）..."
 bash "$ROOT/scripts/build-mcp-sidecar.sh"
 
 # ---------- 5. Tauri release 构建 ----------
@@ -159,6 +159,6 @@ echo "[5/5] tauri build（cargo $JOBS 并行，首次约 5-15 分钟）..."
 # ---------- 产物 ----------
 echo
 echo "=== 构建完成 ==="
-ls -lh "$BUNDLE" 2>/dev/null || ls -lh "$APP/src-tauri/target/release/" | grep -iE "SoloMD|solomd" || true
+ls -lh "$BUNDLE" 2>/dev/null || ls -lh "$APP/src-tauri/target/release/" | grep -iE "xiaoyuanNote|xiaoyuanNote" || true
 echo
 echo "提示: 清理产物请执行 bash scripts/ubuntu-build.sh clean（全部清理加 all）"

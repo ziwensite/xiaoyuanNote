@@ -1,7 +1,28 @@
 import { defineStore } from 'pinia';
 import { useTabsStore } from './tabs';
 
-const LS_KEY = 'solomd.workspace.v1';
+// Brand migration: existing vaults keep their `.solomd/` data directory until
+// the first open, when it is renamed to `.xiaoyuan-note/` in place. Old data
+// is never deleted; if the new directory already exists we leave both alone.
+async function migrateLegacyVaultDir(folder: string | null | undefined): Promise<void> {
+  if (!folder || folder.startsWith('saf:')) return;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const sep = folder.includes('\\') ? '\\' : '/';
+    const root = folder.replace(/[\\/]+$/, '');
+    const legacy = `${root}${sep}.solomd`;
+    const next = `${root}${sep}.xiaoyuan-note`;
+    const [legacyExists, nextExists] = await Promise.all([
+      invoke<boolean>('fs_dir_exists', { path: legacy }),
+      invoke<boolean>('fs_dir_exists', { path: next }),
+    ]);
+    if (legacyExists && !nextExists) await invoke('fs_rename', { from: legacy, to: next });
+  } catch {
+    // Non-Tauri tests / unavailable filesystem: migration is best-effort.
+  }
+}
+
+const LS_KEY = 'xiaoyuan-note.workspace.v1';
 const MAX_RECENT = 12;
 const MAX_RECENT_FOLDERS = 8;
 
@@ -22,10 +43,12 @@ function load(): WorkspaceState {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<WorkspaceState>;
+      const currentFolder = typeof parsed.currentFolder === 'string' ? parsed.currentFolder : null;
+      void migrateLegacyVaultDir(currentFolder);
       return {
         recentFiles: Array.isArray(parsed.recentFiles) ? parsed.recentFiles : [],
         recentFolders: Array.isArray(parsed.recentFolders) ? parsed.recentFolders : [],
-        currentFolder: typeof parsed.currentFolder === 'string' ? parsed.currentFolder : null,
+        currentFolder,
         safTreeUri: typeof parsed.safTreeUri === 'string' ? parsed.safTreeUri : null,
         safName: typeof parsed.safName === 'string' ? parsed.safName : null,
       };
@@ -60,6 +83,7 @@ export const useWorkspaceStore = defineStore('workspace', {
      *  call sites. `null` (closed workspace) doesn't get pushed. */
     setFolder(folder: string | null) {
       const prev = this.currentFolder;
+      void migrateLegacyVaultDir(folder);
       // Leaving (or replacing) a SAF vault with an ordinary folder clears the
       // SAF context so the file layer stops routing through ContentResolver.
       if (!folder || !folder.startsWith('saf:')) {

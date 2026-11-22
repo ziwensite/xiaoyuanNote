@@ -7,7 +7,7 @@
  * every member of that type with its pinned-property columns. Mirrors the
  * InboxView / BasesView / ViewNoteList content-swap convention exactly:
  *
- *   - opened by the `solomd:open-type-lens` window CustomEvent (detail.typeName);
+ *   - opened by the `xiaoyuan-note:open-type-lens` window CustomEvent (detail.typeName);
  *     App.vue captures the name and mounts this view `v-else-if="typeLensOpen"`
  *     inside `.content`, passing the focused type down as the `typeName` prop
  *   - the editor / Bases / Inbox swaps are untouched
@@ -22,7 +22,7 @@
  *     frontmatter splice → body bytes preserved)
  *   - a 0-member empty state
  *
- * Reads everything live off the `types` store, so a `solomd://index-updated`
+ * Reads everything live off the `types` store, so a `xiaoyuan-note://index-updated`
  * event (after any member write) re-derives the section and the table updates
  * for free. Value formatting is a READ-ONLY import from `lib/bases.ts`.
  */

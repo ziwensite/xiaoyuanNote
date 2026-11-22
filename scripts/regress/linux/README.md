@@ -1,4 +1,4 @@
-# SoloMD Linux regression suite
+# xiaoyuanNote Linux regression suite
 
 Scripted version of the Linux column (L) of `docs/regression-checklist.md`
 plus the Linux bugs found in the 5.0 regression rounds. Every check drives the
@@ -10,18 +10,18 @@ injection: what is tested is the `.deb` / AppImage a user installs.
 ## Run it (from the Mac)
 
 ```bash
-gh release download probe/v5-r2 -R zhitongblog/solomd \
+gh release download probe/v5-r2 -R zhitongblog/xiaoyuan-note \
   -p '*arm64.deb' -p '*aarch64.AppImage' -D /tmp/pkg
-scripts/regress/linux/run.sh /tmp/pkg/SoloMD_*_arm64.deb          # all checks
-scripts/regress/linux/run.sh /tmp/pkg/SoloMD_*_arm64.deb L08 L15   # a subset (file-name prefixes)
+scripts/regress/linux/run.sh /tmp/pkg/XIAOYUAN_NOTE_*_arm64.deb          # all checks
+scripts/regress/linux/run.sh /tmp/pkg/XIAOYUAN_NOTE_*_arm64.deb L08 L15   # a subset (file-name prefixes)
 ```
 
-- Needs the Lima VM `solomd-linux` running (Ubuntu 24.04 aarch64; see
+- Needs the Lima VM `xiaoyuan-note-linux` running (Ubuntu 24.04 aarch64; see
   memory `reference_linux_repro_harness`). Override with `LIMA_VM=…`.
 - An `*.AppImage` next to the `.deb` is picked up for the AppImage check; or
   pass `--appimage <path>`. Without one that check is `SKIP`.
 - Missing tools are apt-installed in the VM on first run (`vm-suite.sh deps`).
-- Results land in `OUT_DIR` (default `/tmp/solomd-regress-linux/<timestamp>`):
+- Results land in `OUT_DIR` (default `/tmp/xiaoyuan-note-regress-linux/<timestamp>`):
   `results.json`, `shots/<check>-<step>.png`, `logs/<check>.log` (check
   trace), `logs/<check>.app.log` (app stderr).
 - Exit code 0 = no FAIL. A full run takes about 20 minutes.
@@ -33,8 +33,8 @@ scripts/regress/linux/run.sh /tmp/pkg/SoloMD_*_arm64.deb L08 L15   # a subset (f
 1. **Rig** — its own `Xvfb :94` (refuses to start if `:94` belongs to someone
    else), `openbox` (without a WM nothing gets keyboard focus), a private
    `dbus-daemon --session` (keeps the single-instance handshake away from any
-   other SoloMD on the machine), then an xterm self-test proving keystrokes
-   arrive. Every process it starts carries `SOLOMD_REGRESS_TAG` in its
+   other xiaoyuanNote on the machine), then an xterm self-test proving keystrokes
+   arrive. Every process it starts carries `XIAOYUAN_NOTE_REGRESS_TAG` in its
    environment; cleanup kills only processes with that tag. Other rigs
    (`:96`, `:99`, …) and their apps are never touched.
 2. **Install** — `dpkg -i` the `.deb` (records name, sha256 and the binary's
@@ -49,11 +49,11 @@ scripts/regress/linux/run.sh /tmp/pkg/SoloMD_*_arm64.deb L08 L15   # a subset (f
 
 The app runs with `HOME=$RG_ROOT/home` (plus `XDG_*` pointing inside it), so
 every check starts from an empty profile **and the VM user's real profile is
-never moved or touched**, even while another SoloMD instance is using it.
-(The earlier manual rounds moved `~/.local/share/app.solomd` aside and back;
-that is unsafe when another rig's SoloMD is running from it, which it is on
+never moved or touched**, even while another xiaoyuanNote instance is using it.
+(The earlier manual rounds moved `~/.local/share/app.xiaoyuannote` aside and back;
+that is unsafe when another rig's xiaoyuanNote is running from it, which it is on
 this VM. The private HOME also catches files the app writes straight into
-`$HOME`, e.g. `~/.solomd-language`, `~/.solomd-device-id`.)
+`$HOME`, e.g. `~/.xiaoyuan-note-language`, `~/.xiaoyuan-note-device-id`.)
 
 The profile's localStorage (WebKitGTK SQLite, `ItemTable`, UTF‑16LE values)
 is **seeded** before launch by `lib/seed.py`: welcome tour / AI wizard /
@@ -100,7 +100,7 @@ or `SEED_EXTRA='{"key": value}'`. After a quit, checks read state back with
 | L23 | tree + tab context menus say "Show in File Manager" | OCR |
 | L24 | UTF‑16LE+BOM opens, encoding shown, saved back as UTF‑16LE+BOM | bytes, `iconv` |
 | L25 | CJK proofread ignores file names / `...`; control file is flagged | OCR panel |
-| L26 | Ctrl+Shift+Z is redo, no pomodoro starts | clipboard read-back, no `solomd.pomodoro.state.v1` |
+| L26 | Ctrl+Shift+Z is redo, no pomodoro starts | clipboard read-back, no `xiaoyuan-note.pomodoro.state.v1` |
 | L27 | invalid mermaid: inline error, no bomb, chrome stays put after preview find | OCR regions |
 | L28 | DOCX export → import (Ctrl+Shift+L): bold, numbered list, `[ ]`/`[x]`, links | imported Markdown |
 
@@ -133,10 +133,10 @@ slack) because tesseract's chi_sim misreads 替 as 蔡 at UI sizes.
 Interactive debugging against a live rig:
 
 ```bash
-limactl shell solomd-linux -- bash -c 'cd /tmp/rg2/suite && ./vm-suite.sh up'
-limactl shell solomd-linux -- bash -c "cd /tmp/rg2/suite && ./vm-suite.sh exec 'start_on index.md; shot x'"
-limactl shell solomd-linux -- bash -c 'cd /tmp/rg2/suite && ./vm-suite.sh run L08'
-limactl shell solomd-linux -- bash -c 'cd /tmp/rg2/suite && ./vm-suite.sh down'
+limactl shell xiaoyuan-note-linux -- bash -c 'cd /tmp/rg2/suite && ./vm-suite.sh up'
+limactl shell xiaoyuan-note-linux -- bash -c "cd /tmp/rg2/suite && ./vm-suite.sh exec 'start_on index.md; shot x'"
+limactl shell xiaoyuan-note-linux -- bash -c 'cd /tmp/rg2/suite && ./vm-suite.sh run L08'
+limactl shell xiaoyuan-note-linux -- bash -c 'cd /tmp/rg2/suite && ./vm-suite.sh down'
 ```
 
 ## Running it in GitHub Actions later
@@ -149,7 +149,7 @@ limactl shell solomd-linux -- bash -c 'cd /tmp/rg2/suite && ./vm-suite.sh down'
   falls back to `APPIMAGE_EXTRACT_AND_RUN=1`);
 - no `xvfb-run` needed — the suite starts its own Xvfb; WebKitGTK renders
   in software (the app already sets `WEBKIT_DISABLE_DMABUF_RENDERER=1`);
-- step: `RG_ROOT=$RUNNER_TEMP/rg SOLOMD_DEB=… SOLOMD_APPIMAGE=… scripts/regress/linux/vm-suite.sh all`
+- step: `RG_ROOT=$RUNNER_TEMP/rg XIAOYUAN_NOTE_DEB=… XIAOYUAN_NOTE_APPIMAGE=… scripts/regress/linux/vm-suite.sh all`
   then upload `$RUNNER_TEMP/rg/out` as an artifact (screenshots + results.json);
 - expect slower launches on 2-core runners: raise `LAUNCH_TIMEOUT` (default
   45 s) and `CHECK_TIMEOUT` (default 240 s) if needed;

@@ -21,7 +21,14 @@ import { useI18n } from '../i18n';
 import { usesCommandKey } from '../lib/platform';
 import { measureMenu, placeMenuFromPoint } from '../lib/menu-position';
 
-export type EditorMenuAction = 'copyImage' | 'cut' | 'copy' | 'paste' | 'selectAll';
+export type EditorMenuAction =
+  | 'copyImage'
+  | 'cut'
+  | 'copy'
+  | 'paste'
+  | 'selectAll'
+  | 'insertQuery'
+  | 'insertComponent';
 
 /** A misspelled word under the pointer (#376). `canAdd`: offer "Add to
  *  dictionary" — only where our own checker draws the underline. */
@@ -71,7 +78,9 @@ const items = computed<Item[]>(() => [
   { id: 'cut' as const, label: t('menubar.cut'), key: `${mod}X`, disabled: !props.hasSelection, sep: !!props.hasImage || !!props.spell },
   { id: 'copy' as const, label: t('menubar.copy'), key: `${mod}C`, disabled: !props.hasSelection },
   { id: 'paste' as const, label: t('menubar.paste'), key: `${mod}V`, disabled: false },
-  { id: 'selectAll' as const, label: t('menubar.selectAll'), key: `${mod}A`, disabled: false, sep: true },
+  { id: 'selectAll' as const, label: t('menubar.selectAll'), key: `${mod}A`, disabled: false },
+  { id: 'insertQuery' as const, label: t('menubar.insertQueryBlock'), key: '', disabled: false, sep: true },
+  { id: 'insertComponent' as const, label: t('menubar.insertComponentTree'), key: '', disabled: false },
 ]);
 
 function run(id: EditorMenuAction, disabled: boolean) {

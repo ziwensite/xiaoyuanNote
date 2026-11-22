@@ -3,9 +3,9 @@
 `modelcontextprotocol/servers` removed its community section — the de facto
 community indices are now three "awesome-mcp-servers" lists that collectively
 have ~14k forks. Each has its own format conventions and category
-taxonomies; this directory has SoloMD-styled entries for each.
+taxonomies; this directory has xiaoyuan-note-styled entries for each.
 
-| List | Forks | Best section for SoloMD | Entry file |
+| List | Forks | Best section for xiaoyuanNote | Entry file |
 |---|---|---|---|
 | **[punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)** | ~10.9k | `🧠 Knowledge & Memory` (or `📝 Note Taking`) | [`entry-punkpeye.md`](entry-punkpeye.md) |
 | **[appcypher/awesome-mcp-servers](https://github.com/appcypher/awesome-mcp-servers)** | ~1.6k | `📝 Note Taking` | [`entry-appcypher.md`](entry-appcypher.md) |
@@ -24,11 +24,11 @@ cd awesome-mcp-servers
 # Manually insert the entry from entry-punkpeye.md into the right section
 # (alphabetical inside the section). Most lists use alphabetical-by-name.
 
-git checkout -b add-solomd
+git checkout -b add-xiaoyuanNote
 git add README.md
-git commit -m "Add SoloMD MCP server"
-git push -u origin add-solomd
-gh pr create --title "Add SoloMD MCP server (Markdown vault with 16 tools)" \
+git commit -m "Add xiaoyuanNote MCP server"
+git push -u origin add-xiaoyuanNote
+gh pr create --title "Add xiaoyuanNote MCP server (Markdown vault with 16 tools)" \
              --body-file ../marketplace/awesome-mcp/pr-body.md
 ```
 

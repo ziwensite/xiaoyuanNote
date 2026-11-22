@@ -24,7 +24,7 @@ import {
 import { frozenDuringComposition, isImeSafeFlushTransaction } from './cm-ime-guard';
 import { taskStatusRule } from './tasks';
 
-const TOGGLE_EVENT = 'solomd-task-toggle';
+const TOGGLE_EVENT = 'xiaoyuan-note-task-toggle';
 
 /** `- [ ]` / `* [x]` / `1. [/]`, with any single status character. */
 const TASK_MARKER = /^(\s*(?:[-*+]|\d{1,9}[.)])[ \t]+)(\[[^\]\n]\])(?=[ \t]|$)/u;
@@ -56,7 +56,9 @@ class TaskWidget extends WidgetType {
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.checked = this.checked;
-    cb.className = 'cm-task-checkbox';
+    // Carry `.rp-check` so the editor box matches the rendered note, the task
+    // side panel and the calendar view exactly (same size / tick / focus ring).
+    cb.className = 'cm-task-checkbox rp-check';
     cb.style.cursor = 'pointer';
     cb.style.verticalAlign = 'middle';
     cb.style.margin = '0 4px 0 0';

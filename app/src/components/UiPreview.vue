@@ -77,7 +77,7 @@ function removeChip(c: string) {
 <template>
   <div class="uikit">
     <header class="uikit__bar">
-      <strong class="uikit__brand">SoloMD UI Kit</strong>
+      <strong class="uikit__brand">xiaoyuanNote UI Kit</strong>
       <div class="uikit__controls">
         <DsButton size="sm" variant="subtle" @click="setMode('light')">Light</DsButton>
         <DsButton size="sm" variant="subtle" @click="setMode('dark')">Dark</DsButton>

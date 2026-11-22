@@ -5,25 +5,25 @@ Treat this as notes: rewrite it in your own words before posting, and answer
 the comments yourself.
 
 - **When:** a weekday between 07:00 and 10:00 US Pacific (22:00–01:00 Beijing).
-- **URL field:** https://github.com/zhitongblog/solomd. HN readers prefer the repo to a landing page.
-- **Never posted before:** hn.algolia.com has no SoloMD story, so this is a first Show HN.
+- **URL field:** https://github.com/zhitongblog/xiaoyuan-note. HN readers prefer the repo to a landing page.
+- **Never posted before:** hn.algolia.com has no xiaoyuanNote story, so this is a first Show HN.
 
 ## Title (≤ 80 chars)
 
 ```
-Show HN: SoloMD – an open-source Markdown editor, mostly written by Claude Code
+Show HN: xiaoyuanNote – an open-source Markdown editor, mostly written by Claude Code
 ```
 
 Alternative, if you'd rather not lead with the AI angle:
 
 ```
-Show HN: SoloMD – Typora-style Markdown editor for desktop and mobile (MIT)
+Show HN: xiaoyuanNote – Typora-style Markdown editor for desktop and mobile (MIT)
 ```
 
 ## Text
 
 ```
-SoloMD is a Markdown editor I've been building since April: live preview in
+xiaoyuanNote is a Markdown editor I've been building since April: live preview in
 the Typora style (markers fade when the cursor leaves the line), KaTeX,
 Mermaid, tldraw whiteboards, wiki links, and export to PDF, Word and HTML.
 It's Tauri 2 + Vue 3 + CodeMirror 6, MIT-licensed, and runs on Windows,
@@ -49,7 +49,7 @@ Things I'd like feedback on: the editing feel compared with Typora and
 Obsidian, and whether the bundled MCP server (read-only unless you pass
 --allow-write) is useful to anyone besides me.
 
-Site: https://solomd.app
+Site: https://xiaoyuannote.app
 ```
 
 ## Likely questions (answer them yourself)

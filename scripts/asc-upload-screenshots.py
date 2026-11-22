@@ -55,7 +55,7 @@ import urllib.request
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from asc_api import Client, make_token, _opener  # noqa: E402
 
-BUNDLE_ID = "app.solomd"
+BUNDLE_ID = "app.xiaoyuanNote"
 PLATFORMS = {"ios": "IOS", "macos": "MAC_OS", "mac": "MAC_OS"}
 #: Versions in these states can still take screenshot edits.
 EDITABLE = {"PREPARE_FOR_SUBMISSION", "DEVELOPER_REJECTED", "REJECTED",

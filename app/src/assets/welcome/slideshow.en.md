@@ -1,6 +1,6 @@
 # Slideshow mode
 
-SoloMD turns any Markdown document into a **fullscreen presentation** — no Keynote, no PowerPoint, no export step.
+xiaoyuanNote turns any Markdown document into a **fullscreen presentation** — no Keynote, no PowerPoint, no export step.
 
 ---
 
@@ -65,6 +65,6 @@ flowchart LR
 - **Title slide**: a single `# Heading` with one or two lines under it looks great.
 - **Bullets**: keep to ~5 items per slide; the font size auto-scales to viewport.
 - **Code**: fenced code blocks render with syntax highlighting. Big blocks may overflow — split them across slides.
-- **Speaker mode** isn't built yet. Use a second monitor with the SoloMD edit window for now.
+- **Speaker mode** isn't built yet. Use a second monitor with the xiaoyuanNote edit window for now.
 
 That's the whole feature. Try it on this document — press `Ctrl+Alt+P` right now.

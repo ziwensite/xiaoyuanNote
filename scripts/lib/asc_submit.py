@@ -91,7 +91,7 @@ def main():
     p.add_argument("--platform", required=True, choices=sorted(PLATFORMS))
     p.add_argument("--version", required=True, help="marketing version, e.g. 4.12.0")
     p.add_argument("--build", help="CFBundleVersion of the upload (default: --version)")
-    p.add_argument("--bundle-id", default=os.environ.get("ASC_BUNDLE_ID", "app.solomd"))
+    p.add_argument("--bundle-id", default=os.environ.get("ASC_BUNDLE_ID", "app.xiaoyuanNote"))
     p.add_argument("--notes-file", help="release notes; applied to every locale on the version")
     p.add_argument("--notes-dir",
                    help="a directory of per-locale release notes, named for the App Store "
@@ -108,7 +108,7 @@ def main():
                         "run creates")
     p.add_argument("--uses-non-exempt-encryption", action="store_true",
                    help="declare that the build uses encryption beyond what Apple exempts. "
-                        "The default answer is no, which is what SoloMD has always declared: "
+                        "The default answer is no, which is what xiaoyuanNote has always declared: "
                         "it speaks HTTPS through the OS and ships no cryptography of its own.")
     p.add_argument("--dry-run", action="store_true",
                    help="read the real state, print every write instead of making it")

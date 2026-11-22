@@ -2,17 +2,17 @@
 //!
 //! Two surfaces:
 //!
-//!   * `cli_status()` — `which solomd` + `solomd --version` so the panel
-//!     can render "Installed at /usr/local/bin/solomd" (green) or
+//!   * `cli_status()` — `which xiaoyuanNote` + `xiaoyuanNote --version` so the panel
+//!     can render "Installed at /usr/local/bin/xiaoyuanNote" (green) or
 //!     "Not installed" (faint) without the JS layer having to spawn
 //!     processes itself. Mirrors the spawn_blocking pattern from
 //!     `git_history.rs` so a slow `which` (e.g. cold NFS PATH) can't
 //!     freeze the UI thread.
 //!
-//!   * `mcp_path()` — absolute path to the bundled `solomd-mcp` sidecar.
+//!   * `mcp_path()` — absolute path to the bundled `xiaoyuan-note-mcp` sidecar.
 //!     Resolved via Tauri's path API rather than hardcoded:
-//!     - macOS: `<App>.app/Contents/MacOS/solomd-mcp`
-//!     - Windows: `<install dir>\solomd-mcp.exe`
+//!     - macOS: `<App>.app/Contents/MacOS/xiaoyuan-note-mcp`
+//!     - Windows: `<install dir>\xiaoyuan-note-mcp.exe`
 //!     - Linux: alongside the executable
 //!     Returns `None` when the sidecar isn't found (e.g. dev builds where
 //!     `pnpm tauri dev` skips bundle-time externalBin staging).
@@ -26,7 +26,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 /// Build a `Command` that never flashes a console window on Windows.
-/// Without `CREATE_NO_WINDOW` (0x08000000) every probe (`where`, `solomd
+/// Without `CREATE_NO_WINDOW` (0x08000000) every probe (`where`, `xiaoyuanNote
 /// --version`, …) pops a black cmd window for a frame — very visible when the
 /// Integrations settings tab runs its status checks (顾河 report). No-op off
 /// Windows.
@@ -51,18 +51,18 @@ use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Serialize)]
 pub struct CliStatus {
-    /// True iff `which solomd` resolved to an executable file.
+    /// True iff `which xiaoyuanNote` resolved to an executable file.
     pub installed: bool,
     /// Absolute path on disk (None when not installed).
     pub path: Option<String>,
-    /// Output of `solomd --version` truncated to the first line. None on
+    /// Output of `xiaoyuanNote --version` truncated to the first line. None on
     /// install_failure or non-zero exit.
     pub version: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct McpPath {
-    /// Absolute path to the bundled `solomd-mcp` binary, or None if it
+    /// Absolute path to the bundled `xiaoyuan-note-mcp` binary, or None if it
     /// couldn't be located (typical in `pnpm tauri dev`).
     pub path: Option<String>,
     /// True iff `path` is `Some` AND the file exists on disk.
@@ -79,9 +79,9 @@ pub fn cli_status_inner() -> Result<CliStatus, String> {
     // `which` (Unix) / `where` (Windows). On Windows there's no PATHEXT
     // helper either way; we just check stdout for a valid file.
     #[cfg(target_os = "windows")]
-    let probe = no_window_command("where").arg("solomd").output();
+    let probe = no_window_command("where").arg("xiaoyuanNote").output();
     #[cfg(not(target_os = "windows"))]
-    let probe = no_window_command("/usr/bin/env").args(["which", "solomd"]).output();
+    let probe = no_window_command("/usr/bin/env").args(["which", "xiaoyuanNote"]).output();
 
     let path = match probe {
         Ok(out) if out.status.success() => {
@@ -109,7 +109,7 @@ pub fn cli_status_inner() -> Result<CliStatus, String> {
         });
     }
 
-    // `solomd --version` — our shell CLI doesn't actually accept --version
+    // `xiaoyuanNote --version` — our shell CLI doesn't actually accept --version
     // today, but it does accept `help`. Keep the field for future Rust-port
     // upgrade and try help as a fallback so the panel can show *something*
     // confirming the binary is reachable.
@@ -152,7 +152,7 @@ pub async fn cli_status() -> Result<CliStatus, String> {
 // MCP sidecar path.
 // ---------------------------------------------------------------------------
 
-/// Resolve the bundled `solomd-mcp` path. Strategy:
+/// Resolve the bundled `xiaoyuan-note-mcp` path. Strategy:
 ///
 /// 1. On a Tauri-bundled app, externalBin places it as a *resource* —
 ///    `app.path().resource_dir()` returns
@@ -162,13 +162,13 @@ pub async fn cli_status() -> Result<CliStatus, String> {
 ///    However, Tauri's externalBin specifically copies the binary next to
 ///    the main executable on macOS / Windows — *not* into Resources — so
 ///    we look beside the running executable first.
-/// 2. Fallback to `resource_dir/solomd-mcp[.exe]` for AppImage / Linux
+/// 2. Fallback to `resource_dir/xiaoyuan-note-mcp[.exe]` for AppImage / Linux
 ///    bundles where externalBin lands inside resources.
 fn resolve_mcp_path(app: &AppHandle) -> Option<PathBuf> {
     let exe_name = if cfg!(target_os = "windows") {
-        "solomd-mcp.exe"
+        "xiaoyuan-note-mcp.exe"
     } else {
-        "solomd-mcp"
+        "xiaoyuan-note-mcp"
     };
 
     // Sibling of the main exe — the canonical bundled location.
@@ -236,7 +236,7 @@ pub fn mcp_claude_desktop_config_path(app: AppHandle) -> Option<String> {
 // ---------------------------------------------------------------------------
 
 /// Strip a subset of ANSI escape sequences (CSI ... letter). Good enough
-/// for the colored output our bash `solomd` script emits.
+/// for the colored output our bash `xiaoyuanNote` script emits.
 fn strip_ansi(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars().peekable();
@@ -263,11 +263,11 @@ fn strip_ansi(s: &str) -> String {
 //
 //   1. First-run wizard calls `detect_ai_clients()`.
 //   2. UI shows checklist with which configs already exist and whether
-//      they already mention solomd.
+//      they already mention xiaoyuan-note.
 //   3. User picks workspace + allow-write, clicks "Inject".
 //   4. UI calls `inject_mcp(client_id, workspace, allow_write)` per
 //      checked client. Each call backs up the original config
-//      (`<path>.bak.<unix_seconds>`) and merges in the solomd entry.
+//      (`<path>.bak.<unix_seconds>`) and merges in the xiaoyuanNote entry.
 //   5. User restarts the AI client (we surface a reminder in the UI).
 //
 // Each client has its own config schema — Claude Desktop, Claude Code, and
@@ -284,7 +284,7 @@ pub struct AiClient {
     pub config_path: String,
     pub config_exists: bool,
     pub config_dir_exists: bool,
-    pub has_solomd_entry: bool,
+    pub has_xiaoyuan_note_entry: bool,
 }
 
 /// Resolve a client's MCP config path. Returns `None` when we can't infer
@@ -366,16 +366,16 @@ const AI_CLIENTS: &[(&str, &str)] = &[
     ("zed", "Zed"),
 ];
 
-/// Does this config already declare a `solomd` MCP server?
+/// Does this config already declare a `xiaoyuanNote` MCP server?
 ///
 /// Parses the config and looks under the key the client actually uses. A
 /// substring match is not good enough: `~/.claude.json` (Claude Code) also
 /// carries per-project history, so any user who has opened a folder with
-/// "solomd" in its path would otherwise read as "already configured". Falls
+/// "xiaoyuanNote" in its path would otherwise read as "already configured". Falls
 /// back to the substring check only when the file doesn't parse as JSON.
-fn config_has_solomd(client_id: &str, raw: &str) -> bool {
+fn config_has_xiaoyuan_note(client_id: &str, raw: &str) -> bool {
     let Ok(v) = serde_json::from_str::<JsonValue>(raw) else {
-        return raw.contains("solomd");
+        return raw.contains("xiaoyuanNote");
     };
     match client_id {
         "continue" => v
@@ -383,21 +383,21 @@ fn config_has_solomd(client_id: &str, raw: &str) -> bool {
             .and_then(|m| m.as_array())
             .map(|list| {
                 list.iter()
-                    .any(|e| e.get("name").and_then(|n| n.as_str()) == Some("solomd"))
+                    .any(|e| e.get("name").and_then(|n| n.as_str()) == Some("xiaoyuanNote"))
             })
             .unwrap_or(false),
         "zed" => v
             .get("context_servers")
-            .and_then(|m| m.get("solomd"))
+            .and_then(|m| m.get("xiaoyuanNote"))
             .is_some(),
         // claude-desktop / claude-code / cursor / cline
-        _ => v.get("mcpServers").and_then(|m| m.get("solomd")).is_some(),
+        _ => v.get("mcpServers").and_then(|m| m.get("xiaoyuanNote")).is_some(),
     }
 }
 
 /// List every supported AI client, whether its config file / directory
 /// already exists on this machine, and whether the config already mentions
-/// "solomd" (cheap substring check — avoids parsing JSON just for the
+/// "xiaoyuanNote" (cheap substring check — avoids parsing JSON just for the
 /// summary view).
 #[tauri::command]
 pub fn detect_ai_clients(app: AppHandle) -> Vec<AiClient> {
@@ -409,9 +409,9 @@ pub fn detect_ai_clients(app: AppHandle) -> Vec<AiClient> {
             let config_dir_exists = ai_client_probe_dir(id, &app)
                 .map(|p| p.is_dir())
                 .unwrap_or(false);
-            let has_solomd_entry = if config_exists {
+            let has_xiaoyuan_note_entry = if config_exists {
                 std::fs::read_to_string(&path)
-                    .map(|s| config_has_solomd(id, &s))
+                    .map(|s| config_has_xiaoyuan_note(id, &s))
                     .unwrap_or(false)
             } else {
                 false
@@ -422,16 +422,16 @@ pub fn detect_ai_clients(app: AppHandle) -> Vec<AiClient> {
                 config_path: path.to_string_lossy().to_string(),
                 config_exists,
                 config_dir_exists,
-                has_solomd_entry,
+                has_xiaoyuan_note_entry,
             })
         })
         .collect()
 }
 
-/// Build the solomd-mcp command line for a given client's config schema.
-/// `mcp_path` is the absolute path to the bundled `solomd-mcp` binary;
+/// Build the xiaoyuan-note-mcp command line for a given client's config schema.
+/// `mcp_path` is the absolute path to the bundled `xiaoyuan-note-mcp` binary;
 /// `workspace` and `allow_write` come from the UI.
-fn build_solomd_args(workspace: &str, allow_write: bool) -> Vec<String> {
+fn build_xiaoyuan_note_args(workspace: &str, allow_write: bool) -> Vec<String> {
     let mut args = vec!["--workspace".to_string(), workspace.to_string()];
     if allow_write {
         args.push("--allow-write".to_string());
@@ -475,10 +475,10 @@ fn write_json_with_backup(path: &PathBuf, value: &JsonValue) -> Result<(), Strin
     Ok(())
 }
 
-/// Build the solomd MCP server entry in the shape the given client
+/// Build the xiaoyuanNote MCP server entry in the shape the given client
 /// expects. Returns the value to set under the client's MCP-server map
 /// (or, for Continue's array, the single element to insert).
-fn build_solomd_entry(client_id: &str, mcp_path: &str, args: &[String]) -> JsonValue {
+fn build_xiaoyuan_note_entry(client_id: &str, mcp_path: &str, args: &[String]) -> JsonValue {
     match client_id {
         "zed" => json!({
             "command": { "path": mcp_path, "args": args },
@@ -500,7 +500,7 @@ fn build_solomd_entry(client_id: &str, mcp_path: &str, args: &[String]) -> JsonV
             ]
         }),
         "continue" => json!({
-            "name": "solomd",
+            "name": "xiaoyuanNote",
             "command": mcp_path,
             "args": args
         }),
@@ -511,9 +511,9 @@ fn build_solomd_entry(client_id: &str, mcp_path: &str, args: &[String]) -> JsonV
     }
 }
 
-/// Surgical insert/update of the solomd entry under whichever top-level
+/// Surgical insert/update of the xiaoyuanNote entry under whichever top-level
 /// key the client uses.
-fn splice_solomd_entry(
+fn splice_xiaoyuan_note_entry(
     client_id: &str,
     config: &mut JsonValue,
     entry: JsonValue,
@@ -528,7 +528,7 @@ fn splice_solomd_entry(
                 .or_insert_with(|| json!({}))
                 .as_object_mut()
                 .ok_or("mcpServers is not a JSON object")?;
-            servers.insert("solomd".to_string(), entry);
+            servers.insert("xiaoyuanNote".to_string(), entry);
         }
         "cline" => {
             let map = config
@@ -539,7 +539,7 @@ fn splice_solomd_entry(
                 .or_insert_with(|| json!({}))
                 .as_object_mut()
                 .ok_or("mcpServers is not a JSON object")?;
-            servers.insert("solomd".to_string(), entry);
+            servers.insert("xiaoyuanNote".to_string(), entry);
         }
         "continue" => {
             let map = config
@@ -550,10 +550,10 @@ fn splice_solomd_entry(
                 .or_insert_with(|| json!([]))
                 .as_array_mut()
                 .ok_or("mcp is not a JSON array")?;
-            // Replace existing solomd entry if present; otherwise append.
+            // Replace existing xiaoyuanNote entry if present; otherwise append.
             if let Some(existing) = list
                 .iter_mut()
-                .find(|e| e.get("name").and_then(|n| n.as_str()) == Some("solomd"))
+                .find(|e| e.get("name").and_then(|n| n.as_str()) == Some("xiaoyuanNote"))
             {
                 *existing = entry;
             } else {
@@ -569,14 +569,14 @@ fn splice_solomd_entry(
                 .or_insert_with(|| json!({}))
                 .as_object_mut()
                 .ok_or("context_servers is not a JSON object")?;
-            servers.insert("solomd".to_string(), entry);
+            servers.insert("xiaoyuanNote".to_string(), entry);
         }
         _ => return Err(format!("unknown client_id: {client_id}")),
     }
     Ok(())
 }
 
-/// Frontend command: merge a solomd entry into one client's config.
+/// Frontend command: merge a xiaoyuanNote entry into one client's config.
 #[tauri::command]
 pub fn inject_mcp(
     app: AppHandle,
@@ -587,19 +587,19 @@ pub fn inject_mcp(
     let config_path = ai_client_config_path(&client_id, &app)
         .ok_or_else(|| format!("no config path for {client_id} on this OS"))?;
     let mcp_path = resolve_mcp_path(&app)
-        .ok_or_else(|| "bundled solomd-mcp not found".to_string())?
+        .ok_or_else(|| "bundled xiaoyuan-note-mcp not found".to_string())?
         .to_string_lossy()
         .to_string();
-    let args = build_solomd_args(&workspace, allow_write);
-    let entry = build_solomd_entry(&client_id, &mcp_path, &args);
+    let args = build_xiaoyuan_note_args(&workspace, allow_write);
+    let entry = build_xiaoyuan_note_entry(&client_id, &mcp_path, &args);
 
     let mut config = read_json_or_empty(&config_path)?;
-    splice_solomd_entry(&client_id, &mut config, entry)?;
+    splice_xiaoyuan_note_entry(&client_id, &mut config, entry)?;
     write_json_with_backup(&config_path, &config)?;
     Ok(config_path.to_string_lossy().to_string())
 }
 
-/// Frontend command: remove the solomd entry from one client's config
+/// Frontend command: remove the xiaoyuanNote entry from one client's config
 /// (used by uninstall + by the wizard's "undo last inject" affordance).
 #[tauri::command]
 pub fn remove_mcp(app: AppHandle, client_id: String) -> Result<(), String> {
@@ -615,12 +615,12 @@ pub fn remove_mcp(app: AppHandle, client_id: String) -> Result<(), String> {
                 .get_mut("mcpServers")
                 .and_then(|v| v.as_object_mut())
             {
-                servers.remove("solomd");
+                servers.remove("xiaoyuanNote");
             }
         }
         "continue" => {
             if let Some(list) = config.get_mut("mcp").and_then(|v| v.as_array_mut()) {
-                list.retain(|e| e.get("name").and_then(|n| n.as_str()) != Some("solomd"));
+                list.retain(|e| e.get("name").and_then(|n| n.as_str()) != Some("xiaoyuanNote"));
             }
         }
         "zed" => {
@@ -628,7 +628,7 @@ pub fn remove_mcp(app: AppHandle, client_id: String) -> Result<(), String> {
                 .get_mut("context_servers")
                 .and_then(|v| v.as_object_mut())
             {
-                servers.remove("solomd");
+                servers.remove("xiaoyuanNote");
             }
         }
         _ => return Err(format!("unknown client_id: {client_id}")),
@@ -651,9 +651,9 @@ mod tests {
     #[test]
     fn splice_claude_desktop_into_empty() {
         let mut c = json!({});
-        let entry = json!({ "command": "/bin/solomd-mcp", "args": ["--workspace", "/notes"] });
-        splice_solomd_entry("claude-desktop", &mut c, entry.clone()).unwrap();
-        assert_eq!(c["mcpServers"]["solomd"], entry);
+        let entry = json!({ "command": "/bin/xiaoyuan-note-mcp", "args": ["--workspace", "/notes"] });
+        splice_xiaoyuan_note_entry("claude-desktop", &mut c, entry.clone()).unwrap();
+        assert_eq!(c["mcpServers"]["xiaoyuanNote"], entry);
     }
 
     #[test]
@@ -664,71 +664,71 @@ mod tests {
             },
             "globalShortcut": "Cmd+Shift+J"
         });
-        let entry = json!({ "command": "/bin/solomd-mcp", "args": [] });
-        splice_solomd_entry("claude-desktop", &mut c, entry.clone()).unwrap();
-        assert_eq!(c["mcpServers"]["solomd"], entry);
+        let entry = json!({ "command": "/bin/xiaoyuan-note-mcp", "args": [] });
+        splice_xiaoyuan_note_entry("claude-desktop", &mut c, entry.clone()).unwrap();
+        assert_eq!(c["mcpServers"]["xiaoyuanNote"], entry);
         assert!(c["mcpServers"]["other"].is_object());
         assert_eq!(c["globalShortcut"], "Cmd+Shift+J");
     }
 
     #[test]
-    fn splice_continue_replaces_existing_solomd() {
+    fn splice_continue_replaces_existing_xiaoyuanNote() {
         let mut c = json!({
             "mcp": [
-                { "name": "solomd", "command": "/old/path", "args": [] },
+                { "name": "xiaoyuanNote", "command": "/old/path", "args": [] },
                 { "name": "other", "command": "/bin/other", "args": [] }
             ]
         });
-        let entry = json!({ "name": "solomd", "command": "/new/path", "args": ["--allow-write"] });
-        splice_solomd_entry("continue", &mut c, entry.clone()).unwrap();
+        let entry = json!({ "name": "xiaoyuanNote", "command": "/new/path", "args": ["--allow-write"] });
+        splice_xiaoyuan_note_entry("continue", &mut c, entry.clone()).unwrap();
         let arr = c["mcp"].as_array().unwrap();
         assert_eq!(arr.len(), 2);
-        let solomd = arr.iter().find(|e| e["name"] == "solomd").unwrap();
-        assert_eq!(solomd["command"], "/new/path");
+        let xiaoyuanNote = arr.iter().find(|e| e["name"] == "xiaoyuanNote").unwrap();
+        assert_eq!(xiaoyuanNote["command"], "/new/path");
     }
 
     #[test]
     fn splice_zed_uses_nested_command_object() {
         let mut c = json!({});
         let entry = json!({
-            "command": { "path": "/bin/solomd-mcp", "args": ["--workspace", "/notes"] },
+            "command": { "path": "/bin/xiaoyuan-note-mcp", "args": ["--workspace", "/notes"] },
             "settings": {}
         });
-        splice_solomd_entry("zed", &mut c, entry.clone()).unwrap();
-        assert_eq!(c["context_servers"]["solomd"], entry);
+        splice_xiaoyuan_note_entry("zed", &mut c, entry.clone()).unwrap();
+        assert_eq!(c["context_servers"]["xiaoyuanNote"], entry);
     }
 
     #[test]
     fn detect_reads_the_right_key_per_client() {
-        let claude = r#"{"mcpServers":{"solomd":{"command":"/bin/solomd-mcp"}}}"#;
-        assert!(config_has_solomd("claude-code", claude));
-        assert!(config_has_solomd("claude-desktop", claude));
-        assert!(config_has_solomd(
+        let claude = r#"{"mcpServers":{"xiaoyuanNote":{"command":"/bin/xiaoyuan-note-mcp"}}}"#;
+        assert!(config_has_xiaoyuan_note("claude-code", claude));
+        assert!(config_has_xiaoyuan_note("claude-desktop", claude));
+        assert!(config_has_xiaoyuan_note(
             "continue",
-            r#"{"mcp":[{"name":"solomd","command":"/bin/solomd-mcp"}]}"#
+            r#"{"mcp":[{"name":"xiaoyuanNote","command":"/bin/xiaoyuan-note-mcp"}]}"#
         ));
-        assert!(config_has_solomd(
+        assert!(config_has_xiaoyuan_note(
             "zed",
-            r#"{"context_servers":{"solomd":{"command":{"path":"/bin/solomd-mcp"}}}}"#
+            r#"{"context_servers":{"xiaoyuanNote":{"command":{"path":"/bin/xiaoyuan-note-mcp"}}}}"#
         ));
     }
 
     #[test]
-    fn detect_ignores_solomd_mentions_outside_the_server_map() {
+    fn detect_ignores_XIAOYUAN_NOTE_mentions_outside_the_server_map() {
         // ~/.claude.json carries per-project history. A user who has opened
-        // ~/code/solomd must still read as "not configured".
-        let claude = r#"{"projects":{"/Users/me/code/solomd":{"history":[]}},"mcpServers":{}}"#;
-        assert!(!config_has_solomd("claude-code", claude));
+        // ~/code/xiaoyuanNote must still read as "not configured".
+        let claude = r#"{"projects":{"/Users/me/code/xiaoyuanNote":{"history":[]}},"mcpServers":{}}"#;
+        assert!(!config_has_xiaoyuan_note("claude-code", claude));
         // Wrong-shaped configs don't false-positive either.
-        assert!(!config_has_solomd(
+        assert!(!config_has_xiaoyuan_note(
             "zed",
-            r#"{"mcpServers":{"solomd":{"command":"/bin/solomd-mcp"}}}"#
+            r#"{"mcpServers":{"xiaoyuanNote":{"command":"/bin/xiaoyuan-note-mcp"}}}"#
         ));
     }
 
     #[test]
     fn detect_falls_back_to_substring_on_unparseable_config() {
-        assert!(config_has_solomd("claude-code", "{ not json — solomd"));
-        assert!(!config_has_solomd("claude-code", "{ not json"));
+        assert!(config_has_xiaoyuan_note("claude-code", "{ not json — xiaoyuanNote"));
+        assert!(!config_has_xiaoyuan_note("claude-code", "{ not json"));
     }
 }

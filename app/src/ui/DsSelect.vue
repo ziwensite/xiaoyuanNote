@@ -72,7 +72,7 @@ function onChange(e: Event) {
 .ds-select__native:focus-visible,
 .ds-select__native:focus {
   outline: none;
-  box-shadow: var(--ring);
+  box-shadow: var(--ring-tight);
 }
 .ds-select__native:disabled {
   opacity: 0.5;

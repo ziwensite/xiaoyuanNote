@@ -1,4 +1,4 @@
-# Per-target solomd-mcp sidecar binaries are built by
+# Per-target xiaoyuan-note-mcp sidecar binaries are built by
 # scripts/build-mcp-sidecar.sh during `pnpm tauri build` and should NOT
 # be checked into git. Keep the directory tracked via this .gitignore.
 *

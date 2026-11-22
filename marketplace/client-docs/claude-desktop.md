@@ -1,26 +1,26 @@
-# `solomd-mcp` in Claude Desktop
+# `xiaoyuan-note-mcp` in Claude Desktop
 
 ## Install the server
 
 Pick one path:
 
-### Path A — bundled in SoloMD.app (recommended)
+### Path A — bundled in xiaoyuannote.app (recommended)
 
-Install [SoloMD](https://solomd.app) and the MCP server ships inside the
-app bundle. Then in SoloMD: `Settings → Integrations → Print MCP config`
+Install [xiaoyuanNote](https://xiaoyuannote.app) and the MCP server ships inside the
+app bundle. Then in xiaoyuan-note: `Settings → Integrations → Print MCP config`
 copies the right JSON snippet for Claude Desktop.
 
 ### Path B — standalone binary
 
 1. Download from the
-   [latest release](https://github.com/zhitongblog/solomd/releases/latest):
-   - macOS arm64/x64: `cargo install solomd-mcp` (or grab the bundled
-     binary from SoloMD.app)
-   - Linux x64: `solomd-mcp-linux-x64.tar.gz`
-   - Linux arm64: `solomd-mcp-linux-arm64.tar.gz`
-   - Windows x64: `solomd-mcp-win-x64.zip`
-   - Windows arm64: `solomd-mcp-win-arm64.zip`
-2. Extract and put `solomd-mcp` on your `PATH` (or remember the absolute
+   [latest release](https://github.com/zhitongblog/xiaoyuan-note/releases/latest):
+   - macOS arm64/x64: `cargo install xiaoyuan-note-mcp` (or grab the bundled
+     binary from xiaoyuannote.app)
+   - Linux x64: `xiaoyuan-note-mcp-linux-x64.tar.gz`
+   - Linux arm64: `xiaoyuan-note-mcp-linux-arm64.tar.gz`
+   - Windows x64: `xiaoyuan-note-mcp-win-x64.zip`
+   - Windows arm64: `xiaoyuan-note-mcp-win-arm64.zip`
+2. Extract and put `xiaoyuan-note-mcp` on your `PATH` (or remember the absolute
    path for the config below).
 
 ## Wire into Claude Desktop
@@ -36,8 +36,8 @@ Add this under `mcpServers`:
 ```json
 {
   "mcpServers": {
-    "solomd": {
-      "command": "solomd-mcp",
+    "xiaoyuanNote": {
+      "command": "xiaoyuan-note-mcp",
       "args": [
         "--workspace", "/Users/you/notes"
       ]
@@ -51,8 +51,8 @@ Multiple workspaces? Repeat the flag:
 ```json
 {
   "mcpServers": {
-    "solomd": {
-      "command": "solomd-mcp",
+    "xiaoyuanNote": {
+      "command": "xiaoyuan-note-mcp",
       "args": [
         "--workspace", "work=/Users/you/work-notes",
         "--workspace", "home=/Users/you/diary"
@@ -72,23 +72,23 @@ Need writes (Claude can create / overwrite notes)? Add `--allow-write`:
 ```
 
 Restart Claude Desktop. The 🔌 icon in the bottom of the message box should
-show "solomd" with all 16 tools (15 by default).
+show "xiaoyuanNote" with all 16 tools (15 by default).
 
 ## Try it
 
-> Use the SoloMD MCP tools to list every note tagged `#project`, then show me
+> Use the xiaoyuanNote MCP tools to list every note tagged `#project`, then show me
 > the backlinks for the most-recently-modified one.
 
-## About SoloMD
+## About xiaoyuanNote
 
-[**SoloMD**](https://solomd.app) is a free, MIT Markdown + plaintext editor.
+[**xiaoyuanNote**](https://xiaoyuannote.app) is a free, MIT Markdown + plaintext editor.
 Same `.md` files as your favourite plain-text setup; the editor adds a
 Wiki-link + backlink graph, semantic search, per-note AutoGit history, a
 streamed Agent panel that cites notes with `[[wikilinks]]`, and the same
-`solomd-mcp` server you just installed — pre-wired.
+`xiaoyuan-note-mcp` server you just installed — pre-wired.
 
 You don't need the app to use the MCP server. But if you want the **Agent
 panel**, **pending write accept/reject UI**, **AutoGit branch sandbox per
 agent run**, and **BYOK keys in the OS keychain** — get the app.
 
-[📥 Download SoloMD for macOS / Windows / Linux](https://github.com/zhitongblog/solomd/releases/latest)
+[📥 Download xiaoyuanNote for macOS / Windows / Linux](https://github.com/zhitongblog/xiaoyuan-note/releases/latest)

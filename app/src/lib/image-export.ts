@@ -16,7 +16,7 @@ import { loadRenderDeps } from './render-deps';
 import { inlineLocalImages, rewriteImageUrls } from './image-resolve';
 
 export interface ImageExportOptions {
-  /** When true, append a "Created with SoloMD · solomd.app" footer.
+  /** When true, append a "Created with xiaoyuanNote · xiaoyuannote.app" footer.
    *  Default true (mirroring the settings store default); pass false
    *  to opt out per-call. */
   branding?: boolean;
@@ -38,7 +38,7 @@ const IMAGE_CSS = `
     width: fit-content;
     max-width: 800px;
     min-width: 480px;
-    /* Bottom padding is set per-export based on whether the SoloMD
+    /* Bottom padding is set per-export based on whether the xiaoyuanNote
        footer is rendered. With the footer, 56px gives the watermark
        breathing room from the content above. Without it, 36px keeps
        short notes from looking like they have a void underneath. */
@@ -216,7 +216,7 @@ export async function markdownToImageBlob(
   if (opts.branding) {
     const footer = document.createElement('div');
     footer.className = 'img-footer';
-    footer.innerHTML = `Created with <span class="brand">SoloMD</span> · solomd.app`;
+    footer.innerHTML = `Created with <span class="brand">xiaoyuanNote</span> · xiaoyuannote.app`;
     page.appendChild(footer);
   }
 

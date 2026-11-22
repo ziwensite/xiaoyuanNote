@@ -29,7 +29,7 @@
 - [x] 两个 `<SidebarDock>` 按「该侧有非 pending 关联面板」挂载；删除 `visibleRsPanes`/快照/`ctxToggle` 旧分支/`sideSidebarWidth`/`outlineSide` 渲染门控。
 - [x] `show*Pane` 拆成 visible（Dock/tab/session）与 available（上下文门控）；`rightSidebarHasRenderablePane` 按右侧计算。
 - [x] 右键 `sidebar-ctx` 勾选态改读 Dock；`+` 复用同一清单；关闭/激活经新 action。
-- [x] `solomd:relayout` watch 改挂 Dock 组合。
+- [x] `xiaoyuan-note:relayout` watch 改挂 Dock 组合。
 
 ## T7 菜单 / 设置 / 命令同步
 - [x] `useAppMenu.ts` 8 个面板改读 `sidebarDock`，`savedViews` 不变。

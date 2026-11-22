@@ -16,7 +16,7 @@ for l in open('.env.local'):
         k,v=l.strip().split('=',1); env[k]=v.strip('"')
 kid=env['ASC_KEY_ID']; iss=env['ASC_ISSUER_ID']; kp=os.path.expandvars(env['ASC_KEY_PATH'])
 c=Client(make_token(kp,kid,iss))
-app=c.app_id('app.solomd')
+app=c.app_id('app.xiaoyuanNote')
 cmd=sys.argv[1]
 if cmd=='list':
     r=c.get(f'/v1/apps/{app}/analyticsReportRequests')

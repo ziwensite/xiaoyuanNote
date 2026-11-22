@@ -2,7 +2,7 @@
  * Path identity for comparisons.
  *
  * Windows paths name the same file however they are spelled: `C:\Notes\a.md`,
- * `c:\notes\A.md` and `C:/Notes/a.md` are one file. The shell hands SoloMD
+ * `c:\notes\A.md` and `C:/Notes/a.md` are one file. The shell hands xiaoyuanNote
  * whichever spelling the launcher used (a lower-case drive letter from one
  * tool, the typed case from a "Run" box, forward slashes from another app), so
  * comparing them as strings made the file tree stop following the open

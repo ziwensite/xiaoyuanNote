@@ -6,11 +6,11 @@ import Giscus from '../../components/Giscus.astro';
 
 const lang = 'uk' as const;
 const VERSION = '4.1.0';
-const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERSION}`;
+const baseUrl = `https://github.com/zhitongblog/xiaoyuan-note/releases/download/v${VERSION}`;
 ---
 
 <Layout
-  title="Оновлення SoloMD v4.0 — редактор, де живуть агенти"
+  title="Оновлення xiaoyuanNote v4.0 — редактор, де живуть агенти"
   description="v4.0 — це мажорний реліз agent-native author. П'ять стовпів: інтегрована панель Agent (стримінговий chat-with-vault), заплановані recipes (cron / on-save / on-commit, sandbox гілок AutoGit + accept/reject), відтворюваний перегляд Trace, MCP-федерація кількох vault, першокласна Ollama. Плюс: REST API, лічильник вартості BYOK, 11 шаблонів Recipe, майстер першого запуску, багатомовна локалізація."
   lang={lang}
 >
@@ -35,9 +35,9 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
       </p>
 
       <div class="cta-row">
-        <a class="btn btn--primary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_universal.dmg`}>⬇ Завантажити v{VERSION} (Mac)</a>
-        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/SoloMD_${VERSION}_x64_en-US.msi`}>Завантажити (Windows)</a>
-        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/solomd/releases/tag/v${VERSION}`}>Усі платформи →</a>
+        <a class="btn btn--primary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_universal.dmg`}>⬇ Завантажити v{VERSION} (Mac)</a>
+        <a class="btn btn--secondary btn--lg" href={`${baseUrl}/XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`}>Завантажити (Windows)</a>
+        <a class="btn btn--secondary btn--lg" href={`https://github.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`}>Усі платформи →</a>
       </div>
 
       <section>
@@ -60,7 +60,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
               Кнопки <strong>Вставити</strong> та <strong>Копіювати</strong>
               скидають цілий абзац у поточний редактор — замінюють виділення, якщо є,
               інакше вставляють у позицію курсора. Історія запусків
-              зберігається як звичайний markdown у <code>.solomd/agent-runs/</code>,
+              зберігається як звичайний markdown у <code>.xiaoyuan-note/agent-runs/</code>,
               її можна grep-ати й відстежувати в git.
             </p>
           </div>
@@ -68,7 +68,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             <h3>2 · Agent Recipe / запуск за розкладом</h3>
             <p>
               Декларативні agent-завдання, YAML-файли в
-              <code>&lt;workspace&gt;/.solomd/agents/*.yml</code>.
+              <code>&lt;workspace&gt;/.xiaoyuan-note/agents/*.yml</code>.
               Тригери: <code>schedule</code> (cron), <code>on-save</code>,
               <code>on-commit</code>, <code>on-tag-add</code>, ручний.
               <strong>Безкомпромісні guardrail безпеки</strong>: кожен запуск
@@ -102,7 +102,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           <div class="pillar">
             <h3>4 · MCP-федерація кількох vault</h3>
             <p>
-              <code>solomd-mcp --workspace path1 --workspace path2 --workspace path3</code>
+              <code>xiaoyuan-note-mcp --workspace path1 --workspace path2 --workspace path3</code>
               —— одна MCP-сесія, кілька vault. Сигнатури інструментів отримали
               необов\'язковий параметр <code>workspace</code>, типове значення = перший
               переданий (повністю зворотно сумісно з MCP-клієнтами для одного vault).
@@ -216,7 +216,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
           </li>
           <li>
             <strong>UX запуску macOS.</strong> Виправлено таймінг активації при запуску
-            —— холодний запуск SoloMD дійсно виходить на передній план, більше не ховається
+            —— холодний запуск xiaoyuanNote дійсно виходить на передній план, більше не ховається
             за Finder. Відновлення позиції вікна завжди приземляється в робочій області
             поточного екрана; відновлення з поганого кешу
             після відключення додаткового екрана автоматично перецентрується,
@@ -276,7 +276,7 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
             під <em>Інтеграції</em>. Розташування наявних налаштувань не змінилося.
           </li>
           <li>
-            <strong>MCP-сервер (<code>solomd-mcp</code>) отримав новий параметр
+            <strong>MCP-сервер (<code>xiaoyuan-note-mcp</code>) отримав новий параметр
             <code>--workspace</code></strong> (повторюваний).
             Наявні MCP-клієнти на один workspace продовжують працювати;
             поведінка федерації — opt-in.
@@ -289,10 +289,10 @@ const baseUrl = `https://github.com/zhitongblog/solomd/releases/download/v${VERS
         <p>
           5 основних стовпів + планка якості — це головний контент цього разу. <em>Відкриті
           напрямки для v4.x і далі</em> усі в
-          <a href="https://github.com/zhitongblog/solomd/blob/main/docs/roadmap.md">roadmap</a>:
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/docs/roadmap.md">roadmap</a>:
           sandboxed scripting API, CLI v2 (rewrite / commit / семантичний пошук /
           тригер Recipe з терміналу) і вічно відкладене питання
-          <em>«Чи має SoloMD стати комерційним продуктом?»</em>
+          <em>«Чи має xiaoyuanNote стати комерційним продуктом?»</em>
           (платний sync — старе питання з ери v3.0, досі без відповіді,
           поки рішення не ухвалене, інженерної роботи в цій сфері не буде).
         </p>

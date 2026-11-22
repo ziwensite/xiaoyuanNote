@@ -7,8 +7,8 @@ const lang = 'en' as const;
 ---
 
 <Layout
-  title="Security — How SoloMD protects your data"
-  description="SoloMD is a pure client-side, local-first Markdown editor. Your notes stay on your disk; API keys live in the OS keychain; AI calls go direct to the vendor you chose. No middlemen, no cloud, MIT-licensed and auditable."
+  title="Security — How xiaoyuanNote protects your data"
+  description="xiaoyuanNote is a pure client-side, local-first Markdown editor. Your notes stay on your disk; API keys live in the OS keychain; AI calls go direct to the vendor you chose. No middlemen, no cloud, MIT-licensed and auditable."
   lang={lang}
 >
   <Header lang={lang} />
@@ -18,8 +18,8 @@ const lang = 'en' as const;
       <p class="updated">Last updated: 2026-04-25 · v2.2</p>
 
       <p class="lead">
-        SoloMD is a <strong>pure client-side</strong> desktop / mobile app.
-        There is no SoloMD server, no SoloMD account, no SoloMD cloud. Below is
+        xiaoyuanNote is a <strong>pure client-side</strong> desktop / mobile app.
+        There is no xiaoyuanNote server, no xiaoyuanNote account, no xiaoyuanNote cloud. Below is
         every place data flows in the product, and exactly how we protect it.
       </p>
 
@@ -30,7 +30,7 @@ const lang = 'en' as const;
           you choose. No proprietary database, no opaque blob format.
         </li>
         <li>
-          Uninstall SoloMD and your files are still there, openable in
+          Uninstall xiaoyuanNote and your files are still there, openable in
           Obsidian / VS Code / Notepad / <code>cat</code>. There is no
           lock-in.
         </li>
@@ -74,7 +74,7 @@ const lang = 'en' as const;
       <ul>
         <li>
           AI is <strong>off by default</strong>. You have to enable it in
-          settings and supply your own key (BYOK). No SoloMD-hosted models.
+          settings and supply your own key (BYOK). No xiaoyuan-note-hosted models.
         </li>
         <li>
           When you trigger a rewrite, only the <strong>selected text</strong>
@@ -83,7 +83,7 @@ const lang = 'en' as const;
         </li>
         <li>
           The request goes <strong>directly</strong> from your machine to the
-          provider you picked — there is no SoloMD relay, no logging, no
+          provider you picked — there is no xiaoyuanNote relay, no logging, no
           interception. We can't see the content because it doesn't pass
           through us.
         </li>
@@ -96,7 +96,7 @@ const lang = 'en' as const;
       <h2>4. MCP server — read-only by default, with path-traversal guard</h2>
       <ul>
         <li>
-          The bundled <code>solomd-mcp</code> binary exposes 6 read-only
+          The bundled <code>xiaoyuan-note-mcp</code> binary exposes 6 read-only
           tools by default: <code>list_notes</code>, <code>read_note</code>,
           <code>search</code>, <code>get_backlinks</code>,
           <code>list_tags</code>, <code>get_outline</code>.
@@ -121,7 +121,7 @@ const lang = 'en' as const;
       <ul>
         <li>
           v2.3 adds a semantic-search panel (⌘⇧F). Like everything else
-          in SoloMD it is <strong>off by default</strong>. Settings →
+          in xiaoyuanNote it is <strong>off by default</strong>. Settings →
           "Enable semantic search" turns it on; until then nothing is
           scanned and no index file is created.
         </li>
@@ -131,7 +131,7 @@ const lang = 'en' as const;
           entirely in our Rust process. <strong>No model file is
           downloaded</strong> — the bundled embedder needs no weights
           and no network. The vectors are stored in
-          <code>&lt;workspace&gt;/.solomd/embeddings.sqlite</code>, a
+          <code>&lt;workspace&gt;/.xiaoyuan-note/embeddings.sqlite</code>, a
           plain SQLite file you can <code>sqlite3 &lt;file&gt; .schema</code>
           to inspect.
         </li>
@@ -141,7 +141,7 @@ const lang = 'en' as const;
           query log, no network traffic.
         </li>
         <li>
-          The index folder <code>.solomd/</code> is auto-added to your
+          The index folder <code>.xiaoyuan-note/</code> is auto-added to your
           workspace's <code>.gitignore</code>, so AutoGit never commits
           embeddings into your history.
         </li>
@@ -186,7 +186,7 @@ const lang = 'en' as const;
         </li>
         <li>
           Want to see exactly what's being reported? Open DevTools and run
-          <code>localStorage.setItem('solomd.telemetryDebug', '1')</code>.
+          <code>localStorage.setItem('xiaoyuan-note.telemetryDebug', '1')</code>.
           Every event will be printed to the console verbatim.
         </li>
       </ul>
@@ -218,20 +218,20 @@ const lang = 'en' as const;
       <ul>
         <li>
           Want to verify keychain handling? Read
-          <a href="https://github.com/zhitongblog/solomd/blob/main/app/src-tauri/src/ai_proxy.rs" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/app/src-tauri/src/ai_proxy.rs" rel="external">
             <code>app/src-tauri/src/ai_proxy.rs</code>
           </a>
         </li>
         <li>
           Want to verify MCP path checks? Read
-          <a href="https://github.com/zhitongblog/solomd/blob/main/mcp-server/src/main.rs" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/blob/main/mcp-server/src/main.rs" rel="external">
             <code>mcp-server/src/main.rs</code>
           </a>
         </li>
         <li>
           Want to verify there's no telemetry of file content? grep the
           repo:
-          <a href="https://github.com/zhitongblog/solomd/search?q=trackEvent" rel="external">
+          <a href="https://github.com/zhitongblog/xiaoyuan-note/search?q=trackEvent" rel="external">
             <code>trackEvent</code>
           </a>
         </li>

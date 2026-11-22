@@ -12,6 +12,6 @@ Choosing a theme that appears to do nothing now explains itself: an installed ma
 
 The app starts faster. Everything used to be compiled before the first frame — the diagram renderer, both Chinese dictionaries, the PDF and Word exporters, the slideshow. They now load when something asks for them, and first paint is about 30% quicker.
 
-A file changed by another editor — or while SoloMD was closed — is noticed now, on launch and whenever the window comes back. Unsaved edits are never overwritten.
+A file changed by another editor — or while xiaoyuanNote was closed — is noticed now, on launch and whenever the window comes back. Unsaved edits are never overwritten.
 
 The button that shows and hides the right sidebar always does something. It used to flip a flag that changed nothing whenever every panel in the strip was switched off.

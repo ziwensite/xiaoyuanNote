@@ -5,7 +5,7 @@ const { lang } = Astro.props;
 const tr = getT(lang);
 
 const VERSION = '5.0.13';
-const REPO = 'zhitongblog/solomd';
+const REPO = 'zhitongblog/xiaoyuan-note';
 // The Store ships both x64 and arm64 and picks for the machine, and it keeps
 // the app updated — worth offering next to the MSI rather than only below it.
 const MS_STORE = 'https://apps.microsoft.com/detail/9nxghk2ll1q4';
@@ -35,7 +35,7 @@ async function readStoreVersion(): Promise<string> {
         if (pkg?.PackageFullName) names.push(pkg.PackageFullName);
       }
     }
-    // zhitong.SoloMD_4.12.0.0_x64__3vmxy07xh2v3m -> 4.12.0
+    // zhitong.XIAOYUAN_NOTE_4.12.0.0_x64__3vmxy07xh2v3m -> 4.12.0
     const versions = names
       .map((n) => n.match(/_(\d+)\.(\d+)\.(\d+)\.\d+_/))
       .filter((m): m is RegExpMatchArray => Boolean(m))
@@ -59,9 +59,9 @@ const msStoreVersion = await readStoreVersion();
 // and one version serve both. Read at build time for the same reason as the
 // Microsoft Store: the store trails GitHub while a build sits in review.
 const APP_STORE = 'https://apps.apple.com/app/id6762498874';
-const GOOGLE_PLAY = 'https://play.google.com/store/apps/details?id=app.solomd';
-const GITEE_RELEASE = `https://gitee.com/zhitong45/solomd/releases/tag/v${VERSION}`;
-const ATOMGIT_RELEASE = `https://atomgit.com/zhitongblog/solomd/releases/tag/v${VERSION}`;
+const GOOGLE_PLAY = 'https://play.google.com/store/apps/details?id=app.xiaoyuannote';
+const GITEE_RELEASE = `https://gitee.com/zhitong45/xiaoyuan-note/releases/tag/v${VERSION}`;
+const ATOMGIT_RELEASE = `https://atomgit.com/zhitongblog/xiaoyuan-note/releases/tag/v${VERSION}`;
 
 async function readAppStoreVersion(): Promise<string | null> {
   try {
@@ -96,11 +96,11 @@ async function ghJson(path: string): Promise<any | null> {
 }
 const minor = (v: string) => v.split('.').slice(0, 2).join('.');
 async function wingetLive(): Promise<boolean> {
-  const dir = await ghJson('repos/microsoft/winget-pkgs/contents/manifests/z/zhitong/SoloMD');
+  const dir = await ghJson('repos/microsoft/winget-pkgs/contents/manifests/z/zhitong/xiaoyuanNote');
   return Array.isArray(dir) && dir.some((d: any) => minor(d?.name ?? '') === minor(VERSION));
 }
 async function scoopLive(): Promise<boolean> {
-  const f = await ghJson('repos/ScoopInstaller/Extras/contents/bucket/solomd.json');
+  const f = await ghJson('repos/ScoopInstaller/Extras/contents/bucket/xiaoyuan-note.json');
   try {
     const v = JSON.parse(Buffer.from(f?.content ?? '', 'base64').toString('utf8'))?.version ?? '';
     return minor(v) === minor(VERSION);
@@ -110,10 +110,10 @@ async function scoopLive(): Promise<boolean> {
 }
 const [hasWinget, hasScoop] = await Promise.all([wingetLive(), scoopLive()]);
 const packageManagers = [
-  { name: 'Homebrew', os: 'macOS', cmd: 'brew install --cask zhitongblog/solomd/solomd' },
-  hasWinget && { name: 'winget', os: 'Windows', cmd: 'winget install zhitong.SoloMD' },
-  hasScoop && { name: 'Scoop', os: 'Windows', cmd: 'scoop bucket add extras\nscoop install solomd' },
-  { name: 'AUR', os: 'Arch Linux', cmd: 'yay -S solomd-bin' },
+  { name: 'Homebrew', os: 'macOS', cmd: 'brew install --cask zhitongblog/xiaoyuan-note/xiaoyuanNote' },
+  hasWinget && { name: 'winget', os: 'Windows', cmd: 'winget install zhitong.xiaoyuanNote' },
+  hasScoop && { name: 'Scoop', os: 'Windows', cmd: 'scoop bucket add extras\nscoop install xiaoyuanNote' },
+  { name: 'AUR', os: 'Arch Linux', cmd: 'yay -S xiaoyuan-note-bin' },
 ].filter(Boolean) as { name: string; os: string; cmd: string }[];
 const releaseUrl = (version: string) => `https://github.com/${REPO}/releases/download/v${version}`;
 
@@ -122,7 +122,7 @@ const platforms = [
     icon: '🍎',
     key: 'macos' as const,
     version: VERSION,
-    primaryFile: `SoloMD_${VERSION}_universal.dmg`,
+    primaryFile: `XIAOYUAN_NOTE_${VERSION}_universal.dmg`,
   },
   {
     icon: '🪟',
@@ -135,39 +135,39 @@ const platforms = [
     // signatures 1.457.411.0) and reported it clean, which is the condition
     // this pin was waiting on. Pin it again if the verdict comes back.
     version: VERSION,
-    primaryFile: `SoloMD_${VERSION}_x64_en-US.msi`,
+    primaryFile: `XIAOYUAN_NOTE_${VERSION}_x64_en-US.msi`,
     storeUrl: MS_STORE,
   },
   {
     icon: '🪟',
     key: 'windowsArm' as const,
     version: VERSION,
-    primaryFile: `SoloMD_${VERSION}_arm64_en-US.msi`,
+    primaryFile: `XIAOYUAN_NOTE_${VERSION}_arm64_en-US.msi`,
     storeUrl: MS_STORE,
   },
   {
     icon: '🐧',
     key: 'linux' as const,
     version: VERSION,
-    primaryFile: `SoloMD_${VERSION}_amd64.AppImage`,
-    secondaryFile: `SoloMD_${VERSION}_amd64.deb`,
-    tertiaryFile: `SoloMD-${VERSION}-1.x86_64.rpm`,
+    primaryFile: `XIAOYUAN_NOTE_${VERSION}_amd64.AppImage`,
+    secondaryFile: `XIAOYUAN_NOTE_${VERSION}_amd64.deb`,
+    tertiaryFile: `xiaoyuan-note-${VERSION}-1.x86_64.rpm`,
   },
   {
     icon: '🍓',
     key: 'linuxArm' as const,
     version: VERSION,
-    primaryFile: `SoloMD_${VERSION}_aarch64.AppImage`,
-    secondaryFile: `SoloMD_${VERSION}_arm64.deb`,
-    tertiaryFile: `SoloMD-${VERSION}-1.aarch64.rpm`,
+    primaryFile: `XIAOYUAN_NOTE_${VERSION}_aarch64.AppImage`,
+    secondaryFile: `XIAOYUAN_NOTE_${VERSION}_arm64.deb`,
+    tertiaryFile: `xiaoyuan-note-${VERSION}-1.aarch64.rpm`,
   },
   {
     icon: '🤖',
     key: 'android' as const,
     version: VERSION,
-    primaryFile: `SoloMD_${VERSION}_universal.apk`,
-    secondaryFile: `SoloMD_${VERSION}_arm64-v8a.apk`,
-    tertiaryFile: `SoloMD_${VERSION}_armeabi-v7a.apk`,
+    primaryFile: `XIAOYUAN_NOTE_${VERSION}_universal.apk`,
+    secondaryFile: `XIAOYUAN_NOTE_${VERSION}_arm64-v8a.apk`,
+    tertiaryFile: `XIAOYUAN_NOTE_${VERSION}_armeabi-v7a.apk`,
   },
 ];
 ---

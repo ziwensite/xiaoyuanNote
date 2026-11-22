@@ -4,7 +4,7 @@
  *
  * Three sections, top to bottom:
  *   1. Pending review — runs that finished `ok` but await Accept/Reject.
- *   2. Recipes — the declarative jobs in `.solomd/agents/*.yml`.
+ *   2. Recipes — the declarative jobs in `.xiaoyuan-note/agents/*.yml`.
  *   3. History — newest-first list of every run, click to drill into the
  *      raw `trace.jsonl` + `run.md` (Pillar 3 will replace this with the
  *      pretty step view; for v4.0 we ship the JSON-per-line raw form).
@@ -42,7 +42,7 @@ watch(folder, async (f) => {
 }, { immediate: true });
 
 // Map slug -> run_id so we can clear the "running" lock when the matching
-// `solomd://recipes-run-finished` event arrives. Without this the button
+// `xiaoyuan-note://recipes-run-finished` event arrives. Without this the button
 // only stayed disabled during the (very brief) `recipes_run_now` invoke,
 // so a user could mash it and queue the same recipe many times in a row.
 const slugByRunId = ref<Map<string, string>>(new Map());
@@ -51,7 +51,7 @@ let unlistenRunFinished: UnlistenFn | null = null;
 onMounted(async () => {
   await store.subscribe(() => folder.value);
   unlistenRunFinished = await listen<RunMeta>(
-    'solomd://recipes-run-finished',
+    'xiaoyuan-note://recipes-run-finished',
     (e) => {
       const slug = slugByRunId.value.get(e.payload.run_id);
       if (slug) {
@@ -326,7 +326,7 @@ function cancelYamlEdit() {
 // ---------------------------------------------------------------------------
 // Cookbook — bundled YAML templates the user can install with one click.
 // `cookbook_list` returns parsed metadata for each entry; `cookbook_install`
-// copies it into <workspace>/.solomd/agents/<slug>.yml (auto-suffixed on
+// copies it into <workspace>/.xiaoyuan-note/agents/<slug>.yml (auto-suffixed on
 // collision). After install we refresh the recipe list so the row appears.
 // ---------------------------------------------------------------------------
 

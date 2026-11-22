@@ -47,7 +47,7 @@ export interface RelEditability {
 
 /** Cache of referenced-by promises keyed by the entries array identity, so a
  *  stable entries array reuses in-flight / resolved lookups; a fresh entries
- *  array (after `solomd://index-updated`) gets a clean cache automatically. */
+ *  array (after `xiaoyuan-note://index-updated`) gets a clean cache automatically. */
 const refByCache = new WeakMap<IndexEntry[], Map<string, Promise<ReferencedByRef[]>>>();
 
 /** Split a full document into (bom, fenced-frontmatter-block, rest-after-block).
@@ -194,7 +194,7 @@ export function useRelationships() {
       // tab was clean before this edit, guaranteed by readActiveDoc).
       tabs.setContent(doc.tabId, newContent);
       tabs.markSaved(doc.tabId, doc.path);
-      // The Rust watcher will re-index and emit `solomd://index-updated`,
+      // The Rust watcher will re-index and emit `xiaoyuan-note://index-updated`,
       // refreshing both panels. Nudge an immediate index refresh too.
       idx.refresh().catch(() => {});
       return true;

@@ -1,4 +1,4 @@
-SoloMD 5.0: un lugar más tranquilo para escribir.
+xiaoyuanNote 5.0: un lugar más tranquilo para escribir.
 
 • Una ventana rediseñada: una cabecera discreta con Edición / Fuente / Dividido / Vista previa a un toque de distancia, una barra lateral para tus carpetas y notas, pestañas en forma de píldora y un pequeño contador de palabras en lugar de la barra de estado.
 • iPhone: una pantalla de inicio con tus notas, la búsqueda y un botón de nota nueva en la parte inferior, y un editor a pantalla completa.

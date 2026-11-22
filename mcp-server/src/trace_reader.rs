@@ -1,7 +1,7 @@
 //! v4.0 Pillar 3 — slim `trace.jsonl` reader for the external MCP server.
 //!
 //! This is intentionally a duplicate of the read-side of
-//! `app/src-tauri/src/trace.rs` — about 30 lines — so the `solomd-mcp`
+//! `app/src-tauri/src/trace.rs` — about 30 lines — so the `xiaoyuan-note-mcp`
 //! crate stays self-contained and doesn't need a path dep into the
 //! desktop app's source tree. The schema is pinned by contracts C2; if
 //! it changes, both files change. `tools.rs` imports `is_safe_run_id` and
@@ -59,7 +59,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = std::env::temp_dir().join(format!("solomd-mcp-trace-{label}-{nanos}"));
+        let dir = std::env::temp_dir().join(format!("xiaoyuan-note-mcp-trace-{label}-{nanos}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

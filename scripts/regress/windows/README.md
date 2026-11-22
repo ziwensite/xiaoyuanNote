@@ -1,6 +1,6 @@
 # Windows regression suite (Win11-ARM VM)
 
-Drives a real SoloMD MSI build inside the local Win11-ARM UTM VM from the Mac,
+Drives a real xiaoyuanNote MSI build inside the local Win11-ARM UTM VM from the Mac,
 with **real keyboard / mouse input** (keybd_event with MapVirtualKey scan codes,
 SendInput unicode, mouse_event), and verifies through files read back over SSH,
 UI Automation and screenshots. Covers checklist columns **W** (CodeMirror engine,
@@ -9,8 +9,8 @@ the default) and **Wp** (native / plain textarea engine) of
 
 ```bash
 gh release download <tag> -p '*arm64*.msi' -D /tmp/x       # a CI draft: pass the tag!
-scripts/regress/windows/run.sh /tmp/x/SoloMD_*_arm64_en-US.msi          # everything
-scripts/regress/windows/run.sh /tmp/x/SoloMD_*.msi find replace         # ids containing "find"/"replace"
+scripts/regress/windows/run.sh /tmp/x/XIAOYUAN_NOTE_*_arm64_en-US.msi          # everything
+scripts/regress/windows/run.sh /tmp/x/XIAOYUAN_NOTE_*.msi find replace         # ids containing "find"/"replace"
 scripts/regress/windows/run.sh --no-install ime                          # reuse the installed build
 scripts/regress/windows/run.sh --restore                                 # put the user's profile back after an abort
 scripts/regress/windows/run.sh --one checks/06-find.steps native         # debug one steps file (cm | native | fresh)
@@ -23,7 +23,7 @@ Output: `out/<timestamp>/` (or `$REGRESS_WIN_OUT`) — `results.json`, `logs/<id
 
 ## Requirements
 
-- VM up, reachable as `zhitong@192.168.64.3` with key `~/.ssh/solomd_win11_vm`
+- VM up, reachable as `zhitong@192.168.64.3` with key `~/.ssh/XIAOYUAN_NOTE_win11_vm`
   (override: `REGRESS_WIN_HOST`, `REGRESS_WIN_KEY`).
 - `zhitong` **logged in on the console** (not the lock screen) — the preflight checks `query user`.
 - Hold `caffeinate -d -i` on the Mac while it runs: when the Mac display sleeps, WebView2
@@ -33,8 +33,8 @@ Output: `out/<timestamp>/` (or `$REGRESS_WIN_OUT`) — `results.json`, `logs/<id
 
 ## What a run does
 
-1. Uninstalls any SoloMD MSI, installs the given one (`msiexec /qn`), logs exe version + hash.
-2. Renames `%LOCALAPPDATA%\app.solomd` and `%APPDATA%\app.solomd` to `*.regressbak-<stamp>`
+1. Uninstalls any xiaoyuanNote MSI, installs the given one (`msiexec /qn`), logs exe version + hash.
+2. Renames `%LOCALAPPDATA%\app.xiaoyuanNote` and `%APPDATA%\app.xiaoyuanNote` to `*.regressbak-<stamp>`
    (state in `C:\Users\Public\regress\profile-state.txt`) and remembers the default input
    method override; both are restored by an EXIT trap or `--restore`. `--one` leaves the profile
    aside on purpose (so you can iterate) — finish with `--restore`.
@@ -43,7 +43,7 @@ Output: `out/<timestamp>/` (or `$REGRESS_WIN_OUT`) — `results.json`, `logs/<id
    dismiss first-run UI, open the vault through the folder picker; `setup/golden-native.steps`:
    Settings → 编辑器引擎（Windows）→ 原生). Both are closed gracefully so WebView2 flushes
    localStorage, then copied aside.
-5. For every check × engine: kill SoloMD + its WebView2, restore the golden profile, re-copy
+5. For every check × engine: kill xiaoyuanNote + its WebView2, restore the golden profile, re-copy
    the pristine vault (`Desktop\regress-vault`), then run the steps as an **Interactive
    scheduled task** (the only way into the user's desktop session). Every check launches the
    app itself — the task's end kills it — and the window is pinned to `0,0,1400,800`
@@ -68,7 +68,7 @@ the nameless editor. Containers (Group/Pane/Document) are tried last.
 
 | op | does |
 |---|---|
-| `launch`, `open:<file>`, `run:<args>` | start SoloMD (optionally with a file), wait for the window + title, pin, foreground, prime UIA |
+| `launch`, `open:<file>`, `run:<args>` | start xiaoyuanNote (optionally with a file), wait for the window + title, pin, foreground, prime UIA |
 | `open2:<file>` | hand a file to the running instance (single-instance) |
 | `uclick` / `udbl` / `urclick` / `umove:<spec>` | real mouse at the element centre; `uclick?` = optional |
 | `dclick:<spec>` | click inside the open native dialog (#32770) |
@@ -125,8 +125,8 @@ To write a new check: `run.sh --one dev/calib.steps cm` with `udump:x` lines, re
 ## Traps this suite already handles
 
 - Chromium builds its a11y tree only after the first UIA query (17 → ~200 elements a few s later) — `launch` primes it.
-- The interactive task's end kills SoloMD → every check launches its own instance.
-- A leftover instance makes a new launch show a white window → SoloMD and its `msedgewebview2` are killed before each check.
+- The interactive task's end kills xiaoyuanNote → every check launches its own instance.
+- A leftover instance makes a new launch show a white window → xiaoyuanNote and its `msedgewebview2` are killed before each check.
 - `SetForegroundWindow` from a task fails without the Alt-tap + AttachThreadInput dance (`fg`).
 - scan code 0 → empty `event.code` in WebView2 → punctuation shortcuts silently fail; all keys carry real scan codes.
 - The UTM clipboard is shared with the Mac — nothing here uses the clipboard; text is verified on disk / via UIA.

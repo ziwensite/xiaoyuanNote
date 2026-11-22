@@ -20,7 +20,7 @@
 
 | 产品 | 类型 | 技术栈 | 状态 |
 |------|------|--------|------|
-| **SoloMD** | 桌面应用 | Tauri 2 + Vue 3 | 已上线 |
+| **xiaoyuanNote** | 桌面应用 | Tauri 2 + Vue 3 | 已上线 |
 | **StoryAlter** | Web 平台 | Next.js + Supabase | 已上线 |
 | **此章** | Web 应用 | Next.js + PostgreSQL | 已上线 |
 
@@ -117,7 +117,7 @@ Claude Code 和其他 AI 编程工具最大的区别：**它是一个完整的 A
 
 ## 第三章：三个产品的诞生
 
-### 产品一：SoloMD（桌面应用）
+### 产品一：xiaoyuanNote（桌面应用）
 
 **需求起源**：Typora 收费了，我需要一个轻量的 Markdown 编辑器
 
@@ -149,7 +149,7 @@ Claude：需要安装依赖，执行 npm install @lezer/markdown...
         [修复问题]
 ```
 
-就这样，一个来回一个来回，SoloMD 从无到有被「聊」出来了。
+就这样，一个来回一个来回，xiaoyuanNote 从无到有被「聊」出来了。
 
 **开发周期**：3 周（业余时间）
 
@@ -459,7 +459,7 @@ Claude Code 降低的是「从 0 到 1」的门槛，不是「从 1 到 100」�
 
 ## 相关链接
 
-- **SoloMD**：[solomd.app](https://solomd.app) - 轻量级 Markdown 编辑器
+- **xiaoyuanNote**：[xiaoyuannote.app](https://xiaoyuannote.app) - 轻量级 Markdown 编辑器
 - **StoryAlter**：[storyalter.com](https://storyalter.com) - AI 驱动的网文创作平台
 - **此章**：[goeju.uk](https://goeju.uk) - AI 人生决策共创平台
 - **Claude Code**：[claude.ai/claude-code](https://claude.ai/claude-code) - Anthropic 的 AI 编程工具

@@ -1,5 +1,5 @@
 /**
- * Options page — pair the clipper with a running SoloMD desktop instance.
+ * Options page — pair the clipper with a running xiaoyuanNote desktop instance.
  */
 import { getHealth } from './lib/capture.js';
 import { initI18n, t } from './lib/i18n.js';

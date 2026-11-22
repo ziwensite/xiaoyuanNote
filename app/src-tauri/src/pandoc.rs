@@ -171,7 +171,7 @@ pub fn pandoc_export_inner(args: ExportArgs) -> Result<(), String> {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let tmp_path = tmp_dir.join(format!("solomd-pandoc-{stamp}.md"));
+    let tmp_path = tmp_dir.join(format!("xiaoyuan-note-pandoc-{stamp}.md"));
     std::fs::write(&tmp_path, args.input_markdown.as_bytes())
         .map_err(|e| format!("could not write temp input file: {e}"))?;
 

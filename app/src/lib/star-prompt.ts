@@ -1,6 +1,6 @@
 /**
  * When to ask for a GitHub star from inside the app: once, ever, and only
- * after SoloMD has been opened on several different days — someone who keeps
+ * after xiaoyuanNote has been opened on several different days — someone who keeps
  * coming back has an opinion worth asking for; someone on day one does not.
  *
  * Pure state in, state out; App.vue owns storage and the toast.

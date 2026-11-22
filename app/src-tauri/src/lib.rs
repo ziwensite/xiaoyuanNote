@@ -53,7 +53,7 @@ pub mod cjk_proofread;
 // written into <config_dir>/themes/<id>.css by these commands.
 pub mod themes;
 // v2.6 GitHub-backed sync — extends v2.2 AutoGit with push/pull to a
-// user-owned GitHub repo. PAT in OS keychain, config in .solomd/sync.json.
+// user-owned GitHub repo. PAT in OS keychain, config in .xiaoyuan-note/sync.json.
 // Same git2 dep → same Android gate as git_history.
 #[cfg(not(target_os = "android"))]
 pub mod github_sync;
@@ -92,7 +92,7 @@ pub mod trace;
 // (agent_trace_read / agent_trace_list / agent_trace_replay_from).
 pub mod agent_trace;
 // v4.0 Pillar 2 — Agent Recipes. `recipes` parses the YAML schema +
-// owns the `.solomd/agents/` loader; `recipe_runner` drives one recipe
+// owns the `.xiaoyuan-note/agents/` loader; `recipe_runner` drives one recipe
 // end-to-end, hooks save / commit / cron / manual triggers, and gates
 // writes behind the AutoGit branch sandbox + write-cap.
 pub mod recipes;
@@ -104,7 +104,7 @@ pub mod recipes;
 pub mod recipe_runner;
 // v4.0 — bundled recipe cookbook (10+ ready-to-edit YAML templates).
 // Shipped as `include_str!` content compiled into the binary; commands
-// list / preview / install into <workspace>/.solomd/agents/.
+// list / preview / install into <workspace>/.xiaoyuan-note/agents/.
 pub mod cookbook;
 // M3 — calendar reminders. Timing only (the frontend owns recurrence/timezone
 // expansion); sends a system notification through tauri-plugin-notification,

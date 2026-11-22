@@ -1,9 +1,9 @@
 //! Apple's own "rate this app" sheet (StoreKit `SKStoreReviewController`).
 //!
-//! App Store builds ask for a rating once, after SoloMD has been opened on
+//! App Store builds ask for a rating once, after xiaoyuanNote has been opened on
 //! several different days (the same rule other builds use for the GitHub-star
 //! prompt, see `src/lib/star-prompt.ts`). There is deliberately no custom
-//! "do you like SoloMD?" step in front of it: Apple's guidelines want the
+//! "do you like xiaoyuanNote?" step in front of it: Apple's guidelines want the
 //! system sheet itself, and the system decides whether to show it at all
 //! (at most three times a year per user, never more often than it allows).
 //! Elsewhere the command is a no-op.

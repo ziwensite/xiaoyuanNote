@@ -167,7 +167,7 @@ const showInboxOnly = computed(() => inbox.filterMode.value);
 /** Sentinel emitted by the Rust backend when it truncated a huge dir
  * past the 10,000-entry hard cap. We surface it as a dedicated UI
  * row instead of rendering it as a fake file. */
-const TRUNCATED_SENTINEL = '__solomd_truncated__';
+const TRUNCATED_SENTINEL = '__XIAOYUAN_NOTE_truncated__';
 
 /** True when the workspace folder itself is gone (moved, deleted, unmounted
  *  drive). Distinct from "empty": an empty tree under the folder's own name is
@@ -195,7 +195,7 @@ function hiddenInTree(e: { name: string; is_dir: boolean }): boolean {
 
 // ---------------------------------------------------------------------------
 // #342 — sort order. One mode per workspace (settings.explorerSortByFolder);
-// "manual" keeps a per-folder name list in <vault>/.solomd/order.json, which
+// "manual" keeps a per-folder name list in <vault>/.xiaoyuan-note/order.json, which
 // is written only once the user actually drags something into place — the
 // file is not created just by opening a vault (see #236).
 // ---------------------------------------------------------------------------
@@ -212,7 +212,7 @@ function orderKey(folder: string): string {
 function orderPath(): string | null {
   const rootPath = workspace.currentFolder;
   if (!rootPath || isSafPath(rootPath)) return null;
-  return joinPath(joinPath(rootPath, '.solomd'), 'order.json');
+  return joinPath(joinPath(rootPath, '.xiaoyuanNote'), 'order.json');
 }
 async function loadManualOrder() {
   manualOrder.value = {};
@@ -678,21 +678,21 @@ function onBeforeUnload() {
 }
 
 onMounted(async () => {
-  window.addEventListener('solomd:saved', onSaved as EventListener);
-  window.addEventListener('solomd:remote-pulled', onRemotePulled as EventListener);
+  window.addEventListener('xiaoyuan-note:saved', onSaved as EventListener);
+  window.addEventListener('xiaoyuan-note:remote-pulled', onRemotePulled as EventListener);
   window.addEventListener('beforeunload', onBeforeUnload);
   try {
-    unlistenIndex = await listen('solomd://index-updated', () => scheduleRefresh());
+    unlistenIndex = await listen('xiaoyuan-note://index-updated', () => scheduleRefresh());
   } catch {}
   try {
     // A quick capture writes straight to disk from Rust; without this the new
     // Inbox note is invisible until something else happens to refresh.
-    unlistenCapture = await listen('solomd://capture-written', () => scheduleRefresh());
+    unlistenCapture = await listen('xiaoyuan-note://capture-written', () => scheduleRefresh());
   } catch {}
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('solomd:saved', onSaved as EventListener);
-  window.removeEventListener('solomd:remote-pulled', onRemotePulled as EventListener);
+  window.removeEventListener('xiaoyuan-note:saved', onSaved as EventListener);
+  window.removeEventListener('xiaoyuan-note:remote-pulled', onRemotePulled as EventListener);
   window.removeEventListener('beforeunload', onBeforeUnload);
   // Hiding the tree unmounts it; a selection left behind would keep aiming
   // "new file" at a folder the user can no longer see.
@@ -985,11 +985,11 @@ function rootRelative(p: string): string {
 
 /** The folder's name in the header. On iOS the app's own container folder is
  *  ".../Data/Application/<uuid>/Documents", which the Files app shows as
- *  "On My iPhone › SoloMD" — say SoloMD here too, not "Documents". */
+ *  "On My iPhone › xiaoyuanNote" — say xiaoyuanNote here too, not "Documents". */
 const rootDisplayName = computed(() => {
   const r = root.value;
   if (!r) return '';
-  if (isIOS() && /\/Data\/Application\/[^/]+\/Documents\/?$/.test(r.path)) return 'SoloMD';
+  if (isIOS() && /\/Data\/Application\/[^/]+\/Documents\/?$/.test(r.path)) return 'xiaoyuanNote';
   return r.name;
 });
 
@@ -1437,8 +1437,8 @@ function placeGhost(x: number, y: number) {
  *  over every row, button and scrollbar for the length of the drag. */
 function setDragCursor(state: 'grab' | 'invalid' | null) {
   const cl = document.documentElement.classList;
-  cl.toggle('solomd-tree-dragging', state !== null);
-  cl.toggle('solomd-tree-drag-invalid', state === 'invalid');
+  cl.toggle('xiaoyuan-note-tree-dragging', state !== null);
+  cl.toggle('xiaoyuan-note-tree-drag-invalid', state === 'invalid');
 }
 
 function onDragKey(e: KeyboardEvent) {
@@ -1835,23 +1835,24 @@ function closeFolder() {
   workspace.setFolder(null);
 }
 
-// Close the context menu on any outside click / escape.
-function onWindowClick() {
+// Dismiss the explorer's popovers (filter / sort / switcher / context menu) on
+// a press (left OR right) outside. `mousedown` (capture) instead of
+// `click`/`contextmenu`: the dropdown triggers and the menus use `@click.stop`,
+// which stops `click` bubbling to `window` and would leave a stale popover on
+// screen when another popup opens elsewhere. `mousedown` is a separate event
+// and is unaffected. A press on a dropdown's own trigger is ignored so its
+// toggle handler (which closes the others) still works; the right-click context
+// menu closes on any outside press regardless.
+function onDocDown(e: MouseEvent) {
+  const t = e.target as Node | null;
+  if (t && popEl.value && popEl.value.contains(t)) return;
+  if (t && ctxEl.value && ctxEl.value.contains(t)) return;
+  const isOwnTrigger = !!(t && (t as HTMLElement).closest('[data-ft-trigger]'));
+  if (ctx.value && Date.now() - ctxOpenedAt >= 700) closeCtx();
+  if (isOwnTrigger) return;
   filterOpen.value = false;
   sortOpen.value = false;
   if (switcherOpen.value) closeSwitcher();
-  if (!ctx.value) return;
-  // The click that ends the long-press which opened the menu.
-  if (Date.now() - ctxOpenedAt < 700) return;
-  closeCtx();
-}
-// A right-click elsewhere must dismiss this menu too. A plain `click` never
-// fires for a right-click, so without this a second menu (e.g. from another
-// panel) could appear on top of a stale one.
-function onWindowCtx(e: MouseEvent) {
-  if (!ctx.value || !ctxEl.value) return;
-  if (Date.now() - ctxOpenedAt < 700) return;
-  if (!ctxEl.value.contains(e.target as Node)) closeCtx();
 }
 function onWindowKey(e: KeyboardEvent) {
   if (e.key === 'Escape') {
@@ -1863,14 +1864,12 @@ function onWindowKey(e: KeyboardEvent) {
   }
 }
 onMounted(() => {
-  window.addEventListener('click', onWindowClick);
-  window.addEventListener('contextmenu', onWindowCtx, true);
+  document.addEventListener('mousedown', onDocDown, true);
   window.addEventListener('keydown', onWindowKey);
 });
 onBeforeUnmount(() => {
   cancelLongPress();
-  window.removeEventListener('click', onWindowClick);
-  window.removeEventListener('contextmenu', onWindowCtx, true);
+  document.removeEventListener('mousedown', onDocDown, true);
   window.removeEventListener('keydown', onWindowKey);
   // A tree unmounted mid-drag (workspace switch, sidebar hidden) must not
   // leave the ghost, the cursor override or the window listeners behind.
@@ -1913,6 +1912,7 @@ onBeforeUnmount(() => {
           aria-haspopup="menu"
           :aria-expanded="switcherOpen"
           :title="(t('explorer.switchWorkspace') || 'Switch workspace') + ' · ' + root.path"
+          data-ft-trigger
           @click.stop="toggleSwitcher($event)"
         >
           <span class="ftree__section-label">{{ t('sidebar.folders') }}</span>
@@ -1937,6 +1937,7 @@ onBeforeUnmount(() => {
             :aria-label="t('explorer.sortBy') || 'Sort'"
             aria-haspopup="menu"
             :aria-expanded="sortOpen"
+            data-ft-trigger
             @click.stop="toggleSortMenu($event)"
           >
             <Icon name="sort" :size="16" />
@@ -1950,6 +1951,7 @@ onBeforeUnmount(() => {
             :aria-label="t('explorer.filterByType') || 'Filter by file type'"
             aria-haspopup="menu"
             :aria-expanded="filterOpen"
+            data-ft-trigger
             @click.stop="openFilter($event)"
           >
             <Icon name="filter" :size="16" />
@@ -2607,14 +2609,20 @@ export const FileTreeNode = defineComponent({
   border-right: 0;
 }
 .ftree--embedded .ftree__body {
-  overflow-y: visible;
-  overflow-x: auto;
+  /* Keep overflow visible (no scroll container) so the title row's
+     `position: sticky` resolves against the real scroller, `.sb__scroll`,
+     instead of being trapped here. Horizontal scrolling of long names moves
+     to `.ftree__list` below. */
+  overflow: visible;
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
 .ftree--embedded .ftree__list {
   flex: 1 0 auto;
+  /* #3015 — horizontal scrolling for long node names lives here, not on the
+     body, so it doesn't create a scroll container that breaks sticky. */
+  overflow-x: auto;
 }
 
 /* #342 — manual-sort insertion line, drawn on the row a drop would land
@@ -2647,6 +2655,15 @@ export const FileTreeNode = defineComponent({
   margin: var(--sp-3) var(--sp-2) 2px;
   padding: 0 2px 0 0;
   border-radius: var(--r-sm);
+  /* Pin the workspace title + tool buttons above the scrolling file list so
+     they stay reachable (Obsidian-style sticky header). The opaque
+     background stops scrolled rows from showing through. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  /* Match the sidebar background so the pinned row blends in (it was
+     jarringly white when set to --bg, the editor surface color). */
+  background: var(--bg-sidebar);
 }
 .ftree__section--drop {
   box-shadow: inset 0 0 0 1px var(--accent);
@@ -3319,12 +3336,12 @@ export const FileTreeNode = defineComponent({
 /* #361 — drag feedback that must live outside the scoped block: the ghost is
    teleported to <body>, and the cursor override has to beat the rows' own
    `cursor: pointer` on every element for the length of the drag. */
-html.solomd-tree-dragging,
-html.solomd-tree-dragging * {
+html.xiaoyuan-note-tree-dragging,
+html.xiaoyuan-note-tree-dragging * {
   cursor: grabbing !important;
 }
-html.solomd-tree-drag-invalid,
-html.solomd-tree-drag-invalid * {
+html.xiaoyuan-note-tree-drag-invalid,
+html.xiaoyuan-note-tree-drag-invalid * {
   cursor: not-allowed !important;
 }
 .ftree-ghost {

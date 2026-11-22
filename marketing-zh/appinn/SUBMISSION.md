@@ -11,7 +11,7 @@
 ## 帖子标题
 
 ```
-SoloMD - 只有 15MB 的开源 Markdown 编辑器 [Win/Mac/Linux]
+xiaoyuanNote - 只有 15MB 的开源 Markdown 编辑器 [Win/Mac/Linux]
 ```
 
 ---
@@ -21,10 +21,10 @@ SoloMD - 只有 15MB 的开源 Markdown 编辑器 [Win/Mac/Linux]
 ```markdown
 ## 简介
 
-SoloMD 是一个轻量级的跨平台 Markdown 编辑器，安装包只有 15MB。
+xiaoyuanNote 是一个轻量级的跨平台 Markdown 编辑器，安装包只有 15MB。
 
-- 官网：https://solomd.app
-- GitHub：https://github.com/zhitongblog/solomd
+- 官网：https://xiaoyuannote.app
+- GitHub：https://github.com/zhitongblog/xiaoyuan-note
 - 协议：MIT（免费开源）
 
 ## 特点
@@ -83,16 +83,16 @@ Tauri 2 + Rust + Vue 3 + CodeMirror 6
 如果被小众软件正式收录写成文章，格式通常是：
 
 ```markdown
-**SoloMD** 是一款轻量级的跨平台 Markdown 编辑器，安装包仅 15MB，支持所见即所得编辑、数学公式、流程图等功能。
+**xiaoyuanNote** 是一款轻量级的跨平台 Markdown 编辑器，安装包仅 15MB，支持所见即所得编辑、数学公式、流程图等功能。
 
-与 Typora、Obsidian 等编辑器相比，SoloMD 的最大特点是**轻量**。它使用 Tauri 2 框架开发，不打包 Chromium，而是使用操作系统自带的 WebView，因此体积可以做到只有 15MB 左右。
+与 Typora、Obsidian 等编辑器相比，xiaoyuanNote 的最大特点是**轻量**。它使用 Tauri 2 框架开发，不打包 Chromium，而是使用操作系统自带的 WebView，因此体积可以做到只有 15MB 左右。
 
-SoloMD 对中文用户特别友好，支持 GBK/Big5 编码自动识别、简繁转换、CJK 字数统计。还有一个实用功能是「一键清除 AI 格式」，可以快速清理从 ChatGPT 等 AI 对话中复制的内容中的特殊字符。
+xiaoyuanNote 对中文用户特别友好，支持 GBK/Big5 编码自动识别、简繁转换、CJK 字数统计。还有一个实用功能是「一键清除 AI 格式」，可以快速清理从 ChatGPT 等 AI 对话中复制的内容中的特殊字符。
 
 软件完全免费开源（MIT 协议），不联网，不收集用户数据。
 
-* 官网：https://solomd.app
-* GitHub：https://github.com/zhitongblog/solomd
+* 官网：https://xiaoyuannote.app
+* GitHub：https://github.com/zhitongblog/xiaoyuan-note
 ```
 
 ---

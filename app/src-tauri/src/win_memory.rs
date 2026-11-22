@@ -1,6 +1,6 @@
 //! WebView2 memory trim while a window is minimized (Windows only).
 //!
-//! A tester measured SoloMD at ~400 MB on Windows (bug/, 2026-10-07). Most of
+//! A tester measured xiaoyuanNote at ~400 MB on Windows (bug/, 2026-10-07). Most of
 //! that is the WebView2 runtime's own browser / GPU / utility processes —
 //! the same six processes Windows' own SearchHost runs — and cannot be
 //! trimmed from here. What can is the renderer, and WebView2 does not shrink

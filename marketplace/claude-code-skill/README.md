@@ -1,4 +1,4 @@
-# Claude Code Skill — SoloMD
+# Claude Code Skill — xiaoyuanNote
 
 ## Status
 
@@ -13,25 +13,25 @@ from our root README.
 
 | Path | Purpose |
 |---|---|
-| [`solomd/SKILL.md`](solomd/SKILL.md) | The skill itself. Frontmatter + instructions Claude Code reads when the skill is loaded. |
-| [`solomd/install.sh`](solomd/install.sh) | One-liner that downloads `solomd-mcp` and registers it as a user-scope MCP server (`~/.claude.json`). |
-| [`solomd/recipes/`](solomd/recipes/) | The same 11 YAML recipes as the Skill Pack — included here so the skill is self-contained. |
+| [`xiaoyuan-note/SKILL.md`](xiaoyuan-note/SKILL.md) | The skill itself. Frontmatter + instructions Claude Code reads when the skill is loaded. |
+| [`xiaoyuan-note/install.sh`](xiaoyuan-note/install.sh) | One-liner that downloads `xiaoyuan-note-mcp` and registers it as a user-scope MCP server (`~/.claude.json`). |
+| [`xiaoyuan-note/recipes/`](xiaoyuan-note/recipes/) | The same 11 YAML recipes as the Skill Pack — included here so the skill is self-contained. |
 
 ## Installing the skill in Claude Code
 
 ```bash
-# Option A — Clone from the SoloMD repo (recommended; tracks updates):
-git clone https://github.com/zhitongblog/solomd.git /tmp/solomd-skill
-cp -r /tmp/solomd-skill/marketplace/claude-code-skill/solomd ~/.claude/skills/solomd
-bash ~/.claude/skills/solomd/install.sh
+# Option A — Clone from the xiaoyuanNote repo (recommended; tracks updates):
+git clone https://github.com/zhitongblog/xiaoyuan-note.git /tmp/xiaoyuan-note-skill
+cp -r /tmp/xiaoyuan-note-skill/marketplace/claude-code-skill/xiaoyuanNote ~/.claude/skills/xiaoyuanNote
+bash ~/.claude/skills/xiaoyuan-note/install.sh
 
 # Option B — One-shot installer:
-curl -L https://raw.githubusercontent.com/zhitongblog/solomd/main/marketplace/claude-code-skill/solomd/install.sh | bash
+curl -L https://raw.githubusercontent.com/zhitongblog/xiaoyuan-note/main/marketplace/claude-code-skill/xiaoyuan-note/install.sh | bash
 ```
 
 After install, start a new Claude Code session in your notes folder and
-type `/skills`. `solomd` should appear in the list. Activate with
-`/skills solomd` and Claude Code will load the SKILL.md instructions and
+type `/skills`. `xiaoyuanNote` should appear in the list. Activate with
+`/skills xiaoyuanNote` and Claude Code will load the SKILL.md instructions and
 have the 16 MCP tools available.
 
 ## Submitting to the official marketplace (when it opens)
@@ -40,13 +40,13 @@ When Anthropic publishes the Skill marketplace submission process,
 the path will look like:
 
 1. Fork their skill registry repo.
-2. Add `skills/solomd/` mirroring the `solomd/` directory here.
+2. Add `skills/xiaoyuan-note/` mirroring the `xiaoyuan-note/` directory here.
 3. Open a PR with the body from [`pr-body.md`](pr-body.md) (below).
 
 ## Maintaining
 
-When SoloMD's MCP gains/loses a tool, update:
+When xiaoyuanNote’s MCP gains/loses a tool, update:
 
-- `solomd/SKILL.md` — the "Tools available" section.
-- `solomd/recipes/` — copy from `app/src-tauri/cookbook/`.
+- `xiaoyuan-note/SKILL.md` — the "Tools available" section.
+- `xiaoyuan-note/recipes/` — copy from `app/src-tauri/cookbook/`.
 - This README's tool count if it ever moves off 16.

@@ -1,6 +1,6 @@
 //! Portable mode for the Windows zip build (#295).
 //!
-//! If a folder named `data` sits next to `SoloMD.exe`, everything SoloMD
+//! If a folder named `data` sits next to `xiaoyuan-note.exe`, everything xiaoyuanNote
 //! keeps about the user goes there instead of into the profile, so copying
 //! the program folder to another machine carries the settings with it. This
 //! is the VS Code convention: no switch, no flag — the folder's presence is
@@ -81,7 +81,7 @@ pub fn init() {
     if !webview.exists() {
         if let Some(local) = std::env::var_os("LOCALAPPDATA") {
             let old = PathBuf::from(local)
-                .join("app.solomd")
+                .join("app.xiaoyuanNote")
                 .join("EBWebView")
                 .join("Default")
                 .join("Local Storage");
@@ -117,7 +117,7 @@ mod tests {
 
     #[test]
     fn detects_only_an_existing_data_folder() {
-        let tmp = std::env::temp_dir().join(format!("solomd-portable-{}", std::process::id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-portable-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&tmp);
         std::fs::create_dir_all(&tmp).unwrap();
         assert_eq!(detect(&tmp), None);
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn copy_dir_copies_nested_files() {
-        let tmp = std::env::temp_dir().join(format!("solomd-portable-copy-{}", std::process::id()));
+        let tmp = std::env::temp_dir().join(format!("xiaoyuan-note-portable-copy-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&tmp);
         let src = tmp.join("src/leveldb");
         std::fs::create_dir_all(&src).unwrap();

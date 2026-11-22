@@ -16,7 +16,7 @@ fine — the widget will just be inert.
 To turn the widget on:
 
 1. Visit https://giscus.app
-2. Under **Repository** enter: `zhitongblog/solomd`
+2. Under **Repository** enter: `zhitongblog/xiaoyuan-note`
    - giscus will verify the repo is public, has Discussions enabled, and
      the `giscus` GitHub app is installed. If the app isn't installed
      yet, click **Install giscus** (the button on the giscus.app page).
@@ -57,7 +57,7 @@ discussions at **build time** via the GitHub GraphQL API. This needs a
 ### 2a. Generate the token
 
 1. https://github.com/settings/tokens?type=beta
-2. New fine-grained token → **All repositories** (or just `zhitongblog/solomd`)
+2. New fine-grained token → **All repositories** (or just `zhitongblog/xiaoyuan-note`)
 3. Permissions:
    - **Contents**: read-only
    - **Metadata**: read-only (auto-required)

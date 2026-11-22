@@ -1,4 +1,4 @@
-# SoloMD 开发故事：从痛点到产品
+# xiaoyuanNote 开发故事：从痛点到产品
 
 > 一个独立开发者用 Tauri 2 + Vue 3 打造 15MB Markdown 编辑器的完整历程
 
@@ -59,7 +59,7 @@ Tauri 的核心思路是：**不打包浏览器，用操作系统自带的 WebVi
 
 ### 为什么选 Tauri 2 而不是 1.x？
 
-我开始做 SoloMD 的时候，Tauri 2 刚好发布正式版（2024 年底）。相比 1.x：
+我开始做 xiaoyuanNote 的时候，Tauri 2 刚好发布正式版（2024 年底）。相比 1.x：
 
 1. **插件系统重构**：更模块化，按需引入
 2. **API 更清晰**：命令系统、事件系统都重新设计了
@@ -90,7 +90,7 @@ Vue 3 是个人偏好。`<script setup>` 语法写起来很舒服，Pinia 状态
 
 ### 1. 所见即所得：隐藏 Markdown 标记
 
-这是 SoloMD 的核心功能，也是技术上最有挑战的部分。
+这是 xiaoyuanNote 的核心功能，也是技术上最有挑战的部分。
 
 **需求**：用户输入 `**粗体**`，在光标离开这一行后，只显示「**粗体**」效果，隐藏 `**` 符号。光标回到这一行时，再显示原始的 Markdown 语法。
 
@@ -262,7 +262,7 @@ Windows 上如果没有代码签名，用户下载运行时会看到「Windows �
 
 2. 等下载量积累，让 Windows SmartScreen 自动建立信任。
 
-目前 SoloMD 选择的是方案 2。在 README 里说明了这个情况，避免用户被吓到。
+目前 xiaoyuanNote 选择的是方案 2。在 README 里说明了这个情况，避免用户被吓到。
 
 ### 3. 打包体积优化
 
@@ -329,13 +329,13 @@ Tauri 有内置的自动更新机制，但配置起来比较繁琐：
 
 **AI 写作**：噱头大于实用。
 
-最终 SoloMD 的定位是：**一个人，一个文件，专心写作**。
+最终 xiaoyuanNote 的定位是：**一个人，一个文件，专心写作**。
 
 名字「Solo」就是这个意思。
 
 ### 开源但不一定社区驱动
 
-我把 SoloMD 开源了（MIT 协议），但并没有期望建立一个活跃的贡献者社区。
+我把 xiaoyuanNote 开源了（MIT 协议），但并没有期望建立一个活跃的贡献者社区。
 
 原因很现实：维护开源社区需要大量时间和精力，而我这只是个 side project。
 
@@ -351,7 +351,7 @@ Tauri 有内置的自动更新机制，但配置起来比较繁琐：
 
 但我觉得「小而美」的产品是有价值的。不是每个人都需要 Notion 那样的全能工具。有时候，一个只做一件事、把这件事做好的工具，反而更让人安心。
 
-SoloMD 可能永远不会有 Obsidian 那样的生态，但对于「只是想安静写点东西」的人来说，也许刚刚好。
+xiaoyuanNote 可能永远不会有 Obsidian 那样的生态，但对于「只是想安静写点东西」的人来说，也许刚刚好。
 
 ---
 
@@ -387,15 +387,15 @@ SoloMD 可能永远不会有 Obsidian 那样的生态，但对于「只是想安
 
 ## 写在最后
 
-做 SoloMD 的过程，让我对「独立开发」有了新的理解。
+做 xiaoyuanNote 的过程，让我对「独立开发」有了新的理解。
 
 不需要融资，不需要团队，一个人用业余时间也能做出有用的产品。关键是找到真实的痛点，然后用最简单的方式解决它。
 
 如果你也在考虑做独立开发，我的建议是：**从自己的痛点出发，先做一个自己愿意用的东西**。
 
-项目地址：[github.com/zhitongblog/solomd](https://github.com/zhitongblog/solomd)
+项目地址：[github.com/zhitongblog/xiaoyuan-note](https://github.com/zhitongblog/xiaoyuan-note)
 
-官网：[solomd.app](https://solomd.app)
+官网：[xiaoyuannote.app](https://xiaoyuannote.app)
 
 欢迎试用，有问题随时反馈。
 

@@ -7,28 +7,28 @@
 ## 1. Homebrew Cask (macOS) - 最推荐
 
 ```bash
-# 进入 solomd 目录
-cd D:/code/solomd/solomd
+# 进入 xiaoyuanNote 目录
+cd D:/code/xiaoyuan-note/xiaoyuanNote
 
 # Fork 并 clone homebrew-cask
 gh repo fork homebrew/homebrew-cask --clone
 cd homebrew-cask
 
 # 复制 manifest 文件
-cp ../distribution/manifests/homebrew/solomd.rb Casks/s/solomd.rb
+cp ../distribution/manifests/homebrew/xiaoyuan-note.rb Casks/s/xiaoyuan-note.rb
 
 # 创建分支并提交
-git checkout -b add-solomd
-git add Casks/s/solomd.rb
-git commit -m "Add SoloMD v0.1.8"
+git checkout -b add-xiaoyuanNote
+git add Casks/s/xiaoyuan-note.rb
+git commit -m "Add xiaoyuanNote v0.1.8"
 
 # 创建 PR
-gh pr create --title "Add SoloMD v0.1.8" --body "Add SoloMD - A lightweight Markdown editor with live preview.
+gh pr create --title "Add xiaoyuanNote v0.1.8" --body "Add xiaoyuanNote - A lightweight Markdown editor with live preview.
 
-**Homepage:** https://solomd.app
-**GitHub:** https://github.com/zhitongblog/solomd
+**Homepage:** https://xiaoyuannote.app
+**GitHub:** https://github.com/zhitongblog/xiaoyuan-note
 
-SoloMD is a lightweight (~15MB) cross-platform Markdown editor built with Tauri 2.
+xiaoyuanNote is a lightweight (~15MB) cross-platform Markdown editor built with Tauri 2.
 
 - Live preview (WYSIWYG-style)
 - KaTeX math, Mermaid diagrams
@@ -41,35 +41,35 @@ SoloMD is a lightweight (~15MB) cross-platform Markdown editor built with Tauri 
 ## 2. Winget (Windows) - 最推荐
 
 ```bash
-# 进入 solomd 目录
-cd D:/code/solomd/solomd
+# 进入 xiaoyuanNote 目录
+cd D:/code/xiaoyuan-note/xiaoyuanNote
 
 # Fork 并 clone winget-pkgs
 gh repo fork microsoft/winget-pkgs --clone
 cd winget-pkgs
 
 # 创建目录结构
-mkdir -p manifests/z/zhitongblog/SoloMD/0.1.8
+mkdir -p manifests/z/zhitongblog/xiaoyuan-note/0.1.8
 
 # 复制 manifest 文件
-cp ../distribution/manifests/winget/*.yaml manifests/z/zhitongblog/SoloMD/0.1.8/
+cp ../distribution/manifests/winget/*.yaml manifests/z/zhitongblog/xiaoyuan-note/0.1.8/
 
 # 创建分支并提交
-git checkout -b add-solomd-0.1.8
-git add manifests/z/zhitongblog/SoloMD/
-git commit -m "Add SoloMD version 0.1.8"
+git checkout -b add-xiaoyuan-note-0.1.8
+git add manifests/z/zhitongblog/xiaoyuan-note/
+git commit -m "Add xiaoyuanNote version 0.1.8"
 
 # 创建 PR
-gh pr create --title "New package: zhitongblog.SoloMD version 0.1.8" --body "## Package Information
-- Package: zhitongblog.SoloMD
+gh pr create --title "New package: zhitongblog.xiaoyuanNote version 0.1.8" --body "## Package Information
+- Package: zhitongblog.xiaoyuanNote
 - Version: 0.1.8
 
 ## Description
-SoloMD is a lightweight Markdown editor with live preview. Built with Tauri 2.
+xiaoyuanNote is a lightweight Markdown editor with live preview. Built with Tauri 2.
 
 ## Links
-- Homepage: https://solomd.app
-- GitHub: https://github.com/zhitongblog/solomd"
+- Homepage: https://xiaoyuannote.app
+- GitHub: https://github.com/zhitongblog/xiaoyuan-note"
 ```
 
 ---
@@ -77,23 +77,23 @@ SoloMD is a lightweight Markdown editor with live preview. Built with Tauri 2.
 ## 3. Scoop (Windows)
 
 ```bash
-# 进入 solomd 目录
-cd D:/code/solomd/solomd
+# 进入 xiaoyuanNote 目录
+cd D:/code/xiaoyuan-note/xiaoyuanNote
 
 # Fork 并 clone Scoop Extras
 gh repo fork ScoopInstaller/Extras --clone
 cd Extras
 
 # 复制 manifest 文件
-cp ../distribution/manifests/scoop/solomd.json bucket/solomd.json
+cp ../distribution/manifests/scoop/xiaoyuan-note.json bucket/xiaoyuan-note.json
 
 # 创建分支并提交
-git checkout -b add-solomd
-git add bucket/solomd.json
-git commit -m "solomd: Add version 0.1.8"
+git checkout -b add-xiaoyuanNote
+git add bucket/xiaoyuan-note.json
+git commit -m "xiaoyuan-note: Add version 0.1.8"
 
 # 创建 PR
-gh pr create --title "solomd: Add version 0.1.8" --body "**Homepage:** https://solomd.app
+gh pr create --title "xiaoyuan-note: Add version 0.1.8" --body "**Homepage:** https://xiaoyuannote.app
 
 A lightweight Markdown editor with live preview."
 ```
@@ -108,17 +108,17 @@ A lightweight Markdown editor with live preview."
 # Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
 # 进入 chocolatey 目录
-cd D:/code/solomd/solomd/distribution/manifests/chocolatey
+cd D:/code/xiaoyuan-note/xiaoyuan-note/distribution/manifests/chocolatey
 
 # 打包
 choco pack
 
 # 测试安装（可选）
-choco install solomd -s . --force
+choco install xiaoyuanNote -s . --force
 
 # 获取 API Key: https://community.chocolatey.org/account
 # 然后推送
-choco push solomd.0.1.8.nupkg --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
+choco push xiaoyuan-note.0.1.8.nupkg --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
 ```
 
 ---
@@ -152,9 +152,9 @@ choco push solomd.0.1.8.nupkg --source https://push.chocolatey.org/ --api-key YO
 
 每次发布新版本时：
 
-- [ ] 更新 `manifests/homebrew/solomd.rb` 中的 version 和 sha256
+- [ ] 更新 `manifests/homebrew/xiaoyuan-note.rb` 中的 version 和 sha256
 - [ ] 更新 `manifests/winget/*.yaml` 中的版本号和哈希
-- [ ] 更新 `manifests/scoop/solomd.json` 中的版本号和哈希
+- [ ] 更新 `manifests/scoop/xiaoyuan-note.json` 中的版本号和哈希
 - [ ] 更新 `manifests/chocolatey/` 中的版本号和哈希
 - [ ] 提交更新 PR 到各仓库
 - [ ] 更新 SourceForge 文件

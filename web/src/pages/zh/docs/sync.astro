@@ -9,15 +9,15 @@ const lang = 'zh' as const;
 const FAQ = [
   {
     q: '三种个人网盘加密同步方案该怎么选？',
-    a: '① 如果你有坚果云、群晖 NAS、Nextcloud 或 AList/OpenList，推荐选「方案一：WebDAV 端到端加密同步」，无需安装网盘客户端即可按文件同步；② 如果你电脑上已经装了百度网盘、阿里云盘、夸克网盘、OneDrive 或 iCloud 同步盘，推荐选「方案二：本地网盘同步目录加密保险库」，SoloMD 会把笔记加密为 .enc 密文写进同步盘目录，由网盘客户端自动上传；③ 如果你不想装任何网盘客户端，甚至希望连笔记文件名和目录结构都不暴露给网盘，选「方案三：网盘开放平台直连 API」，整库打包加密为单个 solomd-vault.enc 直传网盘。',
+    a: '① 如果你有坚果云、群晖 NAS、Nextcloud 或 AList/OpenList，推荐选「方案一：WebDAV 端到端加密同步」，无需安装网盘客户端即可按文件同步；② 如果你电脑上已经装了百度网盘、阿里云盘、夸克网盘、OneDrive 或 iCloud 同步盘，推荐选「方案二：本地网盘同步目录加密保险库」，xiaoyuanNote 会把笔记加密为 .enc 密文写进同步盘目录，由网盘客户端自动上传；③ 如果你不想装任何网盘客户端，甚至希望连笔记文件名和目录结构都不暴露给网盘，选「方案三：网盘开放平台直连 API」，整库打包加密为单个 xiaoyuan-note-vault.enc 直传网盘。',
   },
   {
     q: '坚果云 (Nutstore) 连接 WebDAV 为什么报 401 / 403？',
-    a: '坚果云不允许直接用登录密码连接 WebDAV。请登录坚果云网页版 → 右上角「账户信息」→「安全选项」→「第三方应用管理」→ 点击「添加应用」生成专用应用密码；服务器地址填写 https://dav.jianguoyun.com/dav/，用户名填坚果云注册邮箱，密码填刚刚生成的应用密码。注意：坚果云要求远程子目录必须先存在（或在 SoloMD 中填 /SoloMD 让 SoloMD 自动创建）。',
+    a: '坚果云不允许直接用登录密码连接 WebDAV。请登录坚果云网页版 → 右上角「账户信息」→「安全选项」→「第三方应用管理」→ 点击「添加应用」生成专用应用密码；服务器地址填写 https://dav.jianguoyun.com/dav/，用户名填坚果云注册邮箱，密码填刚刚生成的应用密码。注意：坚果云要求远程子目录必须先存在（或在 xiaoyuanNote 中填 /xiaoyuanNote 让 xiaoyuanNote 自动创建）。',
   },
   {
     q: '端到端加密 (E2EE) 的主密码忘了能找回吗？',
-    a: '不能。SoloMD 采用 Argon2id 密钥派生 + XChaCha20-Poly1305 零知识认证加密，加密和解密完全在你的设备本地完成，网盘与 GitHub 服务器上只有密文，主密码绝不上传。请务必牢记或用密码管理器保存你的加密主密码。',
+    a: '不能。xiaoyuanNote 采用 Argon2id 密钥派生 + XChaCha20-Poly1305 零知识认证加密，加密和解密完全在你的设备本地完成，网盘与 GitHub 服务器上只有密文，主密码绝不上传。请务必牢记或用密码管理器保存你的加密主密码。',
   },
   {
     q: '连接 GitHub 时为什么报 401 Bad credentials？',
@@ -27,8 +27,8 @@ const FAQ = [
 ---
 
 <Layout
-  title="SoloMD 同步、历史与个人网盘加密备份指南 — WebDAV、百度/阿里/夸克网盘、GitHub 与 Git 快照"
-  description="在 SoloMD 中配置个人网盘三种端到端加密备份与多端同步（坚果云 WebDAV、百度网盘/阿里云盘/夸克网盘/OneDrive 本地加密保险库、网盘 OpenAPI 免客户端直连）、GitHub E2EE 同步与本地 Git 历史回滚。"
+  title="xiaoyuanNote 同步、历史与个人网盘加密备份指南 — WebDAV、百度/阿里/夸克网盘、GitHub 与 Git 快照"
+  description="在 xiaoyuanNote 中配置个人网盘三种端到端加密备份与多端同步（坚果云 WebDAV、百度网盘/阿里云盘/夸克网盘/OneDrive 本地加密保险库、网盘 OpenAPI 免客户端直连）、GitHub E2EE 同步与本地 Git 历史回滚。"
   lang={lang}
 >
   <Header lang={lang} />
@@ -45,7 +45,7 @@ const FAQ = [
 
       <h2>一、个人网盘端到端加密同步（三种方式任选）</h2>
       <p>
-        打开 <strong>设置 → 同步</strong>（或菜单栏 <strong>文件 → 同步与历史</strong>），SoloMD 提供三种零知识加密网盘方案，适用于不同网盘习惯：
+        打开 <strong>设置 → 同步</strong>（或菜单栏 <strong>文件 → 同步与历史</strong>），xiaoyuanNote 提供三种零知识加密网盘方案，适用于不同网盘习惯：
       </p>
 
       <h3>方案 1：WebDAV 端到端加密同步（推荐坚果云 / Nextcloud / 群晖 NAS / AList）</h3>
@@ -58,7 +58,7 @@ const FAQ = [
             <li><strong>AList / OpenList</strong>：地址填 <code>http://你的地址:5244/dav/</code>（可挂载百度、阿里、夸克、115、天翼等数十种网盘）。</li>
           </ul>
         </li>
-        <li><strong>远程目录</strong>：填写如 <code>/SoloMD</code>。</li>
+        <li><strong>远程目录</strong>：填写如 <code>/xiaoyuanNote</code>。</li>
         <li><strong>开启端到端加密（推荐）</strong>：勾选「启用端到端加密 (E2EE)」并设置加密主密码。开启后，所有笔记在上传前均在本地加密，网盘后台看到的全是密文。</li>
         <li>点击 <strong>「测试连接」</strong> 验证通过后，即可随时点击 <strong>「加密上传到 WebDAV」</strong> 或在另一台设备上填入相同配置与主密码点击 <strong>「从 WebDAV 下载并解密」</strong>。</li>
       </ol>
@@ -69,10 +69,10 @@ const FAQ = [
       </p>
       <ol>
         <li>打开 <strong>设置 → 同步 → 本地个人网盘加密保险库</strong>。</li>
-        <li>点击 <strong>「自动检测本机网盘目录」</strong>（SoloMD 会自动扫描本机已安装的百度网盘、阿里云盘、夸克、坚果云、OneDrive、iCloud、Dropbox、Google Drive 目录），或手动点击「选择文件夹」指向任意网盘同步目录（例如 <code>~/BaiduNetdiskWorkspace/SoloMD-Vault</code>）。</li>
+        <li>点击 <strong>「自动检测本机网盘目录」</strong>（xiaoyuanNote 会自动扫描本机已安装的百度网盘、阿里云盘、夸克、坚果云、OneDrive、iCloud、Dropbox、Google Drive 目录），或手动点击「选择文件夹」指向任意网盘同步目录（例如 <code>~/BaiduNetdiskWorkspace/xiaoyuan-note-Vault</code>）。</li>
         <li>输入<strong>加密主密码</strong>。</li>
-        <li>点击 <strong>「加密备份到网盘目录」</strong>：SoloMD 会将当前工作区的所有笔记加密为 <code>.enc</code> 密文写入该同步目录，随后由你的网盘客户端自动同步上云。</li>
-        <li><strong>在另一台电脑恢复</strong>：在另一台电脑把该网盘目录同步下来，在 SoloMD 中选择同一个保险库目录并输入主密码，点击 <strong>「从网盘目录解密恢复到工作区」</strong> 即可。</li>
+        <li>点击 <strong>「加密备份到网盘目录」</strong>：xiaoyuanNote 会将当前工作区的所有笔记加密为 <code>.enc</code> 密文写入该同步目录，随后由你的网盘客户端自动同步上云。</li>
+        <li><strong>在另一台电脑恢复</strong>：在另一台电脑把该网盘目录同步下来，在 xiaoyuanNote 中选择同一个保险库目录并输入主密码，点击 <strong>「从网盘目录解密恢复到工作区」</strong> 即可。</li>
       </ol>
 
       <h3>方案 3：网盘开放平台直连 API 加密同步（免客户端，连文件名也完全隐藏）</h3>
@@ -82,8 +82,8 @@ const FAQ = [
       <ol>
         <li>打开 <strong>设置 → 同步 → 网盘开放平台直连 (OpenAPI)</strong>。</li>
         <li>选择服务商：支持 <strong>百度网盘 OpenAPI</strong>、<strong>阿里云盘 OpenAPI</strong>、<strong>Microsoft OneDrive (Graph API)</strong>、<strong>Dropbox API</strong>。</li>
-        <li>填入对应的 <strong>Access Token（访问令牌）</strong>、远程路径（如 <code>/apps/SoloMD/solomd-vault.enc</code>）以及你的<strong>加密主密码</strong>。</li>
-        <li>点击 <strong>「打包加密并上传」</strong>：SoloMD 会将整个工作区打包并加密为单个 <code>solomd-vault.enc</code> 密文包直接通过 HTTPS API 上传到网盘 —— 网盘端不仅看不到笔记正文，连你有几篇笔记、叫什么文件名、什么目录结构都完全看不见。</li>
+        <li>填入对应的 <strong>Access Token（访问令牌）</strong>、远程路径（如 <code>/apps/xiaoyuan-note/xiaoyuan-note-vault.enc</code>）以及你的<strong>加密主密码</strong>。</li>
+        <li>点击 <strong>「打包加密并上传」</strong>：xiaoyuanNote 会将整个工作区打包并加密为单个 <code>xiaoyuan-note-vault.enc</code> 密文包直接通过 HTTPS API 上传到网盘 —— 网盘端不仅看不到笔记正文，连你有几篇笔记、叫什么文件名、什么目录结构都完全看不见。</li>
         <li>在任意设备上填入相同 Token 与加密主密码，点击 <strong>「下载并解密恢复」</strong> 即可完整还原整个笔记库。</li>
       </ol>
 
@@ -103,13 +103,13 @@ const FAQ = [
           </ul>
         </li>
         <li>打开 <strong>设置 → 同步 → GitHub</strong>，粘贴 Token 并关联已有仓库（或一键新建私有仓库）。</li>
-        <li><strong>可选端到端加密</strong>：开启 E2EE 口令后，SoloMD 推送到 GitHub 的是加密影子副本，GitHub 上只存密文。</li>
+        <li><strong>可选端到端加密</strong>：开启 E2EE 口令后，xiaoyuanNote 推送到 GitHub 的是加密影子副本，GitHub 上只存密文。</li>
       </ol>
 
       <h2>四、手机与平板同步（iCloud / Android SAF / Syncthing）</h2>
       <ul>
         <li><strong>iPhone / iPad + Mac (iCloud)</strong>：直接把笔记文件夹放在「iCloud 云盘」中，在 Mac 和 iOS 的「文件」App 中打开同一个文件夹即可原生实时同步（详见 <a href="/zh/docs/icloud/">用 iCloud 同步指南</a>）。</li>
-        <li><strong>Android + 电脑 (Syncthing / FolderSync)</strong>：在 Android 上通过系统文件夹选择器授权打开同步目录；当后台 Syncthing 同步更新了笔记时，切回 SoloMD 前台会自动检测并无感刷新内容。</li>
+        <li><strong>Android + 电脑 (Syncthing / FolderSync)</strong>：在 Android 上通过系统文件夹选择器授权打开同步目录；当后台 Syncthing 同步更新了笔记时，切回 xiaoyuanNote 前台会自动检测并无感刷新内容。</li>
       </ul>
 
       <CompareFaq heading="常见问题与错误排查" items={FAQ} />

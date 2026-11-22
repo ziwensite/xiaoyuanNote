@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>SoloMD Quick Look</string>
+	<string>xiaoyuanNote Quick Look</string>
 	<key>CFBundleExecutable</key>
-	<string>SoloMDQuickLook</string>
+	<string>xiaoyuanNoteQuickLook</string>
 	<key>CFBundleIdentifier</key>
-	<string>app.solomd.quicklook</string>
+	<string>app.xiaoyuan-note.quicklook</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>SoloMDQuickLook</string>
+	<string>xiaoyuanNoteQuickLook</string>
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
 	<key>CFBundleShortVersionString</key>
