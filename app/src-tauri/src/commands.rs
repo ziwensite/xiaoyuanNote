@@ -778,6 +778,19 @@ pub fn fs_file_exists(path: String) -> bool {
     Path::new(&path).is_file()
 }
 
+#[derive(Debug, Serialize)]
+pub struct FileTimes {
+    pub created: Option<u64>,
+    pub modified: Option<u64>,
+}
+
+#[tauri::command]
+pub fn fs_file_times(path: String) -> Result<FileTimes, String> {
+    let meta = fs::metadata(&path).map_err(|e| format!("stat failed: {e}"))?;
+    let (modified, created) = entry_times(&meta);
+    Ok(FileTimes { created, modified })
+}
+
 #[tauri::command]
 pub fn fs_rename(from: String, to: String) -> Result<(), String> {
     let from_p = Path::new(&from);

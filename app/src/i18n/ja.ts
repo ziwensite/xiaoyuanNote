@@ -530,6 +530,8 @@ export const ja: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "1〜6レベルの見出しに自動で階層番号を付与",
     autoNumberHeadingsHint: "見出しの追加・削除・変更時に文書全体の階層番号（1. / 1.1 / 1.1.1）を自動更新します。デフォルトはオフです。",
+    autoNoteTimestamps: 'ノートのタイムスタンプを自動管理',
+    autoNoteTimestampsHint: 'Markdown の frontmatter に created_date / created_time / modified_date / modified_time を自動記録します。作成時刻は欠けている場合のみ書き込み、更新時刻は保存ごとに更新します。',
     codeFontFamily: 'コードフォント',
     codeFontFamilyPlaceholder: '例: Cascadia Code',
     codeFontFamilyHint: 'コードブロックとインラインコードに適用。空欄で内蔵の等幅フォントを使用。',

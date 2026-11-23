@@ -539,6 +539,8 @@ export const zh: I18n = {
     confirmSaveMissingFileHint: "开启后，保存已打开的文件时若发现原始文件已不存在（如被第三方软件清理的临时文件），将弹窗提示「原始文件不存在」，需手动确认是否新建文件保存，避免误以为已写回第三方软件内容库而导致内容丢失。默认关闭。",
     autoNumberHeadings: "自动为标题添加多级数字编号",
     autoNumberHeadingsHint: "在新增、删除或修改 1–6 级标题时自动刷新全文多级章节编号（1. / 1.1 / 1.1.1）。默认关闭。",
+    autoNoteTimestamps: '自动维护笔记时间属性',
+    autoNoteTimestampsHint: '在 Markdown 笔记的 frontmatter 中自动写入并更新 created_date、created_time、modified_date、modified_time。创建时间只在缺失时写入，修改时间每次保存都会更新。',
     codeFontFamily: '代码字体',
     codeFontFamilyPlaceholder: '如 Cascadia Code / Sarasa Mono SC',
     codeFontFamilyHint: '作用于所有代码块与行内代码。留空使用内置等宽字体栈。',

@@ -530,6 +530,8 @@ export const pl: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Automatycznie numeruj nagłówki 1–6",
     autoNumberHeadingsHint: "Automatycznie dodaje i odświeża wielopoziomową numerację sekcji (1. / 1.1 / 1.1.1) podczas dodawania, usuwania lub edycji nagłówków. Domyślnie wyłączone.",
+    autoNoteTimestamps: 'Automatycznie zarządzaj znacznikami czasu notatek',
+    autoNoteTimestampsHint: 'Zapisuje i aktualizuje created_date, created_time, modified_date oraz modified_time w frontmatter Markdown. Pola utworzenia są dodawane tylko gdy brakuje; pola modyfikacji aktualizują się przy każdym zapisie.',
     codeFontFamily: 'Czcionka kodu',
     codeFontFamilyPlaceholder: 'np. Cascadia Code',
     codeFontFamilyHint: 'Dotyczy bloków kodu i kodu w tekście. Puste = wbudowany zestaw monospace.',

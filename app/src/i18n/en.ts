@@ -540,6 +540,8 @@ export const en = {
     confirmSaveMissingFileHint: "When enabled, if the original file on disk no longer exists when saving (e.g. a temporary file cleaned up by a 3rd-party app), prompt to confirm creating a new file at that path to prevent silent data loss. Off by default.",
     autoNumberHeadings: "Automatically number 1–6 headings",
     autoNumberHeadingsHint: "Automatically add and refresh hierarchical section numbers (1. / 1.1 / 1.1.1) when headings are added, deleted, or modified. Off by default.",
+    autoNoteTimestamps: 'Auto-maintain note timestamps',
+    autoNoteTimestampsHint: 'Write and update created_date, created_time, modified_date and modified_time in Markdown front matter. Created fields are set only when missing; modified fields update on every save.',
     codeFontFamily: 'Code font',
     codeFontFamilyPlaceholder: 'e.g. Cascadia Code / Sarasa Mono SC',
     codeFontFamilyHint: 'Applies to code blocks and inline code everywhere. Empty = built-in monospace stack.',

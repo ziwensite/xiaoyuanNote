@@ -1543,6 +1543,8 @@ async function commitEdit() {
       if (isSafPath(e.parent) && workspace.safTreeUri) {
         const { toSafPath } = await import('../lib/saf-fs');
         const newDocId = await safCreate(workspace.safTreeUri, fromSafPath(e.parent), finalName);
+        const initial = await files.stampNoteForSave('', finalName);
+        if (initial) await safWrite(workspace.safTreeUri, newDocId, initial);
         editing.value = null;
         scheduleRefresh();
         await files.openPath(toSafPath(newDocId), { bypassNewWindow: true });
@@ -1552,7 +1554,8 @@ async function commitEdit() {
       // A pending delete on this exact path would fire later and take the new
       // file with it. Commit it now so the two never race.
       await pendingDeletes.flushUnder(target);
-      await invoke('fs_create_file', { path: target, content: '' });
+      const initial = await files.stampNoteForSave('', target);
+      await invoke('fs_create_file', { path: target, content: initial });
       editing.value = null;
       scheduleRefresh();
       await files.openPath(target, { bypassNewWindow: true });

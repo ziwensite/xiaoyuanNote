@@ -530,6 +530,8 @@ export const fr: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Numéroter automatiquement les titres 1 à 6",
     autoNumberHeadingsHint: "Ajoute et met à jour automatiquement la numérotation hiérarchique (1. / 1.1 / 1.1.1) lors de l’ajout, de la suppression ou de la modification de titres. Désactivé par défaut.",
+    autoNoteTimestamps: 'Gérer automatiquement les horodatages des notes',
+    autoNoteTimestampsHint: 'Écrit et met à jour created_date, created_time, modified_date et modified_time dans le frontmatter Markdown. Les champs de création ne sont ajoutés que s’ils manquent ; les champs de modification sont mis à jour à chaque enregistrement.',
     codeFontFamily: 'Police du code',
     codeFontFamilyPlaceholder: 'p. ex. Cascadia Code',
     codeFontFamilyHint: 'S\'applique aux blocs de code et au code en ligne. Vide = pile monospace intégrée.',

@@ -101,6 +101,9 @@ interface Settings {
   wordWrap: boolean;
   // Frontmatter properties card: collapsed when a note opens (default true).
   frontmatterDefaultCollapsed: boolean;
+  /** Auto-maintain created_date/created_time/modified_date/modified_time in
+   *  Markdown front matter. On by default so every note carries its own dates. */
+  autoNoteTimestamps: boolean;
   showLineNumbers: boolean;
   // #193 — non-blinking (solid) caret in the editor.
   solidCursor: boolean;
@@ -759,6 +762,7 @@ function defaults(): Settings {
     fontFamily: DEFAULT_EDITOR_FONT,
     wordWrap: true,
     frontmatterDefaultCollapsed: true,
+    autoNoteTimestamps: true,
     showLineNumbers: false,
     solidCursor: false,
     selectionBubble: true,
@@ -1473,6 +1477,10 @@ export const useSettingsStore = defineStore('settings', {
     },
     toggleFrontmatterDefaultCollapsed() {
       this.frontmatterDefaultCollapsed = !this.frontmatterDefaultCollapsed;
+      this.persist();
+    },
+    toggleAutoNoteTimestamps() {
+      this.autoNoteTimestamps = !this.autoNoteTimestamps;
       this.persist();
     },
     setPreviewMaxWidth(n: number) {

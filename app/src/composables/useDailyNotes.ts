@@ -183,7 +183,7 @@ export function useDailyNotes() {
           (c) => !c.is_dir && c.name.toLowerCase() === baseFileName.toLowerCase(),
         );
         if (existing) return { path: existing.path, existed: true };
-        const body = await buildBody(kind, date, config, ws);
+        const body = await files.stampNoteForSave(await buildBody(kind, date, config, ws), baseFileName);
         const newDocId = await safCreate(treeUri, dirDocId, baseFileName);
         await safWrite(treeUri, newDocId, body);
         return { path: toSafPath(newDocId), existed: false };
@@ -196,7 +196,7 @@ export function useDailyNotes() {
     if ((await readTextFile(fullPath)) !== null) return { path: fullPath, existed: true };
 
     try {
-      const body = await buildBody(kind, date, config, ws);
+      const body = await files.stampNoteForSave(await buildBody(kind, date, config, ws), fullPath);
       // `write_binary_file` is used here (rather than `write_file`) because
       // it creates missing parent directories for us.
       const bytes = Array.from(new TextEncoder().encode(body));

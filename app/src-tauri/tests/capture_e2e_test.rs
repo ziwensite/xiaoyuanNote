@@ -28,7 +28,7 @@ fn lock() -> MutexGuard<'static, ()> {
 
 use app_lib::capture_endpoint::{
     capture_append_inner, capture_get_state, capture_regenerate_token,
-    capture_set_preset, local_iso8601_now, CaptureError,
+    capture_set_preset, capture_set_timestamps, local_iso8601_now, CaptureError,
     _test_bind_and_serve, _test_check_auth, _test_current_token, _test_handle_capture,
     _test_resolve_safe_workspace_path, _test_set_state,
 };
@@ -340,13 +340,14 @@ fn append_creates_file_and_prepends_newline() {
     let ws = fresh_workspace("append-create");
 
     // First append: file does not exist → created with leading \n + body.
-    let path = capture_append_inner(&ws, "Daily/2026-04-26.md", "first line").expect("first append");
+    let path = capture_append_inner(&ws, "Daily/2026-04-26.md", "first line", false)
+        .expect("first append");
     let raw = fs::read_to_string(&path).unwrap();
     assert_eq!(raw, "\nfirst line\n", "first append (file is new)");
 
     // Second append: file exists → another leading \n separates entries.
-    let path2 =
-        capture_append_inner(&ws, "Daily/2026-04-26.md", "second line\n").expect("second append");
+    let path2 = capture_append_inner(&ws, "Daily/2026-04-26.md", "second line\n", false)
+        .expect("second append");
     assert_eq!(path, path2, "same file targeted both times");
     let raw = fs::read_to_string(&path).unwrap();
     assert_eq!(raw, "\nfirst line\n\nsecond line\n");
@@ -421,6 +422,35 @@ fn http_capture_mark_inbox_comes_from_preset() {
     assert!(raw.contains("title: Preset Flag\n"));
 }
 
+/// HTTP captures obey the global auto-timestamp setting.
+#[test]
+fn http_capture_applies_note_timestamps() {
+    let _g = lock();
+    let ws = fresh_workspace("http-timestamps");
+    _test_set_state(Some(ws.clone()), "token".to_string(), "inbox".to_string());
+    capture_set_preset(
+        "inbox/YYYY-MM-DD.md".to_string(),
+        "title: {{title}}".to_string(),
+        true,
+    );
+    let on = capture_set_timestamps(true);
+    assert!(on.stamp_timestamps);
+    let body = r#"{"title":"Stamped","content":"body\n"}"#;
+    let path = PathBuf::from(_test_handle_capture(body.as_bytes()).expect("capture"));
+    let raw = fs::read_to_string(&path).unwrap();
+    assert!(raw.contains("created_date: "));
+    assert!(raw.contains("created_time: "));
+    assert!(raw.contains("modified_date: "));
+    assert!(raw.contains("modified_time: "));
+
+    let off = capture_set_timestamps(false);
+    assert!(!off.stamp_timestamps);
+    let path2 = PathBuf::from(_test_handle_capture(body.as_bytes()).expect("capture off"));
+    let raw2 = fs::read_to_string(&path2).unwrap();
+    assert!(!raw2.contains("created_date:"));
+    assert!(!raw2.contains("modified_date:"));
+}
+
 /// `append_path` resolution rejects every path-traversal style we know of.
 #[test]
 fn append_path_rejects_traversal_and_absolute_paths() {
@@ -457,6 +487,7 @@ fn handle_capture_with_append_path() {
     let _g = lock();
     let ws = fresh_workspace("append-handle");
     _test_set_state(Some(ws.clone()), "tok".into(), "inbox".into());
+    capture_set_timestamps(false);
 
     let body = serde_json::json!({
         "append_path": "Daily/2026-04-26.md",
@@ -508,6 +539,7 @@ fn live_http_append_round_trip() {
         );
         _test_bind_and_serve().await.unwrap()
     });
+    capture_set_timestamps(false);
     std::thread::spawn(move || {
         rt.block_on(async {
             loop {

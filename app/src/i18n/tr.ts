@@ -530,6 +530,8 @@ export const tr: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "1–6 başlıkları otomatik numaralandır",
     autoNumberHeadingsHint: "Başlıklar eklendiğinde, silindiğinde veya değiştirildiğinde çok düzeyli bölüm numaralarını (1. / 1.1 / 1.1.1) otomatik olarak günceller. Varsayılan olarak kapalıdır.",
+    autoNoteTimestamps: 'Not zaman damgalarını otomatik yönet',
+    autoNoteTimestampsHint: 'Markdown frontmatter alanına created_date, created_time, modified_date ve modified_time alanlarını yazar ve günceller. Oluşturma alanları yalnızca eksikse eklenir; değiştirme alanları her kayıtta güncellenir.',
     codeFontFamily: 'Kod yazı tipi',
     codeFontFamilyPlaceholder: 'örn. Cascadia Code',
     codeFontFamilyHint: 'Kod blokları ve satır içi kod için geçerlidir. Boş = yerleşik eş aralıklı yığın.',

@@ -530,6 +530,8 @@ export const es: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Numerar automáticamente los encabezados 1–6",
     autoNumberHeadingsHint: "Añade y actualiza automáticamente la numeración jerárquica (1. / 1.1 / 1.1.1) al añadir, eliminar o modificar encabezados. Desactivado por defecto.",
+    autoNoteTimestamps: 'Gestionar automáticamente las marcas de tiempo de notas',
+    autoNoteTimestampsHint: 'Escribe y actualiza created_date, created_time, modified_date y modified_time en el frontmatter Markdown. Los campos de creación solo se añaden si faltan; los de modificación se actualizan en cada guardado.',
     codeFontFamily: 'Fuente de código',
     codeFontFamilyPlaceholder: 'p. ej. Cascadia Code',
     codeFontFamilyHint: 'Se aplica a bloques de código y código en línea. Vacío = pila monoespaciada integrada.',

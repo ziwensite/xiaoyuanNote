@@ -54,6 +54,9 @@ test('confirmSaveMissingFile prompts before saving when original file no longer 
   const tabs = useTabsStore();
   const settings = useSettingsStore();
   const files = useFiles();
+  // This test asserts byte-for-byte writes; auto timestamps are covered in
+  // note-timestamps.test.ts and would add front matter to these fixtures.
+  if (settings.autoNoteTimestamps) settings.toggleAutoNoteTimestamps();
 
   const tab = tabs.openFromDisk({
     filePath: '/tmp/3rdparty-temp.md',

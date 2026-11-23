@@ -61,6 +61,8 @@ pub struct CaptureState {
     pub capture_frontmatter: String,
     /// `markInbox` pushed from the same preset.
     pub capture_inbox: bool,
+    /// Auto note timestamps setting pushed from the frontend.
+    pub stamp_timestamps: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -78,6 +80,7 @@ struct InnerState {
     capture_path: String,
     capture_frontmatter: String,
     capture_inbox: bool,
+    stamp_timestamps: bool,
     /// Set when the active server should stop accepting new connections.
     shutdown_gen: u64,
 }
@@ -97,6 +100,7 @@ static STATE: Lazy<Mutex<InnerState>> = Lazy::new(|| {
         capture_path: DEFAULT_CAPTURE_PATH.to_string(),
         capture_frontmatter: DEFAULT_CAPTURE_FRONTMATTER.to_string(),
         capture_inbox: true,
+        stamp_timestamps: true,
         shutdown_gen: 0,
     })
 });
@@ -143,6 +147,7 @@ pub fn capture_get_state() -> CaptureState {
         capture_path: s.capture_path.clone(),
         capture_frontmatter: s.capture_frontmatter.clone(),
         capture_inbox: s.capture_inbox,
+        stamp_timestamps: s.stamp_timestamps,
     }
 }
 
@@ -218,6 +223,16 @@ pub fn capture_set_preset(path: String, frontmatter: String, inbox: bool) -> Cap
         };
         s.capture_frontmatter = frontmatter;
         s.capture_inbox = inbox;
+    }
+    capture_get_state()
+}
+
+/// Frontend pushes the auto-note-timestamps setting here.
+#[tauri::command]
+pub fn capture_set_timestamps(enabled: bool) -> CaptureState {
+    {
+        let mut s = STATE.lock().expect("capture state lock");
+        s.stamp_timestamps = enabled;
     }
     capture_get_state()
 }
@@ -579,6 +594,61 @@ fn expand_frontmatter_template(template: &str, values: &[(&str, String)]) -> Str
         .join("\n")
 }
 
+fn yaml_top_level_key(line: &str) -> Option<&str> {
+    if line.starts_with(char::is_whitespace) || line.trim_start() != line {
+        return None;
+    }
+    let (key, _) = line.split_once(':')?;
+    let key = key.trim();
+    if key.is_empty() {
+        None
+    } else {
+        Some(key)
+    }
+}
+
+fn upsert_yaml_field(head: &str, key: &str, value: &str, overwrite: bool) -> String {
+    let mut lines: Vec<String> = head.lines().map(str::to_string).collect();
+    let replacement = format!("{key}: \"{value}\"");
+    if let Some(line) = lines.iter_mut().find(|line| yaml_top_level_key(line) == Some(key)) {
+        if overwrite {
+            *line = replacement;
+        }
+    } else {
+        lines.push(replacement);
+    }
+    lines.join("\n")
+}
+
+fn stamp_yaml_head(head: &str, now: &str) -> String {
+    let date = now.get(..10).unwrap_or(now);
+    let head = upsert_yaml_field(head, "created_date", date, false);
+    let head = upsert_yaml_field(&head, "created_time", now, false);
+    let head = upsert_yaml_field(&head, "modified_date", date, true);
+    upsert_yaml_field(&head, "modified_time", now, true)
+}
+
+fn stamp_note_timestamps_text(text: &str, now: &str) -> String {
+    let trimmed = text.trim_start_matches('\u{feff}').replace("\r\n", "\n");
+    let rest = if let Some(after_first) = trimmed.strip_prefix("---\n") {
+        if let Some(end) = after_first.find("\n---") {
+            let head = &after_first[..end];
+            let body = after_first[end + 5..].strip_prefix('\n').unwrap_or(&after_first[end + 5..]);
+            (stamp_yaml_head(head, now), body.to_string())
+        } else {
+            (stamp_yaml_head("", now), after_first.to_string())
+        }
+    } else {
+        (stamp_yaml_head("", now), trimmed)
+    };
+    let (head, body) = rest;
+    if body.is_empty() {
+        format!("---\n{head}\n---\n")
+    } else {
+        format!("---\n{head}\n---\n\n{body}")
+    }
+}
+
 /// Render the note exactly as the pushed preset describes it.
 fn render_http_note(
     frontmatter: &str,
@@ -587,6 +657,7 @@ fn render_http_note(
     url: Option<&str>,
     tags: Option<&[String]>,
     inbox: bool,
+    stamp_timestamps: bool,
 ) -> String {
     let (y, mo, d, h, mi, _) = local_now_parts();
     let tags = tags
@@ -619,11 +690,16 @@ fn render_http_note(
     ];
     let head = expand_frontmatter_template(frontmatter, &values);
     let body = strip_front_matter(content);
-    if head.is_empty() {
+    let note = if head.is_empty() {
         body.to_string()
     } else {
         format!("---\n{head}\n---\n\n{body}")
+    };
+    if !stamp_timestamps {
+        return note;
     }
+    let now = local_iso8601_now();
+    stamp_note_timestamps_text(&note, &now)
 }
 
 fn handle_capture(body: &[u8]) -> Result<String, CaptureError> {
@@ -635,13 +711,14 @@ fn handle_capture(body: &[u8]) -> Result<String, CaptureError> {
         .ok_or_else(|| CaptureError::BadRequest("missing field: content".into()))?
         .to_string();
 
-    let (workspace, path_pattern, frontmatter, inbox) = {
+    let (workspace, path_pattern, frontmatter, inbox, stamp_timestamps) = {
         let s = STATE.lock().expect("capture state lock");
         (
             s.workspace.clone(),
             s.capture_path.clone(),
             s.capture_frontmatter.clone(),
             s.capture_inbox,
+            s.stamp_timestamps,
         )
     };
     let workspace = workspace.ok_or(CaptureError::NoWorkspace)?;
@@ -654,7 +731,7 @@ fn handle_capture(body: &[u8]) -> Result<String, CaptureError> {
                 "append_path is empty; pass a workspace-relative path or omit the field".into(),
             ));
         }
-        return capture_append_inner(&workspace, trimmed, &content);
+        return capture_append_inner(&workspace, trimmed, &content, stamp_timestamps);
     }
 
     let relative = format_capture_path_pattern(&path_pattern);
@@ -673,6 +750,7 @@ fn handle_capture(body: &[u8]) -> Result<String, CaptureError> {
         parsed.url.as_deref(),
         parsed.tags.as_deref(),
         inbox,
+        stamp_timestamps,
     );
     capture_write_rendered_inner(&workspace, &relative, &note, true)
         .map(|path| path.to_string_lossy().to_string())
@@ -688,6 +766,7 @@ pub fn capture_append_inner(
     workspace: &Path,
     rel_path: &str,
     content: &str,
+    stamp_timestamps: bool,
 ) -> Result<String, CaptureError> {
     if !workspace.is_dir() {
         return Err(CaptureError::Io(format!(
@@ -704,23 +783,23 @@ pub fn capture_append_inner(
             .map_err(|e| CaptureError::Io(format!("mkdir {}: {e}", parent.display())))?;
     }
 
-    use std::fs::OpenOptions;
-    use std::io::Write;
-    let mut f = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&target)
-        .map_err(|e| CaptureError::Io(format!("open {}: {e}", target.display())))?;
-    // A leading newline keeps successive appends on separate lines without
-    // requiring the caller to know whether the file already ends in one.
-    f.write_all(b"\n")
-        .map_err(|e| CaptureError::Io(format!("write nl {}: {e}", target.display())))?;
-    f.write_all(content.as_bytes())
-        .map_err(|e| CaptureError::Io(format!("write body {}: {e}", target.display())))?;
-    if !content.ends_with('\n') {
-        f.write_all(b"\n")
-            .map_err(|e| CaptureError::Io(format!("write trailing nl {}: {e}", target.display())))?;
+    let existing = std::fs::read_to_string(&target).unwrap_or_default();
+    let base = if stamp_timestamps {
+        stamp_note_timestamps_text(&existing, &local_iso8601_now())
+    } else {
+        existing
+    };
+    let mut output = base;
+    if !output.is_empty() && !output.ends_with('\n') {
+        output.push('\n');
     }
+    output.push('\n');
+    output.push_str(content);
+    if !content.ends_with('\n') {
+        output.push('\n');
+    }
+    std::fs::write(&target, output)
+        .map_err(|e| CaptureError::Io(format!("write {}: {e}", target.display())))?;
 
     Ok(target.to_string_lossy().to_string())
 }
@@ -1062,6 +1141,7 @@ pub fn _test_set_state(workspace: Option<PathBuf>, token: String, inbox_folder: 
     s.capture_path = DEFAULT_CAPTURE_PATH.to_string();
     s.capture_frontmatter = DEFAULT_CAPTURE_FRONTMATTER.to_string();
     s.capture_inbox = true;
+    s.stamp_timestamps = true;
     s.enabled = true;
 }
 

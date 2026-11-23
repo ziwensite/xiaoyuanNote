@@ -530,6 +530,8 @@ export const ru: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Автоматическая нумерация заголовков 1–6",
     autoNumberHeadingsHint: "Автоматически добавляет и обновляет многоуровневую нумерацию разделов (1. / 1.1 / 1.1.1) при добавлении, удалении или изменении заголовков. По умолчанию выключено.",
+    autoNoteTimestamps: 'Автоматически поддерживать метки времени заметок',
+    autoNoteTimestampsHint: 'Записывает и обновляет created_date, created_time, modified_date и modified_time в frontmatter Markdown. Поля создания добавляются только если их нет; поля изменения обновляются при каждом сохранении.',
     codeFontFamily: 'Шрифт кода',
     codeFontFamilyPlaceholder: 'например, Cascadia Code / JetBrains Mono',
     codeFontFamilyHint: 'Применяется к блокам кода и встроенному коду везде. Пусто — встроенный набор моноширинных шрифтов.',

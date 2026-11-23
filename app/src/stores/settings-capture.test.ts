@@ -41,6 +41,7 @@ test('a fresh install ships flash / record / task / inbox presets', () => {
   assert.equal(settings.captureEndpointEnabled, false);
   assert.equal(settings.inboxFolder, 'inbox');
   assert.equal(settings.httpCapturePresetId, 'inbox');
+  assert.equal(settings.autoNoteTimestamps, true);
 });
 
 test('an old blob with an empty captures array is reseeded once', () => {

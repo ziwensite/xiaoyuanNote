@@ -34,6 +34,7 @@ import {
   type CaptureVariables,
 } from '../lib/capture';
 import { noteOwnWrite } from '../lib/external-change';
+import { applyNoteTimestamps } from '../lib/note-timestamps';
 import { isFileTab } from '../lib/editor-input';
 import { baseNameOf, joinInFolder } from '../lib/import-plan';
 import { parentDirOf } from '../lib/new-file-target';
@@ -195,7 +196,8 @@ export function useCapture() {
       // New-note presets own both the path and the rendered text, including
       // front matter. Rust is only the I/O primitive for this branch.
       if (preset.target === 'inbox') {
-        const content = renderCaptureNote(preset, { ...vars, date });
+        const rendered = renderCaptureNote(preset, { ...vars, date });
+        const content = settings.autoNoteTimestamps ? applyNoteTimestamps(rendered) : rendered;
         const relativePath = captureNoteRelativePath(preset, date);
         const path = await invoke<string>('capture_write_rendered', {
           path: relativePath,
@@ -276,7 +278,10 @@ export function useCapture() {
         }
         next = result.content;
       }
-      if (isNew || next !== base) await writeFile(path, next);
+      if (isNew || next !== base) {
+        const finalText = await files.stampNoteForSave(next, path);
+        await writeFile(path, finalText);
+      }
       if (preset.appendLink && active && !samePath(active.filePath, path)) {
         await appendLinkToActive(active, baseNameOf(fileName));
       }

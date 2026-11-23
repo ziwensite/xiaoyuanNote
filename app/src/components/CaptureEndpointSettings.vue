@@ -31,6 +31,7 @@ interface CaptureState {
   capture_path?: string;
   capture_frontmatter?: string;
   capture_inbox?: boolean;
+  stamp_timestamps?: boolean;
 }
 
 const { t } = useI18n();
@@ -92,6 +93,11 @@ async function refresh() {
       || state.value.capture_frontmatter !== config.frontmatter
       || state.value.capture_inbox !== config.inbox)) {
       await pushPresetConfig();
+    }
+    if (state.value.stamp_timestamps !== settings.autoNoteTimestamps) {
+      state.value = await invoke<CaptureState>('capture_set_timestamps', {
+        enabled: settings.autoNoteTimestamps,
+      });
     }
   } catch (e) {
     console.warn('capture_get_state failed', e);

@@ -1310,6 +1310,18 @@ function onSelectPdfFont(v: string) {
 
         <section data-cat="basics">
           <label>
+            <input
+              type="checkbox"
+              :checked="settings.autoNoteTimestamps"
+              @change="settings.toggleAutoNoteTimestamps()"
+            />
+            {{ t('settings.autoNoteTimestamps') }}
+          </label>
+          <p class="setting-hint">{{ t('settings.autoNoteTimestampsHint') }}</p>
+        </section>
+
+        <section data-cat="basics">
+          <label>
             <input type="checkbox" :checked="settings.showLineNumbers" @change="settings.toggleLineNumbers()" />
             {{ t('settings.lineNumbers') }}
           </label>

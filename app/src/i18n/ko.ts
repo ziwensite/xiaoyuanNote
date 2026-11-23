@@ -530,6 +530,8 @@ export const ko: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "1~6단계 제목에 다단계 번호 자동 추가",
     autoNumberHeadingsHint: "제목을 추가·삭제·수정할 때 문서 전체의 다단계 번호(1. / 1.1 / 1.1.1)를 자동으로 갱신합니다. 기본값은 꺼짐입니다.",
+    autoNoteTimestamps: '노트 타임스탬프 자동 관리',
+    autoNoteTimestampsHint: 'Markdown frontmatter에 created_date, created_time, modified_date, modified_time을 자동으로 기록하고 갱신합니다. 생성 필드는 없을 때만 추가하고, 수정 필드는 저장할 때마다 갱신합니다.',
     codeFontFamily: '코드 글꼴',
     codeFontFamilyPlaceholder: '예: Cascadia Code',
     codeFontFamilyHint: '코드 블록과 인라인 코드에 적용됩니다. 비워 두면 기본 고정폭 글꼴을 사용합니다.',

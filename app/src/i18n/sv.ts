@@ -530,6 +530,8 @@ export const sv: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Numrera rubriker (1–6) automatiskt",
     autoNumberHeadingsHint: "Lägger automatiskt till och uppdaterar hierarkiska avsnittsnummer (1. / 1.1 / 1.1.1) när rubriker läggs till, tas bort eller ändras. Av som standard.",
+    autoNoteTimestamps: 'Hantera anteckningars tidsstämplar automatiskt',
+    autoNoteTimestampsHint: 'Skriver och uppdaterar created_date, created_time, modified_date och modified_time i Markdown-frontmatter. Skapelsefält läggs bara till när de saknas; ändringsfält uppdateras vid varje sparning.',
     codeFontFamily: 'Kodtypsnitt',
     codeFontFamilyPlaceholder: 't.ex. Cascadia Code',
     codeFontFamilyHint: 'Gäller kodblock och inline-kod. Tomt = inbyggd monospace-stack.',

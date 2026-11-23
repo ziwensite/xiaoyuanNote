@@ -530,6 +530,8 @@ export const uk: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Автоматично нумерувати заголовки 1–6",
     autoNumberHeadingsHint: "Автоматично додає й оновлює багаторівневу нумерацію розділів (1. / 1.1 / 1.1.1) під час додавання, видалення або зміни заголовків. За замовчуванням вимкнено.",
+    autoNoteTimestamps: 'Автоматично вести часові мітки нотаток',
+    autoNoteTimestampsHint: 'Автоматично записує та оновлює created_date, created_time, modified_date й modified_time у frontmatter Markdown. Поля створення додаються лише якщо їх немає; поля зміни оновлюються під час кожного збереження.',
     codeFontFamily: 'Шрифт коду',
     codeFontFamilyPlaceholder: 'напр. Cascadia Code',
     codeFontFamilyHint: 'Застосовується до блоків коду та вбудованого коду. Порожньо = вбудований моноширинний стек.',

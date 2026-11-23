@@ -853,6 +853,7 @@ watchEffect(() => {
   const rules = capturePresetRules(preset, new Date());
   invoke('capture_set_inbox_folder', { folder: inbox }).catch(() => {});
   invoke('capture_set_preset', { ...rules }).catch(() => {});
+  invoke('capture_set_timestamps', { enabled: settings.autoNoteTimestamps }).catch(() => {});
   invoke('capture_set_enabled', { enabled, port: null }).catch(() => {});
 });
 

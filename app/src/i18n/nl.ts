@@ -530,6 +530,8 @@ export const nl: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Koppen (1–6) automatisch nummereren",
     autoNumberHeadingsHint: "Voegt automatisch hiërarchische sectienummers (1. / 1.1 / 1.1.1) toe en werkt ze bij wanneer koppen worden toegevoegd, verwijderd of gewijzigd. Standaard uitgeschakeld.",
+    autoNoteTimestamps: 'Tijdstempels van noten automatisch beheren',
+    autoNoteTimestampsHint: 'Schrijft en werkt created_date, created_time, modified_date en modified_time bij in Markdown-frontmatter. Aanmaakvelden worden alleen toegevoegd als ze ontbreken; wijzigingsvelden worden bij elke opslag bijgewerkt.',
     codeFontFamily: 'Code-lettertype',
     codeFontFamilyPlaceholder: 'bijv. Cascadia Code',
     codeFontFamilyHint: 'Geldt voor codeblokken en inline code. Leeg = ingebouwde monospace-stack.',

@@ -530,6 +530,8 @@ export const de: I18n = {
     confirmSaveMissingFileHint: "When enabled, prompt to confirm creating a new file if the original file on disk no longer exists when saving. Off by default.",
     autoNumberHeadings: "Überschriften (1–6) automatisch nummerieren",
     autoNumberHeadingsHint: "Fügt beim Hinzufügen, Löschen oder Ändern von Überschriften automatisch hierarchische Abschnittsnummern (1. / 1.1 / 1.1.1) hinzu und aktualisiert sie. Standardmäßig deaktiviert.",
+    autoNoteTimestamps: 'Notiz-Zeitstempel automatisch verwalten',
+    autoNoteTimestampsHint: 'Schreibt und aktualisiert created_date, created_time, modified_date und modified_time im Markdown-Frontmatter. Erstellungsfelder werden nur bei Fehlen ergänzt; Änderungsfelder werden bei jedem Speichern aktualisiert.',
     codeFontFamily: 'Code-Schriftart',
     codeFontFamilyPlaceholder: 'z. B. Cascadia Code',
     codeFontFamilyHint: 'Gilt für Codeblöcke und Inline-Code. Leer = eingebauter Monospace-Stack.',

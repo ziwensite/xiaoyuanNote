@@ -23,6 +23,7 @@ import { isSafPath, fromSafPath, safRead, safWrite, safLaunchPicker } from '../l
 import { baseNameOf, fileNameOf, claimImportName, joinInFolder } from '../lib/import-plan';
 import { newFileDirFor, treeSelection } from '../lib/new-file-target';
 import { noteOwnWrite } from '../lib/external-change';
+import { applyNoteTimestamps } from '../lib/note-timestamps';
 import { isTabDirty } from '../lib/tab-dirty';
 import type { VirtualTabKind } from '../lib/editor-input';
 
@@ -45,6 +46,17 @@ const SAVE_FILTERS = [
   { name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'mkd'] },
   { name: 'Plain Text', extensions: ['txt'] },
 ];
+
+interface NoteFileTimes {
+  created: number | null;
+  modified: number | null;
+}
+
+function isMarkdownNote(path: string | null | undefined, language?: string): boolean {
+  if (language === 'markdown') return true;
+  const clean = (path ?? '').split(/[?#]/)[0] ?? '';
+  return /\.(md|markdown|mdown|mkd)$/i.test(clean);
+}
 
 // Source path → the unsaved tab its conversion opened (#356). Module-level:
 // every component calls useFiles() for its own instance, and the FileTree's
@@ -838,6 +850,21 @@ export function useFiles() {
     }
   }
 
+  async function stampNoteForSave(
+    text: string,
+    path: string | null | undefined,
+    language?: string,
+  ): Promise<string> {
+    if (!settings.autoNoteTimestamps || !isMarkdownNote(path, language)) return text;
+    const modifiedAt = new Date();
+    let createdAt: Date | null = null;
+    if (path && !isSafPath(path) && !path.startsWith('content://')) {
+      const times = await invoke<NoteFileTimes>('fs_file_times', { path }).catch(() => null);
+      if (times?.created) createdAt = new Date(times.created);
+    }
+    return applyNoteTimestamps(text, { createdAt, modifiedAt });
+  }
+
   async function saveTab(tab: Tab, opts: { silent?: boolean } = {}): Promise<boolean> {
     // #222 — the CodeMirror editor syncs doc→tab.content on a 350ms debounce.
     // A save issued inside that window (vim `:w`/`:wq`, a fast Ctrl+S) would
@@ -861,16 +888,34 @@ export function useFiles() {
     }
     if (!path) return saveTabAs(tab);
     try {
-      // Restore the file's original line endings on write — we
-      // normalize CRLF→LF on open so CodeMirror behaves, but the user
-      // expects a Windows-saved file to stay Windows-saved.
-      const payload =
-        tab.lineEnding === 'crlf' ? tab.content.replace(/\n/g, '\r\n') : tab.content;
       // #148 — SAF vault: write through ContentResolver. Git/AutoGit can't
       // operate on content-URI paths, so skip the recent/MFU/AutoGit hooks
       // (they key off real filesystem paths) for SAF saves.
       const isSaf = isSafPath(path);
       const isContentUri = path.startsWith('content://');
+      if (!isSaf && !isContentUri && settings.confirmSaveMissingFile && !iosCopy) {
+        const exists = await invoke<boolean>('fs_file_exists', { path });
+        if (exists === false) {
+          if (opts.silent) return false;
+          const ok = await confirmDialog(
+            t('dialog.missingFileBody', { name: tab.fileName, path }),
+            {
+              title: t('dialog.missingFileTitle'),
+              kind: 'warning',
+              okLabel: t('dialog.missingFileConfirm'),
+              cancelLabel: t('dialog.missingFileCancel'),
+            },
+          );
+          if (!ok) return false;
+        }
+      }
+      const stamped = await stampNoteForSave(tab.content, path, tab.language);
+      if (stamped !== tab.content) tabs.setContent(tab.id, stamped);
+      // Restore the file's original line endings on write — we
+      // normalize CRLF→LF on open so CodeMirror behaves, but the user
+      // expects a Windows-saved file to stay Windows-saved.
+      const payload =
+        tab.lineEnding === 'crlf' ? tab.content.replace(/\n/g, '\r\n') : tab.content;
       if (isSaf) {
         await safWrite(workspace.safTreeUri!, fromSafPath(path), payload);
       } else if (isContentUri) {
@@ -879,24 +924,6 @@ export function useFiles() {
         // ContentResolver route as the original save.
         await writeContentUri(path, payload);
       } else {
-        if (settings.confirmSaveMissingFile && !iosCopy) {
-          const exists = await invoke<boolean>('fs_file_exists', { path });
-          if (exists === false) {
-            if (opts.silent) {
-              return false;
-            }
-            const ok = await confirmDialog(
-              t('dialog.missingFileBody', { name: tab.fileName, path }),
-              {
-                title: t('dialog.missingFileTitle'),
-                kind: 'warning',
-                okLabel: t('dialog.missingFileConfirm'),
-                cancelLabel: t('dialog.missingFileCancel'),
-              },
-            );
-            if (!ok) return false;
-          }
-        }
         // Recorded first: the watcher event for this write can arrive before
         // markSaved below, and must not read as an outside change.
         noteOwnWrite(path, payload);
@@ -978,6 +1005,8 @@ export function useFiles() {
       if (!path) return false;
     }
     try {
+      const stamped = await stampNoteForSave(tab.content, path, tab.language);
+      if (stamped !== tab.content) tabs.setContent(tab.id, stamped);
       const payload =
         tab.lineEnding === 'crlf' ? tab.content.replace(/\n/g, '\r\n') : tab.content;
       // Android — the SAF save dialog returns a content:// URI (and has
@@ -1094,6 +1123,7 @@ export function useFiles() {
     // be open has to go through the tab, not straight to disk, or the tab's
     // in-memory copy would silently overwrite it on the next save.
     saveTab,
+    stampNoteForSave,
     autoSaveDirtyTabs,
     closeTabSafe,
     reopenClosedTab,
