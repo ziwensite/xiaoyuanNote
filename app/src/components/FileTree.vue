@@ -468,6 +468,34 @@ function collapseSubtree(node: Node) {
   walk(node);
 }
 
+/** Section-row tools: one toggle for the whole tree, plus a jump to the open
+ *  document. The root itself is not a rendered folder row, so it is excluded
+ *  from the expand-state check and re-opened after a collapse. */
+function subtreeHasExpanded(n: Node): boolean {
+  if (n.is_dir && n.expanded) return true;
+  return (n.children ?? []).some(subtreeHasExpanded);
+}
+const anyFolderExpanded = computed(() =>
+  (root.value?.children ?? []).some((n) => subtreeHasExpanded(n)),
+);
+
+async function toggleExpandAll() {
+  const r = root.value;
+  if (!r) return;
+  if (anyFolderExpanded.value) {
+    collapseSubtree(r);
+    r.expanded = true;
+  } else {
+    await expandSubtree(r);
+  }
+}
+
+async function locateActiveFile() {
+  const path = tabs.activeTab?.filePath;
+  if (!path) return;
+  if (!(await revealRow(path))) toasts.warning(t('explorer.revealHidden'), 6000);
+}
+
 watch(
   () => workspace.currentFolder,
   () => {
@@ -1918,7 +1946,6 @@ onBeforeUnmount(() => {
           data-ft-trigger
           @click.stop="toggleSwitcher($event)"
         >
-          <span class="ftree__section-label">{{ t('sidebar.folders') }}</span>
           <span class="ftree__ws-name">{{ rootDisplayName }}</span>
           <Icon name="chevron-down" :size="12" class="ftree__ws-caret" />
         </button>
@@ -1958,6 +1985,24 @@ onBeforeUnmount(() => {
             @click.stop="openFilter($event)"
           >
             <Icon name="filter" :size="16" />
+          </button>
+          <button
+            class="ftree__tool"
+            type="button"
+            :title="t(anyFolderExpanded ? 'explorer.collapseSubtree' : 'explorer.expandSubtree')"
+            :aria-label="t(anyFolderExpanded ? 'explorer.collapseSubtree' : 'explorer.expandSubtree')"
+            @click.stop="toggleExpandAll"
+          >
+            <Icon :name="anyFolderExpanded ? 'collapse-all' : 'expand-all'" :size="16" />
+          </button>
+          <button
+            class="ftree__tool"
+            type="button"
+            :title="t('explorer.revealInFileTree')"
+            :aria-label="t('explorer.revealInFileTree')"
+            @click.stop="locateActiveFile"
+          >
+            <Icon name="locate" :size="16" />
           </button>
           <button
             class="ftree__tool"
@@ -2697,13 +2742,6 @@ export const FileTreeNode = defineComponent({
   outline: none;
   box-shadow: var(--ring);
 }
-.ftree__section-label {
-  flex: none;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
 .ftree__ws-name {
   min-width: 0;
   overflow: hidden;
@@ -2712,10 +2750,6 @@ export const FileTreeNode = defineComponent({
   font-size: 11px;
   font-weight: 500;
   color: var(--text-3);
-}
-.ftree__ws-name::before {
-  content: '·';
-  margin-right: 6px;
 }
 .ftree__ws-caret {
   flex: none;

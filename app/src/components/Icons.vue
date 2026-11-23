@@ -303,6 +303,16 @@ defineProps<{ name: string; size?: number }>();
     <template v-else-if="name === 'refresh'">
       <path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" />
     </template>
+    <template v-else-if="name === 'expand-all'">
+      <path d="M4 10V4h6M20 10V4h-6M4 14v6h6M20 14v6h-6" />
+    </template>
+    <template v-else-if="name === 'collapse-all'">
+      <path d="M10 4v6H4M14 4v6h6M10 20v-6H4M14 20v-6h6" />
+    </template>
+    <template v-else-if="name === 'locate'">
+      <circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    </template>
     <template v-else-if="name === 'home'">
       <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8z" />
     </template>
