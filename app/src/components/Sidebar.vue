@@ -14,14 +14,13 @@
  * The sidebar owns the width (settings.fileTreeWidth) and the resize handle;
  * only the middle part scrolls.
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import Icon from './Icons.vue';
 import FileTree from './FileTree.vue';
 import ViewsPanel from './ViewsPanel.vue';
 import SyncStatusPill from './SyncStatusPill.vue';
 import { useSettingsStore } from '../stores/settings';
 import { useWorkspaceStore } from '../stores/workspace';
-import { useWorkspaceIndexStore } from '../stores/workspaceIndex';
 import { useTabsStore } from '../stores/tabs';
 import { useFiles } from '../composables/useFiles';
 import { useInbox } from '../composables/useInbox';
@@ -59,7 +58,6 @@ const emit = defineEmits<{
 
 const settings = useSettingsStore();
 const workspace = useWorkspaceStore();
-const idx = useWorkspaceIndexStore();
 const tabs = useTabsStore();
 const files = useFiles();
 const inbox = useInbox();
@@ -149,19 +147,6 @@ const recentEl = ref<HTMLElement | null>(null);
 function openRecent(path: string) {
   recentOpen.value = false;
   void files.openPath(path, { bypassNewWindow: true });
-}
-
-// ── tags ────────────────────────────────────────────────────────────────────
-const TAG_LIMIT = 8;
-const topTags = computed(() =>
-  [...idx.tags]
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag))
-    .slice(0, TAG_LIMIT),
-);
-function openTagsPanel() {
-  // S2 — the tags list is an entry point into the dock: switch the pane on
-  // (no-op when already on) and make it the tab its side draws.
-  settings.showDockPane('tags');
 }
 
 // ── empty state ─────────────────────────────────────────────────────────────
@@ -515,7 +500,6 @@ onBeforeUnmount(() => {
 .sb__row:focus-visible,
 .sb__row-main:focus-visible,
 .sb__row-tool:focus-visible,
-.sb__chip:focus-visible,
 .sb__icon-btn:focus-visible,
 .sb__primary:focus-visible {
   outline: none;
@@ -672,11 +656,6 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── tags ── */
-.sb__tags {
-  flex: none;
-  padding: var(--sp-3) 14px;
-}
 .sb__label {
   margin-bottom: var(--sp-2);
   font-size: 11px;
@@ -688,36 +667,6 @@ onBeforeUnmount(() => {
 .sb__label--center {
   text-align: center;
 }
-.sb__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.sb__chip {
-  max-width: 100%;
-  padding: 3px 9px;
-  border: 0;
-  border-radius: var(--r-full);
-  background: var(--fill-1);
-  color: var(--text-2);
-  font: inherit;
-  font-size: 12px;
-  line-height: 1.35;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: default;
-}
-.sb__chip:hover {
-  background: var(--fill-2);
-  color: var(--text);
-}
-.sb__chip--all {
-  background: transparent;
-  color: var(--text-3);
-  box-shadow: inset 0 0 0 var(--hair-w) var(--hairline);
-}
-
 /* ── empty state ── */
 .sb__empty {
   flex: 1 0 auto;

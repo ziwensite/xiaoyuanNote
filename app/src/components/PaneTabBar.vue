@@ -11,6 +11,7 @@ import { useFiles } from '../composables/useFiles';
 import { requestRevealInTree } from '../composables/useFileTreeReveal';
 import { shortcutLabel } from '../lib/keybindings';
 import { revealLabelKey, usesCommandKey } from '../lib/platform';
+import { segmentsBelow } from '../lib/path-key';
 import { tabTitle, tabTooltip } from '../lib/tab-title';
 import { isFileTabSaved } from '../lib/tab-dirty';
 import { EDITOR_KINDS, isFileTab, type VirtualTabKind } from '../lib/editor-input';
@@ -221,9 +222,10 @@ async function onTabAction(action: 'close' | 'closeLeft' | 'closeRight' | 'close
     // Only a file from outside the workspace needs the tree to follow it;
     // otherwise there would be nothing to point at.
     const root = workspace.currentFolder;
-    const sep = path.includes('\\') ? '\\' : '/';
-    const inside =
-      !!root && (path === root || path.startsWith(root.endsWith(sep) ? root : root + sep));
+    // Normalised comparison: on Windows the tab and workspace paths can use
+    // different separators or letter case, and a naive startsWith would
+    // re-root the workspace onto the very folder it already points at.
+    const inside = !!root && segmentsBelow(root, path) !== null;
     if (!inside) {
       const parent = path.replace(/[\\/][^\\/]+$/, '');
       if (parent && parent !== path) workspace.setFolder(parent);
@@ -265,6 +267,10 @@ let suppressClick = false;
 function onTabPointerDown(e: PointerEvent, tabId: string) {
   // Left button only — middle closes the tab, right opens the context menu.
   if (e.button !== 0) return;
+  // A previous drag may have ended without a `.tab` click consuming the flag
+  // (split drop, drop on the strip). Clear it on every fresh press, and again
+  // next tick as a belt-and-braces fallback (same as DockTabStrip).
+  suppressClick = false;
   pointerStart = { x: e.clientX, y: e.clientY, tabId };
   dragging = false;
   window.addEventListener('pointermove', onPointerMove);
@@ -327,6 +333,7 @@ function onPointerUp(e: PointerEvent) {
   }
   dragging = false;
   suppressClick = true;
+  setTimeout(() => { suppressClick = false; }, 0);
 
   const split = paneSplitAt(e.clientX, e.clientY);
   const startTab = tabs.tabs.find((t) => t.id === start.tabId);

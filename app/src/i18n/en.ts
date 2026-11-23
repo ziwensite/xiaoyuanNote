@@ -2845,17 +2845,22 @@ export const en = {
   },
 };
 
-// `views` (v4.6 F5) is now a REQUIRED section: all 14 locales ship a full
-// translation (v4.6.1). The runtime `t()` lookup still falls back to English
-// for any individual key that a locale happens to miss.
-//
-// The capture, settings and quick-capture blocks gained keys in 5.0.14.
-// English and Chinese ship them translated; the other locales fall back to
-// English at runtime, so newly added keys are optional here rather than
-// forcing 13 copy-pasted English dictionaries.
+// `t()` falls back to English for any key a locale has not translated yet
+// (see i18n/index.ts). Several sections gained keys faster than the 13
+// non-en/zh locales could be updated, so requiring them here made `vue-tsc`
+// fail even though the runtime handles them correctly. Following the same
+// rule as capture/settings: these sections are partial, with `en` the complete
+// reference. i18n/locale-keys.test.ts guards against stray/misspelled keys.
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
-export type I18n = Omit<typeof en, 'capture' | 'settings' | 'quickCapture'> & {
-  capture: DeepPartial<typeof en['capture']>;
-  settings: DeepPartial<typeof en['settings']>;
-  quickCapture: DeepPartial<typeof en['quickCapture']>;
+type LocalePartialSections = 'capture' | 'settings' | 'quickCapture' | 'menubar'
+  | 'views' | 'tasks' | 'calendar' | 'componentDialog';
+export type I18n = Omit<typeof en, LocalePartialSections> & {
+  capture?: DeepPartial<typeof en['capture']>;
+  settings?: DeepPartial<typeof en['settings']>;
+  quickCapture?: DeepPartial<typeof en['quickCapture']>;
+  menubar?: DeepPartial<typeof en['menubar']>;
+  views?: DeepPartial<typeof en['views']>;
+  tasks?: DeepPartial<typeof en['tasks']>;
+  calendar?: DeepPartial<typeof en['calendar']>;
+  componentDialog?: DeepPartial<typeof en['componentDialog']>;
 };

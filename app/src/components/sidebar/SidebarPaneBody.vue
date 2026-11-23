@@ -1,19 +1,8 @@
-<script setup lang="ts">
-/**
- * S1 — the one place that maps a sidebar pane id to its component.
- *
- * Extracted verbatim from the two near-identical `<aside>` blocks in App.vue
- * so the left and right sidebars can share a single render path. No wrapper
- * element: the rendered root IS the panel's root, which keeps
- * `.rs-pane-host > *` / `.rs-pane-host > .rs-pane-grip + *` in SidebarDock
- * matching the same element they matched before.
- */
+<script lang="ts">
+// A real module-level block: <script setup> top-level code runs per instance,
+// so defining async components there minted a new component type on every
+// mount and discarded pane state on each switch.
 import { defineAsyncComponent } from 'vue';
-import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
-import { useDailyNotes } from '../../composables/useDailyNotes';
-import Outline from '../Outline.vue';
-import BacklinksPanel from '../BacklinksPanel.vue';
-import Sidebar from '../Sidebar.vue';
 
 const NeighborhoodPanel = defineAsyncComponent(() => import('../NeighborhoodPanel.vue'));
 const RelationshipsPanel = defineAsyncComponent(() => import('../RelationshipsPanel.vue'));
@@ -25,6 +14,23 @@ const PropertiesInspector = defineAsyncComponent(() => import('../PropertiesInsp
 const AgentPanel = defineAsyncComponent(() => import('../AgentPanel.vue'));
 // M1 — read-only. Async so a closed calendar costs nothing.
 const CalendarPanel = defineAsyncComponent(() => import('../CalendarPanel.vue'));
+</script>
+
+<script setup lang="ts">
+/**
+ * S1 — the one place that maps a sidebar pane id to its component.
+ *
+ * Extracted verbatim from the two near-identical `<aside>` blocks in App.vue
+ * so the left and right sidebars can share a single render path. No wrapper
+ * element: the rendered root IS the panel's root, which keeps
+ * `.rs-pane-host > *` / `.rs-pane-host > .rs-pane-grip + *` in SidebarDock
+ * matching the same element they matched before.
+ */
+import type { ImplementedSidebarPaneId } from '../../panes/sidebar-panes';
+import { useDailyNotes } from '../../composables/useDailyNotes';
+import Outline from '../Outline.vue';
+import BacklinksPanel from '../BacklinksPanel.vue';
+import Sidebar from '../Sidebar.vue';
 
 const props = defineProps<{
   id: ImplementedSidebarPaneId;

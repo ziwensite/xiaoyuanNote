@@ -179,7 +179,7 @@ async function openTask(task: WorkspaceTask) {
                 <span
                   v-if="priorityIcon(task.meta.priority)"
                   class="tasks-panel__priority"
-                  :title="task.meta.priority"
+                  :title="task.meta.priority ?? undefined"
                 >{{ priorityIcon(task.meta.priority) }}</span>
                 <span
                   v-if="task.meta.reminders?.length"

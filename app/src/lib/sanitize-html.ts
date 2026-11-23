@@ -102,7 +102,9 @@ let purifier: DOMPurifyInstance | null = null;
 function getPurifier(): DOMPurifyInstance | null {
   if (purifier) return purifier;
   if (typeof window === 'undefined' || typeof window.document === 'undefined') return null;
-  const instance = DOMPurify(window);
+  // Two copies of @types/trusted-types in the tree make the structural check
+  // fail even though the runtime window is exactly what DOMPurify expects.
+  const instance = DOMPurify(window as unknown as Parameters<typeof DOMPurify>[0]);
   if (!instance.isSupported) return null;
 
   instance.addHook('afterSanitizeAttributes', (node) => {

@@ -186,7 +186,10 @@ function cloneGroup(group: SidebarDockGroup): SidebarDockGroup {
 }
 
 function cloneDock(state: SidebarDockState): SidebarDockState {
+  // Spread the whole state so future top-level fields are carried along
+  // instead of silently dropped by a hand-written field list.
   return {
+    ...state,
     groups: {
       left: state.groups.left.map(cloneGroup),
       right: state.groups.right.map(cloneGroup),
@@ -216,8 +219,12 @@ function parseStored(raw: unknown): ParsedDock | null {
   const visible: Partial<Record<SidebarPaneId, boolean>> = {};
   const activeBySide: Partial<Record<SidebarSide, SidebarPaneId>> = {};
 
-  if (isObj(raw.groups)) {
-    const source = raw.groups;
+  // A damaged blob can carry both shapes. Only prefer `groups` when it really
+  // has per-side arrays; an empty `groups: {}` must not discard legacy `panes`.
+  const groupsObj = isObj(raw.groups) ? raw.groups : null;
+  const hasGroups = !!groupsObj && SIDES.some((side) => Array.isArray(groupsObj[side]));
+  if (groupsObj && hasGroups) {
+    const source = groupsObj;
     for (const side of SIDES) {
       const list = Array.isArray(source[side]) ? source[side] : [];
       for (const entry of list) {
@@ -358,8 +365,14 @@ export function sanitizeSidebarDock(
         typeof parsed.collapsed.right === 'boolean' ? parsed.collapsed.right : fallback.collapsed.right,
     },
     width: {
-      left: clampDockWidth(parsed.width.left ?? fallback.width.left),
-      right: clampDockWidth(parsed.width.right ?? fallback.width.right),
+      // Only a real number is a stored width; strings / NaN / objects should
+      // fall back to the caller's value, not clampDockWidth's global default.
+      left: typeof parsed.width.left === 'number' && Number.isFinite(parsed.width.left)
+        ? clampDockWidth(parsed.width.left)
+        : clampDockWidth(fallback.width.left),
+      right: typeof parsed.width.right === 'number' && Number.isFinite(parsed.width.right)
+        ? clampDockWidth(parsed.width.right)
+        : clampDockWidth(fallback.width.right),
     },
   };
 }
@@ -434,7 +447,13 @@ export function migrateSidebarDock(
   const firstVisible = panes.find(
     (pane) => pane.visible && DEF_BY_ID.get(pane.id)?.visibility === 'setting',
   );
-  const legacyWidth = Number(legacy.sideSidebarWidth);
+  // Number(null) / Number('') is 0 and passes isFinite — only a real numeric
+  // value should override the default width.
+  const rawWidth = legacy.sideSidebarWidth;
+  const legacyWidth = typeof rawWidth === 'number' ? rawWidth : Number(rawWidth);
+  const hasLegacyWidth =
+    (typeof rawWidth === 'number' || typeof rawWidth === 'string') &&
+    rawWidth !== '' && Number.isFinite(legacyWidth);
 
   // Feed the pre-stage-1 shape through the same sanitizer so the upgrade path
   // is one code path, not two.
@@ -447,7 +466,7 @@ export function migrateSidebarDock(
         right: legacySide === 'right' ? legacy.rightSidebarHidden === true : true,
       },
       width: {
-        [legacySide]: Number.isFinite(legacyWidth)
+        [legacySide]: hasLegacyWidth
           ? clampDockWidth(legacyWidth + LEGACY_RAIL_WIDTH)
           : DEFAULT_DOCK_WIDTH,
       },
@@ -607,8 +626,8 @@ export interface DockTabTarget {
 
 /**
  * Pure reorder / cross-side move used by the pointer drag (and by
- * `movePaneToSide`). `files` is not movable; a drop before it on the left is
- * clamped to just after it.
+ * `movePaneToSide`). Every implemented pane travels, `files` included; only
+ * placeholders with no component are refused.
  */
 export function moveDockTab(
   state: SidebarDockState,
@@ -684,7 +703,15 @@ export function appendToNewRegion(
       // Drop the now-empty region — including one that used to hold `files` —
       // but keep the side's last group so `groups[side][0]` always exists
       // (same guard as moveDockTab; App.vue hides a side with no renderable pane).
-      if (g.panes.length === 0 && groups.length > 1) groups.splice(gi, 1);
+      if (g.panes.length === 0 && groups.length > 1) {
+        // Hand the vanished region's height share to its neighbour, same as
+        // moveDockTab — otherwise the splitter ratio jumps on a split drag.
+        const [gone] = groups.splice(gi, 1);
+        const heir = groups[Math.min(gi, groups.length - 1)];
+        if (heir && gone.height !== undefined) {
+          heir.height = clampGroupHeight((heir.height ?? DOCK_GROUP_DEFAULT_HEIGHT) + gone.height);
+        }
+      }
       removed = true;
       break;
     }
@@ -753,11 +780,20 @@ export function mergeFilesPane(
   const dock = sanitizeSidebarDock(state);
   if (opts.alreadyMerged) return { dock, movedToSecondary: [] };
 
-  const leftIds = dock.groups.left.flatMap((group) => group.panes);
-  const movedToSecondary = leftIds.filter((id) => id !== PRIMARY_PANE_ID);
-  const others = SIDES.flatMap((s) => dock.groups[s].flatMap((group) => group.panes)).filter(
-    (id) => id !== PRIMARY_PANE_ID,
+  // Keep every pane whose registry side is left — not just `files`. `home`
+  // was split out later and also belongs here; treating it as a legacy
+  // "secondary" pane would both move it to the right dock and fire the
+  // "outline moved" notice for every upgrading install.
+  const leftDefaults = new Set(
+    SIDEBAR_PANE_DEFS.filter((def) => def.defaultSide === PRIMARY_SIDE).map((def) => def.id),
   );
+  const leftIds = dock.groups.left.flatMap((group) => group.panes);
+  const movedToSecondary = leftIds.filter((id) => !leftDefaults.has(id));
+  const others = SIDES.flatMap((s) => dock.groups[s].flatMap((group) => group.panes)).filter(
+    (id) => !leftDefaults.has(id),
+  );
+  // Registry order puts `home` before `files`, the reading order we want.
+  const keptLeft = SIDEBAR_PANE_DEFS.filter((def) => leftDefaults.has(def.id)).map((def) => def.id);
   const previousRight = dock.groups.right
     .map((group) => group.active)
     .find((id): id is SidebarPaneId => !!id) ?? null;
@@ -765,7 +801,7 @@ export function mergeFilesPane(
   return {
     dock: {
       groups: {
-        left: [{ panes: [PRIMARY_PANE_ID], active: PRIMARY_PANE_ID }],
+        left: [{ panes: keptLeft, active: PRIMARY_PANE_ID }],
         right: [{ panes: others, active: pickActive(previousRight, others) }],
       },
       visible: { ...dock.visible },

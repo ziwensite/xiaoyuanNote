@@ -11,7 +11,7 @@
  * reads/writes and the existing folder helpers. Writes always re-read the file
  * and refuse to clobber an outside change without asking.
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { confirm as confirmDialog } from '@tauri-apps/plugin-dialog';
 import { useWorkspaceIndexStore } from '../../stores/workspaceIndex';
@@ -26,7 +26,6 @@ import { useFiles } from '../../composables/useFiles';
 import { useDailyNotes } from '../../composables/useDailyNotes';
 import type { PeriodKind } from '../../lib/periodic-notes';
 import { useI18n, htmlLangFor } from '../../i18n';
-import Icons from '../Icons.vue';
 import CalendarHeader from '../CalendarHeader.vue';
 import TaskFilterBar from '../tasks/TaskFilterBar.vue';
 import { useTaskFilter } from '../../composables/useTaskFilter';
@@ -42,7 +41,6 @@ import {
   makeExceptionEvent,
   newEntryLine,
   newEventUid,
-  shiftMonth,
   splitSeriesAt,
   writeEntryEventNote,
   type CalendarEntry,
@@ -59,7 +57,6 @@ import {
   type CalendarViewDay,
   type TaskDueGroup,
 } from '../../lib/calendar-view';
-import { CALENDAR_EDITOR_VIEWS } from '../../lib/calendar-prefs';
 import CalendarPanel from '../CalendarPanel.vue';
 import {
   aggregateDensity,
@@ -1284,7 +1281,7 @@ onBeforeUnmount(() => {
               <span
                 v-if="priorityIcon(task.priority)"
                 class="cal-task-row__priority"
-                :title="task.priority"
+                :title="task.priority ?? undefined"
               >{{ priorityIcon(task.priority) }}</span>
               <span
                 v-if="task.recurrenceKind && task.recurrenceKind !== 'natural'"

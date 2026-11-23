@@ -28,7 +28,12 @@ import {
   type CtxNode,
   type CtxState,
 } from './lib/context-menus';
-import { SIDEBAR_PANE_DEFS, type ImplementedSidebarPaneId, type SidebarPaneAvailabilityCtx } from './panes/sidebar-panes';
+import {
+  SIDEBAR_PANE_DEFS,
+  IMPLEMENTED_SIDEBAR_PANE_IDS,
+  type ImplementedSidebarPaneId,
+  type SidebarPaneAvailabilityCtx,
+} from './panes/sidebar-panes';
 import {
   dockActiveId,
   effectiveDockWidth,
@@ -167,6 +172,10 @@ function onAndroidFolderPick(path: string) {
   workspace.setFolder(path);
   if (!settings.showFileTree) settings.toggleFileTree();
 }
+function onAndroidFolderPicker() { androidPickerOpen.value = true; }
+function onAndroidRequestStorage() { void requestAndroidStorage(); }
+function onAndroidRestartNeeded() { androidRestartNeeded.value = true; }
+
 async function requestAndroidStorage() {
   const toasts = (await import('./stores/toasts')).useToastsStore();
   try {
@@ -213,11 +222,12 @@ const cursorCol = ref(1);
 // block at the top of the focused pane's preview) instead of the editor
 // cursor, which doesn't move while reading. Null until the preview reports.
 const previewTopLine = ref<number | null>(null);
-window.addEventListener('xiaoyuan-note:preview-topline', (e: Event) => {
+function onPreviewTopLine(e: Event) {
   const { line, paneId } = (e as CustomEvent).detail || {};
   if (paneId && paneId !== tiles.focusedPaneId) return;
   if (typeof line === 'number' && line > 0) previewTopLine.value = line;
-});
+}
+window.addEventListener('xiaoyuan-note:preview-topline', onPreviewTopLine);
 const outlineLine = computed(() =>
   settings.viewMode === 'preview' && previewTopLine.value != null
     ? previewTopLine.value
@@ -284,6 +294,18 @@ const phoneSearchPrefill = ref<string | undefined>(undefined);
 const sidebarCtx = ref<{ x: number; y: number } | null>(null);
 const sidebarCtxEl = ref<HTMLElement | null>(null);
 const sidebarCtxMaxH = ref<number | null>(null);
+// Registry-driven so a new pane appears in the manager automatically.
+const paneMenuDefs = computed(() =>
+  SIDEBAR_PANE_DEFS.filter((def) => !def.pending && (def.id !== 'agent' || !IS_APP_STORE_BUILD)),
+);
+function toggleCtxPane(id: ImplementedSidebarPaneId) {
+  // Outline is per tab; every other pane is a dock switch.
+  if (id === 'outline') {
+    if (tabs.activeTab) tabs.toggleOutline(tabs.activeTab.id);
+  } else {
+    settings.toggleDockPane(id);
+  }
+}
 function openSidebarCtx(e: MouseEvent) {
   e.preventDefault();
   sidebarCtx.value = { x: e.clientX, y: e.clientY };
@@ -905,29 +927,28 @@ watchEffect(() => {
 // deletions, and rebuild git history caches so the History panel reflects
 // the merge commit. Active editor tabs reload from disk only if they're
 // clean (we never blow away a user's unsaved edits, even from a sync).
-window.addEventListener('xiaoyuan-note:remote-pulled', () => {
+function onRemotePulled() {
   void workspaceIndex.rescan();
   // gitHistory's own listener on `xiaoyuan-note://index-updated` rebuilds caches,
   // but rescan() above doesn't re-emit that event. Bust the caches here.
   // (Keep this scoped — we don't want to re-fetch every commit on every
   // remote-pull; the panel will lazy-reload as the user opens it.)
-});
+}
+window.addEventListener('xiaoyuan-note:remote-pulled', onRemotePulled);
 
 // Listen for the `xiaoyuan-note://index-updated` event the workspace_index
 // emits on watcher debounces. When semantic search is on, mirror that
 // event into a single-file rescan so the embeddings stay fresh without
 // a full reindex on every save.
-window.addEventListener(
-  'xiaoyuan-note:rag-bus',
-  (e) => {
-    if (!settings.ragEnabled) return;
-    const detail = (e as CustomEvent).detail || {};
-    const path = detail.path;
-    if (typeof path === 'string') {
-      rag.reindexFile(workspace.currentFolder, path).catch(() => {});
-    }
-  },
-);
+function onRagBus(e: Event) {
+  if (!settings.ragEnabled) return;
+  const detail = (e as CustomEvent).detail || {};
+  const path = detail.path;
+  if (typeof path === 'string') {
+    rag.reindexFile(workspace.currentFolder, path).catch(() => {});
+  }
+}
+window.addEventListener('xiaoyuan-note:rag-bus', onRagBus);
 
 // v2.0 F2: load the Hunspell dictionary on demand.
 // #246 — the language is no longer pinned to en_US. `spellcheckLang` drives
@@ -980,6 +1001,9 @@ function onFilterTag(tag: string) {
 let unlistenOpened: UnlistenFn | null = null;
 let unlistenMenu: UnlistenFn | null = null;
 let unlistenWindowDestroyed: UnlistenFn | null = null;
+let unlistenCloseRequested: UnlistenFn | null = null;
+let unlistenDeepLink: UnlistenFn | null = null;
+let unlistenDragDrop: UnlistenFn | null = null;
 
 async function openExternalFile() {
   const filePath = tabs.activeTab?.filePath;
@@ -1468,15 +1492,9 @@ onMounted(async () => {
   }
 
   // #148 / #151 — Android real-folder vault picking wiring.
-  window.addEventListener('xiaoyuan-note:android-folder-picker', () => {
-    androidPickerOpen.value = true;
-  });
-  window.addEventListener('xiaoyuan-note:android-request-storage', () => {
-    void requestAndroidStorage();
-  });
-  window.addEventListener('xiaoyuan-note:android-restart-needed', () => {
-    androidRestartNeeded.value = true;
-  });
+  window.addEventListener('xiaoyuan-note:android-folder-picker', onAndroidFolderPicker);
+  window.addEventListener('xiaoyuan-note:android-request-storage', onAndroidRequestStorage);
+  window.addEventListener('xiaoyuan-note:android-restart-needed', onAndroidRestartNeeded);
 
   // iOS / Android — tauri-plugin-deep-link delivers incoming files
   // (Files app "Open with…", Mail attachments, AirDrop) as a list of URL
@@ -1497,7 +1515,7 @@ onMounted(async () => {
       }
     };
     // Live listener — files arriving while the app is already open.
-    await onOpenUrl(handleUrls);
+    unlistenDeepLink = await onOpenUrl(handleUrls);
     // Initial payload — file that LAUNCHED the app (iOS cold start with
     // tap-on-file from Files / Mail).
     const initial = await getCurrent();
@@ -1585,7 +1603,7 @@ onMounted(async () => {
   // the one being closed in the payload — the event reaches every window, and
   // each must only act on its own close.
   try {
-    await listen<string>('xiaoyuan-note://close-requested', async (e) => {
+    unlistenCloseRequested = await listen<string>('xiaoyuan-note://close-requested', async (e) => {
       const me = getCurrentWindow().label;
       if (e.payload && e.payload !== me) return;
       if (tableEditor.session) {
@@ -1647,7 +1665,7 @@ onMounted(async () => {
   try {
     const webview = getCurrentWebview();
     const IMAGE_DROP_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'avif', 'tiff']);
-    await webview.onDragDropEvent(async (event) => {
+    unlistenDragDrop = await webview.onDragDropEvent(async (event) => {
       if (event.payload.type === 'drop') {
         for (const path of event.payload.paths) {
           const ext = (path.split('.').pop() || '').toLowerCase();
@@ -1869,6 +1887,14 @@ function onPageHide() {
 
 onBeforeUnmount(() => {
   void import('./stores/reminders').then(({ useRemindersStore }) => useRemindersStore().dispose());
+  window.removeEventListener('xiaoyuan-note:preview-topline', onPreviewTopLine);
+  window.removeEventListener('xiaoyuan-note:remote-pulled', onRemotePulled);
+  window.removeEventListener('xiaoyuan-note:rag-bus', onRagBus);
+  window.removeEventListener('xiaoyuan-note:android-folder-picker', onAndroidFolderPicker);
+  window.removeEventListener('xiaoyuan-note:android-request-storage', onAndroidRequestStorage);
+  window.removeEventListener('xiaoyuan-note:android-restart-needed', onAndroidRestartNeeded);
+  window.removeEventListener('xiaoyuan-note:file-opened', phoneShowEditor);
+  window.removeEventListener('popstate', onPopState);
   window.removeEventListener('pagehide', onPageHide);
   window.removeEventListener('keydown', onEsc);
   document.removeEventListener('click', onStrayLinkClick);
@@ -1908,6 +1934,12 @@ onBeforeUnmount(() => {
     unlistenWindowDestroyed();
     unlistenWindowDestroyed = null;
   }
+  for (const unlisten of [unlistenCloseRequested, unlistenDeepLink, unlistenDragDrop]) {
+    unlisten?.();
+  }
+  unlistenCloseRequested = null;
+  unlistenDeepLink = null;
+  unlistenDragDrop = null;
 });
 
 // S2 — one availability context for the whole dock registry. The old
@@ -1923,21 +1955,16 @@ const paneAvailabilityCtx = computed<SidebarPaneAvailabilityCtx>(() => ({
 
 /** User-facing on/off. `outline` is per tab; every other pane — `files`
  *  included — is a dock switch that can be turned off and re-added from `+`. */
-const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() => ({
-  home: isDockPaneVisible(settings.sidebarDock, 'home'),
-  files: isDockPaneVisible(settings.sidebarDock, 'files'),
-  outline: !!tabs.activeTab?.showOutline,
-  backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),
-  relationships: isDockPaneVisible(settings.sidebarDock, 'relationships'),
-  tags: isDockPaneVisible(settings.sidebarDock, 'tags'),
-  tasks: isDockPaneVisible(settings.sidebarDock, 'tasks'),
-  neighborhood: isDockPaneVisible(settings.sidebarDock, 'neighborhood'),
-  types: isDockPaneVisible(settings.sidebarDock, 'types'),
-  history: isDockPaneVisible(settings.sidebarDock, 'history'),
-  inspector: isDockPaneVisible(settings.sidebarDock, 'inspector'),
-  agent: isDockPaneVisible(settings.sidebarDock, 'agent'),
-  calendar: isDockPaneVisible(settings.sidebarDock, 'calendar'),
-}));
+const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() => {
+  // Derived from the registry: a new pane can never be forgotten here.
+  const out = {} as Record<ImplementedSidebarPaneId, boolean>;
+  for (const id of IMPLEMENTED_SIDEBAR_PANE_IDS) {
+    out[id] = id === 'outline'
+      ? !!tabs.activeTab?.showOutline
+      : isDockPaneVisible(settings.sidebarDock, id);
+  }
+  return out;
+});
 
 /** Context gate only — no user switches in here. */
 const dockPaneAvailable = computed<Record<ImplementedSidebarPaneId, boolean>>(() => {
@@ -2167,7 +2194,7 @@ watch(
     }
   },
 );
-window.addEventListener('popstate', () => {
+function onPopState() {
   if (phoneHistoryOps > 0) {
     phoneHistoryOps--;
     return;
@@ -2176,7 +2203,8 @@ window.addEventListener('popstate', () => {
     window.dispatchEvent(new Event('xiaoyuan-note:close-menus'));
     phone.show('home');
   }
-});
+}
+window.addEventListener('popstate', onPopState);
 // Back to 笔记 leaves any centre-pane page (inbox, Bases, type lens, saved
 // view) so the next note opens as a note.
 watch(
@@ -2623,57 +2651,14 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           }"
           @click.stop
         >
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleDockPane('home') })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.home ? '✓' : '' }}</span>
-            {{ t('rsPane.home') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleDockPane('files') })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.files ? '✓' : '' }}</span>
-            {{ t('rsPane.files') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { if (tabs.activeTab) tabs.toggleOutline(tabs.activeTab.id) })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.outline ? '✓' : '' }}</span>
-            {{ t('rsPane.outline') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleBacklinks() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.backlinks ? '✓' : '' }}</span>
-            {{ t('rsPane.backlinks') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleRelationships() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.relationships ? '✓' : '' }}</span>
-            {{ t('rsPane.relationships') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleTagsPanel() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.tags ? '✓' : '' }}</span>
-            {{ t('rsPane.tags') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleTasksPanel() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.tasks ? '✓' : '' }}</span>
-            {{ t('rsPane.tasks') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleNeighborhood() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.neighborhood ? '✓' : '' }}</span>
-            {{ t('rsPane.neighborhood') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleTypesPanel() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.types ? '✓' : '' }}</span>
-            {{ t('rsPane.types') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleHistoryPanel() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.history ? '✓' : '' }}</span>
-            {{ t('rsPane.history') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleInspector() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.inspector ? '✓' : '' }}</span>
-            {{ t('rsPane.inspector') }}
-          </label>
-          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleCalendarPanel() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.calendar ? '✓' : '' }}</span>
-            {{ t('rsPane.calendar') }}
-          </label>
-          <label v-if="!IS_APP_STORE_BUILD" class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleAgentPanel() })">
-            <span class="sidebar-ctx__check">{{ dockPaneVisible.agent ? '✓' : '' }}</span>
-            {{ t('rsPane.agent') }}
+          <label
+            v-for="def in paneMenuDefs"
+            :key="def.id"
+            class="sidebar-ctx__item"
+            @click="ctxToggle(() => toggleCtxPane(def.id))"
+          >
+            <span class="sidebar-ctx__check">{{ dockPaneVisible[def.id] ? '✓' : '' }}</span>
+            {{ t(def.titleKey) }}
           </label>
         </div>
         <div v-if="sidebarCtx" class="sidebar-ctx__backdrop" @click="closeSidebarCtx" />

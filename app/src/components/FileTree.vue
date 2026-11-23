@@ -15,7 +15,7 @@ import { useTabsStore } from '../stores/tabs';
 import { useI18n } from '../i18n';
 import { isIOS, isMobile, revealLabelKey, usesCommandKey } from '../lib/platform';
 import { usePendingDeletes, isDeletePending, UNDO_WINDOW_MS } from '../composables/usePendingDeletes';
-import { isSafPath, fromSafPath, safList, safCreate, safCreateDir } from '../lib/saf-fs';
+import { isSafPath, fromSafPath, safList, safCreate, safCreateDir, safWrite } from '../lib/saf-fs';
 import {
   revealRequest,
   revealedPath,
@@ -163,6 +163,9 @@ function newEntryParent(): string {
 // v2.4 inbox filter — when on, the FileTreeNode subtree below prunes
 // non-inbox files (and dirs whose subtree contains no inbox docs).
 const showInboxOnly = computed(() => inbox.filterMode.value);
+/** The Home pane holds the inbox filter toggle; when it is hidden, Files must
+ *  still offer a way to switch the filter on/off. */
+const inboxFilterHomeHidden = computed(() => settings.sidebarDock.visible.home === false);
 
 /** Sentinel emitted by the Rust backend when it truncated a huge dir
  * past the 10,000-entry hard cap. We surface it as a dedicated UI
@@ -443,7 +446,11 @@ async function expandDir(node: Node) {
   node.expanded = true;
 }
 
-/** #400 — Recursively expand or collapse all subfolders under a directory node. */
+/** #400 — Recursively expand or collapse all subfolders under a directory node.
+ *  `maxDepth = 4` is deliberate: large vaults can contain thousands of nested
+ *  directories, and expanding every level at once would stall the UI with
+ *  serial directory reads. Do NOT remove this bound. The section-row button
+ *  and context menu use it; deeper folders are expanded on demand. */
 async function expandSubtree(node: Node, maxDepth = 4) {
   closeCtx();
   async function walk(n: Node, depth: number) {
@@ -492,7 +499,9 @@ async function toggleExpandAll() {
 
 async function locateActiveFile() {
   const path = tabs.activeTab?.filePath;
-  if (!path) return;
+  // The section row is visible while the tree loads; a reveal then would fail
+  // for the wrong reason and show a misleading "hidden file" warning.
+  if (!path || !root.value || root.value.loading) return;
   if (!(await revealRow(path))) toasts.warning(t('explorer.revealHidden'), 6000);
 }
 
@@ -508,6 +517,10 @@ watch(
     // Same for the selection: a save dialog aimed at the previous vault's
     // folder is the trap this whole selection exists to avoid.
     selected.value = null;
+    // Park reveal requests until the new root is listed. Without this, the
+    // reveal watcher fires in the same flush while `root` still points at the
+    // previous workspace (loading=false) and consumes the request against it.
+    if (root.value) root.value.loading = true;
     void loadManualOrder().then(refreshRoot);
   },
   { immediate: true },
@@ -659,7 +672,7 @@ function scheduleRefresh() {
 }
 
 async function refreshTreePreservingExpansion() {
-  if (!workspace.currentFolder) return;
+  if (!workspace.currentFolder || !root.value) return;
   const expanded = new Set<string>();
   function walk(n: Node | null | undefined) {
     if (!n) return;
@@ -681,11 +694,12 @@ async function refreshTreePreservingExpansion() {
     }
   }
   await rehydrate(children);
-  if (root.value) {
-    root.value.children = children;
-    root.value.truncated = truncated;
-    root.value.loading = false;
-  }
+  // A workspace switch during the serial IPC above must not let stale children
+  // overwrite the new root (refreshRoot has the same guard).
+  if (root.value?.path !== path) return;
+  root.value.children = children;
+  root.value.truncated = truncated;
+  root.value.loading = false;
   // Creating / deleting / moving a file can change which folders hold a match
   // for the extension filter (#282). This runs after every tree refresh
   // rather than on a `watch(root)`, because the refresh mutates the root node
@@ -813,7 +827,11 @@ function openCtx(e: MouseEvent, node: Node | null) {
   e.stopPropagation();
   openCtxAt(e.clientX, e.clientY, node);
 }
-function openCtxAt(x: number, y: number, node: Node | null) {
+function openCtxAt(x: number, y: number, node: Node | null, fromLongPress = false) {
+  // The 700ms "just opened" grace in onDocDown is only for the synthetic click
+  // that follows a long press. A right-click in that window must not inherit
+  // it, or its menu would ignore the next outside press.
+  ctxOpenedAt = fromLongPress ? Date.now() : 0;
   // Right-clicking a row selects it (the usual desktop convention), so the
   // menu's actions and "new file" agree about what "here" means. Empty-area
   // clicks keep whatever was selected.
@@ -856,8 +874,7 @@ function startLongPress(e: PointerEvent, node: Node) {
       // The finger lifting off ends in a click: it must neither open the
       // file under it nor close the menu it just opened.
       suppressClick.value = true;
-      ctxOpenedAt = Date.now();
-      openCtxAt(x, y, node);
+      openCtxAt(x, y, node, true);
     }, LONG_PRESS_MS),
   };
   window.addEventListener('pointermove', onLongPressMove);
@@ -1226,7 +1243,7 @@ async function serveRevealRequest() {
   const path = revealRequest.value;
   // A directory read is in flight — the request is served when it lands, so a
   // reveal that raced a workspace switch is not dropped.
-  if (!path || !root.value || root.value.loading) return;
+  if (!path || !root.value || root.value.loading || root.value.path !== workspace.currentFolder) return;
   clearRevealRequest();
   if (!(await revealRow(path))) toasts.warning(t('explorer.revealHidden'), 6000);
 }
@@ -1875,7 +1892,8 @@ function closeFolder() {
 // toggle handler (which closes the others) still works; the right-click context
 // menu closes on any outside press regardless.
 function onDocDown(e: MouseEvent) {
-  const t = e.target as Node | null;
+  // The tree's own `Node` interface shadows the DOM type in this module.
+  const t = e.target as globalThis.Node | null;
   if (t && popEl.value && popEl.value.contains(t)) return;
   if (t && ctxEl.value && ctxEl.value.contains(t)) return;
   const isOwnTrigger = !!(t && (t as HTMLElement).closest('[data-ft-trigger]'));
@@ -1905,6 +1923,10 @@ onBeforeUnmount(() => {
   // A tree unmounted mid-drag (workspace switch, sidebar hidden) must not
   // leave the ghost, the cursor override or the window listeners behind.
   if (pointerStart || dragActive) teardownDrag();
+  // `revealedPath` is module-level; a stale timer would clear a highlight
+  // belonging to a freshly mounted tree.
+  if (revealTimer) clearTimeout(revealTimer);
+  revealTimer = null;
 });
 </script>
 
@@ -1985,6 +2007,17 @@ onBeforeUnmount(() => {
             @click.stop="openFilter($event)"
           >
             <Icon name="filter" :size="16" />
+          </button>
+          <button
+            v-if="settings.inboxWorkflowEnabled && (inboxFilterHomeHidden || showInboxOnly)"
+            class="ftree__tool"
+            :class="{ 'ftree__tool--on': showInboxOnly }"
+            type="button"
+            :title="showInboxOnly ? t('inbox.filterOff') : t('inbox.filterOn')"
+            :aria-label="showInboxOnly ? t('inbox.filterOff') : t('inbox.filterOn')"
+            @click.stop="inbox.toggleFilter()"
+          >
+            <Icon name="inbox" :size="16" />
           </button>
           <button
             class="ftree__tool"
@@ -2166,9 +2199,9 @@ onBeforeUnmount(() => {
         />
       </div>
 
-      <!-- v2.4 / v4.6 F6: Inbox row — standalone tree only. Inside the 5.0
-           sidebar the Inbox lives in the nav rows above (Sidebar.vue), which
-           also carries the inbox-only filter toggle. -->
+      <!-- v2.4 / v4.6 F6: Inbox row — standalone tree only. Inside the dock,
+           the Inbox lives in the Home pane; when that pane is hidden the
+           section row carries the inbox-only filter toggle instead. -->
       <div
         v-if="settings.inboxWorkflowEnabled && !props.embedded"
         class="ftree__inbox"

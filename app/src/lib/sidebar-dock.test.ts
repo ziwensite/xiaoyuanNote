@@ -278,6 +278,18 @@ test('width migration keeps 440 → 472 and clamps the extremes', () => {
   assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: 440 })).width.right, 472);
   assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: 999 })).width.right, MAX_DOCK_WIDTH);
   assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: 100 })).width.right, MIN_DOCK_WIDTH);
+  // null / empty string are not widths (Number(null) === 0 would clamp to MIN).
+  assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: null })).width.right, DEFAULT_DOCK_WIDTH);
+  assert.equal(migrateSidebarDock(legacy({ sideSidebarWidth: '' })).width.right, DEFAULT_DOCK_WIDTH);
+});
+
+test('an empty groups object does not discard legacy panes', () => {
+  const dock = sanitizeSidebarDock({
+    groups: {},
+    panes: [{ id: 'files', side: 'left', visible: true }],
+    active: { left: 'files' },
+  });
+  assert.deepEqual(idsOn(dock, 'left'), ['home', 'files']);
 });
 
 test('order follows the stored rsPaneOrder and appends unknown future ids', () => {
@@ -403,7 +415,7 @@ test('moving every pane to a side moves files too', () => {
   assert.equal(dock.groups.right[0].panes.includes('files'), true);
 });
 
-test('V1 merge moves every non-files pane off the left and keeps files there', () => {
+test('V1 merge keeps every left-default pane (home + files) on the left', () => {
   const before = migrateSidebarDock(legacy({ outlineSide: 'left' }));
   assert.equal(idsOn(before, 'right').length, 0);
   assert.ok(idsOn(before, 'left').includes('outline'));
@@ -414,8 +426,9 @@ test('V1 merge moves every non-files pane off the left and keeps files there', (
     alreadyMerged: false,
   });
 
-  assert.deepEqual(idsOn(dock, 'left'), ['files']);
-  assert.equal(idsOn(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 1);
+  assert.deepEqual(idsOn(dock, 'left'), ['home', 'files']);
+  assert.equal(idsOn(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 2);
+  assert.ok(!movedToSecondary.includes('home'));
   assert.ok(movedToSecondary.includes('outline'));
   assert.equal(dock.groups.left[0].active, 'files');
   assert.equal(dock.groups.right[0].active, 'outline');
@@ -603,6 +616,23 @@ test('stage 2 appendToNewRegion moves files too, but refuses unknown / pending p
   assert.deepEqual(after.groups.right[2].panes, ['files']);
   assert.equal(appendToNewRegion(before, 'right', 'calendar'), before);
   assert.equal(appendToNewRegion(before, 'right', 'ghost'), before);
+});
+
+test('stage 2 appendToNewRegion hands an emptied region height to its neighbour', () => {
+  const base = stagedDock();
+  const before: SidebarDockState = {
+    ...base,
+    groups: {
+      left: base.groups.left,
+      right: [
+        { panes: ['outline'], active: 'outline', height: 1 },
+        { panes: ['agent'], active: 'agent', height: 2 },
+      ],
+    },
+  };
+  const after = appendToNewRegion(before, 'right', 'agent');
+  assert.equal(after.groups.right.length, 2);
+  assert.equal(after.groups.right[0].height, 3);
 });
 
 test('stage 2 mergeDockGroups folds the next region back', () => {

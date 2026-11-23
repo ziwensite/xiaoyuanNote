@@ -98,7 +98,6 @@ import {
   parseComponentFenceRef,
   type ComponentFenceRef,
   type ComponentNode,
-  type ComponentType,
 } from './component-system';
 import { useComponentsStore } from '../stores/components';
 import { getKatex, onRenderDepsChange, renderDepsVersion } from './render-deps';
@@ -896,7 +895,7 @@ function availableColumns(from: QueryScope): string[] {
   return Array.from(new Set([...base, ...noteCols]));
 }
 
-function labelOf(colId: string, from: QueryScope): string {
+function labelOf(colId: string, _from: QueryScope): string {
   if (SYNTH_LABELS[colId]) return SYNTH_LABELS[colId];
   const index = useWorkspaceIndexStore();
   const entries = index.entries ?? [];
@@ -1053,7 +1052,7 @@ class QueryWidget extends WidgetType {
       this.view?.dispatch({ effects: relayoutEffect.of(null) });
     };
     const addBtn = this.toolbarBtn('＋列');
-    addBtn.onclick = (e) => this.openInsertColumnMenu(addBtn, spec, 'append');
+    addBtn.onclick = () => this.openInsertColumnMenu(addBtn, spec, 'append');
 
     const fromSel = document.createElement('select');
     fromSel.className = 'qb-select';
@@ -1121,7 +1120,11 @@ class QueryWidget extends WidgetType {
     panel.appendChild(combRow);
 
     const fg = spec.filters ?? { combinator: 'all' as const, children: [] };
-    fg.children.forEach((leaf, idx) => panel.appendChild(this.buildFilterRow(spec, leaf, idx)));
+    // The inline panel edits leaves only; nested groups are still honoured by
+    // the query engine but have no row representation here.
+    fg.children
+      .filter((node): node is FilterLeaf => !('children' in node))
+      .forEach((leaf, idx) => panel.appendChild(this.buildFilterRow(spec, leaf, idx)));
 
     const addBtn = this.toolbarBtn('＋ 添加条件');
     addBtn.onclick = () => {
@@ -1340,7 +1343,6 @@ class QueryWidget extends WidgetType {
 class ComponentWidget extends WidgetType {
   private readonly source: string;
   private readonly ref: ComponentFenceRef;
-  private readonly blockFrom: number;
   private readonly blockTo: number;
   private readonly deps: number;
   private readonly componentVersion: number;
@@ -1350,11 +1352,10 @@ class ComponentWidget extends WidgetType {
   /** Node whose property panel is open (module-level so it survives relayout). */
   private static editing: string | null = null;
 
-  constructor(source: string, blockFrom: number, blockTo: number) {
+  constructor(source: string, _blockFrom: number, blockTo: number) {
     super();
     this.source = source;
     this.ref = parseComponentFenceRef(source);
-    this.blockFrom = blockFrom;
     this.blockTo = blockTo;
     this.deps = queryDataVersion;
     this.componentVersion = getComponentDataVersion();
@@ -1583,7 +1584,7 @@ class ComponentWidget extends WidgetType {
     }
   }
 
-  private renderNode(node: ComponentNode, containerId: string | null): HTMLElement {
+  private renderNode(node: ComponentNode, _containerId: string | null): HTMLElement {
     const def = COMPONENT_DEFS[node.type];
     // Transparent root: no node frame, no bar. Its children are laid out in a
     // plain vertical flow; an empty root renders nothing (no default box).
@@ -1856,16 +1857,21 @@ class ComponentWidget extends WidgetType {
       }
     };
     bar.appendChild(copy);
-    if (componentEditMode) {
+    // Only an id ref can be renamed/saved as a component file; legacy and
+    // empty fences have no id and would silently save `id: undefined`.
+    // Capture the narrowed value: TS does not keep property narrowing inside
+    // the click callback.
+    const ref = this.ref;
+    if (componentEditMode && ref.kind === 'id') {
       const rename = btn('重命名');
       rename.className = 'qb-btn';
       rename.onclick = (e) => {
         e.stopPropagation();
-        const current = componentStore.get(this.ref.id)?.name || compName;
+        const current = componentStore.get(ref.id)?.name || compName;
         const next = window.prompt('组件名称', current);
         if (next === null) return;
         const name = next.trim() || '新组件';
-        void componentStore.save({ id: this.ref.id, name, tree: this.root });
+        void componentStore.save({ id: ref.id, name, tree: this.root });
       };
       bar.appendChild(rename);
     }

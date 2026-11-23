@@ -160,8 +160,6 @@ function onSidebarResize(ev: MouseEvent) {
   document.addEventListener('mouseup', onUp);
 }
 
-/** Right-click inside a pane body. Panes that already own a menu (file tree,
- *  saved views) call stopPropagation, so this only fires on the chrome. */
 /** Relative weight → flex share. Absent height = one equal share. */
 function groupStyle(group: DockGroupView) {
   return { flex: `${group.height ?? 1} 1 0%` };

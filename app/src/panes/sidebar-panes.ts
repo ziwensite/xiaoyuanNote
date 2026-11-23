@@ -1,13 +1,12 @@
 /**
  * S1 — single source of truth for right-sidebar panes.
  *
- * Pure metadata: no Vue imports, no store access, no behaviour. `App.vue`
- * derives the pane *order* from `IMPLEMENTED_SIDEBAR_PANE_IDS` (exactly the
- * list the old `known` literal held), and `SidebarPaneBody` maps ids to
- * components. Visibility still comes from the existing stores, so this table
- * is read-only in S1 — S2 will start writing `sidebarDock` state from it.
+ * Pure metadata: no Vue imports, no store access, no behaviour. The dock
+ * derives its pane order from this array, `App.vue` derives the per-pane
+ * visibility map from `IMPLEMENTED_SIDEBAR_PANE_IDS` and `SidebarPaneBody`
+ * maps ids to components. Visibility still comes from the existing stores.
  *
- * `defaultSide` / `defaultVisible` / `defaultActive` describe the *new-install*
+ * `defaultSide` / `defaultVisible` describe the *new-install*
  * preset only; they must not affect an existing install until S2 ships the
  * migration. `calendar` (M1) is a real read-only pane but ships **off** by
  * default: a new tab appearing in every existing user's right dock is a
@@ -42,7 +41,7 @@ export type ImplementedSidebarPaneId = SidebarPaneId;
 /** Legacy classification of where a pane's visibility comes from. It only
  *  drives the V1 migration; at runtime the `visible` map is authoritative for
  *  every pane, `files` included (it can now be hidden and re-added). */
-export type SidebarPaneVisibility = 'setting' | 'tab' | 'session' | 'always';
+export type SidebarPaneVisibility = 'setting' | 'tab' | 'always';
 
 /** Context the availability gate reads. Kept structural so this module stays
  *  store-free; `App.vue` builds it from its existing computeds. */
@@ -58,8 +57,6 @@ export interface SidebarPaneDef {
   visibility: SidebarPaneVisibility;
   defaultSide: 'left' | 'right';
   defaultVisible: boolean;
-  /** D6: the pane a fresh install activates by default. */
-  defaultActive?: boolean;
   /** Not implemented yet — no component, no entry point. */
   pending?: boolean;
   /** Existing `Icons.vue` name — S2 must not add new icons. */

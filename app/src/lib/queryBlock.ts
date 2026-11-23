@@ -39,7 +39,7 @@ import {
 } from './bases';
 import type { FilterGroup, FilterLeaf } from './viewFile';
 import { useSavedViewsStore } from '../stores/savedViews';
-import { useWorkspaceIndexStore, type IndexEntry, type TaskRef } from '../stores/workspaceIndex';
+import { useWorkspaceIndexStore, type IndexEntry } from '../stores/workspaceIndex';
 import { parseTaskMeta } from './tasks';
 
 export type QueryScope = 'notes' | 'tasks' | 'lines';
@@ -131,11 +131,11 @@ export function parseQuerySpec(src: string): QuerySpec {
   const transpose = o.transpose === true ? true : undefined;
   const columnWidths =
     o.columnWidths && typeof o.columnWidths === 'object'
-      ? Object.fromEntries(
+      ? (Object.fromEntries(
           Object.entries(o.columnWidths as Record<string, unknown>).filter(
             ([, v]) => typeof v === 'number' && (v as number) > 0,
           ),
-        )
+        ) as Record<string, number>)
       : undefined;
 
   return { from, render, filters, sort, columns, limit, search, view, transpose, columnWidths };

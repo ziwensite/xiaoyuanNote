@@ -773,9 +773,9 @@ function defaults(): Settings {
     autoNumberHeadings: false,
     v507HighlightLineMigrated: true,
     codeFontFamily: '',
-    // S2 / D6 — the fresh-install dock presets the Outline on the left, so new
-    // markdown tabs come up with it switched on. Existing installs keep the
-    // value they persisted, so their old side/stack behaviour is unchanged.
+    // S2 / D6 — new markdown tabs come up with Outline switched on. Its dock
+    // default side is right (see sidebar-panes.ts); `outlineSide` is only the
+    // pre-S2 legacy hint. Existing installs keep the value they persisted.
     showOutline: true,
     outlineSide: 'right',
     outlineMarker: 'jump',
@@ -1121,10 +1121,13 @@ function load(): Settings {
       // The HTTP endpoint owns its own folder, and renders one preset's path
       // and front matter. Older blobs stored the folder under the
       // endpoint-specific name; migrate that value once.
+      // `captureEndpointInbox` is a pre-rename key; it is intentionally absent
+      // from Settings, so read it through a legacy view of the parsed blob.
+      const legacy = parsed as Partial<Settings> & { captureEndpointInbox?: unknown };
       const savedInbox = typeof parsed.inboxFolder === 'string' && parsed.inboxFolder.trim()
         ? parsed.inboxFolder.trim()
-        : typeof parsed.captureEndpointInbox === 'string' && parsed.captureEndpointInbox.trim()
-          ? parsed.captureEndpointInbox.trim()
+        : typeof legacy.captureEndpointInbox === 'string' && legacy.captureEndpointInbox.trim()
+          ? legacy.captureEndpointInbox.trim()
           : '';
       merged.inboxFolder = savedInbox.replace(/^[/\\]+|[/\\]+$/g, '') || 'inbox';
       const savedHttpId = typeof parsed.httpCapturePresetId === 'string'
@@ -1643,20 +1646,6 @@ export const useSettingsStore = defineStore('settings', {
       }
       this.persist();
       return true;
-    },
-    /** S2 — the old "last pane closed" path: collapse the dock, keep its
-     *  panes and their on/off state (the rail stays as the way back in). */
-    hideRightSidebarFromPane(_paneBeforeToggle?: unknown) {
-      this.sidebarDock.collapsed.right = true;
-      this.persist();
-    },
-    /** S2 — ensure the right dock is expanded (used when switching a pane ON
-     *  from the context menu while it was collapsed). */
-    ensureRightSidebarVisible() {
-      if (this.sidebarDock.collapsed.right) {
-        this.sidebarDock.collapsed.right = false;
-        this.persist();
-      }
     },
     // ---- Dock actions (stage 1: groups) ------------------------------------
     /** Keep the frozen legacy switches honest for their remaining readers:

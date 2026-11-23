@@ -20,10 +20,8 @@ import { useSettingsStore } from '../stores/settings';
 import { useCalendarStore } from '../stores/calendar';
 import { useHolidaysStore } from '../stores/holidays';
 import { useI18n, htmlLangFor } from '../i18n';
-import Icons from './Icons.vue';
 import CalendarHeader from './CalendarHeader.vue';
 import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
-import { CALENDAR_EDITOR_VIEWS } from '../lib/calendar-prefs';
 import { buildCalendarView, monthGridRange, type CalendarViewDay } from '../lib/calendar-view';
 import {
   aggregateDensity,
