@@ -429,6 +429,9 @@ function toggleTabList(e: MouseEvent) {
       if (placed.maxHeight !== undefined) tabListMaxH.value = placed.maxHeight;
       tabListPos.value = { left: placed.left, top: placed.top };
     }
+    // The active tab may be scrolled out of the strip. Bring its row into
+    // view so opening the list immediately shows which tab is open.
+    el?.querySelector<HTMLElement>('.tablist__item--active')?.scrollIntoView({ block: 'nearest' });
     tabListFilterInput.value?.focus();
   });
 }
@@ -647,6 +650,7 @@ onBeforeUnmount(() => {
           :key="tl.id"
           class="ctx-item tablist__item"
           :class="{ 'tablist__item--active': tl.id === activeTabId }"
+          :aria-current="tl.id === activeTabId ? 'true' : undefined"
           role="menuitem"
           :title="tabTooltip(tl, t, settings.tabTitleFromFirstLine)"
           @click="pickFromTabList(tl.id)"
@@ -761,7 +765,12 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex: 0 0 auto;
+  /* Content width up to `max-width` while there is room; once the strip is
+   * crowded every tab shrinks proportionally so more of them stay visible
+   * instead of being pushed into hidden horizontal scroll. `min-width`
+   * keeps the 16px close/dirty slot usable — past that, .tabs scrolls. */
+  flex: 1 1 auto;
+  min-width: 72px;
   max-width: 220px;
   /* A tab's target is a 13px label, not a glyph, so it takes the text-chip
    * height (--ctl-text-h) and the same corner as every other chip. */
@@ -800,6 +809,11 @@ onBeforeUnmount(() => {
   opacity: 0.5;
 }
 .tab__name {
+  /* Without min-width:0 a nowrap flex item can't shrink below its content
+   * width, so a long note title pushes `.tab__end` (and its close ×) outside
+   * the 220px tab where the strip clips it. This makes ellipsis work and
+   * keeps the close button reachable. */
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -977,8 +991,17 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* The open tab can be scrolled out of the strip, so make it unmistakable in
+ * the "all tabs" list: accent rail + tint + accent text, mirroring the accent
+ * top rail the active tab has in the strip itself. */
 .tablist__item--active {
+  background: var(--fill-1);
+  box-shadow: inset 3px 0 0 var(--accent);
+  color: var(--accent);
   font-weight: 600;
+}
+.ctx-item.tablist__item--active:hover {
+  background: var(--fill-2);
 }
 .tablist__dot {
   width: 6px;
