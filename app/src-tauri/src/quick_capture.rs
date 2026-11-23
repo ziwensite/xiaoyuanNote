@@ -12,9 +12,12 @@
 //! event loop, and macOS throttles an occluded WKWebView — precisely the state
 //! the window is in whenever this feature is worth having.
 //!
-//! The note is written through `capture_endpoint::capture_write_inner`, the
-//! same function the HTTP capture endpoint uses, so a hotkey capture and a
-//! browser-extension capture produce the same file in the same place.
+//! The note is written through `capture_write_rendered` using the selected
+//! preset's path and rendering rules — the same generic writer the HTTP
+//! endpoint uses, so a hotkey capture and a browser-extension capture follow
+//! the same preset policy.
+
+use std::path::{Path, PathBuf};
 
 use tauri::{AppHandle, Emitter};
 // Every window this module touches lives behind `cfg(desktop)`, so on mobile
@@ -25,7 +28,7 @@ use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 // `super::` rather than `crate::`: this file is compiled twice — once as a
 // top-level module of the lib, once inside `mod runner` in the binary (see the
 // `#[path = ...]` declarations there). Only the relative path resolves in both.
-use super::capture_endpoint::{self, capture_write_inner};
+use super::capture_endpoint;
 
 /// Fixed label so a second press focuses the existing box instead of stacking
 /// windows. Matches the `xiaoyuan-note-*` capability pattern.
@@ -100,90 +103,81 @@ pub fn quick_capture_close(app: AppHandle) -> Result<(), String> {
 }
 
 // ---------------------------------------------------------------------------
-// Write
+// Generic preset writer
 // ---------------------------------------------------------------------------
 
-/// Write a captured note into the workspace inbox. Returns the file path.
+/// Resolve a workspace-relative path without ever escaping the workspace.
+fn safe_workspace_path(workspace: &Path, relative: &str) -> Result<PathBuf, String> {
+    let mut out = workspace.to_path_buf();
+    for part in relative.trim().replace('\\', "/").split('/') {
+        match part {
+            "" | "." => continue,
+            ".." => return Err("capture path may not escape the workspace".into()),
+            name => out.push(name),
+        }
+    }
+    Ok(out)
+}
+
+fn dedupe_path(path: PathBuf) -> PathBuf {
+    if !path.exists() {
+        return path;
+    }
+    let parent = path.parent().unwrap_or_else(|| Path::new(""));
+    let stem = path.file_stem().unwrap_or_default().to_string_lossy();
+    let ext = path
+        .extension()
+        .map(|e| format!(".{}", e.to_string_lossy()))
+        .unwrap_or_default();
+    for i in 2..u32::MAX {
+        let candidate = parent.join(format!("{stem}-{i}{ext}"));
+        if !candidate.exists() {
+            return candidate;
+        }
+    }
+    path
+}
+
+/// Pure part of {@link capture_write_rendered}: no Tauri state or events.
+pub fn capture_write_rendered_inner(
+    workspace: &Path,
+    relative: &str,
+    content: &str,
+    dedupe: bool,
+) -> Result<PathBuf, String> {
+    if !workspace.is_dir() {
+        return Err("workspace folder does not exist".into());
+    }
+    let mut target = safe_workspace_path(workspace, relative)?;
+    if dedupe {
+        target = dedupe_path(target);
+    }
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&target, content).map_err(|e| e.to_string())?;
+    Ok(target)
+}
+
+/// Write a fully rendered note (front matter included) to a preset-chosen path.
+/// Policy lives in the preset; this command is only the I/O primitive.
 #[tauri::command]
-pub fn quick_capture_write(
+pub fn capture_write_rendered(
     app: AppHandle,
-    title: Option<String>,
+    path: String,
     content: String,
-    tags: Option<Vec<String>>,
+    dedupe: Option<bool>,
+    emit: Option<bool>,
 ) -> Result<String, String> {
-    let trimmed = content.trim();
-    if trimmed.is_empty() {
-        return Err("nothing to capture".into());
-    }
-    let (workspace, inbox_folder) = capture_endpoint::current_target()
+    let workspace = capture_endpoint::current_target()
+        .map(|(workspace, _)| workspace)
         .ok_or_else(|| "no workspace folder is open".to_string())?;
-
-    // A capture is rarely a document with a heading, so the shared writer's
-    // "no title → Untitled" would name every note `…-untitled.md` and make the
-    // inbox unreadable at a glance. The first line is the title here.
-    let derived = title.filter(|t| !t.trim().is_empty()).or_else(|| first_line_title(trimmed));
-
-    let path = capture_write_inner(
-        &workspace,
-        &inbox_folder,
-        derived.as_deref(),
-        trimmed,
-        None,
-        tags.as_deref(),
-        true,
-        now_iso8601(),
-    )
-    .map_err(|e| e.to_string())?;
-
-    // The main window's file tree is showing a directory that just gained a
-    // file; without this the note is invisible until something else refreshes.
-    let _ = app.emit("xiaoyuan-note://capture-written", path.clone());
-    Ok(path)
-}
-
-/// First non-empty line, stripped of any leading markdown heading marker and
-/// clipped to something that still works as a filename. `None` when the text
-/// has nothing usable, which leaves the shared writer's own fallback in place.
-fn first_line_title(content: &str) -> Option<String> {
-    let line = content.lines().map(str::trim).find(|l| !l.is_empty())?;
-    let line = line.trim_start_matches('#').trim();
-    if line.is_empty() {
-        return None;
+    let target = capture_write_rendered_inner(&workspace, &path, &content, dedupe.unwrap_or(true))?;
+    let rendered = target.to_string_lossy().to_string();
+    if emit.unwrap_or(true) {
+        let _ = app.emit("xiaoyuan-note://capture-written", rendered.clone());
     }
-    // Character-wise, not byte-wise: cutting mid-codepoint would panic, and
-    // 60 bytes of CJK is only 20 characters.
-    let clipped: String = line.chars().take(60).collect();
-    Some(clipped)
-}
-
-/// `capture_write_inner` takes the timestamp as a string so its callers decide
-/// the clock; the HTTP endpoint uses the request time, we use now.
-fn now_iso8601() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    // Minimal UTC formatting — no chrono dependency for one timestamp.
-    let days = secs / 86_400;
-    let rem = secs % 86_400;
-    let (h, m, s) = (rem / 3600, (rem % 3600) / 60, rem % 60);
-    let (y, mo, d) = civil_from_days(days as i64);
-    format!("{y:04}-{mo:02}-{d:02}T{h:02}:{m:02}:{s:02}Z")
-}
-
-/// days-since-epoch → (year, month, day). Howard Hinnant's civil_from_days.
-fn civil_from_days(z: i64) -> (i64, u32, u32) {
-    let z = z + 719_468;
-    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
-    let doe = (z - era * 146_097) as u64;
-    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
-    let y = yoe as i64 + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = (doy - (153 * mp + 2) / 5 + 1) as u32;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
-    (if m <= 2 { y + 1 } else { y }, m, d)
+    Ok(rendered)
 }
 
 // ---------------------------------------------------------------------------

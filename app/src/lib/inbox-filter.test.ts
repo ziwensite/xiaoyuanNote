@@ -35,6 +35,11 @@ test('a note modified today counts in Week and Month', () => {
   assert.deepEqual(filterInboxEntries([old, today], 'week', NOW).map((e) => e.path), ['a']);
 });
 
+test('inbox membership ignores where the note lives', () => {
+  const moved = entry('archive/2026/a', Math.floor(NOW / 1000));
+  assert.deepEqual(filterInboxEntries([moved], 'all', NOW).map((e) => e.path), ['archive/2026/a']);
+});
+
 test('front-matter created wins; numeric seconds and ms both accepted', () => {
   const base = Math.floor(NOW / 1000);
   assert.equal(inboxCapturedAt(entry('a', base, { created: '2026-10-01' })), Date.parse('2026-10-01'));

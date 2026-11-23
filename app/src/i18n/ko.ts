@@ -562,12 +562,12 @@ export const ko: I18n = {
     cslPicked: 'CSL 스타일 로드 완료',
     dailyNotesFolder: '데일리 노트 폴더(워크스페이스 기준)',
     dailyNotesFormat: '데일리 노트 파일명 형식',
-    dailyNotesTemplate: '데일리 노트 템플릿(비워두면 기본값)',
+    dailyNotesTemplate: '데일리 노트 템플릿(비워두면 기본값)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1521,6 +1521,7 @@ export const ko: I18n = {
     tokenRegenerated: '새 토큰을 생성했습니다 — 기존 토큰은 더 이상 작동하지 않음',
     folder: 'inbox 폴더',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: '터미널에서 테스트',
     curlCopy: '복사',
     curlCopied: 'curl 명령 복사됨',
@@ -2215,7 +2216,8 @@ export const ko: I18n = {
       checkUpdated: '{years}년 공휴일 데이터를 업데이트했습니다',
       checkFailed: '확인 실패 — 캐시 사용',
     },
-    week: { header: 'W', tooltip: 'ISO {week}주' },
+    week: { header: 'W', tooltip: 'ISO {week}주' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

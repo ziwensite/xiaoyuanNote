@@ -454,7 +454,8 @@ interface Settings {
   // Default off so existing exports don't surprise anyone. Issue #65.
   codeBlockLineNumbers: boolean;
   // Quick capture: a system-wide hotkey that opens a small box, takes a line
-  // of text and files it in the Inbox without bringing the app forward. The
+  // of text and runs the selected capture preset without bringing the app
+  // forward. The
   // chord is an OS-level accelerator (Tauri's spelling, e.g.
   // `CmdOrCtrl+Alt+Shift+M`), not one of the rebindable in-app shortcuts, because
   // it has to work while another application is focused.
@@ -462,10 +463,13 @@ interface Settings {
   quickCaptureShortcut: string;
   /** Preset executed by the global quick-capture hotkey and its small window. */
   quickCapturePresetId: string;
+  /** Workspace-relative folder used by the HTTP capture endpoint. */
+  inboxFolder: string;
+  /** Preset whose path/front matter the HTTP endpoint renders. */
+  httpCapturePresetId: string;
   /** HTTP capture endpoint. Persisted here so a restart no longer silently
-   *  re-enables/forgets the user's inbox choice (the Rust state is memory-only). */
+   *  re-enables/forgets the user's choice (the Rust state is memory-only). */
   captureEndpointEnabled: boolean;
-  captureEndpointInbox: string;
   // DOCX export template: which of the built-in presets (plain / report /
   // academic) a Word export starts from. A per-document `docx:` front-matter
   // block overrides individual keys, the same way `pdf:` does.
@@ -922,9 +926,10 @@ function defaults(): Settings {
     wheelZoomEnabled: true,
     quickCaptureEnabled: true,
     quickCaptureShortcut: QUICK_CAPTURE_DEFAULT_SHORTCUT,
-    quickCapturePresetId: 'quick',
+    quickCapturePresetId: 'flash',
+    inboxFolder: 'inbox',
+    httpCapturePresetId: 'inbox',
     captureEndpointEnabled: false,
-    captureEndpointInbox: 'inbox',
     docxPreset: 'plain',
     printTheme: 'light',
     foldingEnabled: true,
@@ -1088,25 +1093,49 @@ function load(): Settings {
         merged.captures = normalizeCapturePresets(parsed.captures);
       }
       merged.capturesEnabled = parsed.capturesEnabled !== false;
-      // Older blobs have no built-in `quick` preset. Insert it once so the OS
-      // hotkey keeps working, but preserve any edits the user made to it.
-      if (!merged.captures.some((preset) => preset.id === 'quick')) {
-        merged.captures = [...defaultCapturePresets().filter((p) => p.id === 'quick'), ...merged.captures];
+      // The old `quick` preset was merged into `flash`: drop the duplicate and
+      // remap a hotkey that used to point at it. The flash preset stays fully
+      // editable — its own settings decide where a capture actually lands.
+      merged.captures = merged.captures.filter((preset) => preset.id !== 'quick');
+      if (!merged.captures.some((preset) => preset.id === 'flash')) {
+        merged.captures = [...defaultCapturePresets().filter((p) => p.id === 'flash'), ...merged.captures];
       }
-      merged.captures = merged.captures.map((preset) => preset.id === 'quick'
-        ? { ...preset, builtIn: true, enabled: true }
+      merged.captures = merged.captures.map((preset) => preset.id === 'flash'
+        ? { ...preset, builtIn: true }
         : preset);
-      const quickId = typeof parsed.quickCapturePresetId === 'string' ? parsed.quickCapturePresetId.trim() : '';
+      merged.captures = merged.captures.map((preset) => preset.id === 'inbox'
+        && preset.frontmatterTemplate === 'title: {{value}}\ninbox: true\ncaptured_at: {{capturedAt}}'
+          ? { ...preset, frontmatterTemplate: 'title: {{value}}\ninbox: {{inbox}}\ncaptured_at: {{capturedAt}}' }
+          : preset);
+      const savedHotkeyId = typeof parsed.quickCapturePresetId === 'string'
+        ? parsed.quickCapturePresetId.trim()
+        : '';
+      const hotkeyId = savedHotkeyId === 'quick' ? 'flash' : savedHotkeyId;
       merged.quickCapturePresetId = merged.captures.some(
-        (preset) => preset.id === quickId && preset.enabled && preset.target !== 'active',
-      ) ? quickId : 'quick';
-      // The HTTP capture endpoint's state lives in memory on the Rust side.
-      // These two fields are the persisted half, pushed up on every start.
-      merged.captureEndpointEnabled = parsed.captureEndpointEnabled === true;
-      merged.captureEndpointInbox =
-        typeof parsed.captureEndpointInbox === 'string' && parsed.captureEndpointInbox.trim()
+        (preset) => preset.id === hotkeyId && preset.enabled && preset.target !== 'active',
+      ) ? hotkeyId : 'flash';
+      // The HTTP endpoint owns its own folder, and renders one preset's path
+      // and front matter. Older blobs stored the folder under the
+      // endpoint-specific name; migrate that value once.
+      const savedInbox = typeof parsed.inboxFolder === 'string' && parsed.inboxFolder.trim()
+        ? parsed.inboxFolder.trim()
+        : typeof parsed.captureEndpointInbox === 'string' && parsed.captureEndpointInbox.trim()
           ? parsed.captureEndpointInbox.trim()
-          : 'inbox';
+          : '';
+      merged.inboxFolder = savedInbox.replace(/^[/\\]+|[/\\]+$/g, '') || 'inbox';
+      const savedHttpId = typeof parsed.httpCapturePresetId === 'string'
+        ? parsed.httpCapturePresetId.trim()
+        : '';
+      const httpEligible = (preset: CapturePreset) =>
+        preset.enabled && (preset.target === 'inbox' || preset.target === 'folder');
+      merged.httpCapturePresetId = merged.captures.some(
+        (preset) => preset.id === savedHttpId && httpEligible(preset),
+      )
+        ? savedHttpId
+        : merged.captures.some((preset) => preset.id === 'inbox' && httpEligible(preset))
+          ? 'inbox'
+          : merged.captures.find(httpEligible)?.id ?? '';
+      merged.captureEndpointEnabled = parsed.captureEndpointEnabled === true;
       if (!Number.isInteger(merged.weekStartsOn) || merged.weekStartsOn < 0 || merged.weekStartsOn > 6) {
         merged.weekStartsOn = 1;
       }
@@ -1941,7 +1970,8 @@ export const useSettingsStore = defineStore('settings', {
       const builtIns = defaultCapturePresets();
       const byId = new Map(this.captures.map((preset) => [preset.id, preset]));
       // Restore the bundled presets without discarding user-made ones. The
-      // quick preset is rebuilt from its default so it can never stay disabled.
+      // built-in flash preset is rebuilt from its default, like every other
+      // bundled preset.
       const restored = builtIns.map((preset) => preset.builtIn
         ? { ...preset }
         : { ...preset, ...byId.get(preset.id) });
@@ -1955,21 +1985,28 @@ export const useSettingsStore = defineStore('settings', {
       this.captures = [...this.captures, preset];
       this.persist();
     },
+    fallbackHotkeyPresetId(): string {
+      return this.captures.find((p) => p.id === 'flash' && p.enabled && p.target !== 'active')?.id
+        ?? this.captures.find((p) => p.enabled && p.target !== 'active')?.id
+        ?? '';
+    },
     updateCapture(id: string, patch: Partial<CapturePreset>) {
-      this.captures = this.captures.map((preset) => {
-        if (preset.id !== id) return preset;
-        // The built-in quick preset is the global hotkey's guaranteed target.
-        return preset.builtIn
-          ? { ...preset, ...patch, id: preset.id, enabled: true }
-          : { ...preset, ...patch, id: preset.id };
-      });
+      this.captures = this.captures.map((preset) => preset.id === id
+        ? { ...preset, ...patch, id: preset.id }
+        : preset);
+      const hotkey = this.captures.find((preset) => preset.id === this.quickCapturePresetId);
+      if (!hotkey || !hotkey.enabled || hotkey.target === 'active') {
+        this.quickCapturePresetId = this.fallbackHotkeyPresetId();
+      }
       this.persist();
     },
     removeCapture(id: string) {
       const preset = this.captures.find((p) => p.id === id);
       if (!preset || preset.builtIn) return;
       this.captures = this.captures.filter((p) => p.id !== id);
-      if (this.quickCapturePresetId === id) this.quickCapturePresetId = 'quick';
+      if (this.quickCapturePresetId === id) {
+        this.quickCapturePresetId = this.fallbackHotkeyPresetId();
+      }
       // A removed command must not leave an invisible shortcut behind:
       // reusing that id later would silently inherit the old chord.
       delete this.keybindings[`capture.preset.${id}`];
@@ -2193,10 +2230,16 @@ export const useSettingsStore = defineStore('settings', {
       this.captureEndpointEnabled = enabled;
       this.persist();
     },
-    setCaptureEndpointInbox(folder: string) {
+    setInboxFolder(folder: string) {
       // Match the Rust command: a leading/trailing slash is not part of the
       // workspace-relative folder name, and an empty value means `inbox`.
-      this.captureEndpointInbox = folder.trim().replace(/^[/\\]+|[/\\]+$/g, '') || 'inbox';
+      this.inboxFolder = folder.trim().replace(/^[/\\]+|[/\\]+$/g, '') || 'inbox';
+      this.persist();
+    },
+    setHttpCapturePreset(id: string) {
+      const preset = this.captures.find((p) => p.id === id);
+      if (!preset || !preset.enabled || (preset.target !== 'inbox' && preset.target !== 'folder')) return;
+      this.httpCapturePresetId = id;
       this.persist();
     },
     setDocxPreset(preset: 'plain' | 'report' | 'academic') {

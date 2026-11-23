@@ -562,12 +562,12 @@ export const es: I18n = {
     cslPicked: 'Estilo CSL cargado',
     dailyNotesFolder: 'Carpeta de notas diarias (relativa al workspace)',
     dailyNotesFormat: 'Formato del nombre de archivo de notas diarias',
-    dailyNotesTemplate: 'Plantilla de notas diarias (vacío = predeterminada)',
+    dailyNotesTemplate: 'Plantilla de notas diarias (vacío = predeterminada)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1522,6 +1522,7 @@ export const es: I18n = {
     tokenRegenerated: 'Nuevo token generado — el viejo ya no funciona',
     folder: 'Carpeta inbox',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'Probar desde el terminal',
     curlCopy: 'Copiar',
     curlCopied: 'Comando curl copiado',
@@ -2217,7 +2218,8 @@ export const es: I18n = {
       checkUpdated: 'Datos de festivos actualizados para {years}',
       checkFailed: 'Error al comprobar: se usa la caché',
     },
-    week: { header: 'W', tooltip: 'Semana ISO {week}' },
+    week: { header: 'W', tooltip: 'Semana ISO {week}' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

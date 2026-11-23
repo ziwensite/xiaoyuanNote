@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import {
   applyCaptureTokens,
   captureDueDate,
+  captureNoteRelativePath,
   capturePreview,
+  capturePresetRules,
   captureTargetPath,
   captureTargetRelativePath,
   composeCaptureInsert,
@@ -16,6 +18,10 @@ import {
   insertTextAtCursor,
   newCapturePreset,
   normalizeCapturePresets,
+  renderCaptureFrontmatter,
+  renderCaptureNote,
+  renderCaptureTemplateNote,
+  stripCaptureFrontmatter,
 } from './capture';
 import { defaultPeriodicConfig } from './periodic-notes';
 
@@ -112,15 +118,109 @@ test('a hand-edited settings blob is filtered instead of trusted', () => {
   assert.equal(list[0].template, '- [ ] {{input}}');
 });
 
-test('default presets are quick, flash, record, task and meeting only', () => {
+test('default presets are flash, record, task and inbox only', () => {
   const defaults = defaultCapturePresets();
-  assert.deepEqual(defaults.map((p) => p.id), ['quick', 'flash', 'record', 'task', 'meeting']);
+  assert.deepEqual(defaults.map((p) => p.id), ['flash', 'record', 'task', 'inbox']);
   assert.ok(defaults.every((p) => p.enabled && p.createIfMissing));
-  assert.equal(defaults.find((p) => p.id === 'quick')?.target, 'inbox');
-  assert.equal(defaults.find((p) => p.id === 'quick')?.builtIn, true);
-  assert.equal(defaults.find((p) => p.id === 'flash')?.period, 'flash');
-  assert.equal(defaults.find((p) => p.id === 'meeting')?.target, 'folder');
-  assert.equal(defaults.find((p) => p.id === 'meeting')?.appendLink, false);
+  const flash = defaults.find((p) => p.id === 'flash');
+  assert.equal(flash?.target, 'folder');
+  assert.equal(flash?.path, 'Flash');
+  assert.equal(flash?.fileName, 'YYYY-MM-DD-HHmm.md');
+  assert.equal(flash?.builtIn, true);
+  const inbox = defaults.find((p) => p.id === 'inbox');
+  assert.equal(inbox?.name, '收件箱笔记');
+  assert.equal(inbox?.target, 'inbox');
+  assert.equal(inbox?.path, 'inbox');
+  assert.equal(inbox?.fileName, 'YYYY-MM-DD-HHmm.md');
+  assert.equal(inbox?.builtIn, undefined);
+});
+
+test('captureNoteRelativePath is fully preset-owned', () => {
+  const preset = { ...newCapturePreset('p', 'Preset'), path: '/Notes/Inbox/', fileName: 'YYYY-MM-DD-HHmm.md' };
+  assert.equal(
+    captureNoteRelativePath(preset, new Date(2026, 0, 2, 9, 7)),
+    'Notes/Inbox/2026-01-02-0907.md',
+  );
+});
+
+test('capturePresetRules pushes path, front matter and inbox together', () => {
+  const date = new Date(2026, 0, 2);
+  const preset = {
+    ...newCapturePreset('p', 'Preset'),
+    path: 'Captures',
+    fileName: 'YYYY-MM-DD.md',
+    frontmatterEnabled: true,
+    frontmatterTemplate: 'inbox: {{inbox}}',
+    markInbox: true,
+  };
+  assert.deepEqual(capturePresetRules(preset, date), {
+    path: 'Captures/2026-01-02.md',
+    frontmatter: 'inbox: {{inbox}}',
+    inbox: true,
+  });
+  assert.deepEqual(capturePresetRules({ ...preset, frontmatterEnabled: false, markInbox: false }, date), {
+    path: 'Captures/2026-01-02.md',
+    frontmatter: '',
+    inbox: false,
+  });
+});
+
+test('preset front matter renders as a complete block', () => {
+  const preset = {
+    ...newCapturePreset('p', 'Preset'),
+    frontmatterEnabled: true,
+    frontmatterTemplate: 'inbox: {{inbox}}',
+    markInbox: true,
+  };
+  assert.equal(renderCaptureFrontmatter(preset), '---\ninbox: true\n---\n\n');
+  assert.equal(stripCaptureFrontmatter('---\ntitle: old\n---\n\nBody'), '\nBody');
+});
+
+test('renderCaptureNote renders preset-owned front matter', () => {
+  const preset = newCapturePreset('p', 'Preset');
+  assert.equal(renderCaptureNote(preset, { value: 'hello' }), '- [ ] hello');
+
+  const inbox = {
+    ...preset,
+    frontmatterEnabled: true,
+    markInbox: true,
+    frontmatterTemplate: 'title: {{value}}\ninbox: {{inbox}}',
+  };
+  const rendered = renderCaptureNote(inbox, { value: 'hello', date: new Date(2026, 0, 2) });
+  assert.ok(rendered.startsWith('---\ntitle: hello\ninbox: true\n---\n\n- [ ] hello'));
+});
+
+test('template YAML is kept and preset fields are merged', () => {
+  const preset = {
+    ...newCapturePreset('p', 'Preset'),
+    frontmatterEnabled: true,
+    frontmatterTemplate: 'title: {{value}}\ninbox: {{inbox}}',
+    markInbox: true,
+  };
+  const template = '---\ntype: project\nstatus: raw\ntags:\n  - shared\n---\n\n# Doc\n';
+  assert.equal(
+    renderCaptureTemplateNote(template, preset, { value: 'hello' }),
+    '---\ntype: project\nstatus: raw\ntags:\n  - shared\ntitle: hello\ninbox: true\n---\n\n# Doc\n',
+  );
+});
+
+test('preset fields override matching template keys', () => {
+  const preset = {
+    ...newCapturePreset('p', 'Preset'),
+    frontmatterEnabled: true,
+    frontmatterTemplate: 'status: done',
+  };
+  const template = '---\ntype: project\nstatus: raw\n---\n\nBody\n';
+  assert.equal(
+    renderCaptureTemplateNote(template, preset),
+    '---\ntype: project\nstatus: done\n---\n\nBody\n',
+  );
+});
+
+test('template YAML is preserved when preset front matter is off', () => {
+  const preset = { ...newCapturePreset('p', 'Preset'), frontmatterEnabled: false };
+  const template = '---\ntype: project\n---\n\nBody\n';
+  assert.equal(renderCaptureTemplateNote(template, preset), template);
 });
 
 test('normalization migrates the richer preset fields', () => {

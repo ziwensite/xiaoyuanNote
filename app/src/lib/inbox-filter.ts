@@ -18,10 +18,8 @@ export type InboxPeriod = 'week' | 'month' | 'all';
 /**
  * Is this entry currently sitting in the inbox?
  *
- * Authoritative signal is the boolean front-matter flag — `inbox === true`.
- * The "no outgoing relationships" idea (Tolaria onboarding language) is only
- * an advisory hint surfaced in the row subtitle via {@link inboxLinkCount};
- * it never changes membership.
+ * The authoritative signal is the boolean front-matter flag — `inbox === true` —
+ * regardless of where the note lives in the workspace.
  */
 export function isInboxCandidate(entry: IndexEntry): boolean {
   const fm = entry.frontmatter as Record<string, unknown> | null;

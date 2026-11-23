@@ -2,12 +2,11 @@
  * Periodic notes — folder + filename format + template per kind, resolved by
  * pure functions.
  *
- * `PERIOD_KINDS` stays the five calendar periods used by task filters and
- * capture presets. `ALL_PERIODIC_KINDS` adds `flash`, a timestamped note type
- * exposed in Calendar → Periodic Notes alongside diary/week/month/etc.
+ * `PERIOD_KINDS` is the five calendar periods used by task filters, capture
+ * presets and Calendar → Periodic Notes. Timestamped flash notes are now a
+ * plain folder-target capture preset, so they no longer live here.
  *
  * Anchors:
- *   flash      the exact moment (hours/minutes stay in the filename)
  *   daily      the day itself
  *   weekly     first day of that week, per `weekStartsOn`
  *   monthly    the 1st
@@ -17,9 +16,9 @@
 
 import { formatDailyFilename, isoDate, isoWeekNumber, weekdayName } from './daily-notes';
 
-export type PeriodKind = 'flash' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+export type PeriodKind = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 
-/** Calendar periods only — task filters and capture presets keep this list. */
+/** The calendar periods exposed everywhere periodic notes are configurable. */
 export const PERIOD_KINDS: readonly PeriodKind[] = [
   'daily',
   'weekly',
@@ -28,11 +27,8 @@ export const PERIOD_KINDS: readonly PeriodKind[] = [
   'yearly',
 ];
 
-/** Everything stored in `settings.periodic`, including the timestamped flash note. */
-export const ALL_PERIODIC_KINDS: readonly PeriodKind[] = [
-  'flash',
-  ...PERIOD_KINDS,
-];
+/** Alias kept for callers that render every configurable periodic kind. */
+export const ALL_PERIODIC_KINDS: readonly PeriodKind[] = PERIOD_KINDS;
 
 export interface PeriodConfig {
   /** Workspace-relative folder. Used verbatim — no tokens, so `Quarterly`
@@ -53,7 +49,6 @@ export type PeriodicConfig = Record<PeriodKind, PeriodConfig>;
  */
 export function defaultPeriodicConfig(): PeriodicConfig {
   return {
-    flash: { folder: 'Flash', format: 'YYYY-MM-DD-HHmm.md', template: '' },
     daily: { folder: 'Daily', format: 'YYYY-MM-DD.md', template: '' },
     weekly: { folder: 'Weekly', format: 'YYYY-[W]WW.md', template: '' },
     monthly: { folder: 'Monthly', format: 'YYYY-MM.md', template: '' },
@@ -116,8 +111,6 @@ export function shiftDays(date: Date, days: number): Date {
 export function periodAnchor(kind: PeriodKind, date: Date, weekStartsOn = 1): Date {
   const d = startOfDay(date);
   switch (kind) {
-    case 'flash':
-      return new Date(date.getTime());
     case 'daily':
       return d;
     case 'weekly': {
@@ -138,8 +131,6 @@ export function periodAnchor(kind: PeriodKind, date: Date, weekStartsOn = 1): Da
 export function shiftPeriod(kind: PeriodKind, date: Date, delta: number): Date {
   const d = startOfDay(date);
   switch (kind) {
-    case 'flash':
-      return new Date(d.getTime() + delta * 60_000);
     case 'daily':
       return shiftDays(d, delta);
     case 'weekly':

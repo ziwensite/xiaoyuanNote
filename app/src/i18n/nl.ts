@@ -562,12 +562,12 @@ export const nl: I18n = {
     cslPicked: 'CSL-stijl geladen',
     dailyNotesFolder: 'Map voor dagelijkse notities (relatief aan werkruimte)',
     dailyNotesFormat: 'Bestandsnaamformaat dagelijkse notities',
-    dailyNotesTemplate: 'Sjabloon dagelijkse notities (laat leeg voor standaard)',
+    dailyNotesTemplate: 'Sjabloon dagelijkse notities (laat leeg voor standaard)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1525,6 +1525,7 @@ export const nl: I18n = {
     tokenRegenerated: 'Nieuw token gegenereerd — oud token werkt niet meer',
     folder: 'Inbox-map',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'Testen vanuit terminal',
     curlCopy: 'Kopiëren',
     curlCopied: 'curl-opdracht gekopieerd',
@@ -2234,7 +2235,8 @@ export const nl: I18n = {
       checkUpdated: 'Feestdaggegevens bijgewerkt voor {years}',
       checkFailed: 'Controle mislukt — cache wordt gebruikt',
     },
-    week: { header: 'W', tooltip: 'ISO-week {week}' },
+    week: { header: 'W', tooltip: 'ISO-week {week}' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

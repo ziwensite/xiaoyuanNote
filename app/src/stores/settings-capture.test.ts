@@ -30,16 +30,17 @@ function fresh() {
 
 beforeEach(() => store.clear());
 
-test('a fresh install ships quick / flash / record / task / meeting presets', () => {
+test('a fresh install ships flash / record / task / inbox presets', () => {
   const settings = fresh();
   assert.deepEqual(
     settings.captures.map((p) => p.id),
-    ['quick', 'flash', 'record', 'task', 'meeting'],
+    ['flash', 'record', 'task', 'inbox'],
   );
-  assert.equal(settings.quickCapturePresetId, 'quick');
+  assert.equal(settings.quickCapturePresetId, 'flash');
   assert.equal(settings.capturesEnabled, true);
   assert.equal(settings.captureEndpointEnabled, false);
-  assert.equal(settings.captureEndpointInbox, 'inbox');
+  assert.equal(settings.inboxFolder, 'inbox');
+  assert.equal(settings.httpCapturePresetId, 'inbox');
 });
 
 test('an old blob with an empty captures array is reseeded once', () => {
@@ -47,7 +48,7 @@ test('an old blob with an empty captures array is reseeded once', () => {
   const settings = fresh();
   assert.deepEqual(
     settings.captures.map((p) => p.id),
-    ['quick', 'flash', 'record', 'task', 'meeting'],
+    ['flash', 'record', 'task', 'inbox'],
   );
   settings.resetCaptureDefaults();
   assert.equal(settings.capturePresetsMigrated, true);
@@ -61,7 +62,7 @@ test('an older blob without captures keeps the built-in presets', () => {
   assert.equal(settings.theme, 'dark');
   assert.deepEqual(
     settings.captures.map((p) => p.id),
-    ['quick', 'flash', 'record', 'task', 'meeting'],
+    ['flash', 'record', 'task', 'inbox'],
   );
 });
 
@@ -79,7 +80,7 @@ test('malformed capture fields do not survive a load', () => {
   }));
   const settings = fresh();
   assert.equal(settings.captures.length, 2);
-  assert.equal(settings.captures[0].id, 'quick');
+  assert.equal(settings.captures[0].id, 'flash');
   const preset = settings.captures[1];
   assert.equal(preset.enabled, false);
   assert.equal(preset.inputMethod, 'multi-line');
@@ -88,15 +89,26 @@ test('malformed capture fields do not survive a load', () => {
   assert.equal(preset.target, 'active');
 });
 
+test('the old endpoint inbox folder migrates into the inbox pointer', () => {
+  store.set(LS_KEY, JSON.stringify({ captureEndpointInbox: '/clipped/' }));
+  const settings = fresh();
+  assert.equal(settings.inboxFolder, 'clipped');
+});
+
 test('capture endpoint choices persist', () => {
   const settings = fresh();
   settings.setCaptureEndpointEnabled(true);
-  settings.setCaptureEndpointInbox(' clipped/ ');
+  settings.setInboxFolder(' clipped/ ');
   assert.equal(settings.captureEndpointEnabled, true);
-  assert.equal(settings.captureEndpointInbox, 'clipped');
+  assert.equal(settings.inboxFolder, 'clipped');
+  settings.setHttpCapturePreset('task');
+  assert.equal(settings.httpCapturePresetId, 'inbox', 'periodic presets cannot define an HTTP path');
+  settings.setHttpCapturePreset('flash');
+  assert.equal(settings.httpCapturePresetId, 'flash');
   const saved = JSON.parse(store.get(LS_KEY)!);
   assert.equal(saved.captureEndpointEnabled, true);
-  assert.equal(saved.captureEndpointInbox, 'clipped');
+  assert.equal(saved.inboxFolder, 'clipped');
+  assert.equal(saved.httpCapturePresetId, 'flash');
 });
 
 test('capture presets can be reordered and duplicated', () => {
@@ -105,17 +117,21 @@ test('capture presets can be reordered and duplicated', () => {
   settings.moveCapture(first, 1);
   assert.equal(settings.captures[2].id, first);
   settings.duplicateCapture(first);
-  assert.equal(settings.captures.length, 6);
-  assert.equal(settings.captures[5].name, '闪念 副本');
-  assert.notEqual(settings.captures[5].id, first);
+  assert.equal(settings.captures.length, 5);
+  assert.equal(settings.captures[4].name, '记录 副本');
+  assert.notEqual(settings.captures[4].id, first);
 });
 
-test('the built-in quick preset cannot be removed and stays a valid hotkey target', () => {
+test('the built-in flash preset cannot be removed but can be disabled', () => {
   const settings = fresh();
+  assert.equal(settings.captures[0].id, 'flash');
+  settings.removeCapture('flash');
+  assert.ok(settings.captures.some((preset) => preset.id === 'flash' && preset.builtIn));
+  settings.updateCapture('flash', { enabled: false });
+  assert.equal(settings.captures.find((preset) => preset.id === 'flash')?.enabled, false);
+
   settings.setQuickCapturePreset('task');
   assert.equal(settings.quickCapturePresetId, 'task');
-  settings.removeCapture('quick');
-  assert.ok(settings.captures.some((preset) => preset.id === 'quick' && preset.builtIn));
   // `active` presets are valid commands but not global-hotkey targets.
   settings.addCapture({
     ...settings.captures[0],
@@ -126,6 +142,20 @@ test('the built-in quick preset cannot be removed and stays a valid hotkey targe
   });
   settings.setQuickCapturePreset('custom-active');
   assert.equal(settings.quickCapturePresetId, 'task');
+});
+
+test('an old quick preset and hotkey are migrated into flash', () => {
+  store.set(LS_KEY, JSON.stringify({
+    captures: [
+      { id: 'quick', name: '快速捕获', target: 'inbox', builtIn: true },
+      { id: 'flash', name: '闪念', target: 'periodic', period: 'flash', builtIn: true },
+    ],
+    quickCapturePresetId: 'quick',
+  }));
+  const settings = fresh();
+  assert.ok(!settings.captures.some((preset) => preset.id === 'quick'));
+  assert.ok(settings.captures.some((preset) => preset.id === 'flash' && preset.builtIn));
+  assert.equal(settings.quickCapturePresetId, 'flash');
 });
 
 test('removing a capture preset also removes its shortcut binding', () => {

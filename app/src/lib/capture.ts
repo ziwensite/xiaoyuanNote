@@ -13,7 +13,7 @@
 
 import { formatDailyFilename, isoDate } from './daily-notes';
 import { joinInFolder } from './import-plan';
-import { periodicPath, type PeriodicConfig, type PeriodKind } from './periodic-notes';
+import { PERIOD_KINDS, periodicPath, type PeriodicConfig, type PeriodKind } from './periodic-notes';
 
 export type CaptureTarget = 'file' | 'folder' | 'periodic' | 'active' | 'inbox';
 export type CapturePlacement = 'top' | 'bottom' | 'heading';
@@ -27,7 +27,7 @@ export type CaptureOpenMode = 'default' | 'source' | 'live' | 'preview';
 export interface CapturePreset {
   id: string;
   name: string;
-  /** Built-in presets cannot be deleted; `quick` stays bound to the inbox writer. */
+  /** Built-in presets cannot be deleted; `flash` is the shipped default. */
   builtIn?: boolean;
   description: string;
   enabled: boolean;
@@ -43,6 +43,10 @@ export interface CapturePreset {
   /** `heading` only; an exact line match (leading/trailing space ignored). */
   heading: string;
   template: string;
+  /** New-note presets can describe their own YAML front matter. */
+  frontmatterEnabled: boolean;
+  frontmatterTemplate: string;
+  markInbox: boolean;
   /** Append `➕ <today>` to the first task line when it has none. */
   autoCreated: boolean;
   /** Append `📅 <today>` to the first task line when it has none. */
@@ -78,7 +82,7 @@ export interface CapturePreset {
 export const CAPTURE_PLACEMENTS: readonly CapturePlacement[] = ['top', 'bottom', 'heading'];
 export const CAPTURE_TARGETS: readonly CaptureTarget[] = ['inbox', 'file', 'folder', 'periodic', 'active'];
 export const CAPTURE_INPUT_METHODS: readonly CaptureInputMethod[] = ['single-line', 'multi-line', 'none'];
-export const CAPTURE_PERIODS: readonly PeriodKind[] = ['flash', 'daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
+export const CAPTURE_PERIODS: readonly PeriodKind[] = PERIOD_KINDS;
 export const CAPTURE_DUE_OPTIONS: readonly CaptureDueDateOption[] = ['today', 'custom', 'weekend', 'monthEnd', 'yearEnd'];
 export const CAPTURE_NEW_LINE_DIRECTIONS: readonly CaptureNewLineDirection[] = ['above', 'below'];
 export const CAPTURE_OPEN_LOCATIONS: readonly CaptureOpenLocation[] = ['reuse', 'tab', 'split', 'window'];
@@ -119,6 +123,9 @@ export function newCapturePreset(id: string, name = 'Capture'): CapturePreset {
     placement: 'bottom',
     heading: '## 任务',
     template: '- [ ] {{input}}',
+    frontmatterEnabled: false,
+    frontmatterTemplate: '',
+    markInbox: false,
     autoCreated: false,
     autoDue: false,
     createIfMissing: true,
@@ -143,36 +150,23 @@ export function newCapturePreset(id: string, name = 'Capture'): CapturePreset {
 }
 
 /**
- * Built-in capture scenarios. Periodic notes themselves are NOT implemented
- * here — these presets only write into the already-configured flash/daily
- * notes or a meeting folder.
+ * Built-in capture scenarios. A preset is pure data: the flash preset writes
+ * into its own folder, the others write into periodic notes or a folder.
  */
 export function defaultCapturePresets(): CapturePreset[] {
   const base = newCapturePreset('', '');
   return [
     {
       ...base,
-      id: 'quick',
-      name: '快速捕获',
-      builtIn: true,
-      description: '全局热键打开的轻量输入框；默认新建收件箱笔记',
-      enabled: true,
-      target: 'inbox',
-      inputMethod: 'single-line',
-      formatEnabled: false,
-      template: '{{value}}',
-    },
-    {
-      ...base,
       id: 'flash',
       name: '闪念',
-      description: '把一句话记入闪念笔记',
+      builtIn: true,
+      description: '把一句话记入闪念文件夹',
       enabled: true,
-      target: 'periodic',
+      target: 'folder',
       inputMethod: 'single-line',
-      path: '',
+      path: 'Flash',
       fileName: 'YYYY-MM-DD-HHmm.md',
-      period: 'flash',
       placement: 'bottom',
       heading: '## 闪念',
       template: '- 💡 {{date}} {{time}} {{input}}',
@@ -224,23 +218,22 @@ export function defaultCapturePresets(): CapturePreset[] {
     },
     {
       ...base,
-      id: 'meeting',
-      name: '会议',
-      description: '新建一篇会议记录',
+      id: 'inbox',
+      name: '收件箱笔记',
+      description: '新建一篇收件箱笔记并标记 inbox: true',
       enabled: true,
-      target: 'folder',
+      target: 'inbox',
       inputMethod: 'single-line',
-      path: '会议',
+      path: 'inbox',
       fileName: 'YYYY-MM-DD-HHmm.md',
-      period: 'daily',
+      formatEnabled: false,
+      template: '{{value}}',
+      frontmatterEnabled: true,
+      frontmatterTemplate: 'title: {{value}}\ninbox: {{inbox}}\ncaptured_at: {{capturedAt}}',
+      markInbox: true,
       placement: 'bottom',
-      heading: '',
-      template: '# {{input}}\n\n## 议题\n- \n\n## 结论\n- \n',
-      autoCreated: false,
-      autoDue: false,
-      createIfMissing: true,
       appendLink: false,
-      openAfter: true,
+      openAfter: false,
     },
   ];
 }
@@ -262,7 +255,7 @@ export function normalizeCapturePresets(value: unknown): CapturePreset[] {
       ...base,
       id,
       name,
-      builtIn: item.builtIn === true && id === 'quick',
+      builtIn: item.builtIn === true && id === 'flash',
       description: typeof item.description === 'string' ? item.description : base.description,
       enabled: item.enabled !== false,
       inputMethod: CAPTURE_INPUT_METHODS.includes(item.inputMethod as CaptureInputMethod)
@@ -281,6 +274,11 @@ export function normalizeCapturePresets(value: unknown): CapturePreset[] {
         : base.placement,
       heading: typeof item.heading === 'string' ? item.heading : base.heading,
       template: typeof item.template === 'string' ? item.template : base.template,
+      frontmatterEnabled: item.frontmatterEnabled === true,
+      frontmatterTemplate: typeof item.frontmatterTemplate === 'string'
+        ? item.frontmatterTemplate
+        : base.frontmatterTemplate,
+      markInbox: item.markInbox === true,
       autoCreated: item.autoCreated === true,
       autoDue: item.autoDue === true,
       createIfMissing: item.createIfMissing !== false,
@@ -333,6 +331,10 @@ export interface CaptureVariables {
   date?: Date;
   /** Defaults to the ISO date, which is a useful note title. */
   title?: string;
+  /** Full ISO timestamp for front matter templates. */
+  capturedAt?: string;
+  /** `true`/`false`, derived from the preset's `markInbox`. */
+  inbox?: string;
 }
 
 export function expandCaptureTemplate(template: string, vars: CaptureVariables = {}): string {
@@ -354,6 +356,8 @@ export function expandCaptureTemplate(template: string, vars: CaptureVariables =
     date: isoDate(date),
     time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
     title: vars.title ?? isoDate(date),
+    capturedAt: vars.capturedAt ?? date.toISOString(),
+    inbox: vars.inbox ?? 'false',
   };
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name: string) =>
     name in values ? values[name] : match,
@@ -413,11 +417,78 @@ export function applyCaptureTokens(
   return lines.join('\n');
 }
 
-function splitFrontmatterText(text: string): { head: string; body: string } {
+export function splitCaptureFrontmatter(text: string): { head: string; body: string } {
   if (!text.startsWith('---')) return { head: '', body: text };
   const match = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/.exec(text);
   if (!match) return { head: '', body: text };
-  return { head: match[0], body: text.slice(match[0].length) };
+  const block = match[0];
+  const head = block
+    .replace(/^---\r?\n/, '')
+    .replace(/\r?\n---[ \t]*(?:\r?\n|$)?$/, '');
+  return { head, body: text.slice(block.length) };
+}
+
+export function formatCaptureFrontmatter(head: string): string {
+  const trimmed = head.trim();
+  return trimmed ? `---\n${trimmed}\n---\n\n` : '';
+}
+
+/** Remove an existing YAML block, leaving only the note body. */
+export function stripCaptureFrontmatter(text: string): string {
+  return splitCaptureFrontmatter(text).body;
+}
+
+function topLevelYamlKey(line: string): string | null {
+  if (!line || /^\s/.test(line)) return null;
+  return /^([A-Za-z_][\w-]*)\s*:/.exec(line)?.[1] ?? null;
+}
+
+function yamlBlockEnd(lines: string[], start: number): number {
+  let end = start + 1;
+  while (end < lines.length) {
+    const line = lines[end];
+    if (line.trim() === '' || /^\s/.test(line) || line.trimStart().startsWith('#')) end += 1;
+    else break;
+  }
+  return end;
+}
+
+function splitYamlAdditions(additions: string): { key: string | null; lines: string[] }[] {
+  const blocks: { key: string | null; lines: string[] }[] = [];
+  for (const line of additions.replace(/\r/g, '').split('\n')) {
+    if (!line.trim()) continue;
+    const key = topLevelYamlKey(line);
+    if (key || !blocks.length) blocks.push({ key, lines: [line] });
+    else blocks[blocks.length - 1].lines.push(line);
+  }
+  return blocks;
+}
+
+/** Merge preset fields into template YAML; preset fields win on key clashes. */
+export function mergeCaptureFrontmatter(baseHead: string, additions: string): string {
+  const extra = splitYamlAdditions(additions);
+  if (!extra.length) return baseHead.trim();
+  const baseLines = baseHead.replace(/\r/g, '').split('\n');
+  const used = new Set<number>();
+  const out: string[] = [];
+  for (let i = 0; i < baseLines.length;) {
+    const key = topLevelYamlKey(baseLines[i]);
+    const matchIndex = key
+      ? extra.findIndex((block, index) => !used.has(index) && block.key === key)
+      : -1;
+    if (matchIndex >= 0) {
+      out.push(...extra[matchIndex].lines);
+      used.add(matchIndex);
+      i = yamlBlockEnd(baseLines, i);
+    } else {
+      out.push(baseLines[i]);
+      i += 1;
+    }
+  }
+  extra.forEach((block, index) => {
+    if (!used.has(index)) out.push(...block.lines);
+  });
+  return out.join('\n').trim();
 }
 
 export interface CaptureInsertOptions {
@@ -479,9 +550,9 @@ export function composeCaptureInsert(
   if (!block) return { content: text, inserted: false, reason: 'emptyText' };
 
   const insertAtTop = (value: string) => {
-    const { head, body } = splitFrontmatterText(text);
+    const { head, body } = splitCaptureFrontmatter(text);
     const rest = body.replace(/^\s*\n/, '');
-    return `${head}\n${value}\n\n${rest}`.replace(/\n{3,}/g, (m) => m.slice(0, 2));
+    return `${formatCaptureFrontmatter(head)}${value}\n\n${rest}`.replace(/\n{3,}/g, (m) => m.slice(0, 2));
   };
   const appendAtBottom = (value: string) => {
     const prefix = text === '' || text.endsWith('\n') ? text : `${text}\n`;
@@ -587,6 +658,31 @@ export function formatCapturePath(path: string, date: Date): string {
   return formatDailyFilename(date, path.trim());
 }
 
+/** Workspace-relative path for a new-note preset, fully owned by the preset. */
+export function captureNoteRelativePath(preset: CapturePreset, date = new Date()): string {
+  const folder = preset.path.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  const fileName = formatCapturePath(preset.fileName || 'YYYY-MM-DD.md', date);
+  return [folder, fileName].filter(Boolean).join('/');
+}
+
+export interface CapturePresetRules {
+  path: string;
+  frontmatter: string;
+  inbox: boolean;
+}
+
+/** Rules pushed to the Rust HTTP endpoint for the selected capture preset. */
+export function capturePresetRules(
+  preset: CapturePreset | undefined,
+  date = new Date(),
+): CapturePresetRules {
+  return {
+    path: preset ? captureNoteRelativePath(preset, date) : 'inbox/YYYY-MM-DD-HHmm.md',
+    frontmatter: preset?.frontmatterEnabled ? preset.frontmatterTemplate : '',
+    inbox: preset?.markInbox ?? true,
+  };
+}
+
 /** Absolute path used by the frontend executor. */
 export function captureTargetPath(
   preset: CapturePreset,
@@ -612,4 +708,48 @@ export function capturePreview(
     preset.dueDateOption,
     preset.customDueDays,
   );
+}
+
+/** The YAML block a preset wants at the top of a newly created note. */
+export function renderCaptureFrontmatter(preset: CapturePreset, vars: CaptureVariables = {}): string {
+  if (!preset.frontmatterEnabled) return '';
+  const date = vars.date ?? new Date();
+  const head = expandCaptureTemplate(preset.frontmatterTemplate, {
+    ...vars,
+    date,
+    inbox: vars.inbox ?? (preset.markInbox ? 'true' : 'false'),
+  }).trim();
+  return formatCaptureFrontmatter(head);
+}
+
+/** Full note text a new-note preset would produce, front matter included. */
+export function renderCaptureNote(preset: CapturePreset, vars: CaptureVariables = {}): string {
+  return `${renderCaptureFrontmatter(preset, vars)}${capturePreview(preset, vars)}`;
+}
+
+function joinCaptureFrontmatter(head: string, body: string): string {
+  const trimmed = head.trim();
+  if (!trimmed) return body;
+  const block = `---\n${trimmed}\n---\n`;
+  return /^\r?\n/.test(body) ? `${block}${body}` : `${block}\n${body}`;
+}
+
+/** Render a template file as the new note, keeping or merging its YAML in one pass. */
+export function renderCaptureTemplateNote(
+  templateText: string,
+  preset: CapturePreset,
+  vars: CaptureVariables = {},
+): string {
+  const { head, body } = splitCaptureFrontmatter(templateText);
+  if (!preset.frontmatterEnabled) {
+    return joinCaptureFrontmatter(head, body);
+  }
+  const date = vars.date ?? new Date();
+  const additions = expandCaptureTemplate(preset.frontmatterTemplate, {
+    ...vars,
+    date,
+    inbox: vars.inbox ?? (preset.markInbox ? 'true' : 'false'),
+  }).trim();
+  const merged = head.trim() ? mergeCaptureFrontmatter(head, additions) : additions;
+  return joinCaptureFrontmatter(merged, body);
 }

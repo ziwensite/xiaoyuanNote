@@ -562,12 +562,12 @@ export const uk: I18n = {
     cslPicked: 'Стиль CSL завантажено',
     dailyNotesFolder: 'Тека щоденних нотаток (відносно робочого простору)',
     dailyNotesFormat: 'Формат імен файлів щоденних нотаток',
-    dailyNotesTemplate: 'Шаблон щоденних нотаток (залиште порожнім для типового)',
+    dailyNotesTemplate: 'Шаблон щоденних нотаток (залиште порожнім для типового)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1525,6 +1525,7 @@ export const uk: I18n = {
     tokenRegenerated: 'Згенеровано новий токен — старий більше не працює',
     folder: 'Тека вхідних',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'Перевірити з терміналу',
     curlCopy: 'Копіювати',
     curlCopied: 'Команду curl скопійовано',
@@ -2234,7 +2235,8 @@ export const uk: I18n = {
       checkUpdated: 'Дані про свята оновлено для {years}',
       checkFailed: 'Перевірка не вдалася — використовується кеш',
     },
-    week: { header: 'W', tooltip: 'Тиждень ISO {week}' },
+    week: { header: 'W', tooltip: 'Тиждень ISO {week}' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

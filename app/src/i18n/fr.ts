@@ -562,12 +562,12 @@ export const fr: I18n = {
     cslPicked: 'Style CSL chargé',
     dailyNotesFolder: 'Dossier des notes quotidiennes (relatif au workspace)',
     dailyNotesFormat: 'Format de nom de fichier des notes quotidiennes',
-    dailyNotesTemplate: 'Modèle des notes quotidiennes (vide = défaut)',
+    dailyNotesTemplate: 'Modèle des notes quotidiennes (vide = défaut)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1522,6 +1522,7 @@ export const fr: I18n = {
     tokenRegenerated: 'Nouveau token généré — l\'ancien ne fonctionne plus',
     folder: 'Dossier inbox',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'Tester depuis le terminal',
     curlCopy: 'Copier',
     curlCopied: 'Commande curl copiée',
@@ -2217,7 +2218,8 @@ export const fr: I18n = {
       checkUpdated: 'Jours fériés mis à jour pour {years}',
       checkFailed: 'Échec de la vérification — cache utilisé',
     },
-    week: { header: 'W', tooltip: 'Semaine ISO {week}' },
+    week: { header: 'W', tooltip: 'Semaine ISO {week}' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

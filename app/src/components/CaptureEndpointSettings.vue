@@ -5,14 +5,18 @@
  * Owns the user-facing UI for the localhost HTTP capture server:
  *   - Toggle on/off (binds / unbinds the listener)
  *   - Display the bearer token + Regenerate button
- *   - Edit the inbox folder (relative to the workspace)
  *   - Show a copy-paste-ready curl invocation
+ *
+ * The Inbox folder itself has its own settings block; this panel only pushes
+ * the persisted value to Rust so captures keep landing there.
  *
  * All state is mirrored from the Rust side via `capture_get_state` so the
  * panel is always coherent with the actually-running listener.
  */
 import { computed, onMounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
+import { DsSelect } from '../ui';
+import { capturePresetRules } from '../lib/capture';
 import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
@@ -24,6 +28,9 @@ interface CaptureState {
   port: number;
   token: string;
   inbox_folder: string;
+  capture_path?: string;
+  capture_frontmatter?: string;
+  capture_inbox?: boolean;
 }
 
 const { t } = useI18n();
@@ -41,6 +48,28 @@ const state = ref<CaptureState>({
 
 const showToken = ref(false);
 
+const httpPresetOptions = computed(() => settings.captures
+  .filter((preset) => preset.enabled && (preset.target === 'inbox' || preset.target === 'folder'))
+  .map((preset) => ({ value: preset.id, label: preset.name })));
+
+function currentPresetConfig() {
+  const preset = settings.captures.find((p) => p.id === settings.httpCapturePresetId)
+    ?? settings.captures.find((p) => p.id === 'inbox');
+  if (!preset) return null;
+  return capturePresetRules(preset, new Date());
+}
+
+async function pushPresetConfig() {
+  const config = currentPresetConfig();
+  if (!config) return;
+  state.value = await invoke<CaptureState>('capture_set_preset', { ...config });
+}
+
+async function onPresetChange(id: string) {
+  settings.setHttpCapturePreset(id);
+  await pushPresetConfig();
+}
+
 async function refresh() {
   try {
     state.value = await invoke<CaptureState>('capture_get_state');
@@ -53,10 +82,16 @@ async function refresh() {
         port: null,
       });
     }
-    if (state.value.inbox_folder !== settings.captureEndpointInbox) {
+    if (state.value.inbox_folder !== settings.inboxFolder) {
       state.value = await invoke<CaptureState>('capture_set_inbox_folder', {
-        folder: settings.captureEndpointInbox,
+        folder: settings.inboxFolder,
       });
+    }
+    const config = currentPresetConfig();
+    if (config && (state.value.capture_path !== config.path
+      || state.value.capture_frontmatter !== config.frontmatter
+      || state.value.capture_inbox !== config.inbox)) {
+      await pushPresetConfig();
     }
   } catch (e) {
     console.warn('capture_get_state failed', e);
@@ -92,17 +127,6 @@ async function onRegenerateToken() {
     toasts.success(t('inbox.tokenRegenerated'));
   } catch (e) {
     toasts.error(`Regenerate: ${e}`);
-  }
-}
-
-async function onSetInboxFolder(value: string) {
-  settings.setCaptureEndpointInbox(value);
-  try {
-    state.value = await invoke<CaptureState>('capture_set_inbox_folder', {
-      folder: settings.captureEndpointInbox,
-    });
-  } catch (e) {
-    toasts.error(`Inbox folder: ${e}`);
   }
 }
 
@@ -178,6 +202,15 @@ onMounted(refresh);
       </div>
 
       <div class="capture__row">
+        <span class="capture__label">{{ t('capture.httpPreset') }}</span>
+        <DsSelect
+          :model-value="settings.httpCapturePresetId"
+          :options="httpPresetOptions"
+          @update:model-value="onPresetChange"
+        />
+      </div>
+
+      <div class="capture__row">
         <span class="capture__label">{{ t('inbox.token') }}</span>
         <code class="capture__token" :title="state.token">{{ tokenDisplay }}</code>
         <button class="capture__btn" @click="showToken = !showToken">
@@ -189,17 +222,6 @@ onMounted(refresh);
         <button class="capture__btn" @click="onRegenerateToken">
           {{ t('inbox.tokenRegenerate') }}
         </button>
-      </div>
-
-      <div class="capture__row">
-        <span class="capture__label">{{ t('inbox.folder') }}</span>
-        <input
-          type="text"
-          class="capture__input"
-          :value="state.inbox_folder"
-          @change="onSetInboxFolder(($event.target as HTMLInputElement).value)"
-          :placeholder="t('inbox.folderPlaceholder')"
-        />
       </div>
 
       <div class="capture__curl">

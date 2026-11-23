@@ -15,9 +15,11 @@ import { useWorkspaceStore } from '../stores/workspace';
 import { useTabsStore } from '../stores/tabs';
 import { useTilesStore } from '../stores/tiles';
 import { useToastsStore } from '../stores/toasts';
+import { useCaptureDialogStore } from '../stores/capture-dialog';
 import { useFiles } from './useFiles';
 import { useI18n } from '../i18n';
 import {
+  captureNoteRelativePath,
   capturePreview,
   captureTargetRelativePath,
   composeCaptureInsert,
@@ -25,6 +27,9 @@ import {
   formatCapturePath,
   insertCaptureLine,
   insertTextAtCursor,
+  renderCaptureFrontmatter,
+  renderCaptureNote,
+  renderCaptureTemplateNote,
   type CapturePreset,
   type CaptureVariables,
 } from '../lib/capture';
@@ -60,6 +65,7 @@ export function useCapture() {
   const tabs = useTabsStore();
   const tiles = useTilesStore();
   const toasts = useToastsStore();
+  const dialog = useCaptureDialogStore();
   const files = useFiles();
   const { t } = useI18n();
 
@@ -95,7 +101,10 @@ export function useCapture() {
       vars.input = vars.selection;
     }
     if (wantsInput && preset.inputMethod !== 'none' && vars.value === undefined) {
-      const value = window.prompt(t('capture.inputPrompt'), '');
+      const value = await dialog.open({
+        preset,
+        placeholder: t('capture.inputPrompt'),
+      });
       if (value === null) return null;
       vars.value = value;
       vars.input = value;
@@ -183,15 +192,15 @@ export function useCapture() {
       const vars = await collectVariables(preset, options);
       if (!vars) return { ok: false };
 
-      // The built-in `quick` preset never writes through the append engine:
-      // the small window keeps its established "new note in Inbox" behaviour,
-      // including first-line titles, front matter and unique file names.
+      // New-note presets own both the path and the rendered text, including
+      // front matter. Rust is only the I/O primitive for this branch.
       if (preset.target === 'inbox') {
-        const content = capturePreview(preset, { ...vars, date });
-        const tags = vars.tags?.split(/[,\s]+/).filter(Boolean) ?? [];
-        const path = await invoke<string>('quick_capture_write', {
+        const content = renderCaptureNote(preset, { ...vars, date });
+        const relativePath = captureNoteRelativePath(preset, date);
+        const path = await invoke<string>('capture_write_rendered', {
+          path: relativePath,
           content,
-          tags: tags.length ? tags : null,
+          dedupe: true,
         });
         return { ok: true, path };
       }
@@ -223,29 +232,35 @@ export function useCapture() {
         title: vars.title ?? baseNameOf(fileName),
       };
 
-      const targetExists = preset.target === 'active' || await exists(path);
-      if (!targetExists) {
-        if (!preset.createIfMissing) {
-          return { ok: false, error: t('capture.fileMissing', { path: relativePath }) };
-        }
+      const isNew = preset.target !== 'active' && !(await exists(path));
+      if (isNew && !preset.createIfMissing) {
+        return { ok: false, error: t('capture.fileMissing', { path: relativePath }) };
+      }
+
+      let initial = '';
+      if (isNew) {
+        let templateText: string | null = null;
         if (preset.createWithTemplate && preset.creationTemplate.trim()) {
           const templatePath = formatCapturePath(preset.creationTemplate, date);
           const resolvedTemplate = joinInFolder(root, templatePath);
           if (await exists(resolvedTemplate)) {
-            await writeFile(path, await readFile(resolvedTemplate));
+            templateText = await readFile(resolvedTemplate);
           } else {
             toasts.warning(t('capture.templateMissing', { path: templatePath }));
           }
         }
+        initial = templateText !== null
+          ? renderCaptureTemplateNote(templateText, preset, fullVars)
+          : renderCaptureFrontmatter(preset, fullVars);
       }
 
       const snippet = capturePreview(preset, fullVars);
-      const existing = await readFile(path);
+      const base = isNew ? initial : await readFile(path);
       let next: string;
       if (preset.target === 'active' && preset.newLineEnabled && active) {
-        next = insertCaptureLine(existing, snippet, active.cursor, preset.newLineDirection);
+        next = insertCaptureLine(base, snippet, active.cursor, preset.newLineDirection);
       } else {
-        const result = composeCaptureInsert(existing, snippet, preset.placement, preset.heading, {
+        const result = composeCaptureInsert(base, snippet, preset.placement, preset.heading, {
           insertAtEnd: preset.headingInsertAtEnd,
           considerSubsections: preset.headingConsiderSubsections,
           createIfMissing: preset.headingCreateIfMissing,
@@ -261,7 +276,7 @@ export function useCapture() {
         }
         next = result.content;
       }
-      if (next !== existing) await writeFile(path, next);
+      if (isNew || next !== base) await writeFile(path, next);
       if (preset.appendLink && active && !samePath(active.filePath, path)) {
         await appendLinkToActive(active, baseNameOf(fileName));
       }

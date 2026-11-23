@@ -562,12 +562,12 @@ export const ru: I18n = {
     cslPicked: 'Стиль CSL загружен',
     dailyNotesFolder: 'Папка ежедневных заметок (относительно рабочей папки)',
     dailyNotesFormat: 'Формат имени ежедневной заметки',
-    dailyNotesTemplate: 'Шаблон ежедневной заметки (пусто — по умолчанию)',
+    dailyNotesTemplate: 'Шаблон ежедневной заметки (пусто — по умолчанию)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1517,6 +1517,7 @@ export const ru: I18n = {
     tokenRegenerated: 'Создан новый токен — старый больше не действует',
     folder: 'Папка «Входящие»',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'Проверить из терминала',
     curlCopy: 'Копировать',
     curlCopied: 'Команда curl скопирована',
@@ -2208,7 +2209,8 @@ export const ru: I18n = {
       checkUpdated: 'Данные о праздниках обновлены для {years}',
       checkFailed: 'Проверка не удалась — используется кеш',
     },
-    week: { header: 'W', tooltip: 'Неделя ISO {week}' },
+    week: { header: 'W', tooltip: 'Неделя ISO {week}' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

@@ -15,7 +15,6 @@ import { isoDate } from './daily-notes';
 
 const day = (y: number, m: number, d: number) => new Date(y, m - 1, d);
 
-const FLASH: PeriodConfig = { folder: 'Flash', format: 'YYYY-MM-DD-HHmm.md', template: '' };
 const DAILY: PeriodConfig = { folder: 'Daily', format: 'YYYY-MM-DD.md', template: '' };
 const WEEKLY: PeriodConfig = { folder: 'Weekly', format: 'YYYY-[W]WW.md', template: '' };
 const MONTHLY: PeriodConfig = { folder: 'Monthly', format: 'YYYY-MM.md', template: '' };
@@ -24,13 +23,6 @@ const YEARLY: PeriodConfig = { folder: 'Yearly', format: 'YYYY.md', template: ''
 
 // P2: anchors, tokens and paths. Everything here is pure, so the whole engine
 // is checkable without a workspace or a file system.
-
-test('flash notes keep the timestamp in their filename', () => {
-  const now = new Date(2026, 10, 22, 9, 7, 43);
-  assert.equal(periodicPath('flash', now, FLASH), 'Flash/2026-11-22-0907.md');
-  assert.equal(periodAnchor('flash', now).getMinutes(), 7);
-  assert.deepEqual(defaultPeriodicConfig().flash, FLASH);
-});
 
 test('the daily kind resolves exactly where the old daily settings did', () => {
   assert.equal(periodicPath('daily', day(2026, 11, 10), DAILY), 'Daily/2026-11-10.md');
@@ -159,17 +151,6 @@ test('a blob that predates P2 keeps its daily folder and format', () => {
   });
   assert.deepEqual(cfg.weekly, defaultPeriodicConfig().weekly);
   assert.equal(cfg.weekly.format, 'YYYY-[W]WW.md');
-});
-
-test('flash config survives a saved-config merge', () => {
-  const cfg = mergePeriodicConfig({
-    flash: { folder: 'Ideas', format: 'YYYY-MM-DD_HHmm.md', template: 'templates/flash.md' },
-  });
-  assert.deepEqual(cfg.flash, {
-    folder: 'Ideas',
-    format: 'YYYY-MM-DD_HHmm.md',
-    template: 'templates/flash.md',
-  });
 });
 
 test('an explicit periodic entry wins over the legacy keys', () => {

@@ -562,12 +562,12 @@ export const sv: I18n = {
     cslPicked: 'CSL-stil inläst',
     dailyNotesFolder: 'Mapp för dagliga anteckningar (relativ till arbetsytan)',
     dailyNotesFormat: 'Filnamnsformat för dagliga anteckningar',
-    dailyNotesTemplate: 'Mall för dagliga anteckningar (lämna tom för standard)',
+    dailyNotesTemplate: 'Mall för dagliga anteckningar (lämna tom för standard)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1525,6 +1525,7 @@ export const sv: I18n = {
     tokenRegenerated: 'Ny token genererad — den gamla fungerar inte längre',
     folder: 'Inkorgsmapp',
     folderPlaceholder: 'inkorg',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'Testa från terminalen',
     curlCopy: 'Kopiera',
     curlCopied: 'curl-kommando kopierat',
@@ -2234,7 +2235,8 @@ export const sv: I18n = {
       checkUpdated: 'Helgdagsdata uppdaterade för {years}',
       checkFailed: 'Kontrollen misslyckades – cachen används',
     },
-    week: { header: 'W', tooltip: 'ISO-vecka {week}' },
+    week: { header: 'W', tooltip: 'ISO-vecka {week}' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

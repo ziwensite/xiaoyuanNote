@@ -69,6 +69,7 @@ import ReadingView from './components/ReadingView.vue';
 import UnsavedDialog from './components/UnsavedDialog.vue';
 import FileChangedDialog from './components/FileChangedDialog.vue';
 import Toast from './components/Toast.vue';
+import CaptureDialog from './components/CaptureDialog.vue';
 import KeyboardBar from './components/KeyboardBar.vue';
 import { forceKeyboardBarPreview } from './lib/platform';
 import { useTabsStore } from './stores/tabs';
@@ -110,6 +111,7 @@ import { requestHeaderSearch } from './lib/header-search';
 import { measureMenu, placeMenuFromPoint } from './lib/menu-position';
 import DatePickerPopover from './components/DatePickerPopover.vue';
 import { writeFrontmatterValue } from './lib/frontmatter-editing';
+import { capturePresetRules } from './lib/capture';
 const UiPreview = defineAsyncComponent(() => import('./components/UiPreview.vue'));
 
 /* v4.6 dev-only UI gallery. `?uikit` renders ONLY the design-system preview
@@ -840,13 +842,17 @@ watchEffect(() => {
   invoke('rest_set_workspace', { folder: folder ?? null }).catch(() => {});
 });
 
-// The HTTP capture listener is owned by Rust, but its two user choices live in
+// The HTTP capture listener is owned by Rust, but its user choices live in
 // the persisted settings store. Push them up on start and on every change so
-// a restart keeps the enabled state and inbox folder the user chose.
+// a restart keeps the enabled state, folder, and preset rendering rules.
 watchEffect(() => {
-  const inbox = settings.captureEndpointInbox;
+  const inbox = settings.inboxFolder;
   const enabled = settings.captureEndpointEnabled;
+  const preset = settings.captures.find((p) => p.id === settings.httpCapturePresetId)
+    ?? settings.captures.find((p) => p.id === 'inbox');
+  const rules = capturePresetRules(preset, new Date());
   invoke('capture_set_inbox_folder', { folder: inbox }).catch(() => {});
+  invoke('capture_set_preset', { ...rules }).catch(() => {});
   invoke('capture_set_enabled', { enabled, port: null }).catch(() => {});
 });
 
@@ -2733,6 +2739,7 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
       @cancel="onFileChangedAction('cancel')"
     />
     <Toast />
+    <CaptureDialog />
     <Transition name="zoom-hud-fade">
       <div v-if="zoomHudText" class="zoom-hud" role="status" aria-live="polite">
         {{ zoomHudText }}

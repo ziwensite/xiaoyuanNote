@@ -28,10 +28,11 @@ fn lock() -> MutexGuard<'static, ()> {
 
 use app_lib::capture_endpoint::{
     capture_append_inner, capture_get_state, capture_regenerate_token,
-    capture_set_inbox_folder, capture_write_inner, local_iso8601_now, CaptureError,
+    capture_set_preset, local_iso8601_now, CaptureError,
     _test_bind_and_serve, _test_check_auth, _test_current_token, _test_handle_capture,
     _test_resolve_safe_workspace_path, _test_set_state,
 };
+use app_lib::quick_capture::capture_write_rendered_inner;
 
 fn fresh_workspace(label: &str) -> PathBuf {
     let nanos = SystemTime::now()
@@ -114,14 +115,20 @@ fn full_capture_flow() {
     assert!(raw.contains("inbox: true\n"), "inbox defaults to true");
 
     // ------------------------------------------------------------------
-    // (5) Inbox=false honours the flag.
+    // (5) The preset's markInbox decides `inbox`, not the request body.
     // ------------------------------------------------------------------
+    let s = capture_set_preset(
+        "inbox/YYYY-MM-DD-HHmm.md".to_string(),
+        "title: {{title}}\ninbox: {{inbox}}".to_string(),
+        false,
+    );
+    assert!(!s.capture_inbox);
     let body = serde_json::json!({
         "title": "Skip the inbox",
         "content": "body\n",
-        "inbox": false,
+        "inbox": true,
     });
-    let path = _test_handle_capture(body.to_string().as_bytes()).expect("inbox false");
+    let path = _test_handle_capture(body.to_string().as_bytes()).expect("preset inbox false");
     let raw = fs::read_to_string(&path).unwrap();
     assert!(raw.contains("inbox: false\n"));
 
@@ -169,48 +176,37 @@ fn full_capture_flow() {
     assert!(matches!(err, CaptureError::BadRequest(_)));
 
     // ------------------------------------------------------------------
-    // (9) Custom inbox folder is honoured.
+    // (9) The selected preset's folder is honoured.
     // ------------------------------------------------------------------
-    let s = capture_set_inbox_folder("captures/from-extension".to_string());
-    assert_eq!(s.inbox_folder, "captures/from-extension");
+    let s = capture_set_preset(
+        "captures/from-extension/YYYY-MM-DD.md".to_string(),
+        "title: {{title}}\ninbox: {{inbox}}".to_string(),
+        true,
+    );
+    assert_eq!(s.capture_path, "captures/from-extension/YYYY-MM-DD.md");
     let body = serde_json::json!({
         "title": "Routed",
         "content": "x\n",
     });
-    let path = _test_handle_capture(body.to_string().as_bytes()).expect("custom inbox");
+    let path = _test_handle_capture(body.to_string().as_bytes()).expect("preset folder");
     let p = PathBuf::from(&path);
     assert!(
         p.starts_with(ws.join("captures/from-extension")),
-        "should land in custom folder, got {}",
+        "should land in preset folder, got {}",
         p.display(),
     );
 }
 
-/// Pure-function smoke: `capture_write_inner` works without any global state
-/// touched. This exercises the deterministic write path the e2e flow relies
-/// on, with a fixed timestamp so the front-matter is reproducible.
+/// Pure write — no global state touched. The caller supplies the complete
+/// preset-rendered text; Rust writes it verbatim.
 #[test]
 fn pure_write_works_without_globals() {
     let _g = lock();
     let ws = fresh_workspace("pure");
-    let path = capture_write_inner(
-        &ws,
-        "inbox",
-        Some("Fixed Title"),
-        "Body line one.\n",
-        Some("https://x.example"),
-        Some(&["a".to_string(), "b".to_string()]),
-        true,
-        "2026-04-26T11:30:00+08:00".to_string(),
-    )
-    .expect("pure write should succeed");
-    let raw = fs::read_to_string(&path).unwrap();
-    assert!(raw.contains("title: Fixed Title\n"));
-    assert!(raw.contains("source: https://x.example\n"));
-    assert!(raw.contains("tags: [a, b]\n"));
-    assert!(raw.contains("inbox: true\n"));
-    assert!(raw.contains("captured_at: 2026-04-26T11:30:00+08:00\n"));
-    assert!(raw.contains("Body line one."));
+    let content = "---\ntitle: Fixed Title\nsource: https://x.example\ntags: [a, b]\ninbox: true\ncaptured_at: 2026-04-26T11:30:00+08:00\n---\n\nBody line one.\n";
+    let path = capture_write_rendered_inner(&ws, "inbox/pure-note.md", content, true)
+        .expect("pure write should succeed");
+    assert_eq!(fs::read_to_string(&path).unwrap(), content);
 }
 
 /// Live HTTP round-trip: bind the actual capture endpoint listener, talk
@@ -354,6 +350,75 @@ fn append_creates_file_and_prepends_newline() {
     assert_eq!(path, path2, "same file targeted both times");
     let raw = fs::read_to_string(&path).unwrap();
     assert_eq!(raw, "\nfirst line\n\nsecond line\n");
+}
+
+/// Preset-owned writes: the caller supplies the complete note text and the
+/// workspace-relative path. Rust must not add front matter of its own.
+#[test]
+fn rendered_capture_writes_exact_preset_text() {
+    let _g = lock();
+    let ws = fresh_workspace("rendered");
+    let text = "---\ntitle: hello\ninbox: true\n---\n\nhello\n";
+
+    let first = capture_write_rendered_inner(&ws, "inbox/2026-04-26-1130.md", text, true)
+        .expect("first rendered write");
+    assert_eq!(fs::read_to_string(&first).unwrap(), text);
+
+    let second = capture_write_rendered_inner(&ws, "inbox/2026-04-26-1130.md", text, true)
+        .expect("deduped rendered write");
+    assert_ne!(first, second, "dedupe must not overwrite the first note");
+    assert_eq!(fs::read_to_string(&second).unwrap(), text);
+
+    assert!(
+        capture_write_rendered_inner(&ws, "../escape.md", text, true).is_err(),
+        "paths may not escape the workspace"
+    );
+}
+
+/// HTTP captures use the preset rules pushed from the frontend: path and YAML
+/// both come from settings, not from a hardcoded Rust front matter builder.
+#[test]
+fn http_capture_uses_pushed_preset_rules() {
+    let _g = lock();
+    let ws = fresh_workspace("http-preset");
+    _test_set_state(Some(ws.clone()), "token".to_string(), "inbox".to_string());
+    capture_set_preset(
+        "Captures/YYYY-MM-DD.md".to_string(),
+        "title: {{title}}\ninbox: {{inbox}}\ncaptured_at: {{capturedAt}}".to_string(),
+        true,
+    );
+
+    let body = r#"{"title":"Preset Note","content":"Body text\n","inbox":true}"#;
+    let path = PathBuf::from(_test_handle_capture(body.as_bytes()).expect("capture"));
+    assert!(path.starts_with(ws.join("Captures")), "preset path ignored: {}", path.display());
+    let raw = fs::read_to_string(&path).unwrap();
+    assert!(raw.contains("title: Preset Note\n"));
+    assert!(raw.contains("inbox: true\n"));
+    assert!(raw.contains("captured_at: "));
+    assert!(!raw.contains("source:"), "empty source line must be skipped");
+    assert!(!raw.contains("tags:"), "empty tags line must be skipped");
+    assert!(raw.contains("Body text"));
+}
+
+/// `markInbox` is owned by the preset: a request-body `inbox` value must not
+/// be able to flip the YAML flag.
+#[test]
+fn http_capture_mark_inbox_comes_from_preset() {
+    let _g = lock();
+    let ws = fresh_workspace("http-inbox-flag");
+    _test_set_state(Some(ws.clone()), "token".to_string(), "inbox".to_string());
+    let s = capture_set_preset(
+        "inbox/YYYY-MM-DD.md".to_string(),
+        "title: {{title}}\ninbox: {{inbox}}".to_string(),
+        false,
+    );
+    assert!(!s.capture_inbox);
+
+    let body = r#"{"title":"Preset Flag","content":"body\n","inbox":true}"#;
+    let path = PathBuf::from(_test_handle_capture(body.as_bytes()).expect("capture"));
+    let raw = fs::read_to_string(&path).unwrap();
+    assert!(raw.contains("inbox: false\n"), "request body must not override preset");
+    assert!(raw.contains("title: Preset Flag\n"));
 }
 
 /// `append_path` resolution rejects every path-traversal style we know of.

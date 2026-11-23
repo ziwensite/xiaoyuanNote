@@ -41,6 +41,8 @@ use tauri::{AppHandle, Manager};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 
+use super::quick_capture::capture_write_rendered_inner;
+
 // ---------------------------------------------------------------------------
 // Public state shared between the Tauri command layer and the running server.
 // ---------------------------------------------------------------------------
@@ -53,6 +55,12 @@ pub struct CaptureState {
     pub port: u16,
     pub token: String,
     pub inbox_folder: String,
+    /// Path pattern pushed from the selected capture preset.
+    pub capture_path: String,
+    /// Front matter template pushed from the same preset.
+    pub capture_frontmatter: String,
+    /// `markInbox` pushed from the same preset.
+    pub capture_inbox: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -66,9 +74,17 @@ struct InnerState {
     workspace: Option<PathBuf>,
     /// Sub-folder inside the workspace where new notes land. Default `inbox`.
     inbox_folder: String,
+    /// Create path + front matter from the preset chosen for HTTP captures.
+    capture_path: String,
+    capture_frontmatter: String,
+    capture_inbox: bool,
     /// Set when the active server should stop accepting new connections.
     shutdown_gen: u64,
 }
+
+const DEFAULT_CAPTURE_PATH: &str = "inbox/YYYY-MM-DD-HHmm.md";
+const DEFAULT_CAPTURE_FRONTMATTER: &str =
+    "title: {{title}}\nsource: {{source}}\ntags: [{{tags}}]\ninbox: {{inbox}}\ncaptured_at: {{capturedAt}}";
 
 static STATE: Lazy<Mutex<InnerState>> = Lazy::new(|| {
     Mutex::new(InnerState {
@@ -78,6 +94,9 @@ static STATE: Lazy<Mutex<InnerState>> = Lazy::new(|| {
         token: String::new(),
         workspace: None,
         inbox_folder: "inbox".to_string(),
+        capture_path: DEFAULT_CAPTURE_PATH.to_string(),
+        capture_frontmatter: DEFAULT_CAPTURE_FRONTMATTER.to_string(),
+        capture_inbox: true,
         shutdown_gen: 0,
     })
 });
@@ -121,6 +140,9 @@ pub fn capture_get_state() -> CaptureState {
         port: s.port,
         token: s.token.clone(),
         inbox_folder: s.inbox_folder.clone(),
+        capture_path: s.capture_path.clone(),
+        capture_frontmatter: s.capture_frontmatter.clone(),
+        capture_inbox: s.capture_inbox,
     }
 }
 
@@ -178,6 +200,24 @@ pub fn capture_set_inbox_folder(folder: String) -> CaptureState {
         } else {
             trimmed.to_string()
         };
+    }
+    capture_get_state()
+}
+
+/// Push the rendering rules of the preset chosen for HTTP captures. The
+/// endpoint then writes exactly what the preset describes — YAML included.
+#[tauri::command]
+pub fn capture_set_preset(path: String, frontmatter: String, inbox: bool) -> CaptureState {
+    {
+        let mut s = STATE.lock().expect("capture state lock");
+        let trimmed = path.trim().trim_matches('/').trim_matches('\\');
+        s.capture_path = if trimmed.is_empty() {
+            DEFAULT_CAPTURE_PATH.to_string()
+        } else {
+            trimmed.to_string()
+        };
+        s.capture_frontmatter = frontmatter;
+        s.capture_inbox = inbox;
     }
     capture_get_state()
 }
@@ -456,8 +496,9 @@ fn auth_ok(req: &Request, expected: &str) -> bool {
 }
 
 // ---------------------------------------------------------------------------
-// Capture core — pure: takes a JSON body, returns a created file path.
-// Exposed for the e2e test as `capture_write_inner`.
+// Capture core — takes a JSON body and returns the created file path.
+// New notes are rendered from the pushed preset and written through the
+// shared `capture_write_rendered_inner` writer.
 // ---------------------------------------------------------------------------
 
 #[derive(Debug)]
@@ -483,13 +524,106 @@ struct CaptureBody {
     content: Option<String>,
     url: Option<String>,
     tags: Option<Vec<String>>,
-    /// Defaults to true — captures land in the inbox by default.
-    inbox: Option<bool>,
     /// v2.4 append mode (iOS Shortcuts "append to today's daily note").
     /// When set to a workspace-relative path, the body is appended to
     /// that file with a leading newline. Path-traversal is rejected
     /// the same way the workspace_index resolver rejects it.
     append_path: Option<String>,
+}
+
+/// Expand the date tokens a preset may use in its capture path.
+fn format_capture_path_pattern(pattern: &str) -> String {
+    let (y, mo, d, h, mi, _) = local_now_parts();
+    let chars: Vec<char> = pattern.chars().collect();
+    let mut out = String::with_capacity(pattern.len());
+    let mut i = 0;
+    while i < chars.len() {
+        if i + 4 <= chars.len() && chars[i..i + 4] == ['Y', 'Y', 'Y', 'Y'] {
+            out.push_str(&format!("{y:04}"));
+            i += 4;
+        } else if i + 2 <= chars.len()
+            && matches!([chars[i], chars[i + 1]], ['M', 'M'] | ['D', 'D'] | ['H', 'H'] | ['m', 'm'])
+        {
+            let token = [chars[i], chars[i + 1]];
+            match token {
+                ['M', 'M'] => out.push_str(&format!("{mo:02}")),
+                ['D', 'D'] => out.push_str(&format!("{d:02}")),
+                ['H', 'H'] => out.push_str(&format!("{h:02}")),
+                _ => out.push_str(&format!("{mi:02}")),
+            }
+            i += 2;
+        } else {
+            out.push(chars[i]);
+            i += 1;
+        }
+    }
+    out
+}
+
+fn expand_frontmatter_template(template: &str, values: &[(&str, String)]) -> String {
+    template
+        .lines()
+        .filter_map(|line| {
+            let mut empty = false;
+            let mut rendered = line.to_string();
+            for (key, value) in values {
+                let token = format!("{{{{{key}}}}}");
+                if value.is_empty() && rendered.contains(&token) {
+                    empty = true;
+                }
+                rendered = rendered.replace(&token, value);
+            }
+            if empty { None } else { Some(rendered) }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Render the note exactly as the pushed preset describes it.
+fn render_http_note(
+    frontmatter: &str,
+    title: &str,
+    content: &str,
+    url: Option<&str>,
+    tags: Option<&[String]>,
+    inbox: bool,
+) -> String {
+    let (y, mo, d, h, mi, _) = local_now_parts();
+    let tags = tags
+        .map(|all| {
+            all.iter()
+                .map(|tag| tag.trim())
+                .filter(|tag| !tag.is_empty())
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .unwrap_or_default();
+    let first_line = content
+        .trim()
+        .lines()
+        .next()
+        .unwrap_or("")
+        .trim_start_matches('#')
+        .trim()
+        .to_string();
+    let values: Vec<(&str, String)> = vec![
+        ("title", title.to_string()),
+        ("value", first_line.clone()),
+        ("input", first_line),
+        ("source", url.unwrap_or("").trim().to_string()),
+        ("tags", tags),
+        ("inbox", inbox.to_string()),
+        ("capturedAt", local_iso8601_now()),
+        ("date", format!("{y:04}-{mo:02}-{d:02}")),
+        ("time", format!("{h:02}:{mi:02}")),
+    ];
+    let head = expand_frontmatter_template(frontmatter, &values);
+    let body = strip_front_matter(content);
+    if head.is_empty() {
+        body.to_string()
+    } else {
+        format!("---\n{head}\n---\n\n{body}")
+    }
 }
 
 fn handle_capture(body: &[u8]) -> Result<String, CaptureError> {
@@ -501,9 +635,14 @@ fn handle_capture(body: &[u8]) -> Result<String, CaptureError> {
         .ok_or_else(|| CaptureError::BadRequest("missing field: content".into()))?
         .to_string();
 
-    let (workspace, inbox_folder) = {
+    let (workspace, path_pattern, frontmatter, inbox) = {
         let s = STATE.lock().expect("capture state lock");
-        (s.workspace.clone(), s.inbox_folder.clone())
+        (
+            s.workspace.clone(),
+            s.capture_path.clone(),
+            s.capture_frontmatter.clone(),
+            s.capture_inbox,
+        )
     };
     let workspace = workspace.ok_or(CaptureError::NoWorkspace)?;
 
@@ -518,16 +657,26 @@ fn handle_capture(body: &[u8]) -> Result<String, CaptureError> {
         return capture_append_inner(&workspace, trimmed, &content);
     }
 
-    capture_write_inner(
-        &workspace,
-        &inbox_folder,
-        parsed.title.as_deref(),
+    let relative = format_capture_path_pattern(&path_pattern);
+    let title = parsed
+        .title
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_string)
+        .or_else(|| extract_first_h1(&content))
+        .unwrap_or_else(|| "Untitled".to_string());
+    let note = render_http_note(
+        &frontmatter,
+        &title,
         &content,
         parsed.url.as_deref(),
         parsed.tags.as_deref(),
-        parsed.inbox.unwrap_or(true),
-        local_iso8601_now(),
-    )
+        inbox,
+    );
+    capture_write_rendered_inner(&workspace, &relative, &note, true)
+        .map(|path| path.to_string_lossy().to_string())
+        .map_err(CaptureError::Io)
 }
 
 /// Pure append — open-or-create the workspace-relative file at `rel_path`,
@@ -655,112 +804,6 @@ fn resolve_safe_workspace_path(workspace: &Path, rel_path: &str) -> Result<PathB
     Ok(resolved)
 }
 
-/// Pure write — no global state touched. Public so the e2e test can drive
-/// it without spinning up the HTTP server.
-#[allow(clippy::too_many_arguments)]
-pub fn capture_write_inner(
-    workspace: &Path,
-    inbox_folder: &str,
-    title: Option<&str>,
-    content: &str,
-    url: Option<&str>,
-    tags: Option<&[String]>,
-    inbox: bool,
-    captured_at: String,
-) -> Result<String, CaptureError> {
-    if !workspace.is_dir() {
-        return Err(CaptureError::Io(format!(
-            "workspace folder does not exist: {}",
-            workspace.display()
-        )));
-    }
-
-    // Resolve title: explicit → first H1 → "Untitled".
-    let derived_title = title
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .or_else(|| extract_first_h1(content))
-        .unwrap_or_else(|| "Untitled".to_string());
-
-    // Build slug + filename.
-    let slug = slugify(&derived_title);
-    let prefix = filename_prefix();
-    let filename = if slug.is_empty() {
-        format!("{prefix}.md")
-    } else {
-        format!("{prefix}-{slug}.md")
-    };
-
-    let target_dir = workspace.join(inbox_folder);
-    std::fs::create_dir_all(&target_dir)
-        .map_err(|e| CaptureError::Io(format!("mkdir {}: {e}", target_dir.display())))?;
-
-    // Avoid clobbering an existing file with the same minute-resolution name.
-    let mut target = target_dir.join(&filename);
-    let mut suffix = 2u32;
-    while target.exists() {
-        let alt = if slug.is_empty() {
-            format!("{prefix}-{suffix}.md")
-        } else {
-            format!("{prefix}-{slug}-{suffix}.md")
-        };
-        target = target_dir.join(alt);
-        suffix += 1;
-    }
-
-    let body = render_note(&derived_title, content, url, tags, inbox, &captured_at);
-    std::fs::write(&target, body)
-        .map_err(|e| CaptureError::Io(format!("write {}: {e}", target.display())))?;
-
-    Ok(target.to_string_lossy().to_string())
-}
-
-fn render_note(
-    title: &str,
-    content: &str,
-    url: Option<&str>,
-    tags: Option<&[String]>,
-    inbox: bool,
-    captured_at: &str,
-) -> String {
-    let mut out = String::with_capacity(content.len() + 256);
-    out.push_str("---\n");
-    out.push_str(&format!("title: {}\n", yaml_scalar(title)));
-    if let Some(u) = url {
-        let u = u.trim();
-        if !u.is_empty() {
-            out.push_str(&format!("source: {}\n", yaml_scalar(u)));
-        }
-    }
-    if let Some(ts) = tags {
-        let cleaned: Vec<String> = ts
-            .iter()
-            .map(|t| t.trim().to_string())
-            .filter(|t| !t.is_empty())
-            .collect();
-        if !cleaned.is_empty() {
-            let inner = cleaned
-                .iter()
-                .map(|t| yaml_scalar(t))
-                .collect::<Vec<_>>()
-                .join(", ");
-            out.push_str(&format!("tags: [{inner}]\n"));
-        }
-    }
-    out.push_str(&format!("inbox: {}\n", if inbox { "true" } else { "false" }));
-    out.push_str(&format!("captured_at: {captured_at}\n"));
-    out.push_str("---\n\n");
-
-    // Strip an existing front-matter block from the incoming content so we
-    // don't double-stack `---` blocks if the caller pre-formatted.
-    let body = strip_front_matter(content);
-    out.push_str(body);
-    if !body.ends_with('\n') {
-        out.push('\n');
-    }
-    out
-}
-
 fn strip_front_matter(input: &str) -> &str {
     let trimmed = input.trim_start_matches('\u{feff}');
     if !trimmed.starts_with("---") {
@@ -778,53 +821,6 @@ fn strip_front_matter(input: &str) -> &str {
     input
 }
 
-fn yaml_scalar(s: &str) -> String {
-    // Quote anything that could trip YAML's plain-scalar parser. Conservative
-    // but readable: a `:` is only ambiguous when followed by whitespace
-    // (otherwise `https://x.com` would be force-quoted, which is ugly), and
-    // a `#` is only a comment marker when preceded by whitespace.
-    let mut needs_quote = s.is_empty()
-        || s.contains('"')
-        || s.contains('\'')
-        || s.contains('\n')
-        || s.contains(',')
-        || s.contains('[')
-        || s.contains(']')
-        || s.contains('{')
-        || s.contains('}')
-        || s.starts_with('-')
-        || s.starts_with('?')
-        || s.starts_with('&')
-        || s.starts_with('*')
-        || s.starts_with('!')
-        || s.starts_with('|')
-        || s.starts_with('>')
-        || s.starts_with('@')
-        || s.starts_with('`')
-        || s.starts_with(' ')
-        || s.starts_with('#')
-        || s.ends_with(' ');
-    if !needs_quote {
-        // `: ` (colon followed by space) terminates a plain scalar's key.
-        let bytes = s.as_bytes();
-        for i in 0..bytes.len() {
-            if bytes[i] == b':' && (i + 1 >= bytes.len() || bytes[i + 1] == b' ') {
-                needs_quote = true;
-                break;
-            }
-            if bytes[i] == b'#' && i > 0 && bytes[i - 1] == b' ' {
-                needs_quote = true;
-                break;
-            }
-        }
-    }
-    if !needs_quote {
-        return s.to_string();
-    }
-    let escaped = s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n");
-    format!("\"{escaped}\"")
-}
-
 fn extract_first_h1(content: &str) -> Option<String> {
     for line in content.lines().take(40) {
         let t = line.trim_start();
@@ -836,38 +832,6 @@ fn extract_first_h1(content: &str) -> Option<String> {
         }
     }
     None
-}
-
-fn slugify(title: &str) -> String {
-    let mut out = String::with_capacity(title.len());
-    let mut last_dash = false;
-    for ch in title.chars() {
-        if ch.is_ascii_alphanumeric() {
-            out.push(ch.to_ascii_lowercase());
-            last_dash = false;
-        } else if ch.is_alphanumeric() {
-            // Preserve CJK / accented chars as-is — readable filenames win
-            // on every modern FS we ship to (APFS, NTFS, ext4 all UTF-8).
-            out.push(ch);
-            last_dash = false;
-        } else if !last_dash {
-            out.push('-');
-            last_dash = true;
-        }
-    }
-    let trimmed = out.trim_matches('-').to_string();
-    // Cap to avoid pathologically long filenames from giant titles.
-    if trimmed.chars().count() > 60 {
-        trimmed.chars().take(60).collect()
-    } else {
-        trimmed
-    }
-}
-
-/// `YYYY-MM-DD-HHMM` in local time. Hand-rolled to avoid pulling chrono.
-fn filename_prefix() -> String {
-    let (y, mo, d, h, mi, _) = local_now_parts();
-    format!("{:04}-{:02}-{:02}-{:02}{:02}", y, mo, d, h, mi)
 }
 
 /// `YYYY-MM-DDTHH:MM:SS+HH:MM` local time, ISO 8601 with offset.
@@ -1095,6 +1059,9 @@ pub fn _test_set_state(workspace: Option<PathBuf>, token: String, inbox_folder: 
     s.workspace = workspace;
     s.token = token;
     s.inbox_folder = inbox_folder;
+    s.capture_path = DEFAULT_CAPTURE_PATH.to_string();
+    s.capture_frontmatter = DEFAULT_CAPTURE_FRONTMATTER.to_string();
+    s.capture_inbox = true;
     s.enabled = true;
 }
 
@@ -1270,21 +1237,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slug_basic() {
-        assert_eq!(slugify("Hello, World!"), "hello-world");
-        assert_eq!(slugify("  multi   spaces  "), "multi-spaces");
-        assert_eq!(slugify("---"), "");
-    }
-
-    #[test]
-    fn slug_keeps_cjk() {
-        // CJK chars are preserved (readable on every shipping platform).
-        let got = slugify("你好 世界");
-        assert!(got.contains('你'));
-        assert!(got.contains('世'));
-    }
-
-    #[test]
     fn token_is_32_hex() {
         let t = random_token();
         assert_eq!(t.len(), 32);
@@ -1301,18 +1253,6 @@ mod tests {
     }
 
     #[test]
-    fn yaml_scalar_quotes_when_needed() {
-        assert_eq!(yaml_scalar("plain"), "plain");
-        assert_eq!(yaml_scalar("has: colon"), "\"has: colon\"");
-        assert_eq!(yaml_scalar("with \"quote\""), "\"with \\\"quote\\\"\"");
-        // URLs and `time:value` style strings are NOT force-quoted because
-        // the colon isn't followed by a space — that's what the YAML spec
-        // distinguishes.
-        assert_eq!(yaml_scalar("https://example.com"), "https://example.com");
-        assert_eq!(yaml_scalar("12:34"), "12:34");
-    }
-
-    #[test]
     fn front_matter_is_stripped_when_present() {
         let stripped = strip_front_matter("---\nfoo: 1\n---\nbody\n");
         assert_eq!(stripped, "body\n");
@@ -1320,22 +1260,4 @@ mod tests {
         assert_eq!(untouched, "no front matter here");
     }
 
-    #[test]
-    fn render_note_emits_required_fields() {
-        let body = render_note(
-            "T",
-            "hello",
-            Some("https://x"),
-            Some(&["a".to_string(), "b".to_string()]),
-            true,
-            "2026-04-26T11:30:00+08:00",
-        );
-        assert!(body.starts_with("---\n"));
-        assert!(body.contains("title: T\n"));
-        assert!(body.contains("source: https://x\n"));
-        assert!(body.contains("tags: [a, b]\n"));
-        assert!(body.contains("inbox: true\n"));
-        assert!(body.contains("captured_at: 2026-04-26T11:30:00+08:00\n"));
-        assert!(body.ends_with("hello\n"));
-    }
 }

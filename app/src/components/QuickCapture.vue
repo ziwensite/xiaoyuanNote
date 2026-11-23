@@ -13,44 +13,45 @@
  * second webview, so it shares localStorage with the main window — which is
  * how it knows the theme and the language without any IPC.
  */
-import { computed, nextTick, onMounted, onBeforeUnmount, ref } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useI18n } from '../i18n';
 import { useCapture } from '../composables/useCapture';
+import { useCaptureDestination } from '../composables/useCaptureDestination';
 import { useSettingsStore } from '../stores/settings';
 import { useWorkspaceStore } from '../stores/workspace';
+import CaptureInput from './CaptureInput.vue';
 
 const { t } = useI18n();
 const settings = useSettingsStore();
 const workspace = useWorkspaceStore();
 const capture = useCapture();
+const destinationOf = useCaptureDestination();
 
 const text = ref('');
-const box = ref<HTMLTextAreaElement | null>(null);
+const input = ref<InstanceType<typeof CaptureInput> | null>(null);
 const error = ref('');
 const saving = ref(false);
-// A ref rather than a plain `let`: `<script setup>` exposes a bare `let` to
-// the template as its literal type, so the composition handlers could not
-// assign to it.
-const composing = ref(false);
 let unlistenReset: UnlistenFn | null = null;
 
-const folderName = computed(() => {
-  const f = workspace.currentFolder;
-  if (!f) return '';
-  return f.split(/[\\/]/).filter(Boolean).pop() ?? f;
+const selectedPreset = computed(() => {
+  const eligible = settings.captures.filter((p) => p.enabled && p.target !== 'active');
+  const configured = eligible.find((p) => p.id === settings.quickCapturePresetId);
+  return configured
+    ?? eligible.find((p) => p.id === 'flash')
+    ?? eligible[0]
+    ?? settings.captures[0];
 });
 
-const selectedPreset = computed(() => {
-  const preset = settings.captures.find((p) => p.id === settings.quickCapturePresetId);
-  return preset?.enabled && preset.target !== 'active'
-    ? preset
-    : settings.captures.find((p) => p.id === 'quick') ?? settings.captures[0];
-});
+const destinationLabel = computed(() => selectedPreset.value ? destinationOf(selectedPreset.value) : '');
+
+const keysHint = computed(() => selectedPreset.value?.inputMethod === 'multi-line'
+  ? t('capture.dialogHintMultiline')
+  : t('quickCapture.keys'));
 
 function focusBox() {
-  void nextTick(() => box.value?.focus());
+  input.value?.focus();
 }
 
 async function close() {
@@ -94,26 +95,6 @@ async function save() {
   }
 }
 
-/**
- * Enter saves, Shift+Enter is a newline.
- *
- * The `isComposing` guard is not optional: committing an IME candidate is an
- * Enter press, so without it every pinyin/kana confirmation would file the
- * half-typed note and close the window.
- */
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    void close();
-    return;
-  }
-  if (e.key !== 'Enter') return;
-  if (composing.value || e.isComposing || e.keyCode === 229) return;
-  if (e.shiftKey) return;
-  e.preventDefault();
-  void save();
-}
-
 onMounted(async () => {
   document.documentElement.setAttribute(
     'data-theme',
@@ -136,26 +117,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="qc" @keydown="onKeydown">
-    <textarea
-      ref="box"
+  <div class="qc">
+    <CaptureInput
+      ref="input"
       v-model="text"
-      class="qc__input"
+      :input-method="selectedPreset?.inputMethod ?? 'single-line'"
       :placeholder="t('quickCapture.placeholder')"
-      rows="3"
-      @compositionstart="composing = true"
-      @compositionend="composing = false"
-    ></textarea>
+      @submit="save"
+      @cancel="close"
+    />
     <div class="qc__bar">
       <span v-if="error" class="qc__error">{{ error }}</span>
       <span v-else-if="!workspace.currentFolder" class="qc__error">
         {{ t('quickCapture.noWorkspace') }}
       </span>
       <span v-else class="qc__dest">
-        {{ t('quickCapture.destination', { folder: folderName }) }}
-        <template v-if="selectedPreset && selectedPreset.id !== 'quick'"> · {{ selectedPreset.name }}</template>
+        {{ t('capture.dialogDestination', { destination: destinationLabel }) }}
+        · {{ selectedPreset?.name }}
       </span>
-      <span class="qc__keys">{{ t('quickCapture.keys') }}</span>
+      <span class="qc__keys">{{ keysHint }}</span>
     </div>
   </div>
 </template>
@@ -172,21 +152,6 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   color: var(--text);
   font-family: var(--font-ui, system-ui, sans-serif);
-}
-.qc__input {
-  flex: 1;
-  width: 100%;
-  resize: none;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--text);
-  font-size: 15px;
-  line-height: 1.55;
-  font-family: inherit;
-}
-.qc__input::placeholder {
-  color: var(--text-faint, #b4b4b4);
 }
 .qc__bar {
   display: flex;

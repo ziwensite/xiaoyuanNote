@@ -562,12 +562,12 @@ export const ja: I18n = {
     cslPicked: 'CSL スタイルを読み込みました',
     dailyNotesFolder: 'デイリーノートのフォルダ（ワークスペース基準）',
     dailyNotesFormat: 'デイリーノートのファイル名フォーマット',
-    dailyNotesTemplate: 'デイリーノートのテンプレート（空の場合はデフォルト）',
+    dailyNotesTemplate: 'デイリーノートのテンプレート（空の場合はデフォルト）',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1521,6 +1521,7 @@ export const ja: I18n = {
     tokenRegenerated: '新しいトークンを生成 — 旧トークンは即座に無効',
     folder: 'inbox フォルダ',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'ターミナルでテスト',
     curlCopy: 'コピー',
     curlCopied: 'curl コマンドをコピーしました',
@@ -2215,7 +2216,8 @@ export const ja: I18n = {
       checkUpdated: '{years} 年の祝日データを更新しました',
       checkFailed: '確認に失敗しました — キャッシュを使用',
     },
-    week: { header: 'W', tooltip: 'ISO 第 {week} 週' },
+    week: { header: 'W', tooltip: 'ISO 第 {week} 週' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',

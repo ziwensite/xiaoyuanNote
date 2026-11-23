@@ -562,12 +562,12 @@ export const tr: I18n = {
     cslPicked: 'CSL stili yüklendi',
     dailyNotesFolder: 'Günlük not klasörü (çalışma alanına göre)',
     dailyNotesFormat: 'Günlük not dosya adı biçimi',
-    dailyNotesTemplate: 'Günlük not şablonu (varsayılan için boş bırakın)',
+    dailyNotesTemplate: 'Günlük not şablonu (varsayılan için boş bırakın)',
+
     periodic: {
       title: 'Periodic notes',
       hint: 'Set a template, save folder and filename format for each note kind. Paths are relative to the workspace.',
       kinds: {
-        flash: 'Flash note',
         daily: 'Daily',
         weekly: 'Weekly',
         monthly: 'Monthly',
@@ -1525,6 +1525,7 @@ export const tr: I18n = {
     tokenRegenerated: 'Yeni belirteç oluşturuldu — eskisi artık çalışmaz',
     folder: 'Gelen kutusu klasörü',
     folderPlaceholder: 'inbox',
+    folderHint: 'Notes marked inbox: true inside this folder appear in the sidebar Inbox. Quick capture and the HTTP endpoint write here too.',
     curlExample: 'Terminalden sına',
     curlCopy: 'Kopyala',
     curlCopied: 'curl komutu kopyalandı',
@@ -2234,7 +2235,8 @@ export const tr: I18n = {
       checkUpdated: '{years} için tatil verileri güncellendi',
       checkFailed: 'Denetim başarısız — önbellek kullanılıyor',
     },
-    week: { header: 'W', tooltip: 'ISO haftası {week}' },
+    week: { header: 'W', tooltip: 'ISO haftası {week}' },
+
     openPeriodic: {
       daily: 'Double-click to open the daily note',
       weekly: 'Double-click to open the weekly note',
