@@ -1465,6 +1465,7 @@ export const nl: I18n = {
     manage: 'Panelen beheren…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Bestanden',
     inspector: 'Properties',
     calendar: 'Calendar',

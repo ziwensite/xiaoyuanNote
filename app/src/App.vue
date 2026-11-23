@@ -1924,6 +1924,7 @@ const paneAvailabilityCtx = computed<SidebarPaneAvailabilityCtx>(() => ({
 /** User-facing on/off. `outline` is per tab; every other pane — `files`
  *  included — is a dock switch that can be turned off and re-added from `+`. */
 const dockPaneVisible = computed<Record<ImplementedSidebarPaneId, boolean>>(() => ({
+  home: isDockPaneVisible(settings.sidebarDock, 'home'),
   files: isDockPaneVisible(settings.sidebarDock, 'files'),
   outline: !!tabs.activeTab?.showOutline,
   backlinks: isDockPaneVisible(settings.sidebarDock, 'backlinks'),
@@ -2622,6 +2623,10 @@ watchEffect(() => { void settings.aiEnabled; void settings.aiProvider; refreshAi
           }"
           @click.stop
         >
+          <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleDockPane('home') })">
+            <span class="sidebar-ctx__check">{{ dockPaneVisible.home ? '✓' : '' }}</span>
+            {{ t('rsPane.home') }}
+          </label>
           <label class="sidebar-ctx__item" @click="ctxToggle(() => { settings.toggleDockPane('files') })">
             <span class="sidebar-ctx__check">{{ dockPaneVisible.files ? '✓' : '' }}</span>
             {{ t('rsPane.files') }}

@@ -94,7 +94,7 @@ function idsOn(dock: SidebarDockState, side: 'left' | 'right'): string[] {
 
 test('fresh install follows V1: files left, outline + agent right', () => {
   const dock = defaultSidebarDock();
-  assert.deepEqual(dock.groups.left[0].panes, ['files']);
+  assert.deepEqual(dock.groups.left[0].panes, ['home', 'files']);
   assert.equal(isDockPaneVisible(dock, 'files'), true);
   assert.equal(dock.groups.left[0].active, 'files');
 
@@ -124,8 +124,9 @@ test('stage 1 keeps exactly one region per side (the model supports more)', () =
 
 test('migrates a legacy right-side stack onto the right, files stays left', () => {
   const dock = migrateSidebarDock(legacy());
-  assert.deepEqual(idsOn(dock, 'left'), ['files']);
-  assert.equal(idsOn(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 1);
+  assert.deepEqual(idsOn(dock, 'left'), ['home', 'files']);
+  // `home` and `files` both default left, so everything else lands right.
+  assert.equal(idsOn(dock, 'right').length, SIDEBAR_PANE_DEFS.length - 2);
 
   for (const id of ['backlinks', 'tags', 'agent'] as const) {
     assert.equal(isDockPaneVisible(dock, id), true, `${id} should stay on`);
@@ -190,7 +191,7 @@ test('upgrades the pre-stage-1 flat panes[] shape without losing tab order', () 
     width: { left: 292, right: 292 },
   });
 
-  assert.deepEqual(dock.groups.left[0].panes, ['files']);
+  assert.deepEqual(dock.groups.left[0].panes, ['home', 'files']);
   // Stored order survives; panes the blob never mentioned are appended at
   // their registry default side (outline etc. are already present).
   assert.deepEqual(dock.groups.right[0].panes.slice(0, 3), ['outline', 'agent', 'backlinks']);
@@ -246,8 +247,9 @@ test('files is a peer: sanitize keeps its stored side, order and off switch', ()
     collapsed: { left: false, right: false },
     width: { left: 292, right: 292 },
   });
-  // Not re-pinned to index 0, not forced visible, not re-activated.
-  assert.deepEqual(dock.groups.left[0].panes, ['outline', 'files']);
+  // Not re-pinned to index 0, not forced visible, not re-activated. `home`
+  // is the one exception: a pane added later is inserted first on its side.
+  assert.deepEqual(dock.groups.left[0].panes, ['home', 'outline', 'files']);
   assert.equal(isDockPaneVisible(dock, 'files'), false);
   assert.equal(dock.groups.left[0].active, 'outline');
 });
@@ -256,7 +258,7 @@ test('marker without dock data restores defaults instead of legacy switches', ()
   const dock = migrateSidebarDock(
     legacy({ v510SidebarDockMigrated: true, showBacklinks: true }),
   );
-  assert.deepEqual(idsOn(dock, 'left'), ['files']);
+  assert.deepEqual(idsOn(dock, 'left'), ['home', 'files']);
   assert.equal(dock.groups.right[0].active, 'outline');
 });
 
@@ -378,7 +380,7 @@ test('moveDockTab crosses sides, and files itself is movable', () => {
   const dock = defaultSidebarDock();
   const moved = moveDockTab(dock, 'outline', { side: 'left', group: 0, index: 0 });
   // No files-first clamp: index 0 really is index 0.
-  assert.deepEqual(moved.groups.left[0].panes.slice(0, 2), ['outline', 'files']);
+  assert.deepEqual(moved.groups.left[0].panes.slice(0, 2), ['outline', 'home']);
   assert.equal(paneGroup(moved, 'outline')?.side, 'left');
   assert.equal(paneGroup(moved, 'outline')?.index, 0);
   assert.equal(moved.groups.left[0].active, 'outline');
@@ -391,7 +393,7 @@ test('moveDockTab crosses sides, and files itself is movable', () => {
 
   // Out-of-range indices clamp instead of throwing.
   const clamped = moveDockTab(dock, 'agent', { side: 'left', group: 0, index: 99 });
-  assert.deepEqual(clamped.groups.left[0].panes.slice(0, 2), ['files', 'agent']);
+  assert.deepEqual(clamped.groups.left[0].panes.slice(0, 2), ['home', 'files']);
 });
 
 test('moving every pane to a side moves files too', () => {
@@ -460,7 +462,7 @@ test('files can be hidden and can live on the secondary sidebar', () => {
   });
   assert.equal(dockPane(dock, 'files')?.side, 'right');
   assert.equal(dockPane(dock, 'files')?.visible, false);
-  assert.deepEqual(dock.groups.left[0].panes, ['outline']);
+  assert.deepEqual(dock.groups.left[0].panes, ['home', 'outline']);
   // sanitize appends panes missing from this blob at their registry default
   // side; the first two are the ones the blob explicitly placed here.
   assert.deepEqual(dock.groups.right[0].panes.slice(0, 2), ['files', 'agent']);
@@ -630,7 +632,7 @@ test('stage 2 mergeDockGroups folds a region holding files, but refuses bad indi
   const merged = mergeDockGroups(withLeftRegions, 'left', 0);
   assert.notEqual(merged, withLeftRegions);
   assert.equal(merged.groups.left.length, 1);
-  assert.deepEqual(merged.groups.left[0].panes, ['files', 'tags']);
+  assert.deepEqual(merged.groups.left[0].panes, ['home', 'files', 'tags']);
   assert.equal(mergeDockGroups(before, 'right', 1), before);
   assert.equal(mergeDockGroups(before, 'right', -1), before);
 });

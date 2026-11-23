@@ -53,6 +53,14 @@ function openWeeklyNote(date: string): void {
 
 <template>
   <Sidebar
+    v-if="props.id === 'home'"
+    embedded
+    section="home"
+    @open-settings="emit('openSettings')"
+    @open-quick-switcher="emit('openQuickSwitcher')"
+    @filter-tag="(tag: string) => emit('filterTag', tag)"
+  />
+  <Sidebar
     v-if="props.id === 'files'"
     embedded
     @open-settings="emit('openSettings')"

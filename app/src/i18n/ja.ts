@@ -1461,6 +1461,7 @@ export const ja: I18n = {
     manage: 'パネルを管理…',
   },
   rsPane: {
+    home: 'Home',
     files: 'ファイル',
     inspector: 'Properties',
     calendar: 'Calendar',

@@ -35,8 +35,16 @@ import { measureMenu, placeMenuFromRect } from '../lib/menu-position';
 import { useI18n } from '../i18n';
 
 const props = withDefaults(
-  defineProps<{ macInset?: boolean; variant?: 'desktop' | 'phone'; embedded?: boolean }>(),
-  { macInset: false, variant: 'desktop', embedded: false },
+  defineProps<{
+    macInset?: boolean;
+    variant?: 'desktop' | 'phone';
+    embedded?: boolean;
+    /** Which half of the old combined sidebar to render. `home` is the top
+     *  nav (today / inbox / recent); `files` is the tree + saved views. The
+     *  phone home (`variant="phone"`) keeps rendering both. */
+    section?: 'home' | 'files';
+  }>(),
+  { macInset: false, variant: 'desktop', embedded: false, section: 'files' },
 );
 /** 5.0 §8 — the phone home screen (笔记) is this sidebar, full-screen: large
  *  title, cards instead of rows, touch-sized tree rows, a new-note button. All
@@ -278,7 +286,7 @@ onBeforeUnmount(() => {
           <span class="sb__card-sub">{{ t('phone.count', { n: recentList.length }) }}</span>
         </button>
       </nav>
-      <nav v-else class="sb__nav">
+      <nav v-else-if="section === 'home'" class="sb__nav">
         <button
           v-if="hasFolder"
           class="sb__row"
@@ -336,11 +344,11 @@ onBeforeUnmount(() => {
           <span class="sb__row-label">{{ n.title }}</span>
         </button>
       </section>
-      <template v-if="hasFolder">
+      <template v-if="hasFolder && section !== 'home'">
         <FileTree embedded />
       </template>
 
-      <div v-else class="sb__empty">
+      <div v-else-if="section !== 'home'" class="sb__empty">
         <div class="sb__empty-title">{{ t('sidebar.emptyTitle') }}</div>
         <p class="sb__empty-body">{{ t('sidebar.emptyBody') }}</p>
         <button class="sb__primary" type="button" @click="openFolder">
@@ -377,7 +385,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-if="settings.showViewsPanel" class="sb__views">
+    <div v-if="settings.showViewsPanel && section !== 'home'" class="sb__views">
       <ViewsPanel />
     </div>
 
@@ -392,7 +400,7 @@ onBeforeUnmount(() => {
       <Icon name="pencil" :size="24" />
     </button>
 
-    <footer v-if="!phone" class="sb__foot">
+    <footer v-if="!phone && section !== 'home'" class="sb__foot">
       <div class="sb__foot-sync">
         <!-- Sync belongs to the open folder: nothing to report without one. -->
         <SyncStatusPill v-if="hasFolder" variant="footer" />

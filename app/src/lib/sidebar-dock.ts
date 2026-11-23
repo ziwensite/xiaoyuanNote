@@ -321,10 +321,13 @@ export function sanitizeSidebarDock(
   }
 
   // Scroll-upgrade tolerance: a pane added in a later build gets its default.
+  // `home` is the one pane that belongs first — it was split out of the top of
+  // the file sidebar, so an existing install sees it before the tree tab.
   for (const def of SIDEBAR_PANE_DEFS) {
     if (seen.has(def.id)) continue;
     seen.add(def.id);
-    groups[def.defaultSide][0].panes.push(def.id);
+    if (def.id === 'home') groups[def.defaultSide][0].panes.unshift(def.id);
+    else groups[def.defaultSide][0].panes.push(def.id);
   }
 
   // No pane is pinned any more. The dedupe pass above keeps `files` exactly
@@ -417,7 +420,8 @@ export function migrateSidebarDock(
     return {
       id,
       // V1 — the primary container never travelled with the legacy stack.
-      side: id === PRIMARY_PANE_ID ? PRIMARY_SIDE : legacySide,
+      // `home` is new (no legacy switch), so it follows its registry side too.
+      side: id === PRIMARY_PANE_ID || id === 'home' ? PRIMARY_SIDE : legacySide,
       visible:
         def.visibility === 'setting'
           ? !!legacy[def.settingKey as string]

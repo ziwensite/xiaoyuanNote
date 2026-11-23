@@ -1465,6 +1465,7 @@ export const tr: I18n = {
     manage: 'Panelleri yönet…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Dosyalar',
     inspector: 'Properties',
     calendar: 'Calendar',

@@ -1465,6 +1465,7 @@ export const sv: I18n = {
     manage: 'Hantera paneler…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Filer',
     inspector: 'Properties',
     calendar: 'Calendar',

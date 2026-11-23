@@ -1462,6 +1462,7 @@ export const it: I18n = {
     manage: 'Gestisci pannelli…',
   },
   rsPane: {
+    home: 'Home',
     files: 'File',
     inspector: 'Properties',
     calendar: 'Calendar',

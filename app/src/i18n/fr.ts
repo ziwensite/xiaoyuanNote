@@ -1462,6 +1462,7 @@ export const fr: I18n = {
     manage: 'Gérer les panneaux…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Fichiers',
     inspector: 'Properties',
     calendar: 'Calendar',

@@ -1457,6 +1457,7 @@ export const ru: I18n = {
     manage: 'Управление панелями…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Файлы',
     inspector: 'Properties',
     calendar: 'Calendar',

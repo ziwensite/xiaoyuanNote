@@ -1491,6 +1491,7 @@ export const zh: I18n = {
     manage: '管理面板…',
   },
   rsPane: {
+    home: '主页',
     files: '文件',
     inspector: '属性',
     calendar: '日历',

@@ -1464,6 +1464,7 @@ export const pt: I18n = {
     manage: 'Gerir painéis…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Ficheiros',
     inspector: 'Properties',
     calendar: 'Calendar',

@@ -1504,6 +1504,7 @@ export const en = {
     manage: 'Manage panels…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Files',
     inspector: 'Properties',
     calendar: 'Calendar',

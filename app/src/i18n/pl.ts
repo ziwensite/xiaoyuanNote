@@ -1465,6 +1465,7 @@ export const pl: I18n = {
     manage: 'Zarządzaj panelami…',
   },
   rsPane: {
+    home: 'Home',
     files: 'Pliki',
     inspector: 'Properties',
     calendar: 'Calendar',

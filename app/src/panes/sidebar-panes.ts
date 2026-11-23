@@ -22,6 +22,7 @@
  */
 
 export type SidebarPaneId =
+  | 'home'
   | 'files'
   | 'outline'
   | 'backlinks'
@@ -82,6 +83,18 @@ const markdownInFolder = (ctx: SidebarPaneAvailabilityCtx) =>
  * keep the pre-S1 order so old `rsPaneOrder` blobs migrate predictably.
  */
 export const SIDEBAR_PANE_DEFS: readonly SidebarPaneDef[] = [
+  // `home` is the old sidebar's top nav split out on its own tab: today /
+  // inbox / recent. It sits before `files` so the primary dock opens with the
+  // two tabs in reading order. Like every pane it is movable and hideable.
+  {
+    id: 'home',
+    visibility: 'tab',
+    defaultSide: 'left',
+    defaultVisible: true,
+    icon: 'home',
+    titleKey: 'rsPane.home',
+    available: () => true,
+  },
   // `files` is a normal pane now: movable, hideable and listed in View › Panels
   // and the dock's `+` list. `visibility: 'always'` is kept only because the V1
   // migration reads it (changing it would flip legacy blobs to hidden).

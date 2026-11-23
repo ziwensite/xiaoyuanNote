@@ -1461,6 +1461,7 @@ export const ko: I18n = {
     manage: '패널 관리…',
   },
   rsPane: {
+    home: 'Home',
     files: '파일',
     inspector: 'Properties',
     calendar: 'Calendar',
