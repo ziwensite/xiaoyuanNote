@@ -26,11 +26,13 @@ import { defineStore } from 'pinia';
 import type { Theme, ViewMode } from '../types';
 import type { WindowsEditorEngine } from '../lib/platform';
 import { isMobile } from '../lib/platform';
+import { setCapturePresetKeyActions } from '../lib/keybindings';
 import {
   QUICK_CAPTURE_DEFAULT_SHORTCUT,
   migrateQuickCaptureShortcut,
 } from '../lib/quick-capture-shortcut';
 import {
+  defaultCapturePresets,
   normalizeCapturePresets,
   type CapturePreset,
 } from '../lib/capture';
@@ -303,6 +305,10 @@ interface Settings {
    * on a timer or on a file change.
    */
   captures: CapturePreset[];
+  /** Global capture switch, equivalent to the reference plugin's `capture.enabled`. */
+  capturesEnabled: boolean;
+  /** One-time flag: old blobs stored `captures: []` and must be reseeded. */
+  capturePresetsMigrated: boolean;
   showTagsPanel: boolean;
   // Workspace-wide task panel: every `- [ ]` in the vault, grouped by file.
   showTasksPanel: boolean;
@@ -454,6 +460,12 @@ interface Settings {
   // it has to work while another application is focused.
   quickCaptureEnabled: boolean;
   quickCaptureShortcut: string;
+  /** Preset executed by the global quick-capture hotkey and its small window. */
+  quickCapturePresetId: string;
+  /** HTTP capture endpoint. Persisted here so a restart no longer silently
+   *  re-enables/forgets the user's inbox choice (the Rust state is memory-only). */
+  captureEndpointEnabled: boolean;
+  captureEndpointInbox: string;
   // DOCX export template: which of the built-in presets (plain / report /
   // academic) a Word export starts from. A per-document `docx:` front-matter
   // block overrides individual keys, the same way `pdf:` does.
@@ -840,7 +852,9 @@ function defaults(): Settings {
     weekStartsOn: 1,
     tasksLinkCalendar: false,
     captureHeading: '## 任务',
-    captures: [],
+    captures: defaultCapturePresets(),
+    capturesEnabled: true,
+    capturePresetsMigrated: true,
     // Obsidian Tasks writes the next occurrence above the completed line; that
     // is the default here too. A saved choice still wins (see `load`).
     recurringTaskPlacement: 'above',
@@ -908,6 +922,9 @@ function defaults(): Settings {
     wheelZoomEnabled: true,
     quickCaptureEnabled: true,
     quickCaptureShortcut: QUICK_CAPTURE_DEFAULT_SHORTCUT,
+    quickCapturePresetId: 'quick',
+    captureEndpointEnabled: false,
+    captureEndpointInbox: 'inbox',
     docxPreset: 'plain',
     printTheme: 'light',
     foldingEnabled: true,
@@ -1056,8 +1073,40 @@ function load(): Settings {
       // so every existing daily note keeps resolving to the same path.
       merged.periodic = mergePeriodicConfig(parsed.periodic, parsed as Record<string, unknown>);
       // P5 — presets are user data, so a malformed entry is dropped rather than
-      // allowed to break the command palette.
-      merged.captures = normalizeCapturePresets(parsed.captures);
+      // allowed to break the command palette. An older blob has no `captures`
+      // key at all; that means "keep the built-ins", not "remove every preset".
+      if (parsed.capturePresetsMigrated !== true) {
+        // Older versions always persisted `captures: []` because they had no
+        // built-ins. Seed them once; after this flag is written an intentionally
+        // empty list stays empty.
+        const migrated = Array.isArray(parsed.captures)
+          ? normalizeCapturePresets(parsed.captures)
+          : defaultCapturePresets();
+        merged.captures = migrated.length > 0 ? migrated : defaultCapturePresets();
+        merged.capturePresetsMigrated = true;
+      } else if (parsed.captures !== undefined) {
+        merged.captures = normalizeCapturePresets(parsed.captures);
+      }
+      merged.capturesEnabled = parsed.capturesEnabled !== false;
+      // Older blobs have no built-in `quick` preset. Insert it once so the OS
+      // hotkey keeps working, but preserve any edits the user made to it.
+      if (!merged.captures.some((preset) => preset.id === 'quick')) {
+        merged.captures = [...defaultCapturePresets().filter((p) => p.id === 'quick'), ...merged.captures];
+      }
+      merged.captures = merged.captures.map((preset) => preset.id === 'quick'
+        ? { ...preset, builtIn: true, enabled: true }
+        : preset);
+      const quickId = typeof parsed.quickCapturePresetId === 'string' ? parsed.quickCapturePresetId.trim() : '';
+      merged.quickCapturePresetId = merged.captures.some(
+        (preset) => preset.id === quickId && preset.enabled && preset.target !== 'active',
+      ) ? quickId : 'quick';
+      // The HTTP capture endpoint's state lives in memory on the Rust side.
+      // These two fields are the persisted half, pushed up on every start.
+      merged.captureEndpointEnabled = parsed.captureEndpointEnabled === true;
+      merged.captureEndpointInbox =
+        typeof parsed.captureEndpointInbox === 'string' && parsed.captureEndpointInbox.trim()
+          ? parsed.captureEndpointInbox.trim()
+          : 'inbox';
       if (!Number.isInteger(merged.weekStartsOn) || merged.weekStartsOn < 0 || merged.weekStartsOn > 6) {
         merged.weekStartsOn = 1;
       }
@@ -1271,10 +1320,13 @@ function listenSystemTheme() {
 export const useSettingsStore = defineStore('settings', {
   state: (): Settings => {
     listenSystemTheme();
-    return load();
+    const loaded = load();
+    setCapturePresetKeyActions(loaded.captures, loaded.capturesEnabled);
+    return loaded;
   },
   actions: {
     persist() {
+      setCapturePresetKeyActions(this.captures, this.capturesEnabled);
       try {
         localStorage.setItem(LS_KEY, JSON.stringify(this.$state));
       } catch {}
@@ -1881,19 +1933,67 @@ export const useSettingsStore = defineStore('settings', {
       this.captureHeading = h;
       this.persist();
     },
+    setCapturesEnabled(enabled: boolean) {
+      this.capturesEnabled = enabled;
+      this.persist();
+    },
+    resetCaptureDefaults() {
+      const builtIns = defaultCapturePresets();
+      const byId = new Map(this.captures.map((preset) => [preset.id, preset]));
+      // Restore the bundled presets without discarding user-made ones. The
+      // quick preset is rebuilt from its default so it can never stay disabled.
+      const restored = builtIns.map((preset) => preset.builtIn
+        ? { ...preset }
+        : { ...preset, ...byId.get(preset.id) });
+      const custom = this.captures.filter((preset) => !builtIns.some((base) => base.id === preset.id));
+      this.captures = [...restored, ...custom];
+      this.capturePresetsMigrated = true;
+      this.capturesEnabled = true;
+      this.persist();
+    },
     addCapture(preset: CapturePreset) {
       this.captures = [...this.captures, preset];
       this.persist();
     },
     updateCapture(id: string, patch: Partial<CapturePreset>) {
-      this.captures = this.captures.map((preset) =>
-        preset.id === id ? { ...preset, ...patch, id: preset.id } : preset,
-      );
+      this.captures = this.captures.map((preset) => {
+        if (preset.id !== id) return preset;
+        // The built-in quick preset is the global hotkey's guaranteed target.
+        return preset.builtIn
+          ? { ...preset, ...patch, id: preset.id, enabled: true }
+          : { ...preset, ...patch, id: preset.id };
+      });
       this.persist();
     },
     removeCapture(id: string) {
-      this.captures = this.captures.filter((preset) => preset.id !== id);
+      const preset = this.captures.find((p) => p.id === id);
+      if (!preset || preset.builtIn) return;
+      this.captures = this.captures.filter((p) => p.id !== id);
+      if (this.quickCapturePresetId === id) this.quickCapturePresetId = 'quick';
+      // A removed command must not leave an invisible shortcut behind:
+      // reusing that id later would silently inherit the old chord.
+      delete this.keybindings[`capture.preset.${id}`];
       this.persist();
+    },
+    moveCapture(id: string, delta: number) {
+      const from = this.captures.findIndex((preset) => preset.id === id);
+      const to = from + delta;
+      if (from < 0 || to < 0 || to >= this.captures.length) return;
+      const next = [...this.captures];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      this.captures = next;
+      this.persist();
+    },
+    duplicateCapture(id: string) {
+      const source = this.captures.find((preset) => preset.id === id);
+      if (!source) return;
+      this.addCapture({
+        ...source,
+        id: crypto.randomUUID(),
+        name: `${source.name} 副本`,
+        builtIn: false,
+      });
     },
     setRecurringTaskPlacement(p: RecurringTaskPlacement) {
       this.recurringTaskPlacement = RECURRING_TASK_PLACEMENTS.includes(p) ? p : 'above';
@@ -2081,6 +2181,22 @@ export const useSettingsStore = defineStore('settings', {
     },
     setQuickCaptureShortcut(accel: string) {
       this.quickCaptureShortcut = accel.trim();
+      this.persist();
+    },
+    setQuickCapturePreset(id: string) {
+      const preset = this.captures.find((p) => p.id === id);
+      if (!preset || !preset.enabled || preset.target === 'active') return;
+      this.quickCapturePresetId = id;
+      this.persist();
+    },
+    setCaptureEndpointEnabled(enabled: boolean) {
+      this.captureEndpointEnabled = enabled;
+      this.persist();
+    },
+    setCaptureEndpointInbox(folder: string) {
+      // Match the Rust command: a leading/trailing slash is not part of the
+      // workspace-relative folder name, and an empty value means `inbox`.
+      this.captureEndpointInbox = folder.trim().replace(/^[/\\]+|[/\\]+$/g, '') || 'inbox';
       this.persist();
     },
     setDocxPreset(preset: 'plain' | 'report' | 'academic') {

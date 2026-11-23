@@ -988,10 +988,11 @@ export function useCommands(): Command[] {
     },
     // P5 — one command per user-defined capture preset. Ids are stable (the
     // preset id), so a keybinding can be assigned to one.
-    ...settings.captures.map((preset) => ({
+    ...(settings.capturesEnabled ? settings.captures : []).filter((preset) => preset.enabled).map((preset) => ({
       id: `capture.preset.${preset.id}`,
-      title: `Capture: ${preset.name}`,
-      hint: preset.template.split('\n')[0]?.slice(0, 60),
+      title: `${t('capture.commandTitle')}: ${preset.name}`,
+      hint: preset.description || preset.template.split('\n')[0]?.slice(0, 60),
+      shortcut: kb(`capture.preset.${preset.id}`),
       run: () => capture.runPreset(preset.id),
     })),
   ];

@@ -62,8 +62,8 @@ import {
 import { CALENDAR_EDITOR_VIEWS } from '../../lib/calendar-prefs';
 import CalendarPanel from '../CalendarPanel.vue';
 import {
-  dailyNoteDates,
-  dayDensity,
+  aggregateDensity,
+  periodicNoteDates,
   type CalendarDayDensity,
 } from '../../lib/calendar-density';
 import {
@@ -157,7 +157,10 @@ const range = computed(() => {
       return { from: days[0], to: addDays(days[6], 1) };
     }
     case 'month':
-      return { from: monthDays.value[0], to: addDays(monthDays.value[41], 1) };
+      return {
+        from: monthDays.value[0],
+        to: addDays(monthDays.value[monthDays.value.length - 1], 1),
+      };
     case 'year': {
       const y = Number(calendar.focusDate.slice(0, 4));
       return { from: `${y}-01-01`, to: `${y + 1}-01-01` };
@@ -190,17 +193,6 @@ const taskTally = computed(() => countTasks(allTasks.value));
 
 const taskGroups = computed(() => groupTasksByDue(filteredTasks.value, today.value, true));
 const visibleTasks = computed(() => taskGroups.value.flatMap((group) => group.tasks));
-
-const noteDates = computed(() =>
-  dailyNoteDates(
-    idx.entries,
-    monthDays.value,
-    workspace.currentFolder,
-    settings.dailyNotesFolder,
-    settings.dailyNotesFormat,
-  ),
-);
-
 
 
 
@@ -254,6 +246,57 @@ const yearDaysByMonth = computed(() => {
     byMonth.set(key, list);
   }
   return byMonth;
+});
+
+/** Month / quarter titles carry the same three-state marks as a day cell:
+ *  their own periodic note counts as a note, plus all task/event state in the
+ *  days they contain. */
+const monthNoteDates = computed(() =>
+  periodicNoteDates(
+    'monthly',
+    yearQuarters.value.flatMap((q) => q.months.map((m) => `${m.key}-01`)),
+    idx.entries,
+    workspace.currentFolder,
+    settings.periodic.monthly,
+    settings.weekStartsOn,
+  ),
+);
+const monthDensities = computed(() => {
+  const map = new Map<string, CalendarDayDensity>();
+  for (const quarter of yearQuarters.value) {
+    for (const month of quarter.months) {
+      map.set(
+        month.key,
+        aggregateDensity(
+          yearDaysByMonth.value.get(month.key) ?? [],
+          monthNoteDates.value.has(`${month.key}-01`),
+        ),
+      );
+    }
+  }
+  return map;
+});
+
+const quarterNoteDates = computed(() =>
+  periodicNoteDates(
+    'quarterly',
+    yearQuarters.value.map((q) => `${q.months[0].key}-01`),
+    idx.entries,
+    workspace.currentFolder,
+    settings.periodic.quarterly,
+    settings.weekStartsOn,
+  ),
+);
+const quarterDensities = computed(() => {
+  const map = new Map<number, CalendarDayDensity>();
+  for (const quarter of yearQuarters.value) {
+    const days = quarter.months.flatMap((m) => yearDaysByMonth.value.get(m.key) ?? []);
+    map.set(
+      quarter.index,
+      aggregateDensity(days, quarterNoteDates.value.has(`${quarter.months[0].key}-01`)),
+    );
+  }
+  return map;
 });
 
 const weekdayLabels = computed(() => {
@@ -1300,6 +1343,26 @@ onBeforeUnmount(() => {
           >
             <span class="cal-year__quarter-tag">{{ quarter.label }}</span>
             <span class="cal-year__quarter-range">{{ quarter.rangeLabel }}</span>
+            <span
+              v-if="quarterDensities.get(quarter.index)?.hasNote || quarterDensities.get(quarter.index)?.total"
+              class="cal-period__marks"
+            >
+              <span
+                v-if="quarterDensities.get(quarter.index)?.hasNote"
+                class="cal-period__dot is-note"
+                :title="t('settings.periodic.kinds.quarterly')"
+              ></span>
+              <span
+                v-if="quarterDensities.get(quarter.index)?.todo"
+                class="cal-period__dot is-open"
+                :title="t('calendar.mark.open')"
+              ></span>
+              <span
+                v-else-if="quarterDensities.get(quarter.index)?.total"
+                class="cal-period__dot is-done"
+                :title="t('calendar.mark.done')"
+              ></span>
+            </span>
           </div>
           <div class="cal-year__months">
             <section v-for="month in quarter.months" :key="month.key" class="cal-year__month">
@@ -1309,7 +1372,29 @@ onBeforeUnmount(() => {
                 :title="`${month.key} · ${t('calendar.openPeriodic.monthly')}`"
                 @click="scheduleOpenMonth(month.key)"
                 @dblclick.stop="openMonthNote(month.key)"
-              >{{ month.label }}</button>
+              >
+                <span>{{ month.label }}</span>
+                <span
+                  v-if="monthDensities.get(month.key)?.hasNote || monthDensities.get(month.key)?.total"
+                  class="cal-period__marks"
+                >
+                  <span
+                    v-if="monthDensities.get(month.key)?.hasNote"
+                    class="cal-period__dot is-note"
+                    :title="t('settings.periodic.kinds.monthly')"
+                  ></span>
+                  <span
+                    v-if="monthDensities.get(month.key)?.todo"
+                    class="cal-period__dot is-open"
+                    :title="t('calendar.mark.open')"
+                  ></span>
+                  <span
+                    v-else-if="monthDensities.get(month.key)?.total"
+                    class="cal-period__dot is-done"
+                    :title="t('calendar.mark.done')"
+                  ></span>
+                </span>
+              </button>
               <CalendarPanel
                 :month="month.key"
                 :days="yearDaysByMonth.get(month.key)"
@@ -1527,7 +1612,10 @@ onBeforeUnmount(() => {
   background: var(--bg-pop, var(--bg));
 }
 .cal-year__month-title {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
   padding: 0 0 6px;
   border: 0;
@@ -1541,6 +1629,30 @@ onBeforeUnmount(() => {
 }
 .cal-year__month-title:hover {
   color: var(--accent);
+}
+
+/* Period-level marks mirror the day-cell dots: grey note, blue ring for open
+ * tasks, green dot when every task in the period is done. */
+.cal-period__marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.cal-period__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.cal-period__dot.is-note {
+  background: var(--text-3, #8a9199);
+}
+.cal-period__dot.is-open {
+  background: transparent;
+  border: 1.5px solid var(--accent, #3b82f6);
+}
+.cal-period__dot.is-done {
+  background: var(--success, #2f9e63);
 }
 /* Each card's grid IS CalendarPanel. Only its box needs to shrink from
    "full-height pane" to "fits this card". */

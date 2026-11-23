@@ -1,11 +1,35 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { interceptedBindings, HOTKEY_INTERCEPTIONS, activeKeyActions } from './keybindings.ts';
+import {
+  interceptedBindings,
+  HOTKEY_INTERCEPTIONS,
+  activeKeyActions,
+  resolveBindings,
+  setCapturePresetKeyActions,
+} from './keybindings.ts';
 
 test('the AMD/IME clashes are only reported on Windows', () => {
   assert.equal(interceptedBindings({}, 'mac').length, 0);
   assert.equal(interceptedBindings({}, 'linux').length, 0);
   assert.ok(interceptedBindings({}, 'windows').length >= 8);
+});
+
+test('enabled capture presets become bindable shortcut actions', () => {
+  try {
+    setCapturePresetKeyActions([
+      { id: 'flash', name: '闪念', enabled: true },
+      { id: 'off', name: 'Off', enabled: false },
+    ]);
+    const ids = activeKeyActions('windows').map((a) => a.id);
+    assert.ok(ids.includes('capture.preset.flash'));
+    assert.ok(!ids.includes('capture.preset.off'));
+    // F12 is intentionally unbound in the shipped table; a preset shortcut
+    // must survive resolution exactly like a built-in action's override.
+    const bindings = resolveBindings({ 'capture.preset.flash': 'F12' }, 'windows');
+    assert.equal(bindings.get('F12'), 'capture.preset.flash');
+  } finally {
+    setCapturePresetKeyActions([]);
+  }
 });
 
 test('every listed chord belongs to an action that ships with it', () => {

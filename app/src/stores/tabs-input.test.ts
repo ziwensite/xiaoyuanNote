@@ -86,7 +86,7 @@ test('hydration drops unknown and session-only kinds and normalizes arguments', 
   reset({
     [TABS_KEY]: JSON.stringify({
       tabs: [
-        { ...base, id: 'c1', kind: 'calendar', input: { date: '2026-11-11', view: 'year' } },
+        { ...base, id: 'c1', kind: 'calendar', input: { date: '2026-11-11', view: 'nonsense' } },
         { ...base, id: 's1', kind: 'settings', input: { section: 'editor' } },
         { ...base, id: 'x1', kind: 'nope', input: {} },
       ],

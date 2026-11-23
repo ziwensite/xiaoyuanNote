@@ -17,12 +17,14 @@ import { computed, nextTick, onMounted, onBeforeUnmount, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useI18n } from '../i18n';
+import { useCapture } from '../composables/useCapture';
 import { useSettingsStore } from '../stores/settings';
 import { useWorkspaceStore } from '../stores/workspace';
 
 const { t } = useI18n();
 const settings = useSettingsStore();
 const workspace = useWorkspaceStore();
+const capture = useCapture();
 
 const text = ref('');
 const box = ref<HTMLTextAreaElement | null>(null);
@@ -38,6 +40,13 @@ const folderName = computed(() => {
   const f = workspace.currentFolder;
   if (!f) return '';
   return f.split(/[\\/]/).filter(Boolean).pop() ?? f;
+});
+
+const selectedPreset = computed(() => {
+  const preset = settings.captures.find((p) => p.id === settings.quickCapturePresetId);
+  return preset?.enabled && preset.target !== 'active'
+    ? preset
+    : settings.captures.find((p) => p.id === 'quick') ?? settings.captures[0];
 });
 
 function focusBox() {
@@ -61,15 +70,24 @@ async function save() {
     void close();
     return;
   }
+  const preset = selectedPreset.value;
+  if (!preset) {
+    error.value = t('capture.disabled');
+    return;
+  }
   saving.value = true;
   error.value = '';
   try {
-    await invoke<string>('quick_capture_write', { content });
+    const result = await capture.runPresetDetailed(preset.id, { value: content });
+    if (!result.ok) {
+      // Staying open with the text intact is the only acceptable failure: the
+      // note exists nowhere else, and the window closing would destroy it.
+      error.value = result.error || t('quickCapture.failed');
+      return;
+    }
     text.value = '';
     await close();
   } catch (e) {
-    // Staying open with the text intact is the only acceptable failure: the
-    // note exists nowhere else, and the window closing would destroy it.
     error.value = String(e);
   } finally {
     saving.value = false;
@@ -133,7 +151,10 @@ onBeforeUnmount(() => {
       <span v-else-if="!workspace.currentFolder" class="qc__error">
         {{ t('quickCapture.noWorkspace') }}
       </span>
-      <span v-else class="qc__dest">{{ t('quickCapture.destination', { folder: folderName }) }}</span>
+      <span v-else class="qc__dest">
+        {{ t('quickCapture.destination', { folder: folderName }) }}
+        <template v-if="selectedPreset && selectedPreset.id !== 'quick'"> · {{ selectedPreset.name }}</template>
+      </span>
       <span class="qc__keys">{{ t('quickCapture.keys') }}</span>
     </div>
   </div>

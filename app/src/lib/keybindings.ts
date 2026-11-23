@@ -71,6 +71,28 @@ export interface KeyActionDef {
   platforms?: ('mac' | 'windows' | 'linux')[];
 }
 
+/**
+ * Capture presets are commands too, so their shortcuts must participate in
+ * the same binding table. The settings store refreshes this registry whenever
+ * presets change; keeping it here avoids a store → keybindings → store cycle.
+ */
+let capturePresetKeyActions: KeyActionDef[] = [];
+
+export function setCapturePresetKeyActions(
+  captures: readonly { id: string; name: string; enabled: boolean }[],
+  enabled = true,
+): void {
+  capturePresetKeyActions = enabled
+    ? captures.filter((preset) => preset.enabled).map((preset) => ({
+      id: `capture.preset.${preset.id}`,
+      label: `Capture: ${preset.name}`,
+      category: 'file',
+      defaults: [],
+    }))
+    : [];
+  actionIndex.clear();
+}
+
 /** Which platform's key table to build. Overridable so tests can pin one. */
 function currentPlatform(): 'mac' | 'windows' | 'linux' {
   // `?forcePlatform=windows` is a dev-only QA hook, the same idea as
@@ -93,7 +115,8 @@ function currentPlatform(): 'mac' | 'windows' | 'linux' {
 export function activeKeyActions(
   platform: 'mac' | 'windows' | 'linux' = currentPlatform(),
 ): KeyActionDef[] {
-  return KEY_ACTIONS.filter((a) => !a.platforms || a.platforms.includes(platform));
+  return [...KEY_ACTIONS, ...capturePresetKeyActions]
+    .filter((a) => !a.platforms || a.platforms.includes(platform));
 }
 
 /** id → action for one platform. `combosFor` runs once per label at startup

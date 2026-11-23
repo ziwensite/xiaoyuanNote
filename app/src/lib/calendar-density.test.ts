@@ -1,7 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { dailyNoteDates, dayDensity } from './calendar-density';
+import {
+  aggregateDensity,
+  dailyNoteDates,
+  dayDensity,
+  periodicNoteDates,
+} from './calendar-density';
 import type { CalendarViewDay } from './calendar-view';
 import type { CalendarTask } from './calendar';
 
@@ -76,4 +81,35 @@ test('dailyNoteDates returns nothing without a workspace', () => {
     'YYYY-MM-DD.md',
   );
   assert.equal(found.size, 0);
+});
+
+test('aggregateDensity keeps the day mark priority across a period', () => {
+  const days = [
+    day({ tasks: [task(true)] }),
+    day({ date: '2026-11-09', tasks: [task(false)] }),
+  ];
+  const density = aggregateDensity(days, true);
+  assert.equal(density.state, 'open');
+  assert.equal(density.total, 2);
+  assert.equal(density.done, 1);
+  assert.equal(density.todo, 1);
+
+  const doneOnly = aggregateDensity([days[0]], true);
+  assert.equal(doneOnly.state, 'done');
+
+  const noteOnly = aggregateDensity([day({})], true);
+  assert.equal(noteOnly.state, 'note');
+});
+
+test('periodicNoteDates resolves a weekly note by its configured path', () => {
+  const files = [{ path: 'C:\\Notes\\Weekly\\2026-W46.md' }];
+  const found = periodicNoteDates(
+    'weekly',
+    ['2026-11-09'],
+    files,
+    'C:\\Notes',
+    { folder: 'Weekly', format: 'YYYY-[W]WW.md', template: '' },
+    1,
+  );
+  assert.deepEqual([...found], ['2026-11-09']);
 });

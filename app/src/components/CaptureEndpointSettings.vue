@@ -13,6 +13,7 @@
  */
 import { computed, onMounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
+import { useSettingsStore } from '../stores/settings';
 import { useToastsStore } from '../stores/toasts';
 import { useWorkspaceStore } from '../stores/workspace';
 import { useI18n } from '../i18n';
@@ -26,6 +27,7 @@ interface CaptureState {
 }
 
 const { t } = useI18n();
+const settings = useSettingsStore();
 const toasts = useToastsStore();
 const workspace = useWorkspaceStore();
 
@@ -42,6 +44,20 @@ const showToken = ref(false);
 async function refresh() {
   try {
     state.value = await invoke<CaptureState>('capture_get_state');
+    // Persisted settings are the source of truth. The Rust state is pushed on
+    // app start, but a fresh Settings panel should not show a stale snapshot
+    // if that push raced with startup.
+    if (state.value.enabled !== settings.captureEndpointEnabled) {
+      state.value = await invoke<CaptureState>('capture_set_enabled', {
+        enabled: settings.captureEndpointEnabled,
+        port: null,
+      });
+    }
+    if (state.value.inbox_folder !== settings.captureEndpointInbox) {
+      state.value = await invoke<CaptureState>('capture_set_inbox_folder', {
+        folder: settings.captureEndpointInbox,
+      });
+    }
   } catch (e) {
     console.warn('capture_get_state failed', e);
   }
@@ -49,6 +65,7 @@ async function refresh() {
 
 async function onToggleEnabled() {
   const next = !state.value.enabled;
+  settings.setCaptureEndpointEnabled(next);
   try {
     state.value = await invoke<CaptureState>('capture_set_enabled', {
       enabled: next,
@@ -79,9 +96,10 @@ async function onRegenerateToken() {
 }
 
 async function onSetInboxFolder(value: string) {
+  settings.setCaptureEndpointInbox(value);
   try {
     state.value = await invoke<CaptureState>('capture_set_inbox_folder', {
-      folder: value,
+      folder: settings.captureEndpointInbox,
     });
   } catch (e) {
     toasts.error(`Inbox folder: ${e}`);

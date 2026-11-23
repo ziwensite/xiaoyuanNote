@@ -3,10 +3,17 @@ import assert from 'node:assert/strict';
 
 import {
   applyCaptureTokens,
+  captureDueDate,
   capturePreview,
   captureTargetPath,
+  captureTargetRelativePath,
+  composeCaptureInsert,
+  defaultCapturePresets,
+  effectiveCaptureTemplate,
   expandCaptureTemplate,
   insertCaptureSnippet,
+  insertCaptureLine,
+  insertTextAtCursor,
   newCapturePreset,
   normalizeCapturePresets,
 } from './capture';
@@ -103,4 +110,106 @@ test('a hand-edited settings blob is filtered instead of trusted', () => {
   assert.equal(list[0].target, 'file');
   assert.equal(list[0].placement, 'bottom');
   assert.equal(list[0].template, '- [ ] {{input}}');
+});
+
+test('default presets are quick, flash, record, task and meeting only', () => {
+  const defaults = defaultCapturePresets();
+  assert.deepEqual(defaults.map((p) => p.id), ['quick', 'flash', 'record', 'task', 'meeting']);
+  assert.ok(defaults.every((p) => p.enabled && p.createIfMissing));
+  assert.equal(defaults.find((p) => p.id === 'quick')?.target, 'inbox');
+  assert.equal(defaults.find((p) => p.id === 'quick')?.builtIn, true);
+  assert.equal(defaults.find((p) => p.id === 'flash')?.period, 'flash');
+  assert.equal(defaults.find((p) => p.id === 'meeting')?.target, 'folder');
+  assert.equal(defaults.find((p) => p.id === 'meeting')?.appendLink, false);
+});
+
+test('normalization migrates the richer preset fields', () => {
+  const list = normalizeCapturePresets([
+    {
+      id: 'x',
+      name: 'X',
+      description: 'custom',
+      enabled: false,
+      inputMethod: 'multi-line',
+      createIfMissing: false,
+      appendLink: true,
+      target: 'active',
+      path: '',
+    },
+  ]);
+  assert.equal(list.length, 1);
+  const preset = list[0];
+  assert.equal(preset.description, 'custom');
+  assert.equal(preset.enabled, false);
+  assert.equal(preset.inputMethod, 'multi-line');
+  assert.equal(preset.createIfMissing, false);
+  assert.equal(preset.appendLink, true);
+  assert.equal(preset.target, 'active');
+});
+
+test('extra template variables expand and unknown names survive', () => {
+  const text = expandCaptureTemplate(
+    '{{value}}|{{filePath}}|{{file}}|{{folder}}|{{url}}|{{tags}}|{{missing}}',
+    {
+      value: 'hello',
+      filePath: 'Daily/2026-11-10.md',
+      url: 'https://example.com',
+      tags: 'a, b',
+    },
+  );
+  assert.equal(
+    text,
+    'hello|Daily/2026-11-10.md|2026-11-10.md|Daily|https://example.com|a, b|{{missing}}',
+  );
+});
+
+test('a folder target with no folder writes to the workspace root', () => {
+  const preset = { ...newCapturePreset('inbox', 'Inbox'), target: 'folder' as const, path: '' };
+  assert.equal(
+    captureTargetRelativePath(preset, defaultPeriodicConfig(), 1, DAY),
+    '2026-11-10.md',
+  );
+});
+
+test('cursor insertion clamps to the requested line', () => {
+  assert.equal(insertTextAtCursor('abc\ndef', 'X', { line: 1, col: 2 }), 'aXbc\ndef');
+  assert.equal(insertTextAtCursor('abc\ndef', 'X', { line: 2, col: 99 }), 'abc\ndefX');
+  assert.equal(insertTextAtCursor('abc', 'X', null), 'abcX');
+});
+
+test('active-note new-line insertion respects direction', () => {
+  const text = 'one\ntwo\nthree';
+  assert.equal(insertCaptureLine(text, 'X', { line: 2, col: 1 }, 'above'), 'one\nX\ntwo\nthree');
+  assert.equal(insertCaptureLine(text, 'X', { line: 2, col: 1 }, 'below'), 'one\ntwo\nX\nthree');
+});
+
+test('due date options feed the automatic 📅 token', () => {
+  const monday = new Date(2026, 10, 16);
+  assert.equal(captureDueDate(monday, 'weekend', 0).getDay(), 6);
+  assert.equal(captureDueDate(monday, 'custom', 3).getDate(), 19);
+  assert.equal(captureDueDate(monday, 'monthEnd', 0).getDate(), 30);
+  assert.equal(captureDueDate(monday, 'yearEnd', 0).getDate(), 31);
+  const line = applyCaptureTokens('- [ ] task', monday, true, true, 'weekend', 0);
+  assert.match(line, /➕ 2026-11-16/);
+  assert.match(line, /📅 2026-11-21/);
+});
+
+test('heading insertion can refuse a missing heading and insert at section end', () => {
+  const text = '## 任务\n- [ ] 旧\n\n### 子节\n- 细节\n\n## 其他\n';
+  const refused = composeCaptureInsert(text, 'X', 'heading', '## 缺失', { createIfMissing: false });
+  assert.equal(refused.inserted, false);
+  assert.equal(refused.reason, 'missingHeading');
+  assert.equal(refused.content, text);
+  const atEnd = composeCaptureInsert(text, 'X', 'heading', '## 任务', {
+    insertAtEnd: true,
+    considerSubsections: true,
+  });
+  assert.ok(atEnd.content.indexOf('X') > atEnd.content.indexOf('- 细节'));
+  assert.ok(atEnd.content.indexOf('X') < atEnd.content.indexOf('## 其他'));
+});
+
+test('a preset with formatting disabled writes only the value', () => {
+  const preset = { ...newCapturePreset('plain', 'Plain'), formatEnabled: false };
+  assert.equal(effectiveCaptureTemplate(preset), '{{value}}');
+  assert.equal(capturePreview(preset, { value: 'hello' }), 'hello');
 });

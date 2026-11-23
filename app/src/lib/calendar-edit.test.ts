@@ -152,6 +152,10 @@ test('calendar preference format round-trips and rejects garbage', () => {
   assert.deepEqual(parseCalendarPrefs('{oops', '2026-01-01'), { focusDate: '2026-01-01', view: 'month' });
   assert.deepEqual(
     parseCalendarPrefs('{"focusDate":"bad","view":"year"}', '2026-01-01'),
+    { focusDate: '2026-01-01', view: 'year' },
+  );
+  assert.deepEqual(
+    parseCalendarPrefs('{"focusDate":"bad","view":"nonsense"}', '2026-01-01'),
     { focusDate: '2026-01-01', view: 'month' },
   );
 });

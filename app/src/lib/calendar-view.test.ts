@@ -299,13 +299,23 @@ test('weekRange starts on Monday and spans 7 days', () => {
   assert.equal(week[6], '2026-11-08');
 });
 
-test('monthGridRange is a fixed 42-day grid starting on Monday', () => {
-  const grid = monthGridRange('2026-11-08');
-  assert.equal(grid.length, 42);
-  assert.equal(grid[0], '2026-10-26');
-  assert.equal(grid[41], '2026-12-06');
+test('monthGridRange starts on Monday and keeps only weeks inside the month', () => {
+  const sixWeeks = monthGridRange('2026-11-08');
+  assert.equal(sixWeeks.length, 42);
+  assert.equal(sixWeeks[0], '2026-10-26');
+  assert.equal(sixWeeks[41], '2026-12-06');
   // 2026-11-01 is a Sunday, so the grid starts six days earlier.
-  assert.equal(grid.indexOf('2026-11-01'), 6);
+  assert.equal(sixWeeks.indexOf('2026-11-01'), 6);
+
+  const fiveWeeks = monthGridRange('2026-02-14');
+  assert.equal(fiveWeeks.length, 35);
+  assert.equal(fiveWeeks[0], '2026-01-26');
+
+  // February 2027 starts on Monday and ends on Sunday: four rows, no trailing outside row.
+  const fourWeeks = monthGridRange('2027-02-14');
+  assert.equal(fourWeeks.length, 28);
+  assert.equal(fourWeeks[0], '2027-02-01');
+  assert.equal(fourWeeks[27], '2027-02-28');
 });
 
 // ── Due-date task groups (dialog task column) ─────────────────────────────

@@ -62,8 +62,12 @@ test('resolveTabInput falls back to a file input for invalid virtual payloads', 
 
 test('resolveTabInput defaults an unknown calendar view to month', () => {
   assert.deepEqual(
-    resolveTabInput(tab({ kind: 'calendar', input: { date: '2026-11-11', view: 'year' } })),
+    resolveTabInput(tab({ kind: 'calendar', input: { date: '2026-11-11', view: 'nonsense' } })),
     { kind: 'calendar', tabId: 't1', args: { date: '2026-11-11', view: 'month' } },
+  );
+  assert.deepEqual(
+    resolveTabInput(tab({ kind: 'calendar', input: { date: '2026-11-11', view: 'year' } })),
+    { kind: 'calendar', tabId: 't1', args: { date: '2026-11-11', view: 'year' } },
   );
 });
 

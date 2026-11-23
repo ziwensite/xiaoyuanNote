@@ -341,11 +341,26 @@ export function weekRange(cursor: string): string[] {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 }
 
-/** A fixed 6×7 month grid: the 42 days starting on the Monday before the 1st. */
+/**
+ * Monday-based month grid with a variable number of rows: from the week that
+ * contains the 1st through the week that contains the last day of the month.
+ * This keeps every row that has at least one day of this month and drops a
+ * trailing six-week row that is entirely outside it.
+ */
 export function monthGridRange(cursor: string): string[] {
-  const first = `${cursor.slice(0, 7)}-01`;
+  const month = cursor.slice(0, 7);
+  const first = `${month}-01`;
+  const year = Number(month.slice(0, 4));
+  const monthNo = Number(month.slice(5, 7));
+  const last = `${month}-${String(new Date(year, monthNo, 0).getDate()).padStart(2, '0')}`;
   const start = weekStart(first);
-  return Array.from({ length: 42 }, (_, i) => addDays(start, i));
+  const end = weekStart(last);
+  const days: string[] = [];
+  for (let week = start; ; week = addDays(week, 7)) {
+    for (let i = 0; i < 7; i += 1) days.push(addDays(week, i));
+    if (week === end) break;
+  }
+  return days;
 }
 
 export function isCalendarTaskOverdue(task: CalendarTask, today: string): boolean {

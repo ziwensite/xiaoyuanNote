@@ -121,9 +121,20 @@ const recordingAction = ref<string | null>(null);
 const recordError = ref<string | null>(null);
 const macKeys = usesCommandKey();
 
+const quickCapturePresetOptions = computed(() => settings.captures.filter(
+  (preset) => preset.enabled && preset.target !== 'active',
+));
+// `activeKeyActions()` reads a module-level registry, so make the computed
+// depend on presets explicitly: renaming one while Settings is open must
+// refresh the shortcut rows.
+const captureActionRevision = computed(() => settings.captures
+  .map((preset) => `${preset.id}:${preset.name}:${preset.enabled}`)
+  .join('|'));
+
 /** Sixty rows is past what anyone scans — filter by name, id or chord. */
 const keyQuery = ref('');
 const keyGroups = computed(() => {
+  void captureActionRevision.value;
   const hits = filterKeyActions(activeKeyActions(), keyQuery.value, actionLabel, settings.keybindings, macKeys);
   return KEY_CATEGORIES
     .map((key) => ({ key, items: hits.filter((a) => a.category === key) }))
@@ -138,6 +149,10 @@ const keyGroups = computed(() => {
 const appMenu = useAppMenu();
 const shortcutName = computed(() => appMenu.shortcutNamer());
 function actionLabel(action: KeyActionDef): string {
+  if (action.id.startsWith('capture.preset.')) {
+    const name = action.label.replace(/^Capture:\s*/, '');
+    return `${t('capture.commandTitle')}: ${name}`;
+  }
   return shortcutName.value(action.id, action.label);
 }
 
@@ -1792,6 +1807,21 @@ function onSelectPdfFont(v: string) {
             {{ t('settings.quickCapture') }}
           </label>
           <p class="setting-hint">{{ t('settings.quickCaptureHint') }}</p>
+          <label>
+            {{ t('settings.quickCapturePreset') }}
+            <select
+              :value="settings.quickCapturePresetId"
+              :disabled="!settings.quickCaptureEnabled"
+              class="settings__field settings__field--sub"
+              @change="settings.setQuickCapturePreset(($event.target as HTMLSelectElement).value)"
+            >
+              <option
+                v-for="preset in quickCapturePresetOptions"
+                :key="preset.id"
+                :value="preset.id"
+              >{{ preset.name }}</option>
+            </select>
+          </label>
           <input
             type="text"
             :value="settings.quickCaptureShortcut"

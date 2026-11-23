@@ -20,6 +20,7 @@
 import type { CalendarViewDay } from './calendar-view';
 import { formatDailyFilename } from './daily-notes';
 import { joinInFolder } from './import-plan';
+import { periodicTarget, type PeriodConfig, type PeriodKind } from './periodic-notes';
 import { pathKey } from './path-key';
 
 export type DayMarkState = 'none' | 'note' | 'open' | 'done';
@@ -90,4 +91,60 @@ export function dailyNoteDates(
     if (known.has(pathKey(joinInFolder(folder, filename)))) out.add(date);
   }
   return out;
+}
+
+export type NoteFileRef = DailyNoteFileRef;
+
+/**
+ * Anchors in `anchors` that already have a periodic note of `kind` on disk.
+ *
+ * Uses the same configured folder/format as `useDailyNotes.openPeriodic`, so
+ * the indicator can never disagree with the note that double-click opens.
+ */
+export function periodicNoteDates(
+  kind: PeriodKind,
+  anchors: readonly string[],
+  files: readonly NoteFileRef[],
+  workspaceFolder: string | null,
+  config: PeriodConfig,
+  weekStartsOn = 1,
+): Set<string> {
+  const out = new Set<string>();
+  if (!workspaceFolder) return out;
+  const known = new Set(files.map((file) => pathKey(file.path)));
+  for (const anchor of anchors) {
+    const target = periodicTarget(kind, wallDate(anchor), config, weekStartsOn);
+    if (!target.filename) continue;
+    if (known.has(pathKey(joinInFolder(workspaceFolder, target.path)))) out.add(anchor);
+  }
+  return out;
+}
+
+/**
+ * Fold a set of days into one marker for a week / month / quarter.
+ *
+ * Same priority as a single day: open tasks → all tasks done → note → none.
+ * The period note itself counts as a note, just like a daily note does.
+ */
+export function aggregateDensity(
+  days: readonly CalendarViewDay[],
+  hasPeriodNote: boolean,
+): CalendarDayDensity {
+  let total = 0;
+  let done = 0;
+  let events = 0;
+  let hasNote = hasPeriodNote;
+  for (const day of days) {
+    const d = dayDensity(day, false);
+    total += d.total;
+    done += d.done;
+    events += d.events;
+    hasNote = hasNote || d.hasNote;
+  }
+  const todo = total - done;
+  let state: DayMarkState = 'none';
+  if (todo > 0) state = 'open';
+  else if (total > 0) state = 'done';
+  else if (hasNote) state = 'note';
+  return { state, total, done, todo, events, hasNote };
 }

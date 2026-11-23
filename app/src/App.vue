@@ -840,6 +840,16 @@ watchEffect(() => {
   invoke('rest_set_workspace', { folder: folder ?? null }).catch(() => {});
 });
 
+// The HTTP capture listener is owned by Rust, but its two user choices live in
+// the persisted settings store. Push them up on start and on every change so
+// a restart keeps the enabled state and inbox folder the user chose.
+watchEffect(() => {
+  const inbox = settings.captureEndpointInbox;
+  const enabled = settings.captureEndpointEnabled;
+  invoke('capture_set_inbox_folder', { folder: inbox }).catch(() => {});
+  invoke('capture_set_enabled', { enabled, port: null }).catch(() => {});
+});
+
 // Quick capture's hotkey is an OS-level registration owned by Rust, but the
 // setting that decides it lives in the frontend — so push it on start and on
 // every change. Passing null unregisters, which is what "off" has to mean for

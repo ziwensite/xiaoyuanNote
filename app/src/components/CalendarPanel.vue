@@ -26,8 +26,10 @@ import { addDays, localDateKey, type CalendarEntry } from '../lib/calendar';
 import { CALENDAR_EDITOR_VIEWS } from '../lib/calendar-prefs';
 import { buildCalendarView, monthGridRange, type CalendarViewDay } from '../lib/calendar-view';
 import {
+  aggregateDensity,
   dailyNoteDates,
   dayDensity,
+  periodicNoteDates,
   type CalendarDayDensity,
 } from '../lib/calendar-density';
 import { isoWeek } from '../lib/iso-week';
@@ -97,7 +99,7 @@ const monthTitle = computed(() => {
 });
 const grid = computed(() => monthGridRange(anchorDate.value));
 
-/** Six Monday-start rows; the left gutter carries each row's ISO week. */
+/** Variable Monday-start rows (4–6); the left gutter carries each row's ISO week. */
 const weeks = computed(() => {
   const rows: { week: number; days: string[] }[] = [];
   for (let i = 0; i < grid.value.length; i += 7) {
@@ -157,16 +159,45 @@ const noteDates = computed(() =>
   ),
 );
 
+/** The year view passes a slice of its single full-year projection, so twelve
+ *  compact instances never rebuild the whole calendar material. */
+const sourceDays = computed(() => props.days ?? viewData.value.days);
+const dayMap = computed(() => new Map(sourceDays.value.map((day) => [day.date, day])));
+
 /** Same three-state rule as the dialog month grid (see `calendar-density`). */
 const densities = computed(() => {
   const map = new Map<string, CalendarDayDensity>();
-  // The year view passes a slice of its single full-year projection, so twelve
-  // compact instances never rebuild the whole calendar material.
-  for (const day of props.days ?? viewData.value.days) {
+  for (const day of sourceDays.value) {
     map.set(day.date, dayDensity(day, noteDates.value.has(day.date)));
   }
   return map;
 });
+
+/** Week-number rows get the same note/task marks, aggregated over the seven
+ *  days plus the weekly note itself. */
+const weeklyNoteDates = computed(() =>
+  periodicNoteDates(
+    'weekly',
+    weeks.value.map((row) => row.days[0]),
+    idx.entries,
+    workspace.currentFolder,
+    settings.periodic.weekly,
+    settings.weekStartsOn,
+  ),
+);
+const weekDensities = computed(() => {
+  const map = new Map<number, CalendarDayDensity>();
+  for (const row of weeks.value) {
+    const days = row.days
+      .map((date) => dayMap.value.get(date))
+      .filter((day): day is CalendarViewDay => !!day);
+    map.set(row.week, aggregateDensity(days, weeklyNoteDates.value.has(row.days[0])));
+  }
+  return map;
+});
+function weekDensity(week: number): CalendarDayDensity {
+  return weekDensities.value.get(week) ?? EMPTY_DENSITY;
+}
 
 const EMPTY_DENSITY: CalendarDayDensity = {
   state: 'none',
@@ -402,7 +433,28 @@ function openWeekly(date: string) {
               @click="calendar.selectWeek(row.days[0])"
               @dblclick.stop="openWeekly(row.days[0])"
             >
-              {{ row.week }}
+              <span>{{ row.week }}</span>
+              <span
+                v-if="weekDensity(row.week).hasNote || weekDensity(row.week).total > 0"
+                class="calendar-mini__marks calendar-mini__marks--week"
+              >
+                <span
+                  v-if="weekDensity(row.week).hasNote"
+                  class="calendar-mini__dot"
+                  :class="{ 'is-note': true }"
+                  :title="t('settings.periodic.kinds.weekly')"
+                ></span>
+                <span
+                  v-if="weekDensity(row.week).todo > 0"
+                  class="calendar-mini__dot is-open"
+                  :title="t('calendar.mark.open')"
+                ></span>
+                <span
+                  v-else-if="weekDensity(row.week).total > 0"
+                  class="calendar-mini__dot is-done"
+                  :title="t('calendar.mark.done')"
+                ></span>
+              </span>
             </button>
             <button
               v-for="date in row.days"
@@ -634,6 +686,9 @@ function openWeekly(date: string) {
 
 /* Week-number gutter becomes a clickable "select this week" button. */
 .calendar-mini__weeknum--btn {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   padding: 0;
   border: 0;
   border-radius: 4px;
@@ -641,6 +696,16 @@ function openWeekly(date: string) {
   color: var(--text-3, #8a9199);
   font: inherit;
   cursor: pointer;
+}
+
+.calendar-mini__marks--week {
+  height: 5px;
+  margin-top: 0;
+  gap: 2px;
+}
+.calendar-mini__marks--week .calendar-mini__dot {
+  width: 4px;
+  height: 4px;
 }
 
 .calendar-mini__weeknum--btn:hover {

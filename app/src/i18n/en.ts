@@ -499,7 +499,8 @@ export const en = {
     defaultExportDirClear: 'Clear',
     defaultExportDirHint: 'Default folder shown in the save dialog when exporting PDF, Word, HTML, or images. Leave empty to default to the current note’s folder.',
     quickCapture: 'Quick capture hotkey',
-    quickCaptureHint: 'A system-wide chord that opens a small box anywhere — type, press Enter, and the note lands in your Inbox without the app coming forward. Tauri accelerator syntax, e.g. CmdOrCtrl+Alt+Shift+M.',
+    quickCaptureHint: 'A system-wide chord that opens a small box anywhere. The box runs the selected capture preset; the built-in Quick Capture preset still creates a new Inbox note.',
+    quickCapturePreset: 'Preset run by the hotkey',
     quickCaptureFailed: 'Not registered: {error}',
     codeBlockWrap: 'Wrap long lines in code blocks',
     codeBlockWrapHint: 'Soft-wraps code lines wider than the block instead of showing a horizontal scrollbar. PDF/print always wraps.',
@@ -2203,18 +2204,119 @@ export const en = {
   capture: {
     inputPrompt: 'Value for {{input}}',
     done: 'Captured',
+    commandTitle: 'Capture',
+    disabled: 'Capture presets are disabled.',
     presetsTitle: 'Capture presets',
-    presetsHint: 'Commands that insert a template into a note. Run them from the command palette.',
+    presetsHint: 'Templates inserted into notes. Disabled presets are hidden from the command palette.',
     presetName: 'Preset name',
+    presetDescription: 'Description',
+    presetEnabled: 'Enabled',
+    presetGlobalEnabled: 'Enable capture presets',
+    presetRestoreDefaults: 'Restore built-in presets',
     presetAdd: 'New preset',
+    presetEdit: 'Edit preset',
+    presetDuplicate: 'Duplicate',
     presetRemove: 'Remove',
+    presetMoveUp: 'Move up',
+    presetMoveDown: 'Move down',
     presetOpenAfter: 'Open after capture',
+    presetTarget: 'Target',
+    target: {
+      inbox: 'Inbox note',
+      file: 'Fixed file',
+      folder: 'Folder',
+      periodic: 'Periodic note',
+      active: 'Active note',
+    },
+    presetInputMethod: 'Input method',
+    input: {
+      'single-line': 'Single line',
+      'multi-line': 'Multi-line',
+      none: 'No prompt',
+    },
+    presetPeriod: 'Period',
+    presetPath: 'Path (workspace-relative)',
+    presetPathPlaceholder: 'Inbox.md',
+    presetFileName: 'File name format',
+    presetPlacement: 'Insert at',
+    placement: {
+      top: 'Top (after front matter)',
+      bottom: 'Bottom',
+      heading: 'After heading',
+    },
+    presetHeading: 'Heading text',
+    presetTemplate: 'Template',
+    presetVariables: 'Variables: {{value}}, {{input}}, {{selection}}, {{clipboard}}, {{date}}, {{time}}, {{title}}, {{file}}, {{folder}}, {{filePath}}, {{url}}, {{tags}}',
+    presetAutoCreated: 'Add ➕ to task',
+    presetAutoDue: 'Add 📅 to task',
+    presetFormatEnabled: 'Use template formatting',
+    presetCreateIfMissing: 'Create file if missing',
+    presetCreateWithTemplate: 'Create from template',
+    presetCreationTemplate: 'Template file (workspace-relative)',
+    presetInsertAtEnd: 'Insert at end of section',
+    presetConsiderSubsections: 'Include subsections',
+    presetHeadingCreateIfMissing: 'Create heading if missing',
+    presetHeadingCreateTop: 'Create missing heading at top',
+    presetNewLine: 'Insert on a new line (active note)',
+    presetAppendLink: 'Append link in active note',
+    presetOpenFocus: 'Focus opened file',
+    presetOpenLocation: 'Open location',
+    presetOpenDirection: 'Split direction',
+    presetOpenMode: 'Open mode',
+    section: {
+      target: 'Target',
+      create: 'Create file',
+      position: 'Insert position',
+      content: 'Content',
+      behavior: 'Behavior',
+    },
+    due: {
+      today: 'Today',
+      custom: 'After N days',
+      weekend: 'This weekend',
+      monthEnd: 'End of month',
+      yearEnd: 'End of year',
+      customDays: 'Days',
+    },
+    direction: {
+      above: 'Above',
+      below: 'Below',
+      vertical: 'Vertical',
+      horizontal: 'Horizontal',
+    },
+    openLocation: {
+      reuse: 'Reuse current pane',
+      tab: 'New tab',
+      split: 'Split pane',
+      window: 'New window',
+    },
+    openMode: {
+      default: 'Keep current mode',
+      source: 'Source only',
+      live: 'Live edit',
+      preview: 'Preview only',
+    },
+    presetActiveHint: 'Active note',
+    presetInboxHint: 'Inbox note (created by the quick-capture writer)',
+    presetPreview: 'Preview',
+    presetSampleValue: 'sample text',
+    presetSampleSelection: 'selected text',
+    presetSampleClipboard: 'clipboard text',
+    noTarget: 'Set a target path first',
+    noActiveFile: 'Open a note first — there is no active note to capture into.',
+    fileMissing: 'Target file does not exist: {path}',
+    templateMissing: 'Creation template does not exist: {path}',
+    headingMissing: 'Heading “{heading}” not found in {path}; nothing was inserted.',
+    emptyValue: 'The capture produced no text.',
+    presetCancel: 'Cancel',
+    presetSave: 'Save',
   },
   quickCapture: {
     placeholder: 'Capture a thought…',
     destination: 'To {folder} / Inbox',
     keys: 'Enter to save · Shift+Enter newline · Esc to discard',
     noWorkspace: 'Open a folder first — there is nowhere to file this.',
+    failed: 'Capture failed — your text is still here.',
   },
   import: {
     progress: 'Converting {name} … ({done}/{total})',
@@ -2728,4 +2830,14 @@ export const en = {
 // `views` (v4.6 F5) is now a REQUIRED section: all 14 locales ship a full
 // translation (v4.6.1). The runtime `t()` lookup still falls back to English
 // for any individual key that a locale happens to miss.
-export type I18n = typeof en;
+//
+// The capture, settings and quick-capture blocks gained keys in 5.0.14.
+// English and Chinese ship them translated; the other locales fall back to
+// English at runtime, so newly added keys are optional here rather than
+// forcing 13 copy-pasted English dictionaries.
+type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
+export type I18n = Omit<typeof en, 'capture' | 'settings' | 'quickCapture'> & {
+  capture: DeepPartial<typeof en['capture']>;
+  settings: DeepPartial<typeof en['settings']>;
+  quickCapture: DeepPartial<typeof en['quickCapture']>;
+};

@@ -15,13 +15,24 @@ import { formatDailyFilename, isoDate } from './daily-notes';
 import { joinInFolder } from './import-plan';
 import { periodicPath, type PeriodicConfig, type PeriodKind } from './periodic-notes';
 
-export type CaptureTarget = 'file' | 'folder' | 'periodic';
+export type CaptureTarget = 'file' | 'folder' | 'periodic' | 'active' | 'inbox';
 export type CapturePlacement = 'top' | 'bottom' | 'heading';
+export type CaptureInputMethod = 'single-line' | 'multi-line' | 'none';
+export type CaptureDueDateOption = 'today' | 'custom' | 'weekend' | 'monthEnd' | 'yearEnd';
+export type CaptureNewLineDirection = 'above' | 'below';
+export type CaptureOpenLocation = 'reuse' | 'tab' | 'split' | 'window';
+export type CaptureOpenDirection = 'vertical' | 'horizontal';
+export type CaptureOpenMode = 'default' | 'source' | 'live' | 'preview';
 
 export interface CapturePreset {
   id: string;
   name: string;
+  /** Built-in presets cannot be deleted; `quick` stays bound to the inbox writer. */
+  builtIn?: boolean;
+  description: string;
+  enabled: boolean;
   target: CaptureTarget;
+  inputMethod: CaptureInputMethod;
   /** `file`: exact workspace-relative path. `folder`: the folder to create in. */
   path: string;
   /** `folder` only: file name pattern, same tokens as periodic formats. */
@@ -36,15 +47,59 @@ export interface CapturePreset {
   autoCreated: boolean;
   /** Append `📅 <today>` to the first task line when it has none. */
   autoDue: boolean;
+  /** Create a missing target file instead of aborting. */
+  createIfMissing: boolean;
+  /** Insert a `[[wikilink]]` to the captured file into the active editor. */
+  appendLink: boolean;
+  /** False writes only `{{value}}`; used for plain-value captures. */
+  formatEnabled: boolean;
+  /** Prefill a new target file from another workspace note. */
+  createWithTemplate: boolean;
+  creationTemplate: string;
+  /** Due-date calculation used by the automatic 📅 token. */
+  dueDateOption: CaptureDueDateOption;
+  customDueDays: number;
+  /** `heading` insertion options, mirroring the reference plugin. */
+  headingInsertAtEnd: boolean;
+  headingConsiderSubsections: boolean;
+  headingCreateIfMissing: boolean;
+  headingCreateLocation: 'top' | 'bottom';
+  /** `active` target: insert on a new line above/below instead of at the caret. */
+  newLineEnabled: boolean;
+  newLineDirection: CaptureNewLineDirection;
+  /** Where and how the captured file is opened. */
   openAfter: boolean;
+  openLocation: CaptureOpenLocation;
+  openDirection: CaptureOpenDirection;
+  openMode: CaptureOpenMode;
+  openFocus: boolean;
 }
 
 export const CAPTURE_PLACEMENTS: readonly CapturePlacement[] = ['top', 'bottom', 'heading'];
-export const CAPTURE_TARGETS: readonly CaptureTarget[] = ['file', 'folder', 'periodic'];
-export const CAPTURE_PERIODS: readonly PeriodKind[] = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
+export const CAPTURE_TARGETS: readonly CaptureTarget[] = ['inbox', 'file', 'folder', 'periodic', 'active'];
+export const CAPTURE_INPUT_METHODS: readonly CaptureInputMethod[] = ['single-line', 'multi-line', 'none'];
+export const CAPTURE_PERIODS: readonly PeriodKind[] = ['flash', 'daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
+export const CAPTURE_DUE_OPTIONS: readonly CaptureDueDateOption[] = ['today', 'custom', 'weekend', 'monthEnd', 'yearEnd'];
+export const CAPTURE_NEW_LINE_DIRECTIONS: readonly CaptureNewLineDirection[] = ['above', 'below'];
+export const CAPTURE_OPEN_LOCATIONS: readonly CaptureOpenLocation[] = ['reuse', 'tab', 'split', 'window'];
+export const CAPTURE_OPEN_DIRECTIONS: readonly CaptureOpenDirection[] = ['vertical', 'horizontal'];
+export const CAPTURE_OPEN_MODES: readonly CaptureOpenMode[] = ['default', 'source', 'live', 'preview'];
 
 /** Variables a template may use. Unknown names are left untouched. */
-export const CAPTURE_VARIABLES = ['selection', 'clipboard', 'input', 'date', 'time', 'title'] as const;
+export const CAPTURE_VARIABLES = [
+  'value',
+  'input',
+  'selection',
+  'clipboard',
+  'date',
+  'time',
+  'title',
+  'file',
+  'folder',
+  'filePath',
+  'url',
+  'tags',
+] as const;
 
 function pad(n: number): string {
   return String(n).padStart(2, '0');
@@ -54,7 +109,10 @@ export function newCapturePreset(id: string, name = 'Capture'): CapturePreset {
   return {
     id,
     name,
+    description: '',
+    enabled: true,
     target: 'file',
+    inputMethod: 'single-line',
     path: '',
     fileName: 'YYYY-MM-DD.md',
     period: 'daily',
@@ -63,8 +121,128 @@ export function newCapturePreset(id: string, name = 'Capture'): CapturePreset {
     template: '- [ ] {{input}}',
     autoCreated: false,
     autoDue: false,
+    createIfMissing: true,
+    appendLink: false,
+    formatEnabled: true,
+    createWithTemplate: false,
+    creationTemplate: '',
+    dueDateOption: 'today',
+    customDueDays: 0,
+    headingInsertAtEnd: false,
+    headingConsiderSubsections: false,
+    headingCreateIfMissing: true,
+    headingCreateLocation: 'bottom',
+    newLineEnabled: false,
+    newLineDirection: 'below',
     openAfter: false,
+    openLocation: 'reuse',
+    openDirection: 'vertical',
+    openMode: 'default',
+    openFocus: true,
   };
+}
+
+/**
+ * Built-in capture scenarios. Periodic notes themselves are NOT implemented
+ * here — these presets only write into the already-configured flash/daily
+ * notes or a meeting folder.
+ */
+export function defaultCapturePresets(): CapturePreset[] {
+  const base = newCapturePreset('', '');
+  return [
+    {
+      ...base,
+      id: 'quick',
+      name: '快速捕获',
+      builtIn: true,
+      description: '全局热键打开的轻量输入框；默认新建收件箱笔记',
+      enabled: true,
+      target: 'inbox',
+      inputMethod: 'single-line',
+      formatEnabled: false,
+      template: '{{value}}',
+    },
+    {
+      ...base,
+      id: 'flash',
+      name: '闪念',
+      description: '把一句话记入闪念笔记',
+      enabled: true,
+      target: 'periodic',
+      inputMethod: 'single-line',
+      path: '',
+      fileName: 'YYYY-MM-DD-HHmm.md',
+      period: 'flash',
+      placement: 'bottom',
+      heading: '## 闪念',
+      template: '- 💡 {{date}} {{time}} {{input}}',
+      autoCreated: false,
+      autoDue: false,
+      createIfMissing: true,
+      appendLink: false,
+      openAfter: false,
+    },
+    {
+      ...base,
+      id: 'record',
+      name: '记录',
+      description: '追加一条记录到今日日记',
+      enabled: true,
+      target: 'periodic',
+      inputMethod: 'single-line',
+      path: '',
+      fileName: 'YYYY-MM-DD.md',
+      period: 'daily',
+      placement: 'bottom',
+      heading: '## 笔记',
+      template: '- 📝 {{input}}',
+      autoCreated: false,
+      autoDue: false,
+      createIfMissing: true,
+      appendLink: false,
+      openAfter: false,
+    },
+    {
+      ...base,
+      id: 'task',
+      name: '任务',
+      description: '追加一个待办到今日日记',
+      enabled: true,
+      target: 'periodic',
+      inputMethod: 'single-line',
+      path: '',
+      fileName: 'YYYY-MM-DD.md',
+      period: 'daily',
+      placement: 'bottom',
+      heading: '## 今日要事',
+      template: '- [ ] ⏰ {{input}}',
+      autoCreated: false,
+      autoDue: true,
+      createIfMissing: true,
+      appendLink: false,
+      openAfter: false,
+    },
+    {
+      ...base,
+      id: 'meeting',
+      name: '会议',
+      description: '新建一篇会议记录',
+      enabled: true,
+      target: 'folder',
+      inputMethod: 'single-line',
+      path: '会议',
+      fileName: 'YYYY-MM-DD-HHmm.md',
+      period: 'daily',
+      placement: 'bottom',
+      heading: '',
+      template: '# {{input}}\n\n## 议题\n- \n\n## 结论\n- \n',
+      autoCreated: false,
+      autoDue: false,
+      createIfMissing: true,
+      appendLink: false,
+      openAfter: true,
+    },
+  ];
 }
 
 /** Keep only well-formed presets so a hand-edited settings blob cannot crash the palette. */
@@ -82,6 +260,14 @@ export function normalizeCapturePresets(value: unknown): CapturePreset[] {
     const base = newCapturePreset(id, name);
     out.push({
       ...base,
+      id,
+      name,
+      builtIn: item.builtIn === true && id === 'quick',
+      description: typeof item.description === 'string' ? item.description : base.description,
+      enabled: item.enabled !== false,
+      inputMethod: CAPTURE_INPUT_METHODS.includes(item.inputMethod as CaptureInputMethod)
+        ? (item.inputMethod as CaptureInputMethod)
+        : base.inputMethod,
       target: CAPTURE_TARGETS.includes(item.target as CaptureTarget)
         ? (item.target as CaptureTarget)
         : base.target,
@@ -97,16 +283,52 @@ export function normalizeCapturePresets(value: unknown): CapturePreset[] {
       template: typeof item.template === 'string' ? item.template : base.template,
       autoCreated: item.autoCreated === true,
       autoDue: item.autoDue === true,
+      createIfMissing: item.createIfMissing !== false,
+      appendLink: item.appendLink === true,
+      formatEnabled: item.formatEnabled !== false,
+      createWithTemplate: item.createWithTemplate === true,
+      creationTemplate: typeof item.creationTemplate === 'string' ? item.creationTemplate : base.creationTemplate,
+      dueDateOption: CAPTURE_DUE_OPTIONS.includes(item.dueDateOption as CaptureDueDateOption)
+        ? (item.dueDateOption as CaptureDueDateOption)
+        : base.dueDateOption,
+      customDueDays: Number.isFinite(item.customDueDays)
+        ? Math.max(0, Math.trunc(item.customDueDays as number))
+        : base.customDueDays,
+      headingInsertAtEnd: item.headingInsertAtEnd !== false,
+      headingConsiderSubsections: item.headingConsiderSubsections === true,
+      headingCreateIfMissing: item.headingCreateIfMissing !== false,
+      headingCreateLocation: item.headingCreateLocation === 'top' ? 'top' : base.headingCreateLocation,
+      newLineEnabled: item.newLineEnabled === true,
+      newLineDirection: CAPTURE_NEW_LINE_DIRECTIONS.includes(item.newLineDirection as CaptureNewLineDirection)
+        ? (item.newLineDirection as CaptureNewLineDirection)
+        : base.newLineDirection,
       openAfter: item.openAfter === true,
+      openLocation: CAPTURE_OPEN_LOCATIONS.includes(item.openLocation as CaptureOpenLocation)
+        ? (item.openLocation as CaptureOpenLocation)
+        : base.openLocation,
+      openDirection: CAPTURE_OPEN_DIRECTIONS.includes(item.openDirection as CaptureOpenDirection)
+        ? (item.openDirection as CaptureOpenDirection)
+        : base.openDirection,
+      openMode: CAPTURE_OPEN_MODES.includes(item.openMode as CaptureOpenMode)
+        ? (item.openMode as CaptureOpenMode)
+        : base.openMode,
+      openFocus: item.openFocus !== false,
     });
   }
   return out;
 }
 
 export interface CaptureVariables {
+  /** `{{value}}` and `{{input}}` are aliases for the same user-provided text. */
+  value?: string;
+  input?: string;
   selection?: string;
   clipboard?: string;
-  input?: string;
+  url?: string;
+  tags?: string;
+  filePath?: string;
+  folder?: string;
+  file?: string;
   /** Defaults to now. */
   date?: Date;
   /** Defaults to the ISO date, which is a useful note title. */
@@ -115,10 +337,20 @@ export interface CaptureVariables {
 
 export function expandCaptureTemplate(template: string, vars: CaptureVariables = {}): string {
   const date = vars.date ?? new Date();
+  const value = vars.value ?? vars.input ?? '';
+  const filePath = vars.filePath ?? '';
+  const file = vars.file ?? (filePath ? filePath.split(/[\\/]/).pop() ?? '' : '');
+  const folder = vars.folder ?? (filePath ? filePath.split(/[\\/]/).slice(0, -1).join('/') : '');
   const values: Record<string, string> = {
+    value,
+    input: value,
     selection: vars.selection ?? '',
     clipboard: vars.clipboard ?? '',
-    input: vars.input ?? '',
+    url: vars.url ?? '',
+    tags: vars.tags ?? '',
+    filePath,
+    file,
+    folder,
     date: isoDate(date),
     time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
     title: vars.title ?? isoDate(date),
@@ -126,6 +358,31 @@ export function expandCaptureTemplate(template: string, vars: CaptureVariables =
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name: string) =>
     name in values ? values[name] : match,
   );
+}
+
+/** The template actually used by a preset. Disabled formatting writes only the value. */
+export function effectiveCaptureTemplate(preset: CapturePreset): string {
+  return preset.formatEnabled ? preset.template : '{{value}}';
+}
+
+/** Resolve the 📅 date chosen by a preset (`weekend` means this Saturday, inclusive). */
+export function captureDueDate(
+  date: Date,
+  option: CaptureDueDateOption = 'today',
+  customDays = 0,
+): Date {
+  const out = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  if (option === 'custom') {
+    out.setDate(out.getDate() + Math.max(0, Math.trunc(customDays)));
+  } else if (option === 'weekend') {
+    const delta = (6 - out.getDay() + 7) % 7;
+    out.setDate(out.getDate() + delta);
+  } else if (option === 'monthEnd') {
+    out.setDate(new Date(out.getFullYear(), out.getMonth() + 1, 0).getDate());
+  } else if (option === 'yearEnd') {
+    out.setMonth(11, 31);
+  }
+  return out;
 }
 
 /**
@@ -140,15 +397,18 @@ export function applyCaptureTokens(
   date: Date,
   autoCreated: boolean,
   autoDue: boolean,
+  dueDateOption: CaptureDueDateOption = 'today',
+  customDueDays = 0,
 ): string {
   if (!autoCreated && !autoDue) return snippet;
-  const day = isoDate(date);
+  const created = isoDate(date);
+  const due = isoDate(captureDueDate(date, dueDateOption, customDueDays));
   const lines = snippet.split('\n');
   const index = lines.findIndex((line) => /^\s*(?:[-*+]|\d+[.)])\s+\[[^\]]\]/.test(line));
   if (index === -1) return snippet;
   let line = lines[index];
-  if (autoCreated && !line.includes('➕')) line = `${line} ➕ ${day}`;
-  if (autoDue && !line.includes('📅')) line = `${line} 📅 ${day}`;
+  if (autoCreated && !line.includes('➕')) line = `${line} ➕ ${created}`;
+  if (autoDue && !line.includes('📅')) line = `${line} 📅 ${due}`;
   lines[index] = line;
   return lines.join('\n');
 }
@@ -160,46 +420,174 @@ function splitFrontmatterText(text: string): { head: string; body: string } {
   return { head: match[0], body: text.slice(match[0].length) };
 }
 
-/**
- * Put a snippet into a note at the configured position.
- *
- * `heading` is a literal line match rather than a markdown parser: users type
- * `## 任务`, and a fuzzy heading search would put the snippet under a heading
- * they did not mean. When the heading is missing it is created at the end.
- */
+export interface CaptureInsertOptions {
+  insertAtEnd?: boolean;
+  considerSubsections?: boolean;
+  createIfMissing?: boolean;
+  createLocation?: 'top' | 'bottom';
+}
+
+export interface CaptureInsertResult {
+  content: string;
+  inserted: boolean;
+  reason?: 'emptyText' | 'missingHeading';
+  missingHeading?: string;
+}
+
+function headingLevel(line: string): number {
+  const match = /^\s{0,3}(#{1,6})\s/.exec(line);
+  return match?.[1] ? match[1].length : -1;
+}
+
+function findHeadingLine(lines: readonly string[], target: string): number {
+  const needle = target.replace(/\\n/g, '').trimEnd();
+  if (!needle) return -1;
+  let partial = -1;
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = (lines[i] ?? '').trimStart();
+    if (line === needle) return i;
+    if (line.startsWith(needle)) {
+      if (line.slice(needle.length).trim() === '') return i;
+      if (partial === -1) partial = i;
+    }
+  }
+  return partial;
+}
+
+function findSectionEndLine(lines: readonly string[], start: number, includeSubsections: boolean): number {
+  const level = headingLevel(lines[start] ?? '');
+  if (level === -1) return start;
+  let end = start;
+  for (let i = start + 1; i < lines.length; i += 1) {
+    const current = headingLevel(lines[i] ?? '');
+    if (current !== -1 && (!includeSubsections || current <= level)) break;
+    end = i;
+  }
+  while (end > start && !(lines[end] ?? '').trim()) end -= 1;
+  return end;
+}
+
+/** Put a snippet into a note and report when a configured heading blocks it. */
+export function composeCaptureInsert(
+  text: string,
+  snippet: string,
+  placement: CapturePlacement,
+  heading = '',
+  options: CaptureInsertOptions = {},
+): CaptureInsertResult {
+  const block = snippet.replace(/\s+$/, '');
+  if (!block) return { content: text, inserted: false, reason: 'emptyText' };
+
+  const insertAtTop = (value: string) => {
+    const { head, body } = splitFrontmatterText(text);
+    const rest = body.replace(/^\s*\n/, '');
+    return `${head}\n${value}\n\n${rest}`.replace(/\n{3,}/g, (m) => m.slice(0, 2));
+  };
+  const appendAtBottom = (value: string) => {
+    const prefix = text === '' || text.endsWith('\n') ? text : `${text}\n`;
+    return `${prefix}${value}\n`;
+  };
+  const insertAfterLine = (value: string, lineIndex: number) => {
+    const lines = text.split('\n');
+    const before = lines.slice(0, lineIndex + 1).join('\n');
+    const after = lines.slice(lineIndex + 1).join('\n').replace(/^\s*\n/, '');
+    return `${before}\n\n${value}\n\n${after}`.replace(/\n{3,}/g, (m) => m.slice(0, 2));
+  };
+
+  if (placement === 'top') return { content: insertAtTop(block), inserted: true };
+
+  if (placement === 'heading' && heading.trim()) {
+    const wanted = heading.trim();
+    const lines = text.split('\n');
+    let index = findHeadingLine(lines, wanted);
+    if (index !== -1 && options.insertAtEnd) {
+      index = findSectionEndLine(lines, index, options.considerSubsections === true);
+    }
+    if (index !== -1) return { content: insertAfterLine(block, index), inserted: true };
+    if (options.createIfMissing === false) {
+      return { content: text, inserted: false, reason: 'missingHeading', missingHeading: wanted };
+    }
+    const value = `${wanted}\n\n${block}`;
+    const createdAtBottom = text === ''
+      ? `${value}\n`
+      : `${text.replace(/\s+$/, '')}\n\n${value}\n`;
+    return {
+      content: options.createLocation === 'top' ? insertAtTop(value) : createdAtBottom,
+      inserted: true,
+    };
+  }
+
+  return { content: appendAtBottom(block), inserted: true };
+}
+
+/** Put a snippet into a note at the configured position. */
 export function insertCaptureSnippet(
   text: string,
   snippet: string,
   placement: CapturePlacement,
   heading = '',
 ): string {
-  const block = snippet.replace(/\s+$/, '');
-  if (!block) return text;
+  return composeCaptureInsert(text, snippet, placement, heading).content;
+}
 
-  if (placement === 'top') {
-    const { head, body } = splitFrontmatterText(text);
-    const rest = body.replace(/^\s*\n/, '');
-    return `${head}\n${block}\n\n${rest}`.replace(/\n{3,}/g, (m) => m.slice(0, 2));
-  }
+/** Insert text at a 1-based `{line, col}` caret, clamping both ends. */
+export function insertTextAtCursor(
+  text: string,
+  insert: string,
+  cursor?: { line: number; col: number } | null,
+): string {
+  if (!insert) return text;
+  if (!cursor || !Number.isFinite(cursor.line) || cursor.line < 1) return `${text}${insert}`;
+  const lines = text.split('\n');
+  const lineIndex = Math.min(cursor.line - 1, lines.length - 1);
+  const line = lines[lineIndex] ?? '';
+  const col = Math.max(0, Math.min((cursor.col || 1) - 1, line.length));
+  let offset = col;
+  for (let i = 0; i < lineIndex; i += 1) offset += (lines[i]?.length ?? 0) + 1;
+  return `${text.slice(0, offset)}${insert}${text.slice(offset)}`;
+}
 
-  if (placement === 'heading' && heading.trim()) {
-    const wanted = heading.trim();
-    const lines = text.split('\n');
-    const index = lines.findIndex((line) => line.trim() === wanted);
-    if (index !== -1) {
-      const before = lines.slice(0, index + 1).join('\n');
-      const after = lines.slice(index + 1).join('\n').replace(/^\s*\n/, '');
-      return `${before}\n\n${block}\n\n${after}`.replace(/\n{3,}/g, (m) => m.slice(0, 2));
-    }
-    const prefix = text === '' || text.endsWith('\n') ? text : `${text}\n`;
-    return `${prefix}\n${wanted}\n\n${block}\n`;
-  }
-
-  const prefix = text === '' || text.endsWith('\n') ? text : `${text}\n`;
-  return `${prefix}${block}\n`;
+/** Insert a capture on a new line above/below the active caret line. */
+export function insertCaptureLine(
+  text: string,
+  insert: string,
+  cursor: { line: number; col: number } | null | undefined,
+  direction: CaptureNewLineDirection,
+): string {
+  if (!insert) return text;
+  const lines = text.split('\n');
+  const index = Math.max(0, Math.min((cursor?.line ?? lines.length) - 1, lines.length - 1));
+  const block = insert.replace(/\s+$/, '');
+  if (direction === 'above') lines.splice(index, 0, block);
+  else lines.splice(index + 1, 0, block);
+  return lines.join('\n');
 }
 
 /** Where a preset writes, relative to the workspace root. */
+export function captureTargetRelativePath(
+  preset: CapturePreset,
+  periodic: PeriodicConfig,
+  weekStartsOn: number,
+  date: Date,
+): string {
+  if (preset.target === 'inbox') return '';
+  if (preset.target === 'periodic') {
+    return periodicPath(preset.period, date, periodic[preset.period], weekStartsOn);
+  }
+  if (preset.target === 'folder') {
+    const name = formatDailyFilename(date, preset.fileName || 'YYYY-MM-DD.md');
+    const folder = formatDailyFilename(date, preset.path.trim());
+    return folder ? joinInFolder(folder, name) : name;
+  }
+  return formatDailyFilename(date, preset.path.trim());
+}
+
+/** Expand date tokens in a workspace-relative capture path. */
+export function formatCapturePath(path: string, date: Date): string {
+  return formatDailyFilename(date, path.trim());
+}
+
+/** Absolute path used by the frontend executor. */
 export function captureTargetPath(
   preset: CapturePreset,
   root: string,
@@ -207,14 +595,7 @@ export function captureTargetPath(
   weekStartsOn: number,
   date: Date,
 ): string {
-  if (preset.target === 'periodic') {
-    return joinInFolder(root, periodicPath(preset.period, date, periodic[preset.period], weekStartsOn));
-  }
-  if (preset.target === 'folder') {
-    const folder = joinInFolder(root, preset.path);
-    return joinInFolder(folder, formatDailyFilename(date, preset.fileName || 'YYYY-MM-DD.md'));
-  }
-  return joinInFolder(root, preset.path);
+  return joinInFolder(root, captureTargetRelativePath(preset, periodic, weekStartsOn, date));
 }
 
 /** The text a preset would insert right now, before any insertion position is applied. */
@@ -224,9 +605,11 @@ export function capturePreview(
 ): string {
   const date = vars.date ?? new Date();
   return applyCaptureTokens(
-    expandCaptureTemplate(preset.template, { ...vars, date }),
+    expandCaptureTemplate(effectiveCaptureTemplate(preset), { ...vars, date }),
     date,
     preset.autoCreated,
     preset.autoDue,
+    preset.dueDateOption,
+    preset.customDueDays,
   );
 }
